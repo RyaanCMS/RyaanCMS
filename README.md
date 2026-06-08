@@ -140,66 +140,266 @@ The **Intelligence Ledger** (`/wisdom`) stores lessons, decisions, and outcomes 
 
 ---
 
-## Getting Started
+## Installation Guide
 
-### Requirements
+### Prerequisites
 
-- PHP 8.2+
-- Composer
-- Node.js 18+
-- MySQL 8.0+ or PostgreSQL 15+
-- Redis (optional, for queue/cache)
+Make sure the following are installed on your machine before you begin:
 
-### Installation
+| Requirement | Version | Download |
+|-------------|---------|----------|
+| PHP | 8.2 or higher | [php.net](https://www.php.net/downloads) |
+| Composer | 2.x | [getcomposer.org](https://getcomposer.org) |
+| Node.js | 18 or higher | [nodejs.org](https://nodejs.org) |
+| MySQL | 8.0+ **or** PostgreSQL 15+ | [mysql.com](https://www.mysql.com) |
+| Git | Any recent version | [git-scm.com](https://git-scm.com) |
+| Redis | Optional (for queues/cache) | [redis.io](https://redis.io) |
+
+Verify your environment before proceeding:
 
 ```bash
-# Clone the repository
-git clone https://github.com/RyaanCMS/RyaanCMS.git
-cd RyaanCMS
-
-# Install PHP dependencies
-composer install
-
-# Install Node dependencies
-npm install
-
-# Copy environment file
-cp .env.example .env
-
-# Generate application key
-php artisan key:generate
-
-# Configure your database in .env
-# DB_DATABASE=ryaancms
-# DB_USERNAME=root
-# DB_PASSWORD=
-
-# Run migrations
-php artisan migrate --seed
-
-# Build frontend assets
-npm run build
-
-# Start the server
-php artisan serve
+php -v        # should show 8.2+
+composer -V   # should show 2.x
+node -v       # should show v18+
+npm -v        # should show 9+
+mysql --version
+git --version
 ```
 
-Visit `http://localhost:8000` — register your account and start building.
+---
 
-### AI Provider Setup
+### Step 1 — Clone the Repository
 
-Add your AI API keys to `.env`:
+```bash
+git clone https://github.com/RyaanCMS/RyaanCMS.git
+cd RyaanCMS
+```
 
+---
+
+### Step 2 — Install PHP Dependencies
+
+```bash
+composer install
+```
+
+> On a production server add `--optimize-autoloader --no-dev` to skip dev packages.
+
+---
+
+### Step 3 — Install Node Dependencies
+
+```bash
+npm install
+```
+
+---
+
+### Step 4 — Configure Environment
+
+Copy the example environment file and open it in your editor:
+
+```bash
+# Linux / macOS
+cp .env.example .env
+
+# Windows
+copy .env.example .env
+```
+
+Edit `.env` and update the following sections:
+
+**App settings**
 ```env
-# At least one is required
+APP_NAME=RyaanCMS
+APP_URL=http://localhost:8000
+APP_ENV=local
+APP_DEBUG=true
+```
+
+**Database**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ryaancms
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
+
+> For PostgreSQL change `DB_CONNECTION=pgsql` and `DB_PORT=5432`.
+
+**AI Provider** — at least one API key is required:
+```env
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GEMINI_API_KEY=AIza...
 
-# Active provider (anthropic | openai | gemini)
+# Which provider to use by default (anthropic | openai | gemini)
 AI_PROVIDER=anthropic
 AI_MODEL=claude-sonnet-4-6
 ```
+
+Get your API keys:
+- **Anthropic (Claude)** → [console.anthropic.com](https://console.anthropic.com)
+- **OpenAI (GPT)** → [platform.openai.com](https://platform.openai.com)
+- **Google (Gemini)** → [aistudio.google.com](https://aistudio.google.com)
+
+---
+
+### Step 5 — Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+---
+
+### Step 6 — Create the Database
+
+Create the database in MySQL before running migrations:
+
+```sql
+CREATE DATABASE ryaancms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Or with the MySQL CLI:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE ryaancms;"
+```
+
+---
+
+### Step 7 — Run Migrations & Seeders
+
+```bash
+php artisan migrate --seed
+```
+
+This creates all tables and seeds default data (AI providers, settings, sample marketplace items).
+
+---
+
+### Step 8 — Build Frontend Assets
+
+```bash
+# Development (with hot reload)
+npm run dev
+
+# Production (minified build)
+npm run build
+```
+
+---
+
+### Step 9 — Set Storage Permissions
+
+```bash
+# Linux / macOS only
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+```
+
+Link the public storage disk:
+
+```bash
+php artisan storage:link
+```
+
+---
+
+### Step 10 — Start the Server
+
+```bash
+php artisan serve
+```
+
+Visit **http://localhost:8000** in your browser, register your account, and start building.
+
+---
+
+### Optional: Queue Worker
+
+For background AI pipeline jobs, start a queue worker in a separate terminal:
+
+```bash
+php artisan queue:work --queue=pipeline,default --tries=3
+```
+
+> On production use **Supervisor** to keep the worker running. See [Laravel Queue docs](https://laravel.com/docs/queues#supervisor-configuration).
+
+---
+
+### Optional: Redis Cache & Sessions
+
+If Redis is installed, update `.env` for faster caching:
+
+```env
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+```
+
+---
+
+### Production Deployment
+
+Additional steps for a live server:
+
+```bash
+# Optimize for production
+composer install --optimize-autoloader --no-dev
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+
+# Set APP_ENV and APP_DEBUG in .env
+APP_ENV=production
+APP_DEBUG=false
+```
+
+Point your web server (Nginx/Apache) document root to the `/public` folder.
+
+**Nginx example:**
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+    root /var/www/RyaanCMS/public;
+
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+---
+
+### Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `php artisan` not found | Make sure you're inside the `RyaanCMS` folder |
+| `SQLSTATE` / table not found | Run `php artisan migrate` |
+| Blank page / 500 error | Check `storage/logs/laravel.log` |
+| Assets not loading | Run `npm run build` then hard-refresh |
+| AI build fails | Verify your API key is set correctly in `.env` |
+| Permission denied on storage | Run `chmod -R 775 storage bootstrap/cache` |
+| `npm run dev` port conflict | Change `VITE_PORT=5174` in `.env` |
 
 ---
 
