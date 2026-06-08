@@ -999,6 +999,19 @@ $messageData = $messages->map(fn($m) => [
 ]);
 @endphp
 
+@php
+    $initProvider = $conversation->provider ?? ($activeProviders->first()?->provider ?? 'claude');
+    $firstProviderModels = $activeProviders->first()
+        ? config('ai.providers.' . $activeProviders->first()->provider . '.models', ['claude-sonnet-4-6' => 'Claude Sonnet'])
+        : ['claude-sonnet-4-6' => 'Claude Sonnet'];
+    $initModel = $conversation->model ?? array_key_first($firstProviderModels) ?? 'claude-sonnet-4-6';
+    $providerModelsMap = $activeProviders->mapWithKeys(function ($p) {
+        return [$p->provider => array_keys(config('ai.providers.' . $p->provider . '.models', []))];
+    })->toArray();
+    $providerDefaultsMap = $activeProviders->mapWithKeys(function ($p) {
+        return [$p->provider => config('ai.providers.' . $p->provider . '.default_model', '')];
+    })->toArray();
+@endphp
 @push('scripts')
 <script>
 function builderApp() {
@@ -1025,10 +1038,10 @@ function builderApp() {
         isRecording: false,
         recognition: null,
         _streamAbortCtrl: null,
-        selectedProvider: '{{ $conversation->provider ?? ($activeProviders->first()?->provider ?? "claude") }}',
-        selectedModel: '{{ $conversation->model ?? ($activeProviders->first() ? array_key_first(config("ai.providers.".$activeProviders->first()->provider.".models", ["claude-sonnet-4-6"=>""])) : "claude-sonnet-4-6") }}',
-        providerModels: @json($activeProviders->mapWithKeys(fn($p) => [$p->provider => array_keys(config('ai.providers.'.$p->provider.'.models', []))])->toArray()),
-        providerDefaults: @json($activeProviders->mapWithKeys(fn($p) => [$p->provider => config('ai.providers.'.$p->provider.'.default_model', '')])->toArray()),
+        selectedProvider: '{{ $initProvider }}',
+        selectedModel: '{{ $initModel }}',
+        providerModels: @json($providerModelsMap),
+        providerDefaults: @json($providerDefaultsMap),
         conversationId: {{ $conversation->id }},
         projectId: {{ $project->id }},
         tokensUsed: {{ (int) $project->ai_tokens_used }},

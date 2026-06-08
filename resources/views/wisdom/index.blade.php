@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Intelligence Ledger')
 
@@ -12,7 +12,7 @@
             <p class="text-sm mt-0.5" style="color:var(--text-3)">Accumulated wisdom from every project build</p>
         </div>
         <a href="{{ route('wisdom.stats') }}" class="text-xs px-3 py-1.5 rounded-lg border"
-           style="border-color:var(--border-1);color:var(--text-2)" target="_blank">
+           style="border-color:var(--border);color:var(--text-2)" target="_blank">
             Raw Stats
         </a>
     </div>
@@ -46,7 +46,7 @@
     @endphp
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         @foreach($statCards as $card)
-        <div class="rounded-xl p-4 border" style="background:var(--card-bg);border-color:var(--border-1)">
+        <div class="rounded-xl p-4 border" style="background:var(--card-bg);border-color:var(--border)">
             <div class="text-2xl font-bold" style="color:{{ $card['color'] }}">{{ $card['value'] }}</div>
             <div class="text-xs mt-0.5" style="color:var(--text-3)">{{ $card['label'] }}</div>
         </div>
@@ -56,13 +56,13 @@
     {{-- Filters --}}
     <form method="GET" action="{{ route('wisdom.index') }}" class="flex flex-wrap gap-3 mb-5">
         <input type="text" name="search" value="{{ request('search') }}"
-               placeholder="Search lessons, recommendations…"
+               placeholder="Search lessons, recommendationsâ€¦"
                class="flex-1 min-w-[200px] rounded-lg px-3 py-2 text-sm border"
-               style="background:var(--input-bg);border-color:var(--border-1);color:var(--text-1)">
+               style="background:var(--input-bg);border-color:var(--border);color:var(--text-1)">
 
         <select name="domain"
                 class="rounded-lg px-3 py-2 text-sm border"
-                style="background:var(--input-bg);border-color:var(--border-1);color:var(--text-1)">
+                style="background:var(--input-bg);border-color:var(--border);color:var(--text-1)">
             <option value="all">All Domains</option>
             @foreach($domains as $d)
             <option value="{{ $d }}" @selected(request('domain') === $d)>{{ ucfirst($d) }}</option>
@@ -71,7 +71,7 @@
 
         <select name="entry_type"
                 class="rounded-lg px-3 py-2 text-sm border"
-                style="background:var(--input-bg);border-color:var(--border-1);color:var(--text-1)">
+                style="background:var(--input-bg);border-color:var(--border);color:var(--text-1)">
             <option value="all">All Types</option>
             @foreach(['lesson','decision','outcome','autopsy'] as $t)
             <option value="{{ $t }}" @selected(request('entry_type') === $t)>{{ ucfirst($t) }}</option>
@@ -82,24 +82,24 @@
                 style="background:#7c3aed">Filter</button>
         @if(request()->hasAny(['search','domain','entry_type']))
         <a href="{{ route('wisdom.index') }}" class="px-4 py-2 rounded-lg text-sm border"
-           style="border-color:var(--border-1);color:var(--text-2)">Clear</a>
+           style="border-color:var(--border);color:var(--text-2)">Clear</a>
         @endif
     </form>
 
     {{-- Entries Table --}}
     @if($entries->isEmpty())
-    <div class="rounded-xl border p-12 text-center" style="background:var(--card-bg);border-color:var(--border-1)">
-        <div class="text-5xl mb-3">🧠</div>
+    <div class="rounded-xl border p-12 text-center" style="background:var(--card-bg);border-color:var(--border)">
+        <div class="text-5xl mb-3">ðŸ§ </div>
         <div class="font-medium" style="color:var(--text-1)">No entries yet</div>
         <div class="text-sm mt-1" style="color:var(--text-3)">
             Entries accumulate automatically as you build projects with AI.
         </div>
     </div>
     @else
-    <div class="rounded-xl border overflow-hidden" style="border-color:var(--border-1)">
+    <div class="rounded-xl border overflow-hidden" style="border-color:var(--border)">
         <table class="w-full text-sm">
             <thead>
-                <tr style="background:var(--table-head-bg);border-bottom:1px solid var(--border-1)">
+                <tr style="background:var(--card-sub);border-bottom:1px solid var(--border)">
                     <th class="text-left px-4 py-3 font-medium" style="color:var(--text-2)">Lesson</th>
                     <th class="text-left px-4 py-3 font-medium w-24 hidden md:table-cell" style="color:var(--text-2)">Domain</th>
                     <th class="text-left px-4 py-3 font-medium w-24 hidden md:table-cell" style="color:var(--text-2)">Type</th>
@@ -120,21 +120,21 @@
                     };
                     $confColor = $entry->confidence >= 0.85 ? '#10b981' : ($entry->confidence >= 0.7 ? '#f59e0b' : '#ef4444');
                 @endphp
-                <tr style="border-bottom:1px solid var(--border-1);background:var(--card-bg)"
+                <tr style="border-bottom:1px solid var(--border);background:var(--card-bg)"
                     onmouseover="this.style.background='var(--hover-bg)'"
                     onmouseout="this.style.background='var(--card-bg)'">
                     <td class="px-4 py-3">
                         <div class="font-medium truncate max-w-xs" style="color:var(--text-1)">
-                            {{ Str::limit($entry->lesson ?? $entry->recommendation ?? '—', 80) }}
+                            {{ Str::limit($entry->lesson ?? $entry->recommendation ?? 'â€”', 80) }}
                         </div>
                         @if($entry->recommendation)
                         <div class="text-xs mt-0.5 truncate max-w-xs" style="color:var(--text-3)">
-                            → {{ Str::limit($entry->recommendation, 70) }}
+                            â†’ {{ Str::limit($entry->recommendation, 70) }}
                         </div>
                         @endif
                         @if($entry->is_rule_candidate)
                         <span class="inline-block text-xs px-1.5 py-0.5 rounded mt-1"
-                              style="background:rgba(245,158,11,0.15);color:#f59e0b">⭐ Rule candidate</span>
+                              style="background:rgba(245,158,11,0.15);color:#f59e0b">â­ Rule candidate</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 hidden md:table-cell">
@@ -155,26 +155,26 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 hidden lg:table-cell">
-                        <span class="text-xs" style="color:var(--text-2)">{{ $entry->reuse_count }}×</span>
+                        <span class="text-xs" style="color:var(--text-2)">{{ $entry->reuse_count }}Ã—</span>
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('wisdom.show', $entry) }}"
                                class="text-xs px-2 py-1 rounded border"
-                               style="border-color:var(--border-1);color:var(--text-2)">View</a>
+                               style="border-color:var(--border);color:var(--text-2)">View</a>
                             @unless($entry->is_rule_candidate)
                             <form method="POST" action="{{ route('wisdom.promote', $entry) }}">
                                 @csrf
                                 <button type="submit" class="text-xs px-2 py-1 rounded border"
                                         style="border-color:#f59e0b;color:#f59e0b"
-                                        title="Promote to rule candidate">⭐</button>
+                                        title="Promote to rule candidate">â­</button>
                             </form>
                             @endunless
                             <form method="POST" action="{{ route('wisdom.destroy', $entry) }}"
                                   onsubmit="return confirm('Delete this entry?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-xs px-2 py-1 rounded border"
-                                        style="border-color:#ef4444;color:#ef4444">×</button>
+                                        style="border-color:#ef4444;color:#ef4444">Ã—</button>
                             </form>
                         </div>
                     </td>
@@ -192,3 +192,4 @@
 
 </div>
 @endsection
+

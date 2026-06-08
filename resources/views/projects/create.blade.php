@@ -11,7 +11,7 @@
         body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
         .backdrop {
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f0f14 0%, #1a1025 50%, #0f1420 100%);
+            background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 50%, #eef9f0 100%);
             display: flex; align-items: center; justify-content: center;
             padding: 24px 16px;
         }
