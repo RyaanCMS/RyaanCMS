@@ -6,6 +6,7 @@ use App\Models\ProjectWisdom;
 use App\Services\AI\WisdomEngine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WisdomController extends Controller
 {
@@ -40,7 +41,8 @@ class WisdomController extends Controller
             $domains = ProjectWisdom::where('user_id', Auth::id())
                 ->distinct('domain')->pluck('domain')->sort()->values();
             $needsMigration = false;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            Log::warning('WisdomController@index failed — table may not exist yet', ['error' => $e->getMessage()]);
             $entries        = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
             $domains        = collect();
             $needsMigration = true;
@@ -56,7 +58,9 @@ class WisdomController extends Controller
         try {
             $this->authorizeEntry($wisdom);
             $wisdom->incrementReuse();
-        } catch (\Throwable) {}
+        } catch (\Throwable $e) {
+            Log::warning('WisdomController@show failed', ['wisdom_id' => $wisdom->id, 'error' => $e->getMessage()]);
+        }
         return view('wisdom.show', compact('wisdom'));
     }
 
@@ -65,7 +69,9 @@ class WisdomController extends Controller
         try {
             $this->authorizeEntry($wisdom);
             $wisdom->delete();
-        } catch (\Throwable) {}
+        } catch (\Throwable $e) {
+            Log::warning('WisdomController@destroy failed', ['wisdom_id' => $wisdom->id, 'error' => $e->getMessage()]);
+        }
         return redirect()->route('wisdom.index')->with('success', 'Entry deleted.');
     }
 
@@ -74,7 +80,9 @@ class WisdomController extends Controller
         try {
             $this->authorizeEntry($wisdom);
             $wisdom->markAsRuleCandidate('Manual promotion by ' . Auth::user()->name);
-        } catch (\Throwable) {}
+        } catch (\Throwable $e) {
+            Log::warning('WisdomController@promote failed', ['wisdom_id' => $wisdom->id, 'error' => $e->getMessage()]);
+        }
         return back()->with('success', 'Entry marked as rule candidate.');
     }
 

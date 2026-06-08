@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id', 'name', 'slug', 'description', 'type', 'framework',
@@ -23,6 +24,7 @@ class Project extends Model
         'blueprint'        => 'array',
         'env_variables'    => 'array',
         'last_deployed_at' => 'datetime',
+        'deleted_at'       => 'datetime',
     ];
 
     protected static function boot()

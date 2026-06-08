@@ -369,7 +369,8 @@ class CodeGeneratorService
             ->pluck('updated_at')
             ->implode(',');
 
-        return 'ai_resp:' . md5("{$provider}|{$model}|{$project->id}|{$prompt}|{$fileFingerprint}");
+        $userId = auth()->id() ?? 0;
+        return 'ai_resp:' . md5("{$userId}|{$provider}|{$model}|{$project->id}|{$prompt}|{$fileFingerprint}");
     }
 
     /**
