@@ -365,12 +365,13 @@
                 </a>
 
                 <div class="px-4 py-3 rounded-xl text-left" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                    <p class="text-xs font-semibold text-slate-500 mb-2">Quick Start Tips</p>
-                    <ul class="text-xs text-slate-500 space-y-1">
-                        <li>→ Go to Settings → AI Providers to add your API key</li>
-                        <li>→ Create a new project and start building with AI</li>
-                        <li>→ Explore the Marketplace for ready-made plugins</li>
+                    <p class="text-xs font-semibold text-slate-500 mb-2">Quick Start</p>
+                    <ul class="text-xs text-slate-500 space-y-1.5">
+                        <li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold flex-shrink-0">1.</span> Log in and create your first project</li>
+                        <li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold flex-shrink-0">2.</span> When ready to use AI, go to <strong class="text-slate-600">Settings → AI Providers</strong> and add an API key</li>
+                        <li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold flex-shrink-0">3.</span> Start building — the AI pipeline, blueprint tools, and marketplace are all ready</li>
                     </ul>
+                    <p class="text-xs text-emerald-600 font-medium mt-2.5">✓ No API key required to get started</p>
                 </div>
             </div>
         </div>
