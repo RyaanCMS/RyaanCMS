@@ -285,8 +285,7 @@
         <!-- Headline -->
         <h1 class="display-1 mb-6">
             Build Smarter.<br>
-            <span class="g-text">Ship Faster.</span><br>
-            <span style="color:#6d28d9; opacity:0.6;">Learn Forever.</span>
+            <span class="g-text">Ship Faster.</span> <span style="color:#6d28d9; opacity:0.6;">Learn Forever.</span>
         </h1>
 
         <!-- Subheadline -->
