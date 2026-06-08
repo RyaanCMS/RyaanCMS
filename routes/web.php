@@ -1,0 +1,155 @@
+<?php
+
+use App\Http\Controllers\AIBuilderController;
+use App\Http\Controllers\PipelineController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InstallController;
+use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\WisdomController;
+use Illuminate\Support\Facades\Route;
+
+// Installation Wizard (no auth, no installed-check)
+Route::get('/install',           [InstallController::class, 'welcome'])->name('install.welcome');
+Route::get('/install/database',  [InstallController::class, 'database'])->name('install.database');
+Route::post('/install/database', [InstallController::class, 'saveDatabase'])->name('install.database.save');
+Route::get('/install/migrate',   [InstallController::class, 'migrate'])->name('install.migrate');
+Route::post('/install/migrate',  [InstallController::class, 'runMigrate'])->name('install.migrate.run');
+Route::get('/install/admin',     [InstallController::class, 'admin'])->name('install.admin');
+Route::post('/install/admin',    [InstallController::class, 'saveAdmin'])->name('install.admin.save');
+Route::get('/install/complete',  [InstallController::class, 'complete'])->name('install.complete');
+
+// Welcome / Landing Page
+Route::get('/', function () {
+    if (auth()->check()) return redirect()->route('dashboard');
+    return view('welcome');
+})->name('home');
+
+// Legal Pages
+Route::get('/terms', fn() => view('pages.terms'))->name('terms');
+Route::get('/privacy', fn() => view('pages.privacy'))->name('privacy');
+
+// Authentication
+Route::middleware('guest')->group(function () {
+    Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
+    Route::post('/login',   [LoginController::class, 'login']);
+    Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
+    Route::post('/register',[RegisterController::class, 'register']);
+});
+
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Authenticated Routes
+Route::middleware('auth')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Projects
+    Route::prefix('projects')->name('projects.')->group(function () {
+        Route::get('/',                   [ProjectController::class, 'index'])->name('index');
+        Route::get('/create',             [ProjectController::class, 'create'])->name('create');
+        Route::post('/',                  [ProjectController::class, 'store'])->name('store');
+        Route::get('/{project}',          [ProjectController::class, 'show'])->name('show');
+        Route::put('/{project}/settings', [ProjectController::class, 'updateSettings'])->name('update-settings');
+        Route::delete('/{project}',       [ProjectController::class, 'destroy'])->name('destroy');
+    });
+
+    // Autonomous Pipeline
+    Route::prefix('pipeline')->name('pipeline.')->group(function () {
+        Route::get('/{project}',                         [PipelineController::class, 'show'])->name('show');
+        Route::post('/{project}/start',                  [PipelineController::class, 'start'])->name('start')->middleware('throttle:3,1');
+        Route::get('/{project}/runs/{run}/stream',       [PipelineController::class, 'stream'])->name('stream');
+        Route::get('/{project}/runs/{run}/status',       [PipelineController::class, 'status'])->name('status');
+        Route::delete('/{project}/runs/{run}',           [PipelineController::class, 'destroy'])->name('destroy');
+    });
+
+    // AI Builder
+    Route::prefix('builder')->name('builder.')->group(function () {
+        Route::get('/{project}',                          [AIBuilderController::class, 'show'])->name('show');
+        // AI API calls — throttled to 20 requests/minute per user to prevent credit abuse
+        Route::post('/{project}/chat',                    [AIBuilderController::class, 'chat'])->name('chat')->middleware('throttle:20,1');
+        Route::post('/{project}/stream',                  [AIBuilderController::class, 'streamChat'])->name('stream')->middleware('throttle:20,1');
+        Route::get('/{project}/files/{file}',             [AIBuilderController::class, 'getFile'])->name('file.get');
+        Route::put('/{project}/files/{file}',             [AIBuilderController::class, 'saveFile'])->name('file.save');
+        Route::post('/{project}/files',                   [AIBuilderController::class, 'createFile'])->name('file.create');
+        Route::delete('/{project}/files/{file}',          [AIBuilderController::class, 'deleteFile'])->name('file.delete');
+        Route::post('/{project}/conversations',           [AIBuilderController::class, 'newConversation'])->name('conversation.new');
+        Route::get('/{project}/preview',                  [AIBuilderController::class, 'previewHtml'])->name('preview');
+        // Blueprint-Driven Development endpoints (near-zero AI cost)
+        Route::post('/{project}/discover',                [AIBuilderController::class, 'discover'])->name('discover')->middleware('throttle:10,1');
+        Route::get('/{project}/blueprint',                [AIBuilderController::class, 'getBlueprint'])->name('blueprint.get');
+        Route::post('/{project}/generate-crud',           [AIBuilderController::class, 'generateCrud'])->name('crud.generate');
+        Route::get('/domain-packs',                       [AIBuilderController::class, 'domainPacks'])->name('domain_packs');
+        // Component Registry (zero AI cost)
+        Route::get('/components',                         [AIBuilderController::class, 'components'])->name('components');
+        Route::post('/{project}/components/{key}/insert', [AIBuilderController::class, 'insertComponent'])->name('component.insert');
+        // Smart Questions Engine
+        Route::get('/{project}/smart-questions',          [AIBuilderController::class, 'smartQuestions'])->name('smart_questions');
+    });
+
+    // Settings
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/',                              [SettingsController::class, 'index'])->name('index');
+        Route::put('/profile',                       [SettingsController::class, 'updateProfile'])->name('profile');
+        Route::put('/password',                      [SettingsController::class, 'updatePassword'])->name('password');
+        Route::put('/preferences',                   [SettingsController::class, 'updatePreferences'])->name('preferences');
+        Route::post('/branding',                     [SettingsController::class, 'saveBranding'])->name('branding');
+        Route::post('/branding/upload',              [SettingsController::class, 'uploadBrandingAsset'])->name('branding.upload');
+        Route::post('/ai-providers',                 [SettingsController::class, 'saveAIProvider'])->name('ai-provider.save');
+        Route::delete('/ai-providers/{aiProvider}',  [SettingsController::class, 'deleteAIProvider'])->name('ai-provider.delete');
+        Route::post('/ai-providers/test',            [SettingsController::class, 'testAIProvider'])->name('ai-provider.test');
+    });
+
+    // Menu Management
+    Route::prefix('menus')->name('menus.')->group(function () {
+        Route::get('/',                             [MenuController::class, 'index'])->name('index');
+        Route::get('/create',                       [MenuController::class, 'create'])->name('create');
+        Route::post('/',                            [MenuController::class, 'store'])->name('store');
+        Route::get('/{menu}',                       [MenuController::class, 'edit'])->name('edit');
+        Route::put('/{menu}',                       [MenuController::class, 'update'])->name('update');
+        Route::delete('/{menu}',                    [MenuController::class, 'destroy'])->name('destroy');
+        Route::post('/{menu}/items',                [MenuController::class, 'storeItem'])->name('items.store');
+        Route::put('/{menu}/items/{item}',          [MenuController::class, 'updateItem'])->name('items.update');
+        Route::delete('/{menu}/items/{item}',       [MenuController::class, 'destroyItem'])->name('items.destroy');
+        Route::post('/{menu}/items/reorder',        [MenuController::class, 'reorderItems'])->name('items.reorder');
+    });
+
+    // Intelligence Ledger (Wisdom Dashboard)
+    Route::prefix('wisdom')->name('wisdom.')->group(function () {
+        Route::get('/',              [WisdomController::class, 'index'])->name('index');
+        Route::get('/stats',         [WisdomController::class, 'stats'])->name('stats');
+        Route::get('/{wisdom}',      [WisdomController::class, 'show'])->name('show');
+        Route::post('/{wisdom}/promote', [WisdomController::class, 'promote'])->name('promote');
+        Route::delete('/{wisdom}',   [WisdomController::class, 'destroy'])->name('destroy');
+    });
+
+    // Marketplace
+    Route::prefix('marketplace')->name('marketplace.')->group(function () {
+        Route::get('/',                                  [MarketplaceController::class, 'index'])->name('index');
+        Route::get('/my-items',                          [MarketplaceController::class, 'myItems'])->name('my-items');
+        Route::post('/submit',                           [MarketplaceController::class, 'submitItem'])->name('submit');
+        Route::get('/upload-install',                    [MarketplaceController::class, 'uploadInstallForm'])->name('upload-install');
+        Route::post('/upload-install',                   [MarketplaceController::class, 'uploadInstall'])->name('upload-install.store');
+        Route::get('/installed',                         [MarketplaceController::class, 'installed'])->name('installed');
+        Route::post('/activate/{installation}',          [MarketplaceController::class, 'activate'])->name('activate');
+        // Built-in Module Registry (zero AI cost)
+        Route::get('/modules',                           [MarketplaceController::class, 'modules'])->name('modules');
+        Route::post('/modules/{key}/install',            [MarketplaceController::class, 'installModule'])->name('module.install')->middleware('throttle:30,1');
+        Route::get('/agents',                            [MarketplaceController::class, 'agents'])->name('agents');
+        Route::get('/{item}',                            [MarketplaceController::class, 'show'])->name('show');
+        Route::post('/{item}/install',                   [MarketplaceController::class, 'install'])->name('install');
+    });
+
+    // Project packaging (developer export)
+    Route::prefix('projects')->name('projects.')->group(function () {
+        Route::get('/{project}/package',          [ProjectController::class, 'packageForm'])->name('package');
+        Route::post('/{project}/package/build',   [ProjectController::class, 'buildPackage'])->name('package.build');
+        Route::get('/{project}/package/download', [ProjectController::class, 'downloadPackage'])->name('package.download');
+    });
+
+});

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RyaanCMS Documentation v1.0.0</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand: #6366f1; --brand-dark: #4f46e5; --brand-light: #eef2ff;
+    --bg: #f8fafc; --card: #fff; --border: #e2e8f0;
+    --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+    --green: #10b981; --red: #ef4444; --yellow: #f59e0b; --blue: #3b82f6;
+    --sidebar-w: 260px;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'Consolas', 'Fira Code', monospace; font-size: 0.85em; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1.2rem; border-radius: 10px; overflow-x: auto; font-size: 0.82rem; line-height: 1.7; margin: 1rem 0; }
+  pre code { background: none; color: inherit; padding: 0; }
+  h1 { font-size: 2rem; font-weight: 800; }
+  h2 { font-size: 1.4rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  h3 { font-size: 1.05rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.5rem; color: var(--brand-dark); }
+  h4 { font-size: 0.9rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.3rem; color: var(--text2); }
+  p { margin: 0.6rem 0; color: var(--text2); }
+  ul, ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.25rem 0; color: var(--text2); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875rem; }
+  th { background: var(--brand-light); color: var(--brand-dark); font-weight: 700; text-align: left; padding: 0.6rem 0.9rem; }
+  td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: #f8fafc; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; }
+  .badge-get    { background: #d1fae5; color: #065f46; }
+  .badge-post   { background: #dbeafe; color: #1e40af; }
+  .badge-put    { background: #fef3c7; color: #92400e; }
+  .badge-delete { background: #fee2e2; color: #991b1b; }
+  .badge-auth   { background: #ede9fe; color: #5b21b6; }
+  .note { background: #eff6ff; border-left: 4px solid var(--blue); padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.875rem; color: #1e40af; }
+  .warn { background: #fffbeb; border-left: 4px solid var(--yellow); padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.875rem; color: #92400e; }
+  .tip  { background: #f0fdf4; border-left: 4px solid var(--green); padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.875rem; color: #14532d; }
+
+  /* Layout */
+  #layout { display: flex; min-height: 100vh; }
+  #sidebar {
+    width: var(--sidebar-w); flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0;
+    background: var(--card); border-right: 1px solid var(--border); overflow-y: auto;
+    padding: 1.5rem 1rem;
+  }
+  #sidebar .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+  #sidebar .logo .icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; }
+  #sidebar .logo .icon svg { width: 18px; height: 18px; color: #fff; }
+  #sidebar .logo span { font-weight: 800; font-size: 1rem; }
+  #sidebar nav a {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 500; color: var(--text2);
+    text-decoration: none; margin-bottom: 2px; transition: all 0.15s;
+  }
+  #sidebar nav a:hover { background: var(--brand-light); color: var(--brand); }
+  #sidebar nav .section-label { font-size: 0.67rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; padding: 0.75rem 10px 0.25rem; }
+  #main { margin-left: var(--sidebar-w); flex: 1; padding: 0; }
+  #topbar { position: sticky; top: 0; background: rgba(255,255,255,.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0.875rem 2rem; display: flex; align-items: center; justify-between; z-index: 10; }
+  #topbar h1 { font-size: 1rem; font-weight: 700; }
+  #topbar .version { background: var(--brand-light); color: var(--brand); font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+  #content { padding: 2.5rem 2.5rem; max-width: 1000px; }
+  .section { margin-bottom: 3.5rem; }
+  .endpoint { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.25rem; }
+  .endpoint-header { display: flex; align-items: center; gap: 12px; padding: 0.85rem 1.1rem; background: #fafafa; border-bottom: 1px solid var(--border); }
+  .endpoint-body { padding: 1.1rem; }
+  .endpoint-url { font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--text); }
+  .params-table th { background: #f8fafc; color: var(--text2); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  .changelog-item { border-left: 3px solid var(--brand); padding: 0.5rem 1rem; margin-bottom: 0.75rem; background: var(--brand-light); border-radius: 0 8px 8px 0; }
+  .changelog-item .version-tag { font-weight: 700; color: var(--brand); }
+  .changelog-item ul { margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+<div id="layout">
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    </div>
+    <span>RyaanCMS Docs</span>
+  </div>
+  <nav>
+    <div class="section-label">Getting Started</div>
+    <a href="#overview">📋 Overview</a>
+    <a href="#installation">⚙️ Installation</a>
+    <a href="#configuration">🔧 Configuration</a>
+    <a href="#stack">🧱 Tech Stack</a>
+
+    <div class="section-label">Features</div>
+    <a href="#ai-builder">🤖 AI Builder</a>
+    <a href="#projects">📁 Projects</a>
+    <a href="#marketplace">🏪 Marketplace</a>
+    <a href="#menu-management">📋 Menu Management</a>
+    <a href="#settings">⚙️ Settings</a>
+
+    <div class="section-label">API Reference</div>
+    <a href="#api-auth">🔐 Authentication</a>
+    <a href="#api-projects">📁 Projects API</a>
+    <a href="#api-builder">🤖 Builder API</a>
+    <a href="#api-marketplace">🏪 Marketplace API</a>
+    <a href="#api-menus">📋 Menus API</a>
+    <a href="#api-settings">⚙️ Settings API</a>
+
+    <div class="section-label">Reference</div>
+    <a href="#ai-providers">🧠 AI Providers</a>
+    <a href="#routes">🗺️ All Routes</a>
+    <a href="#changelog">📝 Changelog</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <div id="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <h1>RyaanCMS Documentation</h1>
+      <span class="version">v1.0.0</span>
+    </div>
+    <span style="font-size:0.8rem;color:#94a3b8;">Last updated: June 2026</span>
+  </div>
+
+  <div id="content">
+
+    <!-- OVERVIEW -->
+    <div class="section" id="overview">
+      <h2>Overview</h2>
+      <p>RyaanCMS is the <strong>World's First AI-Powered Free &amp; Opensource CMS &amp; EMS</strong>. It lets you build complete, production-ready applications from a single natural-language prompt — using AI models like Claude, GPT-4, Gemini, Mistral, and local Ollama.</p>
+      <p>RyaanCMS is self-hosted on any PHP server. You own your data, your code, and your infrastructure.</p>
+      <div class="grid-2" style="margin-top:1.25rem">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:1rem">
+          <h4 style="color:#15803d;margin-top:0">✓ What it is</h4>
+          <ul>
+            <li>AI-powered application builder</li>
+            <li>Multi-provider AI (21 providers)</li>
+            <li>Plugin marketplace (install &amp; sell)</li>
+            <li>Menu &amp; navigation management</li>
+            <li>Self-hosted, MIT licensed</li>
+          </ul>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:1rem">
+          <h4 style="color:#1d4ed8;margin-top:0">📋 Requirements</h4>
+          <ul>
+            <li>PHP 8.2+</li>
+            <li>MySQL 8+ or MariaDB 10.4+</li>
+            <li>Composer 2.x</li>
+            <li>Node.js 18+ &amp; npm</li>
+            <li>Laravel 11</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSTALLATION -->
+    <div class="section" id="installation">
+      <h2>Installation</h2>
+      <h3>1. Clone &amp; Install Dependencies</h3>
+      <pre><code>git clone https://github.com/your-org/ryaancms.git
+cd ryaancms
+composer install
+npm install && npm run build</code></pre>
+
+      <h3>2. Environment Setup</h3>
+      <pre><code>cp .env.example .env
+php artisan key:generate</code></pre>
+      <p>Edit <code>.env</code> and set your database credentials:</p>
+      <pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ryaancms
+DB_USERNAME=root
+DB_PASSWORD=your_password</code></pre>
+
+      <h3>3. Database Migration</h3>
+      <pre><code>php artisan migrate</code></pre>
+
+      <h3>4. Web-Based Wizard</h3>
+      <p>Navigate to <code>https://your-domain.com/install</code> and follow the setup wizard to create your admin account and configure the application.</p>
+
+      <h3>5. AI API Keys</h3>
+      <p>After logging in, go to <strong>Settings → AI Providers</strong> and add your API keys for whichever AI services you want to use.</p>
+
+      <div class="tip">You can use <strong>Ollama</strong> for completely free local AI with no API key required. Install Ollama on your server and set the API URL to <code>http://localhost:11434</code>.</div>
+    </div>
+
+    <!-- CONFIGURATION -->
+    <div class="section" id="configuration">
+      <h2>Configuration</h2>
+      <h3>config/ai.php</h3>
+      <p>Controls all AI provider settings. Each provider has:</p>
+      <table>
+        <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>name</code></td><td>string</td><td>Display name</td></tr>
+        <tr><td><code>category</code></td><td>text|voice|local</td><td>Provider category</td></tr>
+        <tr><td><code>models</code></td><td>array</td><td>Available model IDs → display names</td></tr>
+        <tr><td><code>default_model</code></td><td>string</td><td>Default model to use</td></tr>
+        <tr><td><code>api_url</code></td><td>string</td><td>API endpoint (auto-filled)</td></tr>
+        <tr><td><code>requires_endpoint</code></td><td>bool</td><td>Whether user must provide custom endpoint (Azure, Bedrock)</td></tr>
+      </table>
+
+      <h3>config/ryaan.php</h3>
+      <p>Application-level configuration:</p>
+      <pre><code>'version'              => '1.0.0',
+'project_types'        => [...],   // laravel, react, nextjs, saas, ...
+'templates'            => [...],   // ecommerce, crm, clinic, ...
+'marketplace_categories'=> [...],  // 9 categories
+'deployment_targets'   => [...],   // shared_hosting, vps, cpanel, docker</code></pre>
+    </div>
+
+    <!-- TECH STACK -->
+    <div class="section" id="stack">
+      <h2>Tech Stack</h2>
+      <table>
+        <tr><th>Layer</th><th>Technology</th><th>Version</th></tr>
+        <tr><td>Backend Framework</td><td>Laravel</td><td>11.x</td></tr>
+        <tr><td>Frontend Interactivity</td><td>Alpine.js</td><td>v3</td></tr>
+        <tr><td>Styling</td><td>Tailwind CSS</td><td>v3</td></tr>
+        <tr><td>Build Tool</td><td>Vite</td><td>5.x</td></tr>
+        <tr><td>Database</td><td>MySQL / MariaDB</td><td>8+ / 10.4+</td></tr>
+        <tr><td>Code Editor</td><td>CodeMirror</td><td>5.65</td></tr>
+        <tr><td>PHP</td><td>PHP</td><td>8.2+</td></tr>
+      </table>
+    </div>
+
+    <!-- AI BUILDER -->
+    <div class="section" id="ai-builder">
+      <h2>AI Builder</h2>
+      <p>The AI Builder is the core of RyaanCMS. Access it at <code>/builder/{project-id}</code>.</p>
+      <h3>Layout (3-Panel)</h3>
+      <table>
+        <tr><th>Panel</th><th>Position</th><th>Content</th></tr>
+        <tr><td>Prompt / AI Chat</td><td>Left (w-96)</td><td>Chat with AI, send prompts, attach files/URLs, voice input</td></tr>
+        <tr><td>Code Editor + Preview</td><td>Center (flex-1)</td><td>Monaco-style code editor, live HTML/Blade preview, split view</td></tr>
+        <tr><td>File Tree</td><td>Right (w-64)</td><td>All project files, create/delete files and folders</td></tr>
+      </table>
+
+      <h3>View Modes</h3>
+      <ul>
+        <li><strong>Code</strong> — Full-width code editor only</li>
+        <li><strong>Split</strong> — Code editor left, preview right (default)</li>
+        <li><strong>Preview</strong> — Full-width live preview</li>
+      </ul>
+
+      <h3>Preview System</h3>
+      <p>The preview iframe supports:</p>
+      <ul>
+        <li><strong>.html / .htm</strong> — Rendered directly</li>
+        <li><strong>.blade.php</strong> — PHP/Blade server-side code is stripped; HTML structure is shown</li>
+        <li>Auto-refresh after AI generates files</li>
+        <li>Auto-refresh after saving a previewable file</li>
+      </ul>
+
+      <h3>Multi-Input Support</h3>
+      <ul>
+        <li>📎 File attachments (images, PDF, Word, Excel, code files, etc.)</li>
+        <li>🌐 URL content reading (paste a URL, AI reads the page)</li>
+        <li>🎤 Voice input (Web Speech API — Chrome/Edge)</li>
+      </ul>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="section" id="projects">
+      <h2>Projects</h2>
+      <p>Projects are the top-level container for AI-generated applications. Each project has:</p>
+      <ul>
+        <li>A <strong>type</strong> (laravel, react, nextjs, ecommerce, crm, saas, etc.)</li>
+        <li>A <strong>status</strong> (active, archived, etc.)</li>
+        <li><strong>Files</strong> — all generated source files</li>
+        <li><strong>AI Conversations</strong> — chat history per session</li>
+        <li><strong>Token tracking</strong> — <code>ai_tokens_used</code></li>
+      </ul>
+      <p>Projects can be exported as <strong>.zip packages</strong> via the Package feature (<code>/projects/{id}/package</code>).</p>
+    </div>
+
+    <!-- MARKETPLACE -->
+    <div class="section" id="marketplace">
+      <h2>Marketplace</h2>
+      <p>The marketplace allows installing pre-built modules, plugins, themes, and AI agents into your projects.</p>
+      <h3>Installation Types</h3>
+      <ul>
+        <li><strong>Browse &amp; Install</strong> — Install from the marketplace catalog</li>
+        <li><strong>Upload &amp; Install</strong> — Upload a downloaded <code>.zip</code> package directly</li>
+      </ul>
+      <h3>Marketplace Categories</h3>
+      <p>eCommerce · CRM · HRM · Accounting · AI Agents · Themes · Utilities · Integrations · Templates</p>
+      <h3>Developer Revenue</h3>
+      <p>Developers earn <strong>70% revenue share</strong> on paid marketplace items. Submit your module via <strong>Marketplace → Submit Item</strong>.</p>
+    </div>
+
+    <!-- MENU MANAGEMENT -->
+    <div class="section" id="menu-management">
+      <h2>Menu Management</h2>
+      <p>Menu Management allows creating and managing navigation menus for your site. Access at <code>/menus</code>.</p>
+
+      <h3>Menus</h3>
+      <p>A <strong>Menu</strong> has:</p>
+      <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>name</td><td>string</td><td>Display name (e.g. "Main Navigation")</td></tr>
+        <tr><td>slug</td><td>string</td><td>Auto-generated unique identifier</td></tr>
+        <tr><td>category</td><td>header|footer|sidebar|custom</td><td>Where this menu is used</td></tr>
+        <tr><td>is_active</td><td>boolean</td><td>Whether the menu is published</td></tr>
+      </table>
+
+      <h3>Menu Items</h3>
+      <p>Each menu can have nested <strong>Menu Items</strong>:</p>
+      <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>label</td><td>string</td><td>Link text</td></tr>
+        <tr><td>url</td><td>string</td><td>Destination URL (manual or auto-filled from plugin)</td></tr>
+        <tr><td>icon</td><td>string</td><td>Emoji icon (optional)</td></tr>
+        <tr><td>target</td><td>_self|_blank</td><td>Link target</td></tr>
+        <tr><td>parent_id</td><td>int|null</td><td>Parent item ID for nesting</td></tr>
+        <tr><td>installation_id</td><td>int|null</td><td>Link to installed marketplace plugin</td></tr>
+        <tr><td>order</td><td>int</td><td>Display order</td></tr>
+      </table>
+
+      <h3>Plugin Assignment</h3>
+      <p>When adding or editing a menu item, you can select an <strong>installed marketplace plugin</strong> from a dropdown. This automatically fills the URL field with the plugin's route, creating a direct link from your menu to an installed module.</p>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="settings">
+      <h2>Settings</h2>
+      <h3>AI Providers</h3>
+      <p>Connect up to 21 AI providers. Each provider stores an API key (encrypted), optional API URL, and default model. One provider can be set as the system default.</p>
+      <h3>Profile &amp; Password</h3>
+      <p>Update your name, email, username, and password.</p>
+      <h3>Preferences</h3>
+      <p>Set theme (light/dark), default AI provider, default model, and language.</p>
+      <h3>Branding</h3>
+      <p>Upload a custom logo/favicon and set primary brand color and font family.</p>
+    </div>
+
+    <!-- ============================================================
+         API REFERENCE
+    ============================================================ -->
+    <h1 style="margin-top:3rem;padding-top:2rem;border-top:3px solid var(--brand)">API Reference</h1>
+    <p style="color:var(--text2);margin-bottom:2rem">All API endpoints require authentication unless noted. Include the session cookie or pass <code>X-CSRF-TOKEN</code> header for state-changing requests. For JSON responses, include <code>Accept: application/json</code>.</p>
+
+    <!-- AUTH API -->
+    <div class="section" id="api-auth">
+      <h2>Authentication</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="badge badge-post">POST</span>
+          <span class="endpoint-url">/login</span>
+        </div>
+        <div class="endpoint-body">
+          <h4>Request Body</h4>
+          <pre><code>{ "email": "user@example.com", "password": "secret" }</code></pre>
+          <h4>Response</h4>
+          <p>Redirects to <code>/dashboard</code> on success. Returns 422 with validation errors on failure.</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="badge badge-post">POST</span>
+          <span class="endpoint-url">/register</span>
+        </div>
+        <div class="endpoint-body">
+          <h4>Request Body</h4>
+          <pre><code>{ "name": "John", "email": "john@example.com", "password": "secret", "password_confirmation": "secret" }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="badge badge-post">POST</span>
+          <span class="endpoint-url">/logout</span>
+          <span class="badge badge-auth">Auth</span>
+        </div>
+        <div class="endpoint-body"><p>Logs out the current user and invalidates the session.</p></div>
+      </div>
+    </div>
+
+    <!-- PROJECTS API -->
+    <div class="section" id="api-projects">
+      <h2>Projects API</h2>
+      <p>All routes require <span class="badge badge-auth">Auth</span>.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-url">/projects</span></div>
+        <div class="endpoint-body"><p>Returns paginated list of the authenticated user's projects.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/projects</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "name": "My App", "type": "laravel", "description": "..." }</code></pre>
+          <p>Creates a new project. Returns redirect to project detail.</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-put">PUT</span><span class="endpoint-url">/projects/{project}/settings</span></div>
+        <div class="endpoint-body"><p>Update project name, type, description, status.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-delete">DELETE</span><span class="endpoint-url">/projects/{project}</span></div>
+        <div class="endpoint-body"><p>Permanently deletes project and all associated files.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-url">/projects/{project}/package</span></div>
+        <div class="endpoint-body"><p>Download project as a <code>.zip</code> archive.</p></div>
+      </div>
+    </div>
+
+    <!-- BUILDER API -->
+    <div class="section" id="api-builder">
+      <h2>Builder API</h2>
+      <p>All routes require <span class="badge badge-auth">Auth</span>. JSON requests require <code>Content-Type: application/json</code> and <code>Accept: application/json</code>.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/builder/{project}/chat</span></div>
+        <div class="endpoint-body">
+          <h4>Request (JSON)</h4>
+          <pre><code>{
+  "message": "Create a Hotel Management System with rooms and bookings",
+  "conversation_id": 1,
+  "provider": "claude",
+  "model": "claude-sonnet-4-6"
+}</code></pre>
+          <h4>Request (Multipart — with file/URL attachments)</h4>
+          <pre><code>FormData:
+  message: string
+  conversation_id: int
+  provider: string
+  model: string
+  url?: string           // website URL to read
+  files[]?: File[]       // uploaded files</code></pre>
+          <h4>Response</h4>
+          <pre><code>{
+  "success": true,
+  "message": "AI response text...",
+  "model": "claude-sonnet-4-6",
+  "files_generated": [
+    { "id": 1, "name": "index.html", "path": "index.html", "type": "file" }
+  ]
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-url">/builder/{project}/files/{file}</span></div>
+        <div class="endpoint-body">
+          <p>Returns file content.</p>
+          <pre><code>{ "content": "<?php echo 'hello'; ?>" }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-put">PUT</span><span class="endpoint-url">/builder/{project}/files/{file}</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "content": "updated file content" }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/builder/{project}/files</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "path": "app/Models/Room.php", "type": "file" }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-delete">DELETE</span><span class="endpoint-url">/builder/{project}/files/{file}</span></div>
+        <div class="endpoint-body"><p>Deletes a file or folder from the project.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/builder/{project}/conversations</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "provider": "claude" }
+// Response: { "success": true, "conversation": { "id": 2, ... } }</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKETPLACE API -->
+    <div class="section" id="api-marketplace">
+      <h2>Marketplace API</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-url">/marketplace</span></div>
+        <div class="endpoint-body"><p>Browse marketplace catalog. Supports search and category filters via query params.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/marketplace/{item}/install</span></div>
+        <div class="endpoint-body">
+          <p>Install a marketplace item for the current user.</p>
+          <pre><code>{ "project_id": 1 }   // optional: associate with a project</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/marketplace/upload-install</span></div>
+        <div class="endpoint-body">
+          <p>Upload and install a <code>.zip</code> package directly.</p>
+          <pre><code>FormData: { file: .zip }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/marketplace/activate/{installation}</span></div>
+        <div class="endpoint-body"><p>Activate an installed item.</p></div>
+      </div>
+    </div>
+
+    <!-- MENUS API -->
+    <div class="section" id="api-menus">
+      <h2>Menus API</h2>
+      <p>All routes require <span class="badge badge-auth">Auth</span>. Menus are scoped to the authenticated user.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-url">/menus</span></div>
+        <div class="endpoint-body"><p>List all menus for the current user.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/menus</span></div>
+        <div class="endpoint-body">
+          <h4>Request</h4>
+          <pre><code>{ "name": "Main Navigation", "category": "header" }</code></pre>
+          <h4>Validation</h4>
+          <table class="params-table">
+            <tr><th>Field</th><th>Rules</th></tr>
+            <tr><td>name</td><td>required, string, max:100</td></tr>
+            <tr><td>category</td><td>required, in: header|footer|sidebar|custom</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-put">PUT</span><span class="endpoint-url">/menus/{menu}</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "name": "Updated Name", "category": "footer", "is_active": true }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-delete">DELETE</span><span class="endpoint-url">/menus/{menu}</span></div>
+        <div class="endpoint-body"><p>Deletes menu and all its items (cascade).</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/menus/{menu}/items</span></div>
+        <div class="endpoint-body">
+          <h4>Request</h4>
+          <pre><code>{
+  "label": "Home",
+  "url": "/",
+  "icon": "🏠",
+  "target": "_self",
+  "parent_id": null,
+  "installation_id": null   // optional: link to installed plugin
+}</code></pre>
+          <div class="tip">If <code>installation_id</code> is provided and <code>url</code> is empty, the URL is auto-filled from the plugin's marketplace route.</div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-put">PUT</span><span class="endpoint-url">/menus/{menu}/items/{item}</span></div>
+        <div class="endpoint-body"><p>Update a menu item. Same fields as store.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-delete">DELETE</span><span class="endpoint-url">/menus/{menu}/items/{item}</span></div>
+        <div class="endpoint-body"><p>Delete a menu item. Child items are cascade-deleted.</p></div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/menus/{menu}/items/reorder</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "items": [3, 1, 4, 2] }   // ordered array of item IDs</code></pre>
+          <p>Returns <code>{"success": true}</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS API -->
+    <div class="section" id="api-settings">
+      <h2>Settings API</h2>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/settings/ai-providers</span></div>
+        <div class="endpoint-body">
+          <h4>Request (JSON)</h4>
+          <pre><code>{
+  "provider": "claude",
+  "api_key": "sk-ant-...",
+  "api_url": null,
+  "default_model": "claude-sonnet-4-6",
+  "set_default": true
+}</code></pre>
+          <h4>Response (JSON)</h4>
+          <pre><code>{ "success": true, "message": "Claude connected successfully!", "provider_id": 1 }</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-delete">DELETE</span><span class="endpoint-url">/settings/ai-providers/{aiProvider}</span></div>
+        <div class="endpoint-body">
+          <p>Returns <code>{"success": true}</code> when called with <code>Accept: application/json</code>.</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-url">/settings/ai-providers/test</span></div>
+        <div class="endpoint-body">
+          <pre><code>{ "provider": "claude" }
+// Response: { "success": true, "message": "RyaanCMS connection test successful!", "model": "..." }</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI PROVIDERS REFERENCE -->
+    <div class="section" id="ai-providers">
+      <h2>AI Providers Reference</h2>
+      <p>21 providers supported across 3 categories:</p>
+
+      <h3>Text Providers (19)</h3>
+      <table>
+        <tr><th>Key</th><th>Name</th><th>Default Model</th></tr>
+        <tr><td>claude</td><td>Claude (Anthropic)</td><td>claude-sonnet-4-6</td></tr>
+        <tr><td>openai</td><td>OpenAI</td><td>gpt-4o</td></tr>
+        <tr><td>gemini</td><td>Google Gemini</td><td>gemini-1.5-pro</td></tr>
+        <tr><td>mistral</td><td>Mistral AI</td><td>mistral-large-latest</td></tr>
+        <tr><td>grok</td><td>Grok (xAI)</td><td>grok-2</td></tr>
+        <tr><td>deepseek</td><td>DeepSeek</td><td>deepseek-coder</td></tr>
+        <tr><td>groq</td><td>Groq</td><td>llama-3.3-70b-versatile</td></tr>
+        <tr><td>cohere</td><td>Cohere</td><td>command-r-plus</td></tr>
+        <tr><td>perplexity</td><td>Perplexity</td><td>llama-3.1-sonar-large-128k</td></tr>
+        <tr><td>openrouter</td><td>OpenRouter</td><td>anthropic/claude-3.5-sonnet</td></tr>
+        <tr><td>together</td><td>Together AI</td><td>Qwen/QwQ-32B-Preview</td></tr>
+        <tr><td>huggingface</td><td>HuggingFace</td><td>Qwen/Qwen2.5-Coder-32B-Instruct</td></tr>
+        <tr><td>azure</td><td>Azure OpenAI</td><td>gpt-4o</td></tr>
+        <tr><td>bedrock</td><td>AWS Bedrock</td><td>anthropic.claude-3-5-sonnet</td></tr>
+        <tr><td>replicate</td><td>Replicate</td><td>meta/llama-3.1-405b-instruct</td></tr>
+        <tr><td>fireworks</td><td>Fireworks AI</td><td>accounts/fireworks/models/llama-v3p1-405b</td></tr>
+        <tr><td>cerebras</td><td>Cerebras</td><td>llama3.1-70b</td></tr>
+        <tr><td>ai21</td><td>AI21 Labs</td><td>jamba-1.5-large</td></tr>
+        <tr><td>sambanova</td><td>SambaNova</td><td>Meta-Llama-3.3-70B-Instruct</td></tr>
+      </table>
+
+      <h3>Voice Providers (1)</h3>
+      <table>
+        <tr><th>Key</th><th>Name</th></tr>
+        <tr><td>elevenlabs</td><td>ElevenLabs</td></tr>
+      </table>
+
+      <h3>Local Providers (1)</h3>
+      <table>
+        <tr><th>Key</th><th>Name</th><th>API URL</th></tr>
+        <tr><td>ollama</td><td>Ollama (Local LLM)</td><td>http://localhost:11434</td></tr>
+      </table>
+    </div>
+
+    <!-- ALL ROUTES -->
+    <div class="section" id="routes">
+      <h2>All Routes</h2>
+      <table>
+        <tr><th>Method</th><th>URI</th><th>Name</th><th>Auth</th></tr>
+        <tr><td>GET</td><td>/</td><td>home</td><td>—</td></tr>
+        <tr><td>GET</td><td>/install</td><td>install.welcome</td><td>—</td></tr>
+        <tr><td>GET/POST</td><td>/login</td><td>login</td><td>guest</td></tr>
+        <tr><td>GET/POST</td><td>/register</td><td>register</td><td>guest</td></tr>
+        <tr><td>POST</td><td>/logout</td><td>logout</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/terms</td><td>terms</td><td>—</td></tr>
+        <tr><td>GET</td><td>/privacy</td><td>privacy</td><td>—</td></tr>
+        <tr><td>GET</td><td>/dashboard</td><td>dashboard</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/projects</td><td>projects.index</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/projects</td><td>projects.store</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/projects/create</td><td>projects.create</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/projects/{project}</td><td>projects.show</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/projects/{project}/settings</td><td>projects.update-settings</td><td>✓</td></tr>
+        <tr><td>DELETE</td><td>/projects/{project}</td><td>projects.destroy</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/builder/{project}</td><td>builder.show</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/builder/{project}/chat</td><td>builder.chat</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/builder/{project}/files/{file}</td><td>builder.file.get</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/builder/{project}/files/{file}</td><td>builder.file.save</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/builder/{project}/files</td><td>builder.file.create</td><td>✓</td></tr>
+        <tr><td>DELETE</td><td>/builder/{project}/files/{file}</td><td>builder.file.delete</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/builder/{project}/conversations</td><td>builder.conversation.new</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/settings</td><td>settings.index</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/settings/profile</td><td>settings.profile</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/settings/password</td><td>settings.password</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/settings/preferences</td><td>settings.preferences</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/settings/branding</td><td>settings.branding</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/settings/ai-providers</td><td>settings.ai-provider.save</td><td>✓</td></tr>
+        <tr><td>DELETE</td><td>/settings/ai-providers/{id}</td><td>settings.ai-provider.delete</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/settings/ai-providers/test</td><td>settings.ai-provider.test</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/menus</td><td>menus.index</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/menus</td><td>menus.store</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/menus/create</td><td>menus.create</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/menus/{menu}</td><td>menus.edit</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/menus/{menu}</td><td>menus.update</td><td>✓</td></tr>
+        <tr><td>DELETE</td><td>/menus/{menu}</td><td>menus.destroy</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/menus/{menu}/items</td><td>menus.items.store</td><td>✓</td></tr>
+        <tr><td>PUT</td><td>/menus/{menu}/items/{item}</td><td>menus.items.update</td><td>✓</td></tr>
+        <tr><td>DELETE</td><td>/menus/{menu}/items/{item}</td><td>menus.items.destroy</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/menus/{menu}/items/reorder</td><td>menus.items.reorder</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/marketplace</td><td>marketplace.index</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/marketplace/{item}/install</td><td>marketplace.install</td><td>✓</td></tr>
+        <tr><td>GET</td><td>/marketplace/installed</td><td>marketplace.installed</td><td>✓</td></tr>
+        <tr><td>POST</td><td>/marketplace/activate/{id}</td><td>marketplace.activate</td><td>✓</td></tr>
+      </table>
+    </div>
+
+    <!-- CHANGELOG -->
+    <div class="section" id="changelog">
+      <h2>Changelog</h2>
+
+      <div class="changelog-item">
+        <div class="version-tag">v1.0.0 — June 2026</div>
+        <ul>
+          <li>🆕 Menu Management system — full CRUD with nested items and plugin assignment</li>
+          <li>🔄 AI Builder layout reordered: Prompt (left) → Preview/Code (center) → Files (right)</li>
+          <li>🐛 Fixed preview not showing for PHP/Blade files — now strips server-side code and renders HTML structure</li>
+          <li>🖥️ Dashboard is now full widescreen (no max-width constraint)</li>
+          <li>📝 Landing page tagline updated to "World's First AI-Powered Free &amp; Opensource CMS &amp; EMS"</li>
+          <li>🎨 Landing page buttons fixed — all visible on light background</li>
+          <li>🧹 Removed duplicate "Powered by" badge from landing page</li>
+          <li>🔐 AI Provider save/delete now returns JSON for AJAX flows</li>
+          <li>🐛 Fixed "The selected provider is invalid" validation error (groupBy preserveKeys)</li>
+          <li>📋 Documentation and API reference added (this file)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:3rem 0 2rem;color:var(--text3);font-size:0.8rem;">
+      <p>⚡ Powered by <strong style="color:var(--brand)">RyaanCMS</strong> v1.0.0 · Built on Laravel 11 · MIT License</p>
+    </div>
+
+  </div>
+</main>
+</div>
+</body>
+</html>

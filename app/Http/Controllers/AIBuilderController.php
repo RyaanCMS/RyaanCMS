@@ -1,0 +1,627 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AIConversation;
+use App\Models\Project;
+use App\Models\ProjectFile;
+use App\Services\AI\AIManager;
+use App\Services\AI\BlueprintService;
+use App\Services\AI\CodeGeneratorService;
+use App\Services\AI\ComponentRegistry;
+use App\Services\AI\MetadataCrudGenerator;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use ZipArchive;
+
+class AIBuilderController extends Controller
+{
+    public function __construct(
+        protected AIManager        $aiManager,
+        protected CodeGeneratorService $codeGenerator,
+        protected BlueprintService $blueprintService,
+        protected MetadataCrudGenerator $crudGenerator,
+        protected ComponentRegistry $componentRegistry,
+    ) {}
+
+    public function show(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $files       = $project->files()->orderBy('type', 'desc')->orderBy('path')->get();
+        $providers   = Auth::user()->aiProviders()->where('is_active', true)->get();
+        $conversations = $project->conversations()->limit(20)->get();
+        $aiProviders = config('ai.providers');
+
+        // Load or create active conversation
+        $conversation = $project->conversations()->latest()->first()
+            ?? AIConversation::create([
+                'user_id'    => Auth::id(),
+                'project_id' => $project->id,
+                'provider'   => Auth::user()->getSetting('ai', 'default_provider', 'claude'),
+                'title'      => 'New Conversation',
+            ]);
+
+        $messages = $conversation->messages()->get();
+
+        return view('builder.show', compact(
+            'project', 'files', 'providers', 'conversations',
+            'conversation', 'messages', 'aiProviders'
+        ));
+    }
+
+    public function chat(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'message'         => ['nullable', 'string', 'max:20000'],
+            'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
+            'provider'        => ['nullable', 'string'],
+            'model'           => ['nullable', 'string'],
+            'url'             => ['nullable', 'url', 'max:500'],
+            'files'           => ['nullable', 'array', 'max:10'],
+            'files.*'         => ['nullable', 'file', 'max:10240'],
+        ]);
+
+        $provider = $request->input('provider', 'claude');
+
+        // Build enriched prompt from attachments + URL
+        $userMessage  = trim($request->message ?? '');
+        $contextParts = [];
+
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $extracted = $this->extractFileContent($file);
+                if ($extracted) {
+                    $contextParts[] = $extracted;
+                }
+            }
+        }
+
+        if ($request->url) {
+            $fetched = $this->fetchUrlContent($request->url);
+            if ($fetched) {
+                $contextParts[] = $fetched;
+            }
+        }
+
+        $prompt = empty($contextParts)
+            ? $userMessage
+            : implode("\n\n", $contextParts) . "\n\n---\n\nUser request: " . ($userMessage ?: 'Please analyze the content above and help me build accordingly.');
+
+        if (empty(trim($prompt))) {
+            return response()->json(['success' => false, 'error' => 'Message cannot be empty.'], 422);
+        }
+
+        // Get or create conversation
+        if ($request->conversation_id) {
+            $conversation = AIConversation::where('id', $request->conversation_id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
+            $conversation->update(['provider' => $provider, 'model' => $request->model ?? $conversation->model]);
+        } else {
+            $conversation = AIConversation::create([
+                'user_id'    => Auth::id(),
+                'project_id' => $project->id,
+                'provider'   => $provider,
+                'model'      => $request->model,
+            ]);
+        }
+
+        try {
+            $result = $this->codeGenerator->generate(
+                prompt:       $prompt,
+                project:      $project,
+                user:         Auth::user(),
+                conversation: $conversation,
+                provider:     $provider,
+                model:        $request->model,
+            );
+
+            return response()->json([
+                'success'         => true,
+                'message'         => $result['message'],
+                'files_generated' => $result['files_generated'],
+                'tokens_used'     => $result['tokens_used'],
+                'tokens_saved'    => $result['tokens_saved'] ?? 0,
+                'cache_hit'       => $result['cache_hit'] ?? false,
+                'model'           => $result['model'],
+                'conversation_id' => $conversation->id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function extractFileContent(UploadedFile $file): string
+    {
+        $name = $file->getClientOriginalName();
+        $ext  = strtolower($file->getClientOriginalExtension());
+        $mime = $file->getMimeType() ?? '';
+        $path = $file->getRealPath();
+
+        // Images — encode as base64 data URI so vision-capable models can see them
+        if (str_starts_with($mime, 'image/')) {
+            $b64 = base64_encode(file_get_contents($path));
+            return "[IMAGE: {$name}]\ndata:{$mime};base64,{$b64}";
+        }
+
+        // Plain text / code files — read directly
+        $textExts = ['txt','md','mdx','html','htm','php','js','ts','jsx','tsx','css','scss','sass',
+                     'json','xml','yaml','yml','toml','csv','sql','py','java','rb','go','rs',
+                     'sh','bat','env','ini','conf','log','svg'];
+        if (in_array($ext, $textExts) || str_starts_with($mime, 'text/')) {
+            $content = file_get_contents($path);
+            return "[FILE: {$name}]\n```{$ext}\n{$content}\n```";
+        }
+
+        // PDF — basic readable text extraction
+        if ($ext === 'pdf' || $mime === 'application/pdf') {
+            $raw = file_get_contents($path);
+            preg_match_all('/\(([^\)]{3,500})\)/', $raw, $m);
+            $text = implode(' ', array_filter($m[1], fn($s) => mb_detect_encoding($s, 'UTF-8', true) && !preg_match('/[\x00-\x08\x0b-\x0c\x0e-\x1f]/', $s)));
+            $text = mb_substr(preg_replace('/\s+/', ' ', trim($text)), 0, 8000);
+            return "[PDF: {$name}]\n{$text}";
+        }
+
+        // DOCX / XLSX / PPTX — extract XML text from the zip container
+        if (in_array($ext, ['docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'])) {
+            $zip = new ZipArchive();
+            if ($zip->open($path) === true) {
+                $xmlFile = match($ext) {
+                    'xlsx','ods' => 'xl/sharedStrings.xml',
+                    'pptx','odp' => 'ppt/slides/slide1.xml',
+                    default      => 'word/document.xml',
+                };
+                $xml = $zip->getFromName($xmlFile) ?: '';
+                $zip->close();
+                $text = mb_substr(trim(preg_replace('/\s+/', ' ', strip_tags($xml))), 0, 8000);
+                return '[' . strtoupper($ext) . ": {$name}]\n{$text}";
+            }
+        }
+
+        // DOC (legacy binary Word) — extract printable strings
+        if ($ext === 'doc') {
+            $raw  = file_get_contents($path);
+            preg_match_all('/[\x20-\x7E]{4,}/', $raw, $m);
+            $text = mb_substr(implode(' ', $m[0]), 0, 6000);
+            return "[DOC: {$name}]\n{$text}";
+        }
+
+        // Unrecognised binary
+        return "[ATTACHED FILE: {$name} ({$mime}) — binary content, describe its purpose in your request]";
+    }
+
+    private function fetchUrlContent(string $url): string
+    {
+        // SSRF protection: block internal/private network addresses
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host) {
+            $ip = gethostbyname($host);
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                return "[URL: {$url}]\nAccess denied — private/internal addresses are not allowed.";
+            }
+        }
+
+        try {
+            $response = Http::timeout(12)
+                ->withHeaders(['User-Agent' => 'RyaanCMS-AI-Builder/1.0 (content reader)'])
+                ->get($url);
+
+            if (! $response->successful()) {
+                return "[URL: {$url}]\nFailed to fetch — HTTP {$response->status()}";
+            }
+
+            $html = $response->body();
+
+            // Page title
+            preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleM);
+            $title = html_entity_decode(strip_tags($titleM[1] ?? ''), ENT_QUOTES | ENT_HTML5);
+
+            // Strip boilerplate tags then convert to text
+            $html = preg_replace('/<(script|style|nav|footer|header|aside|noscript)[^>]*>.*?<\/\1>/is', ' ', $html);
+            $html = preg_replace('/<[^>]+>/', ' ', $html);
+            $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5);
+            $text = mb_substr(trim(preg_replace('/\s+/', ' ', $html)), 0, 8000);
+
+            return "[WEBSITE: {$url}]\nTitle: {$title}\n\n{$text}";
+        } catch (\Exception $e) {
+            return "[URL: {$url}]\nFailed to fetch — " . $e->getMessage();
+        }
+    }
+
+    public function streamChat(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'message'         => ['required', 'string', 'max:20000'],
+            'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
+            'provider'        => ['nullable', 'string'],
+            'model'           => ['nullable', 'string'],
+        ]);
+
+        $provider = $request->input('provider', 'claude');
+
+        $conversation = $request->conversation_id
+            ? AIConversation::where('id', $request->conversation_id)
+                            ->where('user_id', Auth::id())
+                            ->firstOrFail()
+            : AIConversation::create([
+                'user_id'    => Auth::id(),
+                'project_id' => $project->id,
+                'provider'   => $provider,
+                'model'      => $request->model,
+            ]);
+
+        // Keep conversation provider in sync with what the user selected
+        if ($conversation->provider !== $provider) {
+            $conversation->update(['provider' => $provider]);
+        }
+
+        // Capture user before entering the stream closure — Auth::user() can return
+        // null inside response()->stream() on some session drivers.
+        $user = Auth::user();
+
+        return response()->stream(function () use ($request, $project, $conversation, $provider, $user) {
+            $emit = function (array $event) {
+                echo 'data: ' . json_encode($event) . "\n\n";
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+            };
+
+            try {
+                $this->codeGenerator->streamGenerate(
+                    prompt:       $request->message,
+                    project:      $project,
+                    user:         $user,
+                    conversation: $conversation,
+                    onEvent:      $emit,
+                    provider:     $provider,
+                    model:        $request->model,
+                );
+            } catch (\Throwable $e) {
+                $emit(['type' => 'error', 'message' => $e->getMessage()]);
+            }
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache',
+            'X-Accel-Buffering' => 'no',
+            'Connection'        => 'keep-alive',
+        ]);
+    }
+
+    public function getFile(Project $project, ProjectFile $file)
+    {
+        $this->authorize('view', $project);
+
+        return response()->json([
+            'id'       => $file->id,
+            'name'     => $file->name,
+            'path'     => $file->path,
+            'content'  => $file->content,
+            'language' => $file->language,
+        ]);
+    }
+
+    public function saveFile(Request $request, Project $project, ProjectFile $file)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate(['content' => ['required', 'string']]);
+
+        $file->update([
+            'content' => $request->content,
+            'size'    => strlen($request->content),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function createFile(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'path' => ['required', 'string'],
+            'type' => ['required', 'in:file,directory'],
+        ]);
+
+        $path      = ltrim($request->path, '/');
+        $name      = basename($path);
+        $extension = $request->type === 'file' ? pathinfo($name, PATHINFO_EXTENSION) : null;
+
+        $file = ProjectFile::create([
+            'project_id' => $project->id,
+            'name'       => $name,
+            'path'       => $path,
+            'type'       => $request->type,
+            'extension'  => $extension,
+            'content'    => '',
+            'size'       => 0,
+        ]);
+
+        return response()->json(['success' => true, 'file' => $file]);
+    }
+
+    public function deleteFile(Project $project, ProjectFile $file)
+    {
+        $this->authorize('update', $project);
+
+        $file->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function previewHtml(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        // Priority order: preview.html → any .html → welcome/index blade (stripped)
+        $file = $project->files()->where('name', 'preview.html')->where('type', 'file')->first()
+            ?? $project->files()->where('extension', 'html')->where('type', 'file')->first()
+            ?? $project->files()->where('extension', 'htm')->where('type', 'file')->first();
+
+        if ($file && $file->content) {
+            return response($file->content, 200, ['Content-Type' => 'text/html; charset=utf-8']);
+        }
+
+        // No standalone HTML — return a helpful notice listing the generated files
+        $files        = $project->files()->where('type', 'file')->orderBy('path')->get();
+        $fileCount    = $files->count();
+        $fileRows     = $files->map(fn($f) => '<li>' . e($f->path ?: $f->name) . '</li>')->implode('');
+        $filesSection = $fileRows
+            ? '<div class="files-label">Generated files</div><ul>' . $fileRows . '</ul>'
+            : '';
+
+        $html = <<<HTML
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preview</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f9fafb;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{background:#fff;border-radius:16px;border:1px solid #e5e7eb;padding:28px 32px;max-width:480px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.badge{display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;margin-bottom:16px}
+h2{font-size:18px;font-weight:700;color:#111827;margin-bottom:6px}
+.sub{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:18px}
+.files-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:8px}
+ul{list-style:none;max-height:240px;overflow-y:auto;border:1px solid #f3f4f6;border-radius:8px;padding:8px 12px}
+li{font-family:monospace;font-size:11px;color:#374151;padding:3px 0;border-bottom:1px solid #f9fafb}
+li:last-child{border-bottom:none}
+.tip{margin-top:18px;padding:13px 15px;background:#f5f3ff;border-radius:10px;border:1px solid #e0e7ff;font-size:12px;color:#4338ca;line-height:1.6}
+</style></head>
+<body><div class="card">
+<div class="badge">🖥️ Laravel / PHP App</div>
+<h2>{$fileCount} file(s) generated successfully</h2>
+<div class="sub">This is a server-side Laravel app — it needs a PHP server to run.<br>To see a visual preview, ask the AI to generate a <strong>preview.html</strong>.</div>
+{$filesSection}
+<div class="tip">💡 <strong>Try asking:</strong> "Now generate a standalone preview.html showing the main dashboard UI with sample data using Tailwind CDN (no PHP required)"</div>
+</div></body></html>
+HTML;
+
+        return response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
+    }
+
+    public function newConversation(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $conversation = AIConversation::create([
+            'user_id'    => Auth::id(),
+            'project_id' => $project->id,
+            'provider'   => $request->input('provider', 'claude'),
+            'title'      => 'New Conversation',
+        ]);
+
+        return response()->json([
+            'success'      => true,
+            'conversation' => $conversation,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Blueprint-Driven Development endpoints
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Phase 1 — Discovery Engine
+     * Tiny AI call (~300 tokens) extracts a structured blueprint from user description.
+     * No code generated — AI only plans.
+     */
+    public function discover(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+        $request->validate(['description' => ['required', 'string', 'max:2000']]);
+
+        try {
+            $aiProvider = $this->aiManager->provider(
+                $request->input('provider'),
+                Auth::user()
+            );
+            $blueprint = $this->blueprintService->discover($request->input('description'), $aiProvider);
+            $this->blueprintService->store($project, $blueprint);
+
+            return response()->json([
+                'success'      => true,
+                'blueprint'    => $blueprint,
+                'tokens_used'  => $blueprint['tokens_used'] ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Return the project's current blueprint (no AI call).
+     */
+    public function getBlueprint(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $blueprint = $this->blueprintService->get($project);
+        $packs     = config('domain_packs', []);
+
+        return response()->json([
+            'success'      => true,
+            'blueprint'    => $blueprint,
+            'domain_packs' => collect($packs)->map(fn($p, $k) => [
+                'key'  => $k,
+                'name' => $p['name'],
+                'icon' => $p['icon'] ?? '📦',
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * Phase 7 — Metadata-Driven CRUD Generation
+     * Generates migration, model, controller, and views from entity metadata.
+     * ZERO AI cost — pure deterministic PHP generation.
+     */
+    public function generateCrud(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+        $request->validate([
+            'entity'        => ['required', 'array'],
+            'entity.name'   => ['required', 'string', 'regex:/^[A-Za-z][A-Za-z0-9]*$/'],
+            'entity.fields' => ['required', 'array', 'min:1'],
+        ]);
+
+        try {
+            $entity    = $request->input('entity');
+            $generated = $this->crudGenerator->generate($entity);
+
+            // Save each file to the project
+            $saved = [];
+            foreach ($generated as $fileData) {
+                $existing = $project->files()->where('path', $fileData['path'])->first();
+                if ($existing) {
+                    $existing->update(['content' => $fileData['content']]);
+                    $saved[] = $existing->fresh();
+                } else {
+                    $file = $project->files()->create([
+                        'path'    => $fileData['path'],
+                        'name'    => basename($fileData['path']),
+                        'type'    => 'file',
+                        'content' => $fileData['content'],
+                    ]);
+                    $saved[] = $file;
+                }
+            }
+
+            return response()->json([
+                'success'        => true,
+                'files_generated'=> $saved,
+                'tokens_used'    => 0,
+                'message'        => count($saved) . ' files generated for ' . $entity['name'] . ' (no AI tokens used)',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Return all domain packs with their entity definitions.
+     */
+    public function domainPacks()
+    {
+        return response()->json([
+            'success' => true,
+            'packs'   => config('domain_packs', []),
+        ]);
+    }
+
+    /**
+     * Component Registry — return all pre-built components (zero AI tokens).
+     * Optional: filter by category or search query.
+     */
+    public function components(Request $request)
+    {
+        $search   = $request->input('search', '');
+        $category = $request->input('category', '');
+
+        $components = $search
+            ? $this->componentRegistry->search($search)
+            : $this->componentRegistry->all($category);
+
+        return response()->json([
+            'success'       => true,
+            'components'    => array_map(function ($key, $c) {
+                return [
+                    'key'          => $key,
+                    'label'        => $c['label'],
+                    'category'     => $c['category'],
+                    'description'  => $c['description'],
+                    'tags'         => $c['tags'] ?? [],
+                    'tokens_saved' => $c['tokens_saved'] ?? 0,
+                    'preview'      => $c['preview'] ?? '',
+                    'template'     => $c['template'],
+                ];
+            }, array_keys($components), array_values($components)),
+            'categories'    => $this->componentRegistry->categories(),
+            'total_tokens_saved' => $this->componentRegistry->totalTokensSaved(),
+        ]);
+    }
+
+    /**
+     * Insert a specific component template as a chat message response.
+     * Bypasses AI entirely — instant, zero-cost.
+     */
+    public function insertComponent(Request $request, Project $project, string $key)
+    {
+        $this->authorize('update', $project);
+
+        $component = $this->componentRegistry->get($key);
+        if (!$component) {
+            return response()->json(['success' => false, 'error' => 'Component not found'], 404);
+        }
+
+        $saved   = $this->componentRegistry->tokensSaved($key);
+        $message = "⚡ **{$component['label']}** inserted from Component Registry — {$saved} tokens saved.\n\n"
+                 . "```blade\n{$component['template']}\n```\n\n"
+                 . "_Customise the field names, route targets, and variable names to match your models._";
+
+        return response()->json([
+            'success'      => true,
+            'message'      => $message,
+            'component'    => $key,
+            'tokens_saved' => $saved,
+        ]);
+    }
+
+    /**
+     * Smart Questions Engine — return context-aware questions for a project's domain.
+     * Helps users discover what they need before building, saving revision AI calls.
+     */
+    public function smartQuestions(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $domain  = $project->type ?? 'general';
+        $rawQs   = config("kb.question_intelligence.by_domain.{$domain}", []);
+
+        // Fall back to general
+        if (empty($rawQs)) {
+            $rawQs = config('kb.question_intelligence.by_domain.general', []);
+        }
+
+        // Extract just the question text (the 'q' field) for the UI
+        $questions = array_filter(array_map(fn($item) => $item['q'] ?? null, $rawQs));
+
+        // Scope-triggered questions
+        $scopeTriggers = array_values(config('kb.question_intelligence.triggered_by_scope', []));
+
+        return response()->json([
+            'success'        => true,
+            'domain'         => $domain,
+            'questions'      => array_values($questions),
+            'scope_triggers' => $scopeTriggers,
+            'tip'            => config('kb.question_intelligence.rule', ''),
+        ]);
+    }
+}
