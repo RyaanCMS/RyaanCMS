@@ -29,7 +29,12 @@ class ModuleInstaller
         foreach ($files as $file) {
             $record = ProjectFile::updateOrCreate(
                 ['project_id' => $project->id, 'path' => $file['path']],
-                ['content' => $file['content'], 'language' => $file['language'] ?? 'php']
+                [
+                    'name'     => basename($file['path']),
+                    'type'     => 'file',
+                    'content'  => $file['content'],
+                    'language' => $file['language'] ?? 'php',
+                ]
             );
             $saved[] = ['path' => $record->path, 'id' => $record->id];
         }
