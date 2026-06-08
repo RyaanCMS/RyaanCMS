@@ -1,3 +1,21 @@
+# ── Shared hosting PHP limits ──────────────────────────────────────────────
+<IfModule mod_php.c>
+    php_value max_execution_time 600
+    php_value memory_limit 256M
+    php_value post_max_size 64M
+    php_value upload_max_filesize 64M
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+<IfModule mod_php8.c>
+    php_value max_execution_time 600
+    php_value memory_limit 256M
+    php_value post_max_size 64M
+    php_value upload_max_filesize 64M
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

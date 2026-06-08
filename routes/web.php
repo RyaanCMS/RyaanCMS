@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{project}',                         [PipelineController::class, 'show'])->name('show');
         Route::post('/{project}/start',                  [PipelineController::class, 'start'])->name('start')->middleware('throttle:3,1');
         Route::get('/{project}/runs/{run}/stream',       [PipelineController::class, 'stream'])->name('stream');
+        Route::get('/{project}/runs/{run}/poll',         [PipelineController::class, 'poll'])->name('poll');
         Route::get('/{project}/runs/{run}/status',       [PipelineController::class, 'status'])->name('status');
         Route::delete('/{project}/runs/{run}',           [PipelineController::class, 'destroy'])->name('destroy');
     });

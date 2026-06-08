@@ -229,18 +229,15 @@ DB_PASSWORD=your_password
 
 > For PostgreSQL change `DB_CONNECTION=pgsql` and `DB_PORT=5432`.
 
-**AI Provider** — at least one API key is required:
+**AI Provider** — optional during installation. You can add API keys later from **Settings → AI Providers** after logging in.
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
-OPENAI_API_KEY=sk-...
-GEMINI_API_KEY=AIza...
-
-# Which provider to use by default (anthropic | openai | gemini)
-AI_PROVIDER=anthropic
-AI_MODEL=claude-sonnet-4-6
+# Add later from Settings — not required to complete installation
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+GEMINI_API_KEY=
 ```
 
-Get your API keys:
+When you're ready to add a key:
 - **Anthropic (Claude)** → [console.anthropic.com](https://console.anthropic.com)
 - **OpenAI (GPT)** → [platform.openai.com](https://platform.openai.com)
 - **Google (Gemini)** → [aistudio.google.com](https://aistudio.google.com)
@@ -386,6 +383,63 @@ server {
     }
 }
 ```
+
+---
+
+### Shared Hosting Deployment (cPanel / DirectAdmin)
+
+RyaanCMS is fully compatible with shared hosting. Follow these steps:
+
+**1. Upload files**
+
+Upload the entire project to your hosting (e.g. `public_html/ryaancms/`). The root `.htaccess` automatically redirects traffic to the `public/` subfolder — no need to change your document root.
+
+**2. Create a MySQL database**
+
+In cPanel → MySQL Databases, create a new database and user. Note the credentials.
+
+**3. Configure `.env`**
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+DB_HOST=localhost
+DB_DATABASE=cpanelusername_ryaancms
+DB_USERNAME=cpanelusername_dbuser
+DB_PASSWORD=your_db_password
+
+# Shared hosting — use file drivers (no Redis/queue worker needed)
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+```
+
+**4. Install via SSH terminal** (cPanel → Terminal)
+
+```bash
+cd ~/public_html/ryaancms
+composer install --optimize-autoloader --no-dev
+php artisan key:generate
+php artisan migrate --seed
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan storage:link
+```
+
+> The `public/build/` folder (compiled JS/CSS) is included in the repository — no need to run `npm` on the server.
+
+**5. Set folder permissions**
+
+```bash
+chmod -R 755 storage bootstrap/cache
+```
+
+**6. Done** — Visit your domain. The installer will guide you through the first setup.
+
+> **Note:** The AI pipeline uses a polling fallback when SSE (Server-Sent Events) is not supported by your host. Progress updates every 3 seconds automatically — no configuration needed.
 
 ---
 

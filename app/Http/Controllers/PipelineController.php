@@ -7,14 +7,12 @@ use App\Models\Project;
 use App\Services\AI\Pipeline\PipelineOrchestrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class PipelineController extends Controller
 {
     public function __construct(private PipelineOrchestrator $orchestrator) {}
 
-    /**
-     * Show the pipeline builder page for a project.
-     */
     public function show(Project $project)
     {
         $this->authorize('view', $project);
@@ -29,9 +27,6 @@ class PipelineController extends Controller
         return view('pipeline.show', compact('project', 'providers', 'runs'));
     }
 
-    /**
-     * Create a new pipeline run record and return its ID.
-     */
     public function start(Request $request, Project $project)
     {
         $this->authorize('update', $project);
@@ -57,7 +52,8 @@ class PipelineController extends Controller
     }
 
     /**
-     * SSE endpoint — runs the full 10-agent pipeline and streams events.
+     * SSE endpoint — streams pipeline events live.
+     * Also caches every event so the polling endpoint can serve them.
      */
     public function stream(Request $request, Project $project, PipelineRun $run)
     {
@@ -69,19 +65,37 @@ class PipelineController extends Controller
         $user = Auth::user();
 
         return response()->stream(function () use ($run, $project, $user) {
-            // Bump PHP execution limit for the pipeline (10 AI calls can take 3-5 min)
+            // Keep running even if the HTTP client disconnects (shared hosting SSE cut-off)
+            ignore_user_abort(true);
             set_time_limit(600);
 
-            $emit = function (array $event) {
+            $cacheKey = 'pipeline_events_' . $run->id;
+            Cache::forget($cacheKey);
+
+            $emit = function (array $event) use ($cacheKey) {
+                // Push to SSE stream
                 echo 'data: ' . json_encode($event) . "\n\n";
                 if (ob_get_level() > 0) ob_flush();
                 flush();
+
+                // Also cache for polling fallback
+                $events   = Cache::get($cacheKey, []);
+                $events[] = $event;
+                Cache::put($cacheKey, $events, now()->addHours(2));
             };
 
             try {
                 $this->orchestrator->run($run, $emit);
             } catch (\Throwable $e) {
-                $emit(['type' => 'error', 'message' => $e->getMessage()]);
+                $errEvent = ['type' => 'error', 'message' => $e->getMessage()];
+                echo 'data: ' . json_encode($errEvent) . "\n\n";
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+
+                $events   = Cache::get($cacheKey, []);
+                $events[] = $errEvent;
+                Cache::put($cacheKey, $events, now()->addHours(2));
+
                 $run->markFailed();
             }
         }, 200, [
@@ -93,7 +107,28 @@ class PipelineController extends Controller
     }
 
     /**
-     * Return pipeline run status (for polling fallback).
+     * Polling endpoint — returns cached events since a given offset.
+     * Used as fallback when SSE is not supported (shared hosting).
+     */
+    public function poll(Request $request, Project $project, PipelineRun $run)
+    {
+        $this->authorize('view', $project);
+        abort_if($run->project_id !== $project->id, 404);
+
+        $offset = (int) $request->query('offset', 0);
+        $cacheKey = 'pipeline_events_' . $run->id;
+        $allEvents = Cache::get($cacheKey, []);
+        $newEvents = array_slice($allEvents, $offset);
+
+        return response()->json([
+            'events'     => array_values($newEvents),
+            'offset'     => $offset + count($newEvents),
+            'status'     => $run->fresh()->status,
+        ]);
+    }
+
+    /**
+     * Return pipeline run status.
      */
     public function status(Project $project, PipelineRun $run)
     {
@@ -113,9 +148,6 @@ class PipelineController extends Controller
         ]);
     }
 
-    /**
-     * Delete a pipeline run record.
-     */
     public function destroy(Project $project, PipelineRun $run)
     {
         $this->authorize('update', $project);

@@ -395,7 +395,11 @@ function pipelineApp() {
             { index:10, name:'Quality Reviewer',    icon:'⭐', description:'Score & grade',       status:'idle', duration_ms:0, files_saved:0 },
         ],
 
-        eventSource: null,
+        eventSource:   null,
+        pollTimer:     null,
+        pollOffset:    0,
+        pollMode:      false,
+        sseRetries:    0,
 
         // ── Init ───────────────────────────────────────────
         init() {},
@@ -416,6 +420,8 @@ function pipelineApp() {
                 const data = await res.json();
                 this.runId = data.run_id;
 
+                // Try SSE first; fall back to polling if connection fails within 5s
+                this.sseRetries = 0;
                 this.openStream(this.runId);
             } catch (e) {
                 this.addLog('error', 'Failed to start pipeline: ' + e.message);
@@ -429,16 +435,55 @@ function pipelineApp() {
             this.eventSource = new EventSource(url);
 
             this.eventSource.onmessage = (e) => {
+                this.sseRetries = 0; // SSE is working
                 try { this.handleEvent(JSON.parse(e.data)); } catch (_) {}
             };
 
             this.eventSource.onerror = () => {
-                this.eventSource.close();
-                if (!this.isDone) {
-                    this.addLog('error', 'Stream connection lost.');
-                    this.isRunning = false;
+                this.sseRetries++;
+                if (this.sseRetries >= 2) {
+                    // SSE not supported on this host — switch to polling
+                    this.eventSource.close();
+                    this.eventSource = null;
+                    if (!this.isDone) {
+                        this.addLog('info', '⚡ Switching to polling mode (shared hosting detected)...');
+                        this.pollMode   = true;
+                        this.pollOffset = 0;
+                        this.startPolling(runId);
+                    }
                 }
             };
+        },
+
+        // ── Polling fallback (shared hosting) ──────────────
+        startPolling(runId) {
+            if (this.pollTimer) clearInterval(this.pollTimer);
+            this.pollTimer = setInterval(() => this.doPoll(runId), 3000);
+            // First poll immediately
+            this.doPoll(runId);
+        },
+
+        async doPoll(runId) {
+            if (this.isDone) {
+                clearInterval(this.pollTimer);
+                return;
+            }
+            try {
+                const url = `{{ route('pipeline.poll', [$project, '__RUN__']) }}`.replace('__RUN__', runId)
+                          + `?offset=${this.pollOffset}`;
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                this.pollOffset = data.offset;
+
+                (data.events || []).forEach(ev => {
+                    try { this.handleEvent(ev); } catch (_) {}
+                });
+
+                if (['completed','failed'].includes(data.status) && this.pollOffset > 0) {
+                    clearInterval(this.pollTimer);
+                }
+            } catch (_) {}
         },
 
         // ── Event dispatcher ───────────────────────────────
@@ -584,8 +629,12 @@ function pipelineApp() {
             this.runId            = null;
             this.log              = [];
             this.generatedFiles   = [];
+            this.pollOffset       = 0;
+            this.pollMode         = false;
+            this.sseRetries       = 0;
             this.agents.forEach(a => { a.status = 'idle'; a.duration_ms = 0; a.files_saved = 0; });
             if (this.eventSource) { this.eventSource.close(); this.eventSource = null; }
+            if (this.pollTimer)   { clearInterval(this.pollTimer); this.pollTimer = null; }
         },
 
         resetPipeline() {
