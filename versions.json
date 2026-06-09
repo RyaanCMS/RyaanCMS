@@ -1,19 +1,33 @@
 ﻿{
-  "product": "RyaanCMS",
-  "latest": "1.0.0",
-  "versions": [
-    {
-      "version": "1.0.0",
-      "type": "feature",
-      "released_at": "2026-06-09",
-      "changelog": "Initial stable release â€” AI builder, 10-agent autonomous pipeline, marketplace with templates & plugins, blueprint-driven development, knowledge base system (30 domain packs), wisdom engine intelligence ledger, and dual-menu management.",
-      "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.0.0/ryaancms-v1.0.0-cpanel.zip",
-      "requires_migration": true,
-      "min_php": "8.2",
-      "min_from_version": null,
-      "critical": false,
-      "file_count": null
-    }
-  ],
-  "plugins": {}
+    "product":  "RyaanCMS",
+    "latest":  "1.0.1",
+    "versions":  [
+                     {
+                         "version":  "1.0.0",
+                         "type":  "feature",
+                         "released_at":  "2026-06-09",
+                         "changelog":  "Initial stable release â€” AI builder, 10-agent autonomous pipeline, marketplace with templates \u0026 plugins, blueprint-driven development, knowledge base system (30 domain packs), wisdom engine intelligence ledger, and dual-menu management.",
+                         "download_url":  "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.0.0/ryaancms-v1.0.0-cpanel.zip",
+                         "requires_migration":  true,
+                         "min_php":  "8.2",
+                         "min_from_version":  null,
+                         "critical":  false,
+                         "file_count":  null
+                     },
+                     {
+                         "version":  "1.0.1",
+                         "type":  "feature",
+                         "released_at":  "2026-06-09",
+                         "changelog":  "Auto-update system, dual menu (Admin sidebar + User topbar), per-project Themes and Plugins pages, cPanel deploy builder",
+                         "download_url":  "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.0.1/ryaancms-v1.0.1-cpanel.zip",
+                         "requires_migration":  true,
+                         "min_php":  "8.2",
+                         "min_from_version":  "1.0.0",
+                         "critical":  false,
+                         "file_count":  null
+                     }
+                 ],
+    "plugins":  {
+
+                }
 }
