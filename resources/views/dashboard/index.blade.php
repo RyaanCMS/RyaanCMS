@@ -404,8 +404,24 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     .db-layout  { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-    .db-kpi-row  { grid-template-columns: repeat(2, 1fr); }
+    .db-kpi-row   { grid-template-columns: repeat(2, 1fr); }
     .db-proj-grid { grid-template-columns: 1fr; }
+    .db-greet {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+    }
+    .db-greet-badge { align-self: flex-start; }
+    .db-kpi-val { font-size: 22px; }
+    .db-section-hd { padding: 12px 14px; }
+    .db-proj-card { padding: 12px 14px; }
+    .db-feed-row  { padding: 10px 14px; }
+}
+@media (max-width: 400px) {
+    .db-kpi-row { grid-template-columns: 1fr 1fr; }
+    .db-kpi { padding: 14px 12px; }
+    .db-kpi-val { font-size: 20px; }
 }
 </style>
 @endpush

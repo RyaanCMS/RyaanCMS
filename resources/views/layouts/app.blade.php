@@ -175,6 +175,35 @@
         }
         .ryaan-powered:hover { color: #6366f1; }
         .ryaan-powered span  { color: #6366f1; font-weight: 700; }
+
+        /* ─── Mobile sidebar ─────────────────────────────────── */
+        @media (max-width: 1023px) {
+            .app-sidebar {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                height: 100dvh;
+                width: 260px !important;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform .25s cubic-bezier(.4,0,.2,1), width .2s;
+            }
+            .app-sidebar.sidebar-mobile-open { transform: translateX(0); }
+            .btn-hamburger { display: flex !important; }
+            .topbar-new-project-text { display: none !important; }
+            .main-padding { padding: 12px !important; }
+            .app-topbar { padding-left: 12px !important; padding-right: 12px !important; }
+        }
+        @media (min-width: 1024px) {
+            .btn-hamburger { display: none !important; }
+        }
+        .mobile-backdrop {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 35;
+        }
+        .mobile-backdrop.active { display: block; }
+        [x-cloak] { display: none !important; }
     </style>
 
     @stack('head')
@@ -183,11 +212,14 @@
 
 <div class="flex h-screen overflow-hidden">
 
+    <!-- Mobile sidebar backdrop -->
+    <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
+
     <!-- ───────────── SIDEBAR ───────────── -->
-    <aside :class="(sidebarOpen || sidebarHovered) ? 'w-64' : 'w-[68px]'"
+    <aside :class="{ 'w-64': sidebarOpen || sidebarHovered, 'w-[68px]': !sidebarOpen && !sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
            @mouseenter="sidebarHovered = true"
            @mouseleave="sidebarHovered = false"
-           class="flex-shrink-0 flex flex-col transition-all duration-200 ease-in-out z-30 overflow-hidden"
+           class="app-sidebar flex-shrink-0 flex flex-col transition-all duration-200 ease-in-out z-30 overflow-hidden"
            style="background:var(--sidebar-bg); border-right:1px solid var(--border); box-shadow:var(--shadow-md);">
 
         <!-- Logo row -->
@@ -465,9 +497,19 @@
                       ->get()
                 : collect();
         @endphp
-        <header class="h-16 flex items-center px-6 flex-shrink-0"
+        <header class="app-topbar h-16 flex items-center px-6 flex-shrink-0"
                 style="background:var(--header-bg); border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm);">
             <div class="flex items-center flex-1 min-w-0 gap-6">
+                <!-- Mobile hamburger -->
+                <button class="btn-hamburger w-9 h-9 rounded-xl items-center justify-center flex-shrink-0 transition-colors"
+                        style="display:none; color:var(--text-2);"
+                        @click="mobileSidebarOpen = !mobileSidebarOpen"
+                        onmouseover="this.style.background='var(--hover-bg)'"
+                        onmouseout="this.style.background=''">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
                 <h1 class="font-bold text-base flex-shrink-0" style="color:var(--text-1);">@yield('header', 'Dashboard')</h1>
 
                 {{-- ── User Menu (topbar) ── --}}
@@ -554,7 +596,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span>New Project</span>
+                    <span class="topbar-new-project-text">New Project</span>
                 </a>
             </div>
         </header>
@@ -592,7 +634,7 @@
         @endif
 
         <!-- Page Content -->
-        <main class="flex-1 overflow-y-auto @yield('main-class', 'p-6')">
+        <main class="main-padding flex-1 overflow-y-auto @yield('main-class', 'p-6')">
             @yield('content')
         </main>
     </div>
@@ -604,8 +646,9 @@
 <script>
 function appLayout() {
     return {
-        sidebarOpen:    false,
-        sidebarHovered: false,
+        sidebarOpen:      false,
+        sidebarHovered:   false,
+        mobileSidebarOpen: false,
         init() {
             // Always light mode — remove any saved dark preference
             localStorage.removeItem('theme');
