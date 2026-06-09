@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.16",
+    "latest": "1.1.17",
     "versions": [
         {
             "version": "1.0.0",
@@ -227,6 +227,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.15",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.17",
+            "type": "feature",
+            "released_at": "2026-06-09",
+            "changelog": "fix: require install.php directly instead of redirect — LiteSpeed routes all requests through index.php",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.17/ryaancms-v1.1.17-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.16",
             "critical": false,
             "file_count": null
         }
