@@ -10,7 +10,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip commits made by this workflow itself (version bumps start with "chore:")
     if: "!startsWith(github.event.head_commit.message, 'chore:')"
 
     steps:
@@ -35,7 +34,7 @@ jobs:
           NEW="${P[0]}.${P[1]}.$((${P[2]}+1))"
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "new=$NEW"         >> $GITHUB_OUTPUT
-          echo "  $CURRENT  ->  $NEW"
+          echo "$CURRENT -> $NEW"
 
       - name: Composer install (production)
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
@@ -62,35 +61,19 @@ jobs:
 
           cp -r public/. dist/public_html/
 
-          python3 - <<'PY'
-import os
+          # Fix index.php paths for cPanel layout (public_html/ + ryaancms/ side by side)
+          sed -i "s|__DIR__ . '/../storage/app/.installed'|__DIR__ . '/../${APP}/storage/app/.installed'|g" dist/public_html/index.php
+          sed -i "s|__DIR__ . '/../storage/framework/maintenance.php'|__DIR__ . '/../${APP}/storage/framework/maintenance.php'|g" dist/public_html/index.php
+          sed -i "s|__DIR__.'/../storage/framework/maintenance.php'|__DIR__.'/../${APP}/storage/framework/maintenance.php'|g" dist/public_html/index.php
+          sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../${APP}/vendor/autoload.php'|g" dist/public_html/index.php
+          sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../${APP}/bootstrap/app.php'|g" dist/public_html/index.php
 
-APP = 'ryaancms'
+          # Fix install.php: BASE_PATH must point inside ryaancms/ folder
+          if [ -f dist/public_html/install.php ]; then
+            sed -i "s|define('BASE_PATH', dirname(__DIR__));|define('BASE_PATH', dirname(__DIR__) . '/${APP}');|g" dist/public_html/install.php
+          fi
 
-# Fix index.php paths for cPanel layout
-idx_path = 'dist/public_html/index.php'
-idx = open(idx_path).read()
-idx = idx.replace("__DIR__ . '/../storage/app/.installed'",            f"__DIR__ . '/../{APP}/storage/app/.installed'")
-idx = idx.replace("__DIR__ . '/../storage/framework/maintenance.php'", f"__DIR__ . '/../{APP}/storage/framework/maintenance.php'")
-idx = idx.replace("__DIR__.'/../storage/framework/maintenance.php'",   f"__DIR__.'/../{APP}/storage/framework/maintenance.php'")
-idx = idx.replace("__DIR__.'/../vendor/autoload.php'",                 f"__DIR__.'/../{APP}/vendor/autoload.php'")
-idx = idx.replace("__DIR__.'/../bootstrap/app.php'",                   f"__DIR__.'/../{APP}/bootstrap/app.php'")
-open(idx_path, 'w').write(idx)
-
-# Fix install.php: BASE_PATH must point to ryaancms/ not parent of public_html
-ins_path = 'dist/public_html/install.php'
-if os.path.exists(ins_path):
-    ins = open(ins_path).read()
-    ins = ins.replace(
-        "define('BASE_PATH', dirname(__DIR__));",
-        f"define('BASE_PATH', dirname(__DIR__) . '/{APP}');"
-    )
-    open(ins_path, 'w').write(ins)
-
-print('Paths fixed.')
-PY
-
-          # Clean runtime files (keep directory structure)
+          # Clean runtime files
           for d in dist/$APP/storage/logs \
                    dist/$APP/storage/framework/cache/data \
                    dist/$APP/storage/framework/sessions \
@@ -102,43 +85,38 @@ PY
           done
 
           cd dist
-          zip -r "../ryaancms-v$VERSION-cpanel.zip" . -x '*.git*'
+          zip -r "../ryaancms-v${VERSION}-cpanel.zip" . -x '*.git*'
           cd ..
-
-          SIZE=$(du -sh "ryaancms-v$VERSION-cpanel.zip" | cut -f1)
-          echo "ZIP: ryaancms-v$VERSION-cpanel.zip  ($SIZE)"
+          echo "ZIP: ryaancms-v${VERSION}-cpanel.zip  ($(du -sh ryaancms-v${VERSION}-cpanel.zip | cut -f1))"
 
       - name: Update versions.json
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          NEW_VERSION: ${{ steps.ver.outputs.new }}
+          OLD_VERSION: ${{ steps.ver.outputs.current }}
+          REPO: ${{ github.repository }}
         run: |
-          VERSION="${{ steps.ver.outputs.new }}"
-          CURRENT="${{ steps.ver.outputs.current }}"
-          REPO="${{ github.repository }}"
-          DATE=$(date +%Y-%m-%d)
-          URL="https://github.com/$REPO/releases/download/v$VERSION/ryaancms-v$VERSION-cpanel.zip"
-
-          python3 - <<PY
-import json, os
-with open('versions.json') as f:
-    v = json.load(f)
-v['versions'].append({
-    'version': '$VERSION',
-    'type': 'feature',
-    'released_at': '$DATE',
-    'changelog': os.environ['COMMIT_MSG'],
-    'download_url': '$URL',
-    'requires_migration': True,
-    'min_php': '8.2',
-    'min_from_version': '$CURRENT',
-    'critical': False,
-    'file_count': None,
-})
-v['latest'] = '$VERSION'
-with open('versions.json', 'w') as f:
-    json.dump(v, f, indent=4, ensure_ascii=False)
-print('versions.json updated  ->  v$VERSION')
-PY
+          node -e "
+            const fs = require('fs');
+            const v = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
+            const ver = process.env.NEW_VERSION;
+            const repo = process.env.REPO;
+            v.versions.push({
+              version: ver,
+              type: 'feature',
+              released_at: new Date().toISOString().slice(0,10),
+              changelog: process.env.COMMIT_MSG,
+              download_url: 'https://github.com/' + repo + '/releases/download/v' + ver + '/ryaancms-v' + ver + '-cpanel.zip',
+              requires_migration: true,
+              min_php: '8.2',
+              min_from_version: process.env.OLD_VERSION,
+              critical: false,
+              file_count: null
+            });
+            v.latest = ver;
+            fs.writeFileSync('versions.json', JSON.stringify(v, null, 4) + '\n');
+            console.log('versions.json updated -> v' + ver);
+          "
 
       - name: Commit version bump
         run: |
@@ -154,18 +132,19 @@ PY
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           VERSION="${{ steps.ver.outputs.new }}"
+          NOTES="## RyaanCMS v${VERSION}
 
-          gh release create "v$VERSION" \
-            --title "RyaanCMS v$VERSION" \
-            --latest \
-            --notes "## RyaanCMS v$VERSION
-
-$COMMIT_MSG
+${COMMIT_MSG}
 
 ### cPanel Installation
-1. Download **ryaancms-v${VERSION}-cpanel.zip** below
-2. Upload to \`/home/username/\` via File Manager
-3. Extract — place \`public_html/\` contents and \`ryaancms/\` folder correctly
-4. \`chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache\`
-5. Visit your domain — install wizard starts automatically!" \
-            "ryaancms-v$VERSION-cpanel.zip"
+1. Download ryaancms-v${VERSION}-cpanel.zip below
+2. Upload to /home/username/ via File Manager
+3. Extract - place public_html/ contents and ryaancms/ folder correctly
+4. chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache
+5. Visit your domain - install wizard starts automatically!"
+
+          gh release create "v${VERSION}" \
+            --title "RyaanCMS v${VERSION}" \
+            --latest \
+            --notes "${NOTES}" \
+            "ryaancms-v${VERSION}-cpanel.zip"
