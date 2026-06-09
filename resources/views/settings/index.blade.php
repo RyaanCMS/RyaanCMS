@@ -151,6 +151,18 @@
                 </div>
                 Branding
             </button>
+
+            <div class="st-nav-sep"></div>
+            <div class="st-nav-label">System</div>
+
+            <a href="{{ route('settings.updates') }}" class="st-nav-item" style="text-decoration:none;">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </div>
+                Updates
+            </a>
         </div>
     </nav>
 

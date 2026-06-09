@@ -19,10 +19,10 @@
     {{-- Stats bar --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         @foreach([
-            ['label' => 'Total',   'value' => $menus->count(),                            'color' => '#6366f1'],
-            ['label' => 'Active',  'value' => $menus->where('is_active', true)->count(),   'color' => '#10b981'],
-            ['label' => 'Header',  'value' => $menus->where('category', 'header')->count(),'color' => '#3b82f6'],
-            ['label' => 'Sidebar', 'value' => $menus->where('category', 'sidebar')->count(),'color' => '#8b5cf6'],
+            ['label' => 'Total Menus', 'value' => $menus->count(),                                                                   'color' => '#6366f1'],
+            ['label' => 'Active',      'value' => $menus->where('is_active', true)->count(),                                          'color' => '#10b981'],
+            ['label' => 'Admin Menus', 'value' => $menus->whereIn('category', ['sidebar','admin_sidebar'])->count(),                  'color' => '#7c3aed'],
+            ['label' => 'User Menus',  'value' => $menus->where('category', 'user_topbar')->count(),                                  'color' => '#f59e0b'],
         ] as $s)
         <div class="rounded-2xl p-4 text-center" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);">
             <p class="text-2xl font-black mb-1" style="color:{{ $s['color'] }}">{{ $s['value'] }}</p>
@@ -96,7 +96,7 @@
                             <td class="px-5 py-3.5">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
                                       :style="catStyle(menu.category)"
-                                      x-text="menu.category.charAt(0).toUpperCase() + menu.category.slice(1)"></span>
+                                      x-text="catLabel(menu.category)"></span>
                             </td>
                             {{-- Items count --}}
                             <td class="px-5 py-3.5">
@@ -245,11 +245,20 @@
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
-                        <option value="header">Header Navigation</option>
-                        <option value="footer">Footer Navigation</option>
-                        <option value="sidebar">Sidebar Navigation</option>
-                        <option value="custom">Custom Menu</option>
+                        <optgroup label="── Menu Locations ──">
+                            <option value="admin_sidebar">🛠 Admin Menu (Sidebar)</option>
+                            <option value="user_topbar">👤 User Menu (Top Bar)</option>
+                        </optgroup>
+                        <optgroup label="── Other ──">
+                            <option value="header">Header Navigation</option>
+                            <option value="footer">Footer Navigation</option>
+                            <option value="sidebar">Sidebar Navigation (Legacy)</option>
+                            <option value="custom">Custom Menu</option>
+                        </optgroup>
                     </select>
+                    <p class="text-xs mt-1.5" style="color:var(--text-3);">
+                        Admin Menu → appears in the sidebar. &nbsp; User Menu → appears in the top bar.
+                    </p>
                 </div>
                 <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
                     <button type="button" @click="showAddModal = false"
@@ -323,10 +332,16 @@
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
-                        <option value="header">Header Navigation</option>
-                        <option value="footer">Footer Navigation</option>
-                        <option value="sidebar">Sidebar Navigation</option>
-                        <option value="custom">Custom Menu</option>
+                        <optgroup label="── Menu Locations ──">
+                            <option value="admin_sidebar">🛠 Admin Menu (Sidebar)</option>
+                            <option value="user_topbar">👤 User Menu (Top Bar)</option>
+                        </optgroup>
+                        <optgroup label="── Other ──">
+                            <option value="header">Header Navigation</option>
+                            <option value="footer">Footer Navigation</option>
+                            <option value="sidebar">Sidebar Navigation (Legacy)</option>
+                            <option value="custom">Custom Menu</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div>
@@ -432,12 +447,25 @@ function menuTable() {
             this.$nextTick(() => this.$refs.deleteForm.submit());
         },
 
+        catLabel(cat) {
+            return {
+                admin_sidebar: '🛠 Admin Menu',
+                user_topbar:   '👤 User Menu',
+                header:        'Header Nav',
+                footer:        'Footer Nav',
+                sidebar:       'Sidebar (Legacy)',
+                custom:        'Custom',
+            }[cat] || cat;
+        },
+
         catStyle(cat) {
             return {
-                header:  'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe',
-                footer:  'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
-                sidebar: 'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
-                custom:  'background:#fff7ed;color:#c2410c;border:1px solid #fed7aa',
+                admin_sidebar: 'background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe',
+                user_topbar:   'background:#fff7ed;color:#b45309;border:1px solid #fde68a',
+                header:        'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe',
+                footer:        'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
+                sidebar:       'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
+                custom:        'background:#f8fafc;color:#475569;border:1px solid #e2e8f0',
             }[cat] || 'background:var(--card-sub);color:var(--text-3);border:1px solid var(--border)';
         },
 

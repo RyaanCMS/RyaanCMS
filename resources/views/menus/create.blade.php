@@ -30,7 +30,14 @@
                         style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                         onfocus="this.style.borderColor='var(--brand)'"
                         onblur="this.style.borderColor='var(--border)'">
-                    @foreach(['header'=>'Header Navigation','footer'=>'Footer Navigation','sidebar'=>'Sidebar Navigation','custom'=>'Custom Menu'] as $val => $label)
+                    @foreach([
+                        'admin_sidebar' => '🛠 Admin Menu (Sidebar)',
+                        'user_topbar'   => '👤 User Menu (Top Bar)',
+                        'header'        => 'Header Navigation',
+                        'footer'        => 'Footer Navigation',
+                        'sidebar'       => 'Sidebar Navigation (Legacy)',
+                        'custom'        => 'Custom Menu',
+                    ] as $val => $label)
                     <option value="{{ $val }}" {{ old('category') === $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>

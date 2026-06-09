@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Services\Module\ModuleInstaller;
 use App\Services\Module\ModuleRegistry;
+use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +20,7 @@ class MarketplaceController extends Controller
     public function __construct(
         private ModuleRegistry $moduleRegistry,
         private ModuleInstaller $moduleInstaller,
+        private TemplateRegistry $templateRegistry,
     ) {}
 
     public function index(Request $request)
@@ -44,9 +46,10 @@ class MarketplaceController extends Controller
         $categories = config('ryaan.marketplace_categories');
 
         // Built-in module registry data for the Modules tab
-        $modules  = $this->moduleRegistry->all();
-        $agents   = $this->moduleRegistry->agents();
-        $projects = Auth::user()->projects()->select('id', 'name')->orderBy('name')->get();
+        $modules          = $this->moduleRegistry->all();
+        $agents           = $this->moduleRegistry->agents();
+        $builtinTemplates = $this->templateRegistry->all();
+        $projects         = Auth::user()->projects()->select('id', 'name')->orderBy('name')->get();
 
         // Track which modules are already installed across user projects (with status + project name)
         $installedKeys = ProjectModule::whereIn(
@@ -67,7 +70,8 @@ class MarketplaceController extends Controller
             ])->values());
 
         return view('marketplace.index', compact(
-            'items', 'featured', 'categories', 'modules', 'agents', 'projects', 'installedKeys', 'installedModules'
+            'items', 'featured', 'categories', 'modules', 'agents',
+            'builtinTemplates', 'projects', 'installedKeys', 'installedModules'
         ));
     }
 
@@ -88,6 +92,36 @@ class MarketplaceController extends Controller
         $project = Project::where('id', $request->project_id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
+
+        // Built-in templates use a different installer path
+        if (str_starts_with($key, 'template.')) {
+            $template = $this->templateRegistry->get($key);
+            if (!$template) {
+                return response()->json(['success' => false, 'message' => 'Template not found.'], 404);
+            }
+
+            $exists = ProjectModule::where('project_id', $project->id)
+                ->where('module_key', $key)->exists();
+
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => "{$template['name']} is already installed on {$project->name}."]);
+            }
+
+            ProjectModule::create([
+                'project_id' => $project->id,
+                'module_key' => $key,
+                'status'     => 'installed',
+            ]);
+
+            return response()->json([
+                'success'    => true,
+                'message'    => "✅ {$template['name']} applied to {$project->name}. Go to your project to activate it.",
+                'file_count' => 0,
+                'ai_tokens'  => 0,
+                'files'      => [],
+                'menu_items' => [],
+            ]);
+        }
 
         $result = $this->moduleInstaller->install($project, $key);
 

@@ -298,7 +298,7 @@
         <div class="flex flex-wrap justify-center gap-2.5 mb-10">
             <span class="stat-pill">⚡ 21 Knowledge Bases</span>
             <span class="stat-pill">🤖 10 AI Agents</span>
-            <span class="stat-pill">📐 12 Domain Blueprints</span>
+            <span class="stat-pill">📐 Unlimited Domains</span>
             <span class="stat-pill">💰 70%+ AI Cost Reduction</span>
             <span class="stat-pill">🛡️ Senior Dev Intelligence</span>
         </div>
@@ -410,7 +410,7 @@
                 <ul class="space-y-3 text-sm">
                     @foreach([
                         'Blueprint Assembly — reuses proven structures instantly',
-                        '12 domain blueprints with full module/table/role knowledge',
+                        'Any business domain — blueprints with full module/table/role knowledge',
                         'Decision Cache — reuses prior decisions automatically',
                         'Business Rules Engine — immutable accounting & payroll rules',
                         '6-layer Senior Dev Knowledge — security, anti-patterns, performance',
@@ -487,7 +487,7 @@
 
         <!-- Stats -->
         <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            @foreach([['21','Knowledge Base Files','#6d28d9'],['330+','Wisdom Patterns','#0891b2'],['70%+','AI Cost Eliminated','#059669'],['12','Domain Blueprints','#d97706']] as $s)
+            @foreach([['21','Knowledge Base Files','#6d28d9'],['330+','Wisdom Patterns','#0891b2'],['70%+','AI Cost Eliminated','#059669'],['∞','Domain Blueprints','#d97706']] as $s)
             <div class="card p-5 text-center">
                 <div class="text-3xl font-black mb-1.5" style="color:{{ $s[2] }};">{{ $s[0] }}</div>
                 <div class="text-xs font-medium" style="color:#6b7280;">{{ $s[1] }}</div>
@@ -538,12 +538,12 @@
 <section class="relative py-24 px-6 section-alt" id="domains">
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-14">
-            <div class="section-label">12 Domain Blueprints</div>
+            <div class="section-label">Unlimited Domain Blueprints</div>
             <h2 class="display-2 mb-4">
-                Every Business Type.<br><span class="g-text">Zero Guesswork.</span>
+                Any Business Type.<br><span class="g-text">Zero Guesswork.</span>
             </h2>
             <p class="text-lg max-w-xl mx-auto" style="color:#6b7280;">
-                Each domain ships with pre-researched tables, roles, modules, MVP scope, business rules, and KPIs.
+                Every domain ships with pre-researched tables, roles, modules, MVP scope, business rules, and KPIs — and the AI generates blueprints for any industry not yet in the library.
             </p>
         </div>
 

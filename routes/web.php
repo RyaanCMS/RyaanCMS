@@ -11,6 +11,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\WisdomController;
 use Illuminate\Support\Facades\Route;
 
@@ -108,6 +109,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/ai-providers',                 [SettingsController::class, 'saveAIProvider'])->name('ai-provider.save');
         Route::delete('/ai-providers/{aiProvider}',  [SettingsController::class, 'deleteAIProvider'])->name('ai-provider.delete');
         Route::post('/ai-providers/test',            [SettingsController::class, 'testAIProvider'])->name('ai-provider.test');
+
+        // System Updates
+        Route::get('/updates',              [UpdateController::class, 'index'])->name('updates');
+        Route::post('/updates/check',       [UpdateController::class, 'check'])->name('updates.check');
+        Route::post('/updates/apply',       [UpdateController::class, 'apply'])->name('updates.apply');
+        Route::post('/updates/plugin/{key}', [UpdateController::class, 'applyPlugin'])->name('updates.plugin');
     });
 
     // Menu Management
@@ -171,12 +178,16 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{key}',         [TemplateController::class, 'uninstall'])->name('uninstall');
     });
 
-    // Project packaging (developer export) + Unified Installed
+    // Project packaging (developer export) + Unified Installed + WP-style management
     Route::prefix('projects')->name('projects.')->group(function () {
         Route::get('/{project}/package',          [ProjectController::class, 'packageForm'])->name('package');
         Route::post('/{project}/package/build',   [ProjectController::class, 'buildPackage'])->name('package.build');
         Route::get('/{project}/package/download', [ProjectController::class, 'downloadPackage'])->name('package.download');
         Route::get('/{project}/installed',        [ProjectController::class, 'installedPackages'])->name('installed');
+
+        // WordPress-style management pages
+        Route::get('/{project}/themes',           [ProjectController::class, 'themes'])->name('themes');
+        Route::get('/{project}/plugins',          [ProjectController::class, 'plugins'])->name('plugins');
     });
 
 });

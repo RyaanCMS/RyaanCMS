@@ -224,9 +224,10 @@
         <!-- Navigation -->
         <nav class="flex-1 px-2 py-1.5 space-y-0.5 overflow-y-auto overflow-x-hidden">
             @php
+                // Both 'sidebar' (legacy) and 'admin_sidebar' (new) render in the sidebar
                 $dynamicSidebarMenus = auth()->check()
                     ? \App\Models\Menu::where('user_id', auth()->id())
-                          ->where('category', 'sidebar')
+                          ->whereIn('category', ['sidebar', 'admin_sidebar'])
                           ->where('is_active', true)
                           ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')->with([
                               'children' => fn($q2) => $q2->where('is_active', true)->orderBy('order'),
@@ -330,7 +331,7 @@
             </div>
             @endif
 
-            {{-- Dynamic sidebar menus (created via Menus > category: sidebar) --}}
+            {{-- ── Admin Menu (sidebar bottom) ── --}}
             @foreach($dynamicSidebarMenus as $dynMenu)
             <div x-show="sidebarOpen || sidebarHovered" x-transition class="pt-2">
                 <p class="px-2 text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:var(--text-3);">
@@ -455,12 +456,85 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         <!-- Top Bar -->
+        @php
+            $userTopbarMenus = auth()->check()
+                ? \App\Models\Menu::where('user_id', auth()->id())
+                      ->where('category', 'user_topbar')
+                      ->where('is_active', true)
+                      ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')])
+                      ->get()
+                : collect();
+        @endphp
         <header class="h-16 flex items-center px-6 flex-shrink-0"
                 style="background:var(--header-bg); border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm);">
-            <div class="flex items-center flex-1">
-                <h1 class="font-bold text-base" style="color:var(--text-1);">@yield('header', 'Dashboard')</h1>
+            <div class="flex items-center flex-1 min-w-0 gap-6">
+                <h1 class="font-bold text-base flex-shrink-0" style="color:var(--text-1);">@yield('header', 'Dashboard')</h1>
+
+                {{-- ── User Menu (topbar) ── --}}
+                @if($userTopbarMenus->isNotEmpty())
+                <nav class="flex items-center gap-1 min-w-0 overflow-x-auto" style="scrollbar-width:none;">
+                    @foreach($userTopbarMenus as $topMenu)
+                        @foreach($topMenu->items as $topItem)
+                        @php
+                            $topPath   = ltrim(parse_url($topItem->url ?? '', PHP_URL_PATH) ?? '', '/');
+                            $topActive = $topItem->url && ($topPath ? request()->is($topPath, $topPath.'/*') : false);
+                        @endphp
+                        @if($topItem->children->isNotEmpty())
+                        {{-- Dropdown item --}}
+                        <div x-data="{ open: false }" class="relative flex-shrink-0">
+                            <button @click="open = !open" @click.away="open = false"
+                                    class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                                    style="{{ $topActive ? 'background:var(--brand-light);color:var(--brand);' : 'color:var(--text-2);' }}"
+                                    onmouseover="this.style.background='var(--hover-bg)'"
+                                    onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)' : '' }}'">
+                                @if($topItem->icon)
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $topItem->icon }}"/>
+                                </svg>
+                                @endif
+                                <span class="whitespace-nowrap">{{ $topItem->label }}</span>
+                                <svg class="w-3 h-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition
+                                 class="absolute top-full left-0 mt-1 py-1 rounded-xl z-50 min-w-[160px]"
+                                 style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-md);">
+                                @foreach($topItem->children as $child)
+                                <a href="{{ $child->url ?: '#' }}" target="{{ $child->target ?: '_self' }}"
+                                   class="flex items-center gap-2 px-4 py-2 text-sm transition-colors"
+                                   style="color:var(--text-2);"
+                                   onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)';"
+                                   onmouseout="this.style.background='';this.style.color='var(--text-2)';">
+                                    {{ $child->label }}
+                                </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                        {{-- Simple link --}}
+                        <a href="{{ $topItem->url ?: '#' }}" target="{{ $topItem->target ?: '_self' }}"
+                           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex-shrink-0 whitespace-nowrap"
+                           style="{{ $topActive ? 'background:var(--brand-light);color:var(--brand);font-weight:600;' : 'color:var(--text-2);' }}"
+                           onmouseover="this.style.background='var(--hover-bg)';if(!{{ $topActive ? 'true':'false' }})this.style.color='var(--text-1)';"
+                           onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)':'' }}';this.style.color='{{ $topActive ? 'var(--brand)':'var(--text-2)' }}';">
+                            @if($topItem->icon)
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $topItem->icon }}"/>
+                            </svg>
+                            @endif
+                            {{ $topItem->label }}
+                            @if($topActive)
+                            <span class="w-1 h-1 rounded-full flex-shrink-0" style="background:var(--brand);"></span>
+                            @endif
+                        </a>
+                        @endif
+                        @endforeach
+                    @endforeach
+                </nav>
+                @endif
             </div>
-            <div class="flex items-center space-x-1.5">
+            <div class="flex items-center space-x-1.5 flex-shrink-0">
                 @yield('header-actions')
 
                 <!-- Notifications -->

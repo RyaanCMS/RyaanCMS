@@ -4,7 +4,7 @@
 
 @section('header-actions')
 <div class="flex items-center gap-2">
-    <a href="{{ route('marketplace.templates') }}"
+    <a href="{{ route('marketplace.index', ['tab' => 'plugins']) }}"
        class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
        style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-bg)'">
@@ -251,6 +251,14 @@
         </div>
         <div class="ms-stat-sep"></div>
         <div class="ms-stat-item">
+            <div class="ms-stat-ico" style="background:#fdf4ff;">🎨</div>
+            <div>
+                <div class="ms-stat-val">{{ count($builtinTemplates) }}</div>
+                <div class="ms-stat-lbl">Templates</div>
+            </div>
+        </div>
+        <div class="ms-stat-sep"></div>
+        <div class="ms-stat-item">
             <div class="ms-stat-ico" style="background:#ecfdf5;">⚡</div>
             <div>
                 <div class="ms-stat-val">0</div>
@@ -472,6 +480,58 @@
      TAB: PLUGINS & TEMPLATES
 ════════════════════════════════════════ --}}
 <div x-show="tab === 'marketplace'" x-cloak>
+
+    {{-- ── Built-in Templates ──────────────────────────────────────────────── --}}
+    @if(count($builtinTemplates))
+    <div style="margin-bottom:32px;">
+        <div class="ms-section-hd">
+            <span class="ms-section-title">Built-in Templates</span>
+            <span class="ms-section-hint">Ready-to-use — apply to any project instantly</span>
+        </div>
+        <div class="ms-grid-lg">
+            @foreach($builtinTemplates as $tKey => $tpl)
+            @php $tColor = $tpl['color'] ?? '#6366f1'; @endphp
+            <div class="ms-card-lg">
+                <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $tColor }},{{ $tColor }}88);"></div>
+                <div class="ms-body">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                        <div class="ms-ico" style="background:{{ $tColor }}12;border:1px solid {{ $tColor }}25;font-size:22px;">
+                            {{ $tpl['icon'] }}
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                            <span class="ms-badge-free">Built-in</span>
+                            <span class="ms-badge-tokens">Free</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="ms-name">{{ $tpl['name'] }}</div>
+                        <div class="ms-desc" style="margin-top:4px;">{{ $tpl['description'] }}</div>
+                    </div>
+                    <div class="ms-tags">
+                        @foreach(array_slice($tpl['tags'] ?? [], 0, 4) as $tag)
+                        <span class="ms-tag">{{ $tag }}</span>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="ms-foot" style="display:flex;gap:8px;">
+                    <button class="ms-btn-install-lg"
+                            style="flex:1;"
+                            @click="openInstallModal('{{ $tKey }}', '{{ addslashes($tpl['name']) }}')">
+                        Apply to Project
+                    </button>
+                    <a href="{{ route('marketplace.template.download', $tKey) }}"
+                       title="Download ZIP"
+                       style="display:flex;align-items:center;justify-content:center;width:40px;border-radius:10px;font-size:14px;border:1px solid var(--border);background:var(--hover-bg);color:var(--text-2);text-decoration:none;flex-shrink:0;transition:all .13s;"
+                       onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)';"
+                       onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)';">
+                        ⬇
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- Featured — large cards --}}
     @if($featured->isNotEmpty() && !request('search'))
@@ -745,8 +805,8 @@ function marketplace() {
         manageWorking: false, manageFeedback: '', manageFeedbackOk: true,
 
         init() {
-            if (new URLSearchParams(window.location.search).has('search') ||
-                new URLSearchParams(window.location.search).has('category')) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('search') || params.has('category') || params.get('tab') === 'plugins') {
                 this.tab = 'marketplace';
             }
         },

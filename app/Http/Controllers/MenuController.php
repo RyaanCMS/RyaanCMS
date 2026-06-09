@@ -28,7 +28,7 @@ class MenuController extends Controller
     {
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
-            'category' => ['required', 'in:header,footer,sidebar,custom'],
+            'category' => ['required', 'in:header,footer,sidebar,custom,admin_sidebar,user_topbar'],
         ]);
 
         $data['user_id'] = Auth::id();
@@ -113,7 +113,7 @@ class MenuController extends Controller
         $this->checkOwner($menu);
         $data = $request->validate([
             'name'      => ['required', 'string', 'max:100'],
-            'category'  => ['required', 'in:header,footer,sidebar,custom'],
+            'category'  => ['required', 'in:header,footer,sidebar,custom,admin_sidebar,user_topbar'],
             'is_active' => ['boolean'],
         ]);
         $menu->update($data);

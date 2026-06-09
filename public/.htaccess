@@ -23,6 +23,12 @@
 
     RewriteEngine On
 
+    # ── Force HTTPS (enable AFTER SSL certificate is installed) ──────────────
+    # Uncomment the two lines below once your SSL cert is active in cPanel.
+    # If you use Cloudflare, leave these commented — Cloudflare handles HTTPS.
+    #RewriteCond %{HTTPS} off
+    #RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -37,3 +43,12 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ── Security & HSTS headers (enable after SSL is working) ───────────────────
+# Uncomment after your SSL cert is active.
+#<IfModule mod_headers.c>
+#    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+#    Header always set X-Content-Type-Options "nosniff"
+#    Header always set X-Frame-Options "SAMEORIGIN"
+#    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+#</IfModule>

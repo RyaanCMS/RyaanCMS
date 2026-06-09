@@ -274,8 +274,11 @@
                 </form>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-                <a href="{{ route('projects.installed', $project) }}" class="btn-secondary">
-                    📦 Installed
+                <a href="{{ route('projects.themes', $project) }}" class="btn-secondary">
+                    🎨 Themes
+                </a>
+                <a href="{{ route('projects.plugins', $project) }}" class="btn-secondary">
+                    🧩 Plugins
                 </a>
                 <a href="{{ route('pipeline.show', $project) }}" class="btn-secondary">
                     🤖 Auto Build

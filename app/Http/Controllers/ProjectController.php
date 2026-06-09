@@ -226,6 +226,47 @@ class ProjectController extends Controller
         ));
     }
 
+    // ── WordPress-style Themes page ─────────────────────────────────────────
+    public function themes(Project $project)
+    {
+        abort_unless($project->user_id === Auth::id(), 403);
+
+        $allTemplates     = app(TemplateRegistry::class)->all();
+        $installedModules = ProjectModule::where('project_id', $project->id)
+            ->where('module_key', 'like', 'template.%')
+            ->get()
+            ->keyBy('module_key');
+
+        $activeTemplate     = $installedModules->first(fn($m) => $m->status === 'active');
+        $installedKeys      = $installedModules->keys();
+        $availableTemplates = collect($allTemplates)->filter(
+            fn($t, $k) => !$installedKeys->contains($k)
+        );
+
+        return view('projects.themes', compact(
+            'project', 'allTemplates', 'installedModules',
+            'activeTemplate', 'availableTemplates'
+        ));
+    }
+
+    // ── WordPress-style Plugins page ─────────────────────────────────────────
+    public function plugins(Project $project)
+    {
+        abort_unless($project->user_id === Auth::id(), 403);
+
+        $allModules     = app(ModuleRegistry::class)->all();
+        $installations  = MarketplaceInstallation::where('project_id', $project->id)
+            ->with('item')->latest()->get();
+        $projectModules = ProjectModule::where('project_id', $project->id)
+            ->where('module_key', 'not like', 'template.%')
+            ->get()
+            ->keyBy('module_key');
+
+        return view('projects.plugins', compact(
+            'project', 'allModules', 'projectModules', 'installations'
+        ));
+    }
+
     protected function getTechStack(string $type): array
     {
         return match($type) {
