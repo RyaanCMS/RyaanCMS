@@ -62,8 +62,15 @@ $needsInstall  = !file_exists($installedFlag) || $envMissing || $keyMissing;
 if ($needsInstall && file_exists($installScript)) {
     $uri     = $_SERVER['REQUEST_URI'] ?? '/';
     $isAsset = (bool) preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map)(\?.*)?$/i', $uri);
-    if (!$isAsset && strpos($uri, '/install.php') === false) {
-        header('Location: /install.php');
+    if (!$isAsset) {
+        try {
+            require $installScript;
+        } catch (\Throwable $e) {
+            echo '<pre style="background:#fee;padding:20px;font-family:monospace">'
+                . '<b>Installer Error:</b> ' . htmlspecialchars($e->getMessage()) . "\n"
+                . 'File: ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine()
+                . '</pre>';
+        }
         exit;
     }
 }
