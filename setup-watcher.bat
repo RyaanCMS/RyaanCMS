@@ -4,38 +4,34 @@ cd /d "%~dp0"
 echo.
 echo   RyaanCMS Auto-Push Setup
 echo   ========================
-echo   This registers a Windows Task that starts the file watcher
-echo   automatically when you log in. After this, just code and save.
-echo   GitHub releases happen automatically.
 echo.
 
-set TASK_NAME=RyaanCMS-AutoPush
 set SCRIPT=%~dp0auto-push.ps1
-set PS=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+set STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+set VBS=%STARTUP%\RyaanCMS-AutoPush.vbs
 
-schtasks /delete /tn "%TASK_NAME%" /f >nul 2>&1
+:: Create a silent VBScript launcher in Windows Startup folder
+(
+echo Set oShell = CreateObject^("WScript.Shell"^)
+echo oShell.Run "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File ""%SCRIPT%""", 0, False
+) > "%VBS%"
 
-schtasks /create ^
-  /tn "%TASK_NAME%" ^
-  /tr "%PS% -WindowStyle Hidden -ExecutionPolicy Bypass -File \"%SCRIPT%\"" ^
-  /sc ONLOGON ^
-  /delay 0001:00 ^
-  /rl HIGHEST ^
-  /f >nul
-
-if %errorlevel% neq 0 (
-    echo   ERROR: Could not create task. Try running as Administrator.
+if not exist "%VBS%" (
+    echo   ERROR: Could not write to Startup folder.
     pause
     exit /b 1
 )
 
-echo   Task registered: %TASK_NAME%
-echo   Watcher starts automatically on next login.
+echo   Startup entry created: %VBS%
 echo.
-echo   Starting watcher now (in background)...
-start "" /min "%PS%" -WindowStyle Hidden -ExecutionPolicy Bypass -File "%SCRIPT%"
+echo   Starting watcher now...
 
-echo   Done! The watcher is running in the background.
-echo   Just code and save files - releases happen automatically.
+:: Start immediately (hidden window via VBScript)
+cscript //nologo "%VBS%"
+
+echo   Watcher is running in the background.
+echo   Starts automatically on every login - no admin needed.
+echo.
+echo   Flow: save files ^> 60 sec ^> auto commit+push ^> GitHub releases
 echo.
 pause
