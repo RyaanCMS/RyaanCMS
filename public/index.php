@@ -45,7 +45,7 @@ if (!file_exists($installedFlag) && file_exists($installScript)) {
     $uri     = $_SERVER['REQUEST_URI'] ?? '/';
     $isAsset = (bool) preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map)(\?.*)?$/i', $uri);
     if (!$isAsset && strpos($uri, '/install.php') === false) {
-        require $installScript;
+        header('Location: /install.php');
         exit;
     }
 }
