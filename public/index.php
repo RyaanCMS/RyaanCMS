@@ -50,11 +50,16 @@ foreach ($writableDirs as $dir) {
     if (!is_writable($dir)) { @chmod($dir, 0755); }
 }
 
-// ── Show installer if not yet installed ──────────────────────────────────────────
+// ── Show installer if not yet installed or .env missing ──────────────────────────
 $installedFlag = $appRoot . '/storage/app/.installed';
 $installScript = __DIR__ . '/install.php';
+$envPath       = $appRoot . '/.env';
 
-if (!file_exists($installedFlag) && file_exists($installScript)) {
+$envMissing    = !file_exists($envPath);
+$keyMissing    = !$envMissing && !preg_match('/^APP_KEY=base64:.+/m', file_get_contents($envPath));
+$needsInstall  = !file_exists($installedFlag) || $envMissing || $keyMissing;
+
+if ($needsInstall && file_exists($installScript)) {
     $uri     = $_SERVER['REQUEST_URI'] ?? '/';
     $isAsset = (bool) preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map)(\?.*)?$/i', $uri);
     if (!$isAsset && strpos($uri, '/install.php') === false) {
