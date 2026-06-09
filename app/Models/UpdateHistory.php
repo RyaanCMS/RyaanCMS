@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class UpdateHistory extends Model
 {
+    protected $table = 'update_history';
+
     protected $fillable = [
         'version', 'type', 'package_key', 'status',
         'changelog', 'error_message', 'started_at', 'completed_at',
