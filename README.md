@@ -142,83 +142,109 @@ The **Intelligence Ledger** (`/wisdom`) stores lessons, decisions, and outcomes 
 
 ## Installation Guide
 
-### Prerequisites
+> **Two ways to install:** [cPanel / Shared Hosting](#cpanel--shared-hosting-one-click-installer) (recommended for most users) or [Local Development](#local-development-setup) (for developers / contributors).
 
-Make sure the following are installed on your machine before you begin:
+---
+
+## cPanel / Shared Hosting — One-Click Installer
+
+**No SSH. No terminal. No Node.js. Just upload and visit your domain.**
+
+### Server Requirements (cPanel)
+
+| Requirement | Minimum | Notes |
+|-------------|---------|-------|
+| PHP | **8.2+** | Set in cPanel → MultiPHP Manager |
+| PHP Handler | **lsphp** or **php-fpm** | Set in cPanel → MultiPHP Manager |
+| MySQL | 5.7+ / 8.0+ | cPanel MySQL Databases |
+| Extensions | pdo, pdo_mysql, mbstring, openssl, zip, curl, xml | Usually enabled by default |
+
+> **Node.js is NOT required on your server.** Frontend assets (CSS/JS) are pre-compiled and included in the ZIP.
+
+### Step 1 — Download
+
+Download the latest cPanel-ready ZIP from [GitHub Releases](https://github.com/RyaanCMS/RyaanCMS/releases/latest):
+
+```
+ryaancms-vX.X.X-cpanel.zip
+```
+
+### Step 2 — Upload & Extract
+
+1. cPanel → **File Manager** → open `public_html/`
+2. Click **Upload** → upload the ZIP
+3. Select the ZIP → click **Extract** → extract directly into `public_html/`
+
+### Step 3 — Visit Your Domain
+
+Open your browser and visit:
+
+```
+https://yourdomain.com
+```
+
+The **installation wizard** starts automatically. It will:
+- Check server requirements
+- Set up your database
+- Create your admin account
+- Run all migrations
+
+**That's it.** No terminal commands. No manual configuration.
+
+---
+
+## Local Development Setup
+
+> **Prerequisites for developers** — these are only needed if you want to run RyaanCMS locally or contribute to the project.
 
 | Requirement | Version | Download |
 |-------------|---------|----------|
 | PHP | 8.2 or higher | [php.net](https://www.php.net/downloads) |
 | Composer | 2.x | [getcomposer.org](https://getcomposer.org) |
-| Node.js | 18 or higher | [nodejs.org](https://nodejs.org) |
-| MySQL | 8.0+ **or** PostgreSQL 15+ | [mysql.com](https://www.mysql.com) |
+| Node.js | 18 or higher *(dev only)* | [nodejs.org](https://nodejs.org) |
+| MySQL | 8.0+ | [mysql.com](https://www.mysql.com) |
 | Git | Any recent version | [git-scm.com](https://git-scm.com) |
-| Redis | Optional (for queues/cache) | [redis.io](https://redis.io) |
 
-Verify your environment before proceeding:
+> **Note:** Node.js is only needed to compile frontend assets during development (`npm run dev` / `npm run build`). It is **not** required on your production server or cPanel hosting.
+
+Verify your environment:
 
 ```bash
 php -v        # should show 8.2+
 composer -V   # should show 2.x
-node -v       # should show v18+
-npm -v        # should show 9+
+node -v       # should show v18+  (dev only)
 mysql --version
-git --version
 ```
 
----
-
-### Step 1 — Clone the Repository
+### Step 1 — Clone
 
 ```bash
 git clone https://github.com/RyaanCMS/RyaanCMS.git
 cd RyaanCMS
 ```
 
----
-
-### Step 2 — Install PHP Dependencies
+### Step 2 — Install Dependencies
 
 ```bash
 composer install
-```
-
-> On a production server add `--optimize-autoloader --no-dev` to skip dev packages.
-
----
-
-### Step 3 — Install Node Dependencies
-
-```bash
 npm install
 ```
 
----
-
-### Step 4 — Configure Environment
-
-Copy the example environment file and open it in your editor:
+### Step 3 — Configure Environment
 
 ```bash
-# Linux / macOS
-cp .env.example .env
-
-# Windows
-copy .env.example .env
+cp .env.example .env   # Linux/macOS
+copy .env.example .env  # Windows
 ```
 
-Edit `.env` and update the following sections:
+Edit `.env`:
 
-**App settings**
 ```env
 APP_NAME=RyaanCMS
 APP_URL=http://localhost:8000
 APP_ENV=local
 APP_DEBUG=true
-```
 
-**Database**
-```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -227,168 +253,69 @@ DB_USERNAME=root
 DB_PASSWORD=your_password
 ```
 
-> For PostgreSQL change `DB_CONNECTION=pgsql` and `DB_PORT=5432`.
-
-**AI Provider** — optional during installation. You can add API keys later from **Settings → AI Providers** after logging in.
+**AI Provider keys** — optional, add later from **Settings → AI Providers**:
 ```env
-# Add later from Settings — not required to complete installation
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 GEMINI_API_KEY=
 ```
 
-When you're ready to add a key:
-- **Anthropic (Claude)** → [console.anthropic.com](https://console.anthropic.com)
-- **OpenAI (GPT)** → [platform.openai.com](https://platform.openai.com)
-- **Google (Gemini)** → [aistudio.google.com](https://aistudio.google.com)
-
----
-
-### Step 5 — Generate Application Key
+### Step 4 — Setup Database & Keys
 
 ```bash
 php artisan key:generate
-```
-
----
-
-### Step 6 — Create the Database
-
-Create the database in MySQL before running migrations:
-
-```sql
-CREATE DATABASE ryaancms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Or with the MySQL CLI:
-
-```bash
-mysql -u root -p -e "CREATE DATABASE ryaancms;"
-```
-
----
-
-### Step 7 — Run Migrations & Seeders
-
-```bash
 php artisan migrate --seed
 ```
 
-This creates all tables and seeds default data (AI providers, settings, sample marketplace items).
-
----
-
-### Step 8 — Build Frontend Assets
+### Step 5 — Build Assets & Start
 
 ```bash
-# Development (with hot reload)
-npm run dev
-
-# Production (minified build)
-npm run build
+npm run build          # compile CSS/JS
+php artisan serve      # start dev server
 ```
 
----
-
-### Step 9 — Set Storage Permissions
-
-```bash
-# Linux / macOS only
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
-```
-
-Link the public storage disk:
-
-```bash
-php artisan storage:link
-```
-
----
-
-### Step 10 — Start the Server
-
-```bash
-php artisan serve
-```
-
-Visit **http://localhost:8000** in your browser, register your account, and start building.
+Visit **http://localhost:8000**.
 
 ---
 
 ### Windows Quick Start (Laragon / XAMPP)
 
-Two helper scripts are included for Windows developers who run PHP + MySQL locally:
+Two helper scripts are included for Windows developers:
 
 | File | Purpose |
 |------|---------|
-| `start-server.bat` | Starts MySQL then PHP on ports 8000 & 8001 in one click |
-| `start-server-silent.vbs` | Same as above but runs silently (no console window) — use for Windows Startup |
+| `start-server.bat` | Starts MySQL + PHP in one click |
+| `start-server-silent.vbs` | Same but runs silently — use for Windows Startup |
 
-> **Important — edit paths before use.** Both files contain hardcoded paths for Laragon's default installation location. If your setup differs, open the file and update these two lines to match your machine:
->
-> ```bat
-> set MYSQLD=C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysqld.exe
-> set PHP=C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe
-> ```
->
-> Common alternative paths:
-> - **XAMPP**: `C:\xampp\mysql\bin\mysqld.exe` and `C:\xampp\php\php.exe`
-> - **Official PHP**: `C:\php\php.exe`
-
-To run RyaanCMS automatically at Windows startup:
-1. Edit the paths in `start-server-silent.vbs`
-2. Create a shortcut to the `.vbs` file
-3. Move the shortcut to `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`
+> Edit paths in both files to match your local Laragon/XAMPP installation before use.
 
 ---
 
 ### Optional: Queue Worker
 
-For background AI pipeline jobs, start a queue worker in a separate terminal:
-
 ```bash
 php artisan queue:work --queue=pipeline,default --tries=3
 ```
 
-> On production use **Supervisor** to keep the worker running. See [Laravel Queue docs](https://laravel.com/docs/queues#supervisor-configuration).
+> On production use **Supervisor**. See [Laravel Queue docs](https://laravel.com/docs/queues#supervisor-configuration).
 
 ---
 
-### Optional: Redis Cache & Sessions
-
-If Redis is installed, update `.env` for faster caching:
+### Optional: Redis
 
 ```env
 CACHE_STORE=redis
 SESSION_DRIVER=redis
 QUEUE_CONNECTION=redis
-
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
-REDIS_PASSWORD=null
 ```
 
 ---
 
-### Production Deployment
+### VPS / Dedicated Server
 
-Additional steps for a live server:
-
-```bash
-# Optimize for production
-composer install --optimize-autoloader --no-dev
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-npm run build
-
-# Set APP_ENV and APP_DEBUG in .env
-APP_ENV=production
-APP_DEBUG=false
-```
-
-Point your web server (Nginx/Apache) document root to the `/public` folder.
+Point your web server document root to the `/public` folder.
 
 **Nginx example:**
 ```nginx
@@ -396,7 +323,6 @@ server {
     listen 80;
     server_name yourdomain.com;
     root /var/www/RyaanCMS/public;
-
     index index.php;
 
     location / {
@@ -404,7 +330,7 @@ server {
     }
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -413,64 +339,18 @@ server {
 
 ---
 
-### Shared Hosting Deployment (cPanel / DirectAdmin)
-
-RyaanCMS is fully compatible with shared hosting. Follow these steps:
-
-**1. Upload files**
-
-Upload the entire project to your hosting (e.g. `public_html/ryaancms/`). The root `.htaccess` automatically redirects traffic to the `public/` subfolder — no need to change your document root.
-
-**2. Create a MySQL database**
-
-In cPanel → MySQL Databases, create a new database and user. Note the credentials.
-
-**3. Configure `.env`**
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://yourdomain.com
-
-DB_HOST=localhost
-DB_DATABASE=cpanelusername_ryaancms
-DB_USERNAME=cpanelusername_dbuser
-DB_PASSWORD=your_db_password
-
-# Shared hosting — use file drivers (no Redis/queue worker needed)
-SESSION_DRIVER=file
-CACHE_STORE=file
-QUEUE_CONNECTION=sync
-```
-
-**4. Install via SSH terminal** (cPanel → Terminal)
-
-```bash
-cd ~/public_html/ryaancms
-composer install --optimize-autoloader --no-dev
-php artisan key:generate
-php artisan migrate --seed
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan storage:link
-```
-
-> The `public/build/` folder (compiled JS/CSS) is included in the repository — no need to run `npm` on the server.
-
-**5. Set folder permissions**
-
-```bash
-chmod -R 755 storage bootstrap/cache
-```
-
-**6. Done** — Visit your domain. The installer will guide you through the first setup.
-
-> **Note:** The AI pipeline uses a polling fallback when SSE (Server-Sent Events) is not supported by your host. Progress updates every 3 seconds automatically — no configuration needed.
-
----
-
 ### Troubleshooting
+
+**cPanel / Shared Hosting:**
+
+| Problem | Fix |
+|---------|-----|
+| 500 error after upload | cPanel → MultiPHP Manager → set PHP Handler to **lsphp** or **php-fpm** |
+| PHP not executing | cPanel → MultiPHP Manager → set PHP version to **8.2** |
+| Installer not showing | Make sure files are directly in `public_html/`, not in a subfolder |
+| Database connection failed | Use `localhost` as DB host (not 127.0.0.1) on shared hosting |
+
+**Local Development:**
 
 | Problem | Fix |
 |---------|-----|
