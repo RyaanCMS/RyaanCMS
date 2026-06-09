@@ -12,8 +12,14 @@ define('INSTALLER_VERSION', '1.0.0');
 
 // ── Already installed? ────────────────────────────────────────────────────────
 if (file_exists(INSTALLED_FLAG)) {
-    header('Location: /');
-    exit;
+    $envOk = file_exists(BASE_PATH . '/.env')
+          && preg_match('/^APP_KEY=base64:.+/m', file_get_contents(BASE_PATH . '/.env'));
+    if ($envOk) {
+        header('Location: /');
+        exit;
+    }
+    // .env missing or broken — clear stale flag and re-run installer
+    @unlink(INSTALLED_FLAG);
 }
 
 // ── Handle AJAX actions ───────────────────────────────────────────────────────
