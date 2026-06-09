@@ -67,6 +67,11 @@ jobs:
           # Copy public/ contents on top (index.php, .htaccess, install.php, assets)
           cp -r public/. dist/
 
+          # Also place manifest.json where Laravel's public_path() expects it
+          # (flat structure: public_html/ is app root, so public_path() = public_html/public/)
+          mkdir -p dist/public/build
+          cp public/build/manifest.json dist/public/build/manifest.json
+
           # No path replacement needed — index.php and install.php auto-detect
           # flat cPanel structure vs traditional Laravel structure at runtime
 
