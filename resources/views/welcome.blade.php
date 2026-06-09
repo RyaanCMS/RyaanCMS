@@ -221,6 +221,12 @@
         footer { background: #f9fafb; border-top: 1px solid #e5e7eb; }
     </style>
 </head>
+@php
+    $vJson        = json_decode(file_get_contents(base_path('versions.json')), true);
+    $latestVer    = $vJson['latest'] ?? '1.0.0';
+    $downloadUrl  = "https://github.com/RyaanCMS/RyaanCMS/releases/latest/download/ryaancms-v{$latestVer}-cpanel.zip";
+    $releasesUrl  = "https://github.com/RyaanCMS/RyaanCMS/releases/latest";
+@endphp
 <body x-data="landing()">
 <div class="page-bg"></div>
 <div class="page-grid"></div>
@@ -261,6 +267,10 @@
                     <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
                 </svg>
                 <span class="hidden lg:inline">GitHub</span>
+            </a>
+            <a href="{{ $downloadUrl }}" class="btn-outline hidden sm:inline-flex" style="color:#059669;border-color:rgba(5,150,105,0.25);" onmouseover="this.style.background='rgba(5,150,105,0.06)'" onmouseout="this.style.background='transparent'">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                v{{ $latestVer }}
             </a>
             <a href="{{ route('login') }}" class="btn-secondary hidden sm:inline-flex" style="padding:9px 18px;font-size:14px;">Sign In</a>
             <a href="{{ route('register') }}" class="btn-primary" style="padding:9px 20px;font-size:14px;">Get Started Free →</a>
@@ -308,7 +318,11 @@
             <a href="{{ route('register') }}" class="btn-primary w-full sm:w-auto" style="padding:15px 32px;font-size:16px;">
                 Start Building Free →
             </a>
-            <a href="#how-it-works" class="btn-secondary w-full sm:w-auto" style="padding:15px 32px;font-size:16px;">
+            <a href="{{ $downloadUrl }}" class="btn-secondary w-full sm:w-auto" style="padding:15px 32px;font-size:16px;color:#059669;border-color:rgba(5,150,105,0.3);" onmouseover="this.style.background='rgba(5,150,105,0.05)';this.style.borderColor='rgba(5,150,105,0.5)'" onmouseout="this.style.background='#fff';this.style.borderColor='rgba(5,150,105,0.3)'">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download v{{ $latestVer }} for cPanel
+            </a>
+            <a href="#how-it-works" class="btn-outline w-full sm:w-auto" style="padding:15px 32px;font-size:16px;">
                 See How It Works ↓
             </a>
         </div>
@@ -798,6 +812,10 @@
             <a href="{{ route('register') }}" class="btn-primary w-full sm:w-auto" style="padding:17px 36px;font-size:16px;">
                 Start Building Free →
             </a>
+            <a href="{{ $downloadUrl }}" class="btn-secondary w-full sm:w-auto" style="padding:17px 36px;font-size:16px;color:#059669;border-color:rgba(5,150,105,0.3);" onmouseover="this.style.background='rgba(5,150,105,0.05)'" onmouseout="this.style.background='#fff'">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download v{{ $latestVer }} for cPanel
+            </a>
             <a href="{{ route('login') }}" class="btn-secondary w-full sm:w-auto" style="padding:17px 36px;font-size:16px;">
                 Sign In
             </a>
@@ -893,7 +911,8 @@
                     <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Documentation</a></li>
                     <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">API Reference</a></li>
                     <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">GitHub</a></li>
-                    <li><a href="https://github.com/ryaancms/releases" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Changelog</a></li>
+                    <li><a href="{{ $releasesUrl }}" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Download v{{ $latestVer }}</a></li>
+                    <li><a href="{{ $releasesUrl }}" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Changelog</a></li>
                     <li><a href="https://github.com/ryaancms/issues" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Report Issue</a></li>
                 </ul>
             </div>
