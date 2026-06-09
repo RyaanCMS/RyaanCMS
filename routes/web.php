@@ -147,6 +147,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/installations/{installation}/toggle',  [MarketplaceController::class, 'toggleInstallation'])->name('installation.toggle');
         Route::delete('/installations/{installation}',         [MarketplaceController::class, 'uninstallInstallation'])->name('installation.uninstall');
         Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
+        // Admin approval panel (admin role only — enforced inside controller)
+        Route::get('/admin/panel',                         [MarketplaceController::class, 'adminPanel'])->name('admin.panel');
+        Route::post('/admin/{item}/approve',               [MarketplaceController::class, 'approveItem'])->name('admin.approve');
+        Route::post('/admin/{item}/reject',                [MarketplaceController::class, 'rejectItem'])->name('admin.reject');
+        // Must be last — catch-all wildcard
         Route::get('/{item}',                              [MarketplaceController::class, 'show'])->name('show');
         Route::post('/{item}/install',                     [MarketplaceController::class, 'install'])->name('install');
     });

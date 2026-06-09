@@ -253,7 +253,7 @@ class MarketplaceController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $file = $request->file('package');
+        $file    = $request->file('package');
         $tmpPath = $file->getPathname();
 
         // Extract manifest from zip
@@ -286,22 +286,18 @@ class MarketplaceController extends Controller
                                . "A package can only be used on one domain.",
                 ]);
             }
-            // Same domain re-install — update it
             $installation = $existing;
         } else {
             $installation = new MarketplaceInstallation();
         }
 
-        // Store the zip
         $storedPath = $file->store('packages', 'local');
-
-        // Find or create the marketplace item record for locally-uploaded packages
         $item = MarketplaceItem::where('slug', $manifest['slug'] ?? '')->first();
 
         $installation->fill([
             'user_id'              => Auth::id(),
             'project_id'           => $project->id,
-            'marketplace_item_id'  => $item?->id ?? 0, // 0 = local package not in marketplace
+            'marketplace_item_id'  => $item?->id ?? 0,
             'version'              => $manifest['version'] ?? '1.0.0',
             'status'               => 'active',
             'license_key'          => $licenseKey,
@@ -323,9 +319,7 @@ class MarketplaceController extends Controller
     {
         abort_unless($installation->user_id === Auth::id(), 403);
 
-        $request->validate([
-            'license_key' => ['required', 'string'],
-        ]);
+        $request->validate(['license_key' => ['required', 'string']]);
 
         if ($installation->license_key !== $request->license_key) {
             return back()->withErrors(['license_key' => 'Invalid license key.']);
@@ -360,6 +354,8 @@ class MarketplaceController extends Controller
         return view('marketplace.installed', compact('installed'));
     }
 
+    // ── My Items (developer view) ─────────────────────────────────────────────
+
     public function myItems()
     {
         $items = Auth::user()->marketplaceItems()->latest()->paginate(10);
@@ -369,33 +365,100 @@ class MarketplaceController extends Controller
     public function submitItem(Request $request)
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:100'],
-            'description' => ['required', 'string', 'max:500'],
-            'category'    => ['required', 'string'],
-            'type'        => ['required', 'string'],
-            'price'       => ['nullable', 'numeric', 'min:0'],
-            'version'     => ['required', 'string'],
-            'icon'        => ['nullable', 'string', 'max:10'],
-            'icon_color'  => ['nullable', 'string', 'max:20'],
-            'menu_items'  => ['nullable', 'json'],
+            'name'             => ['required', 'string', 'max:100'],
+            'description'      => ['required', 'string', 'max:500'],
+            'category'         => ['required', 'string'],
+            'type'             => ['required', 'string'],
+            'price'            => ['nullable', 'numeric', 'min:0'],
+            'version'          => ['required', 'string'],
+            'icon'             => ['nullable', 'string', 'max:10'],
+            'demo_url'         => ['nullable', 'url', 'max:255'],
+            'package_file'     => ['nullable', 'file', 'mimes:zip', 'max:51200'],
         ]);
 
-        $item = Auth::user()->marketplaceItems()->create([
-            'name'         => $request->name,
-            'slug'         => Str::slug($request->name).'-'.uniqid(),
-            'description'  => $request->description,
-            'category'     => $request->category,
-            'type'         => $request->type,
-            'price'        => $request->price ?? 0,
-            'is_free'      => !$request->price || $request->price == 0,
-            'version'      => $request->version,
-            'is_published' => false,
-            'icon'         => $request->icon,
-            'icon_color'   => $request->icon_color,
-            'menu_items'   => $request->menu_items ? json_decode($request->menu_items, true) : null,
+        $packagePath = null;
+        if ($request->hasFile('package_file')) {
+            $packagePath = $request->file('package_file')->store('marketplace-submissions', 'local');
+        }
+
+        Auth::user()->marketplaceItems()->create([
+            'name'                => $request->name,
+            'slug'                => Str::slug($request->name).'-'.uniqid(),
+            'description'         => $request->description,
+            'category'            => $request->category,
+            'type'                => $request->type,
+            'price'               => $request->price ?? 0,
+            'is_free'             => !$request->price || $request->price == 0,
+            'version'             => $request->version,
+            'is_published'        => false,
+            'status'              => 'pending',
+            'icon'                => $request->icon ?? '📦',
+            'demo_url_submission' => $request->demo_url,
+            'package_file'        => $packagePath,
         ]);
 
         return redirect()->route('marketplace.my-items')
-            ->with('success', 'Item submitted for review.');
+            ->with('success', '✅ Item submitted for review. You\'ll be notified once it\'s approved.');
+    }
+
+    // ── Admin Approval Panel ──────────────────────────────────────────────────
+
+    public function adminPanel(Request $request)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $filter = $request->get('filter', 'pending');
+
+        $query = MarketplaceItem::with('developer')->latest();
+
+        if ($filter === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($filter === 'approved') {
+            $query->where('status', 'approved');
+        } elseif ($filter === 'rejected') {
+            $query->where('status', 'rejected');
+        }
+
+        $items        = $query->paginate(20)->withQueryString();
+        $pendingCount = MarketplaceItem::where('status', 'pending')->count();
+
+        return view('marketplace.admin', compact('items', 'pendingCount', 'filter'));
+    }
+
+    public function approveItem(MarketplaceItem $item)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $item->update([
+            'status'       => 'approved',
+            'is_published' => true,
+            'published_at' => now(),
+            'rejection_reason' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "\"{$item->name}\" approved and published to the marketplace.",
+        ]);
+    }
+
+    public function rejectItem(Request $request, MarketplaceItem $item)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $item->update([
+            'status'           => 'rejected',
+            'is_published'     => false,
+            'rejection_reason' => $request->reason,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "\"{$item->name}\" rejected.",
+        ]);
     }
 }

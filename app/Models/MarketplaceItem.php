@@ -9,6 +9,7 @@ class MarketplaceItem extends Model
 {
     use HasFactory;
 
+    // status values: pending | approved | rejected
     protected $fillable = [
         'user_id', 'name', 'slug', 'description', 'long_description',
         'category', 'type', 'version', 'price', 'is_free', 'thumbnail',
@@ -16,6 +17,7 @@ class MarketplaceItem extends Model
         'documentation_url', 'downloads', 'rating', 'rating_count',
         'is_published', 'is_featured', 'published_at',
         'menu_items', 'icon', 'icon_color', 'package_file',
+        'status', 'rejection_reason', 'demo_url_submission',
     ];
 
     protected $casts = [
@@ -48,7 +50,7 @@ class MarketplaceItem extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->where('is_published', true)->where('status', 'approved');
     }
 
     public function scopeFeatured($query)
@@ -56,8 +58,36 @@ class MarketplaceItem extends Model
         return $query->where('is_featured', true);
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
+    }
+
+    public function isApproved(): bool   { return $this->status === 'approved'; }
+    public function isPending(): bool    { return $this->status === 'pending'; }
+    public function isRejected(): bool   { return $this->status === 'rejected'; }
+
     public function getPriceFormattedAttribute(): string
     {
         return $this->is_free ? 'Free' : '$'.number_format($this->price, 2);
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match($this->status) {
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            default    => 'Pending Review',
+        };
     }
 }

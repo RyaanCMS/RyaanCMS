@@ -304,6 +304,32 @@
             </a>
             @endforeach
 
+            {{-- Admin Panel link (visible only to admins) --}}
+            @if(Auth::user()->isAdmin())
+            @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
+            <div class="pt-1">
+                <a href="{{ route('marketplace.admin.panel') }}"
+                   class="flex items-center px-2 py-1 rounded-lg text-sm font-normal transition-all duration-150"
+                   style="{{ $adminActive ? 'background:rgba(239,68,68,.1);' : '' }}"
+                   onmouseover="if(!{{ $adminActive ? 'true' : 'false' }}) this.style.background='var(--hover-bg)';"
+                   onmouseout="if(!{{ $adminActive ? 'true' : 'false' }}) this.style.background='';">
+                    <div class="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4" style="color:#ef4444" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <span x-show="sidebarOpen || sidebarHovered"
+                          x-transition:enter="transition-opacity duration-150"
+                          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                          class="ml-3 truncate whitespace-nowrap font-normal"
+                          style="color:{{ $adminActive ? '#ef4444' : 'var(--text-2)' }};">
+                        Marketplace Admin
+                    </span>
+                </a>
+            </div>
+            @endif
+
             {{-- Dynamic sidebar menus (created via Menus > category: sidebar) --}}
             @foreach($dynamicSidebarMenus as $dynMenu)
             <div x-show="sidebarOpen || sidebarHovered" x-transition class="pt-2">
