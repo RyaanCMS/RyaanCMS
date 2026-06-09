@@ -222,10 +222,11 @@
     </style>
 </head>
 @php
-    $vJson        = json_decode(file_get_contents(base_path('versions.json')), true);
-    $latestVer    = $vJson['latest'] ?? '1.0.0';
-    $downloadUrl  = "https://github.com/RyaanCMS/RyaanCMS/releases/latest/download/ryaancms-v{$latestVer}-cpanel.zip";
-    $releasesUrl  = "https://github.com/RyaanCMS/RyaanCMS/releases/latest";
+    $vJson       = json_decode(file_get_contents(base_path('versions.json')), true);
+    $latestVer   = $vJson['latest'] ?? '1.0.0';
+    $latestEntry = collect($vJson['versions'] ?? [])->firstWhere('version', $latestVer);
+    $downloadUrl = $latestEntry['download_url'] ?? "https://github.com/RyaanCMS/RyaanCMS/releases/latest";
+    $releasesUrl = "https://github.com/RyaanCMS/RyaanCMS/releases/latest";
 @endphp
 <body x-data="landing()">
 <div class="page-bg"></div>
