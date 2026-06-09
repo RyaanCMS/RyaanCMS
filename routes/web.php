@@ -151,8 +151,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/installations/{installation}/toggle',  [MarketplaceController::class, 'toggleInstallation'])->name('installation.toggle');
         Route::delete('/installations/{installation}',         [MarketplaceController::class, 'uninstallInstallation'])->name('installation.uninstall');
         Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
-        // Templates browser
+        // Templates browser + ZIP download
         Route::get('/templates',                           [TemplateController::class, 'browse'])->name('templates');
+        Route::get('/templates/{key}/download',            [TemplateController::class, 'download'])->name('template.download');
         // Admin approval panel (admin role only — enforced inside controller)
         Route::get('/admin/panel',                         [MarketplaceController::class, 'adminPanel'])->name('admin.panel');
         Route::post('/admin/{item}/approve',               [MarketplaceController::class, 'approveItem'])->name('admin.approve');
@@ -170,11 +171,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{key}',         [TemplateController::class, 'uninstall'])->name('uninstall');
     });
 
-    // Project packaging (developer export)
+    // Project packaging (developer export) + Unified Installed
     Route::prefix('projects')->name('projects.')->group(function () {
         Route::get('/{project}/package',          [ProjectController::class, 'packageForm'])->name('package');
         Route::post('/{project}/package/build',   [ProjectController::class, 'buildPackage'])->name('package.build');
         Route::get('/{project}/package/download', [ProjectController::class, 'downloadPackage'])->name('package.download');
+        Route::get('/{project}/installed',        [ProjectController::class, 'installedPackages'])->name('installed');
     });
 
 });

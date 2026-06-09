@@ -138,4 +138,56 @@ class TemplateController extends Controller
             'message' => ($template['name'] ?? $key) . ' uninstalled.',
         ]);
     }
+
+    // ── Auth: download template as ZIP ────────────────────────────────────────
+    public function download(string $key)
+    {
+        $template = $this->registry->get($key);
+        abort_if(!$template, 404);
+
+        $viewFile = resource_path('views/' . str_replace('.', '/', $template['view']) . '.blade.php');
+        $slug     = str_replace('template.', '', $key); // "restaurant"
+        $zipName  = 'ryaan-template-' . $slug . '.zip';
+        $tmpPath  = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zipName;
+
+        $manifest = [
+            'ryaan_manifest' => '1.0',
+            'key'            => $key,
+            'name'           => $template['name'],
+            'description'    => $template['description'],
+            'category'       => $template['category'],
+            'type'           => 'template',
+            'icon'           => $template['icon'],
+            'color'          => $template['color'],
+            'tags'           => $template['tags'],
+            'version'        => '1.0.0',
+            'author'         => 'RyaanCMS',
+            'requires'       => 'RyaanCMS >= 1.0',
+            'built_at'       => now()->toISOString(),
+        ];
+
+        $zip = new \ZipArchive();
+        $zip->open($tmpPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString('ryaan-manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        if (file_exists($viewFile)) {
+            $zip->addFromString('views/template.blade.php', file_get_contents($viewFile));
+        }
+
+        $zip->addFromString('README.md',
+            "# {$template['name']}\n\n"
+            . "> {$template['category']} Template for RyaanCMS\n\n"
+            . "{$template['description']}\n\n"
+            . "## Installation\n\n"
+            . "1. Go to **Marketplace → Templates** in your RyaanCMS dashboard\n"
+            . "2. Select your project from the dropdown\n"
+            . "3. Click **Install**, then **Activate** to go live\n\n"
+            . "## Live Preview\n\nAfter activation your site is available at `/site/{project-id}`\n\n"
+            . "---\n*Powered by [RyaanCMS](https://github.com/RyaanCMS)*\n"
+        );
+
+        $zip->close();
+
+        return response()->download($tmpPath, $zipName)->deleteFileAfterSend(true);
+    }
 }

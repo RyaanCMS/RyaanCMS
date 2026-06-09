@@ -22,27 +22,28 @@
 /* ─── Settings layout ─── */
 .st-wrap{
     display:grid;
-    grid-template-columns:200px 1fr;
+    grid-template-columns:210px 1fr;
     gap:24px;
     align-items:start;
-    max-width:860px;
+    max-width:880px;
 }
 /* Left nav */
 .st-nav{
-    background:#fff;
-    border:1px solid #e8ecf0;
+    background:var(--card-bg);
+    border:1px solid var(--border);
     border-radius:14px;
     overflow:hidden;
-    box-shadow:0 1px 3px rgba(0,0,0,.05);
+    box-shadow:var(--shadow);
     position:sticky;
     top:24px;
 }
 .st-nav-user{
     padding:16px;
-    border-bottom:1px solid #f1f5f9;
+    border-bottom:1px solid var(--border);
     display:flex;
     align-items:center;
     gap:10px;
+    background:var(--hover-bg);
 }
 .st-nav-item{
     display:flex;
@@ -51,7 +52,7 @@
     padding:10px 14px;
     font-size:13px;
     font-weight:500;
-    color:#64748b;
+    color:var(--text-2);
     cursor:pointer;
     border:none;
     background:transparent;
@@ -61,7 +62,7 @@
     border-radius:0;
     border-left:3px solid transparent;
 }
-.st-nav-item:hover:not(.active){background:#f8fafc;color:#1e293b;}
+.st-nav-item:hover:not(.active){background:var(--hover-bg);color:var(--text-1);}
 .st-nav-item.active{
     color:var(--brand);
     background:var(--brand-light,#eef2ff);
@@ -71,6 +72,7 @@
 .st-nav-ico{
     width:28px;height:28px;border-radius:8px;
     display:flex;align-items:center;justify-content:center;
+    background:var(--hover-bg);
     flex-shrink:0;
 }
 .st-nav-item.active .st-nav-ico{background:var(--brand);box-shadow:0 2px 6px var(--brand-ring);}
@@ -80,14 +82,14 @@
 .st-panel{display:flex;flex-direction:column;gap:16px;}
 
 /* Section card */
-.scard{border-radius:14px;overflow:hidden;background:#fff;border:1px solid #e8ecf0;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.scard-hd{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px;}
+.scard{border-radius:14px;overflow:hidden;background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);}
+.scard-hd{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--hover-bg);display:flex;align-items:center;gap:10px;}
 .scard-hd-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .scard-body{padding:20px;}
 
 /* Section nav separator */
-.st-nav-sep{height:1px;background:#f1f5f9;margin:4px 0;}
-.st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#cbd5e1;padding:8px 14px 4px;}
+.st-nav-sep{height:1px;background:var(--border);margin:4px 0;}
+.st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);padding:8px 14px 4px;}
 </style>
 @endpush
 
@@ -103,10 +105,10 @@
     <nav class="st-nav">
         <div class="st-nav-user">
             <img src="{{ auth()->user()->avatar_url }}"
-                 style="width:34px;height:34px;border-radius:9px;border:1.5px solid #e2e8f0;flex-shrink:0;" alt="">
+                 style="width:36px;height:36px;border-radius:10px;border:2px solid var(--brand);box-shadow:0 0 0 3px var(--brand-ring);flex-shrink:0;" alt="">
             <div style="min-width:0;">
-                <div style="font-size:12.5px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
-                <div style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
+                <div style="font-size:12.5px;font-weight:700;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
+                <div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
             </div>
         </div>
 
@@ -114,7 +116,7 @@
             <div class="st-nav-label">Account</div>
 
             <button @click="tab='profile'" :class="tab==='profile' ? 'active' : ''" class="st-nav-item">
-                <div class="st-nav-ico" :style="tab==='profile' ? '' : 'background:#f1f5f9;'">
+                <div class="st-nav-ico" :style="tab==='profile' ? '' : ''">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
@@ -122,7 +124,7 @@
                 Profile
             </button>
             <button @click="tab='security'" :class="tab==='security' ? 'active' : ''" class="st-nav-item">
-                <div class="st-nav-ico" :style="tab==='security' ? '' : 'background:#f1f5f9;'">
+                <div class="st-nav-ico" :style="tab==='security' ? '' : ''">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
@@ -134,7 +136,7 @@
             <div class="st-nav-label">Workspace</div>
 
             <button @click="tab='ai'" :class="tab==='ai' ? 'active' : ''" class="st-nav-item">
-                <div class="st-nav-ico" :style="tab==='ai' ? '' : 'background:#f1f5f9;'">
+                <div class="st-nav-ico" :style="tab==='ai' ? '' : ''">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -142,7 +144,7 @@
                 AI Providers
             </button>
             <button @click="tab='branding'" :class="tab==='branding' ? 'active' : ''" class="st-nav-item">
-                <div class="st-nav-ico" :style="tab==='branding' ? '' : 'background:#f1f5f9;'">
+                <div class="st-nav-ico" :style="tab==='branding' ? '' : ''">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                     </svg>

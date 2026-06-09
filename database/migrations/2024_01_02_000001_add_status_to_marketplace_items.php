@@ -19,6 +19,12 @@ return new class extends Migration
                 $table->string('demo_url_submission')->nullable()->after('rejection_reason');
             }
         });
+
+        // Items already published before this column existed are auto-approved
+        \DB::table('marketplace_items')
+            ->where('is_published', true)
+            ->where('status', 'pending')
+            ->update(['status' => 'approved']);
     }
 
     public function down(): void

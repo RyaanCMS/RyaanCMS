@@ -407,22 +407,48 @@ class MarketplaceController extends Controller
     {
         abort_unless(Auth::user()->isAdmin(), 403);
 
-        $filter = $request->get('filter', 'pending');
-
-        $query = MarketplaceItem::with('developer')->latest();
-
-        if ($filter === 'pending') {
-            $query->where('status', 'pending');
-        } elseif ($filter === 'approved') {
-            $query->where('status', 'approved');
-        } elseif ($filter === 'rejected') {
-            $query->where('status', 'rejected');
-        }
-
-        $items        = $query->paginate(20)->withQueryString();
+        $filter       = $request->get('filter', 'pending');
         $pendingCount = MarketplaceItem::where('status', 'pending')->count();
 
-        return view('marketplace.admin', compact('items', 'pendingCount', 'filter'));
+        // Built-in Templates view — show TemplateRegistry with usage stats
+        if ($filter === 'templates') {
+            $registry     = app(\App\Services\Template\TemplateRegistry::class);
+            $allTemplates = $registry->all();
+
+            $usage = \DB::table('project_modules')
+                ->where('module_key', 'like', 'template.%')
+                ->select(
+                    'module_key',
+                    \DB::raw('count(*) as install_count'),
+                    \DB::raw('sum(status = "active") as active_count')
+                )
+                ->groupBy('module_key')
+                ->get()
+                ->keyBy('module_key');
+
+            return view('marketplace.admin', [
+                'filter'       => $filter,
+                'pendingCount' => $pendingCount,
+                'items'        => collect(),
+                'allTemplates' => $allTemplates,
+                'usage'        => $usage,
+            ]);
+        }
+
+        $query = MarketplaceItem::with('developer')->latest();
+        if ($filter === 'pending')  $query->where('status', 'pending');
+        elseif ($filter === 'approved') $query->where('status', 'approved');
+        elseif ($filter === 'rejected') $query->where('status', 'rejected');
+
+        $items = $query->paginate(20)->withQueryString();
+
+        return view('marketplace.admin', [
+            'filter'       => $filter,
+            'pendingCount' => $pendingCount,
+            'items'        => $items,
+            'allTemplates' => [],
+            'usage'        => collect(),
+        ]);
     }
 
     public function approveItem(MarketplaceItem $item)

@@ -44,8 +44,8 @@
     </div>
 
     {{-- Filter tabs --}}
-    <div class="adm-card p-2 flex gap-1">
-        @foreach(['pending' => 'Pending Review', 'approved' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All Items'] as $f => $label)
+    <div class="adm-card p-2 flex gap-1 flex-wrap">
+        @foreach(['pending' => 'Pending Review', 'approved' => 'Approved', 'rejected' => 'Rejected', 'all' => 'All Items', 'templates' => '🎨 Built-in Templates'] as $f => $label)
         <a href="{{ route('marketplace.admin.panel', ['filter' => $f]) }}"
            class="adm-tab {{ $filter === $f ? 'active' : '' }}">
             {{ $label }}
@@ -57,8 +57,8 @@
         @endforeach
     </div>
 
-    {{-- Items table --}}
-    @if($items->isEmpty())
+    {{-- Items table (hidden for templates tab) --}}
+    @if($filter !== 'templates' && $items->isEmpty())
     <div class="adm-card py-20 text-center">
         <p class="text-4xl mb-3">✅</p>
         <p class="font-semibold" style="color:var(--text-1);">
@@ -68,7 +68,7 @@
             {{ $filter === 'pending' ? 'All submissions have been reviewed.' : 'Switch to a different filter.' }}
         </p>
     </div>
-    @else
+    @elseif($filter !== 'templates')
     <div class="adm-card overflow-hidden">
         <div class="px-6 py-4" style="border-bottom:1px solid var(--border);">
             <p class="text-sm font-semibold" style="color:var(--text-1);">
@@ -161,7 +161,88 @@
         </div>
     </div>
 
-    {{ $items->links() }}
+    @if(method_exists($items, 'links')){{ $items->links() }}@endif
+    @endif
+
+    {{-- ── Built-in Templates section ──────────────────────────────────── --}}
+    @if($filter === 'templates')
+    <div class="adm-card overflow-hidden">
+        <div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border);">
+            <div>
+                <p class="text-sm font-bold" style="color:var(--text-1);">Built-in Template Library</p>
+                <p class="text-xs mt-0.5" style="color:var(--text-3);">{{ count($allTemplates) }} templates ship with RyaanCMS. These cannot be approved or rejected — they are always available to all users.</p>
+            </div>
+            <a href="{{ route('marketplace.templates') }}"
+               class="text-xs font-semibold px-4 py-2 rounded-xl"
+               style="background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe;">
+               Browse Templates →
+            </a>
+        </div>
+
+        <div class="divide-y" style="border-color:var(--border);">
+            @foreach($allTemplates as $key => $tpl)
+            @php
+                $stat = $usage->get($key);
+                $installs = $stat->install_count ?? 0;
+                $actives  = $stat->active_count  ?? 0;
+                $slug     = str_replace('template.', '', $key);
+                $colors = [
+                    'template.restaurant' => 'linear-gradient(135deg,#1a0a00,#5c2a00)',
+                    'template.ecommerce'  => 'linear-gradient(135deg,#1a0010,#3d001a)',
+                    'template.portfolio'  => 'linear-gradient(135deg,#0b0c10,#1a1d2e)',
+                    'template.saas'       => 'linear-gradient(135deg,#0f172a,#1e3a5f)',
+                    'template.agency'     => 'linear-gradient(135deg,#080808,#1a1a00)',
+                ];
+                $bg = $colors[$key] ?? 'linear-gradient(135deg,#1e1e2e,#2d2d44)';
+            @endphp
+            <div class="flex items-center px-6 py-4 gap-4"
+                 onmouseover="this.style.background='var(--hover-bg)'"
+                 onmouseout="this.style.background=''">
+
+                {{-- Preview icon --}}
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                     style="background:{{ $bg }};">
+                    {{ $tpl['icon'] }}
+                </div>
+
+                {{-- Info --}}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-bold text-sm" style="color:var(--text-1);">{{ $tpl['name'] }}</p>
+                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold"
+                              style="background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe;">Built-in</span>
+                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold"
+                              style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">Always Available</span>
+                    </div>
+                    <p class="text-xs mt-1" style="color:var(--text-2);">{{ $tpl['category'] }} · {{ $tpl['description'] }}</p>
+                    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                        @foreach($tpl['tags'] as $tag)
+                        <span class="text-[10px] px-1.5 py-0.5 rounded"
+                              style="background:var(--hover-bg); color:var(--text-3);">{{ $tag }}</span>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Stats --}}
+                <div class="flex items-center gap-5 flex-shrink-0 text-center">
+                    <div>
+                        <p class="text-xl font-black" style="color:var(--text-1);">{{ $installs }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-wide" style="color:var(--text-3);">Installs</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-black" style="color:#065f46;">{{ $actives }}</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-wide" style="color:var(--text-3);">Active</p>
+                    </div>
+                    <a href="{{ route('marketplace.template.download', $key) }}"
+                       class="flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-xl"
+                       style="background:var(--hover-bg); color:var(--text-2); border:1px solid var(--border);">
+                        ⬇ Download ZIP
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
     @endif
 
     {{-- Reject modal --}}

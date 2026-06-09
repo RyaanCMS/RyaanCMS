@@ -189,6 +189,14 @@
                         </a>
                     </template>
 
+                    {{-- Download ZIP (always visible) --}}
+                    <a href="{{ route('marketplace.template.download', $key) }}"
+                       title="Download as ZIP"
+                       class="py-2 px-3 rounded-lg text-xs font-semibold"
+                       style="background:var(--hover-bg); color:var(--text-2); border:1px solid var(--border);">
+                        ⬇
+                    </a>
+
                     {{-- Uninstall (when installed or active) --}}
                     <template x-if="selectedProject && getStatus('{{ $key }}') !== null">
                         <button class="py-2 px-3 rounded-lg text-xs font-semibold"

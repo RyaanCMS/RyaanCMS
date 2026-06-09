@@ -316,6 +316,33 @@ Visit **http://localhost:8000** in your browser, register your account, and star
 
 ---
 
+### Windows Quick Start (Laragon / XAMPP)
+
+Two helper scripts are included for Windows developers who run PHP + MySQL locally:
+
+| File | Purpose |
+|------|---------|
+| `start-server.bat` | Starts MySQL then PHP on ports 8000 & 8001 in one click |
+| `start-server-silent.vbs` | Same as above but runs silently (no console window) — use for Windows Startup |
+
+> **Important — edit paths before use.** Both files contain hardcoded paths for Laragon's default installation location. If your setup differs, open the file and update these two lines to match your machine:
+>
+> ```bat
+> set MYSQLD=C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysqld.exe
+> set PHP=C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe
+> ```
+>
+> Common alternative paths:
+> - **XAMPP**: `C:\xampp\mysql\bin\mysqld.exe` and `C:\xampp\php\php.exe`
+> - **Official PHP**: `C:\php\php.exe`
+
+To run RyaanCMS automatically at Windows startup:
+1. Edit the paths in `start-server-silent.vbs`
+2. Create a shortcut to the `.vbs` file
+3. Move the shortcut to `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`
+
+---
+
 ### Optional: Queue Worker
 
 For background AI pipeline jobs, start a queue worker in a separate terminal:

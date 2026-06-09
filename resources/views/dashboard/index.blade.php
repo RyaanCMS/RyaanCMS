@@ -51,7 +51,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 <style>
 /* ═══════════════════════════════════════════
    Dashboard — Professional SaaS design
-   Inspired by Linear · Vercel · Stripe
+   All colors use CSS custom properties
 ═══════════════════════════════════════════ */
 
 /* ── Greeting bar ── */
@@ -61,27 +61,29 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     justify-content: space-between;
     gap: 16px;
     padding: 20px 24px;
-    background: #fff;
-    border: 1px solid #e8ecf0;
+    background: linear-gradient(135deg, var(--card-bg) 0%, color-mix(in srgb, var(--brand) 4%, var(--card-bg)) 100%);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand);
     border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    box-shadow: var(--shadow);
 }
 .db-greet-avatar {
     width: 44px; height: 44px;
     border-radius: 12px;
-    border: 1.5px solid #e8ecf0;
+    border: 2px solid var(--brand);
     flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--brand-ring);
 }
 .db-greet-name {
     font-size: 18px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-1);
     letter-spacing: -.025em;
     line-height: 1.15;
 }
 .db-greet-sub {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-3);
     margin-top: 2px;
 }
 .db-greet-badge {
@@ -105,16 +107,17 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 }
 .db-kpi {
     background: #fff;
-    border: 1px solid #e8ecf0;
+    border: 1px solid var(--border);
+    border-top: 3px solid transparent;
     border-radius: 14px;
     padding: 18px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    box-shadow: var(--shadow);
     transition: box-shadow .2s, transform .2s;
     cursor: default;
 }
 .db-kpi:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,.08);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 .db-kpi-ico {
     width: 36px; height: 36px; border-radius: 10px;
@@ -122,21 +125,21 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     margin-bottom: 12px;
 }
 .db-kpi-val {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-1);
     letter-spacing: -.04em;
     line-height: 1;
 }
 .db-kpi-unit {
     font-size: 13px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-3);
     margin-left: 2px;
 }
 .db-kpi-label {
     font-size: 11.5px;
-    color: #64748b;
+    color: var(--text-2);
     font-weight: 500;
     margin-top: 6px;
 }
@@ -144,7 +147,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     height: 3px;
     border-radius: 99px;
     margin-top: 12px;
-    background: #f1f5f9;
+    background: var(--hover-bg);
     overflow: hidden;
 }
 .db-kpi-bar-fill {
@@ -162,10 +165,10 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 
 /* ── Section card ── */
 .db-section {
-    background: #fff;
-    border: 1px solid #e8ecf0;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    box-shadow: var(--shadow);
     overflow: hidden;
 }
 .db-section-hd {
@@ -173,30 +176,31 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
+    background: var(--hover-bg);
 }
 .db-section-title {
     font-size: 13px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-1);
 }
 .db-section-link {
     font-size: 11.5px;
     font-weight: 600;
-    color: #6366f1;
+    color: var(--brand);
     text-decoration: none;
     padding: 4px 10px;
     border-radius: 7px;
     background: #eef2ff;
     transition: background .13s;
 }
-.db-section-link:hover { background: #e0e7ff; }
+.db-section-link:hover { background: var(--brand-light); }
 .db-section-count {
     font-size: 10.5px;
     font-weight: 600;
-    color: #94a3b8;
-    background: #f8fafc;
-    border: 1px solid #e8ecf0;
+    color: var(--text-3);
+    background: var(--hover-bg);
+    border: 1px solid var(--border);
     padding: 2px 8px;
     border-radius: 99px;
     margin-left: 6px;
@@ -207,12 +211,12 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1px;
-    background: #f1f5f9;
+    background: var(--border);
 }
 
 /* ── Project card ── */
 .db-proj-card {
-    background: #fff;
+    background: var(--card-bg);
     padding: 16px 18px;
     text-decoration: none;
     color: inherit;
@@ -231,17 +235,17 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     opacity: 0;
     transition: opacity .15s;
 }
-.db-proj-card:hover { background: #fafbff; }
+.db-proj-card:hover { background: var(--hover-bg); }
 .db-proj-card:hover::after { opacity: 1; }
 
 .db-proj-row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .db-proj-ico  {
-    width: 34px; height: 34px; border-radius: 9px;
+    width: 36px; height: 36px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; flex-shrink: 0;
+    font-size: 16px; flex-shrink: 0;
 }
 .db-proj-name {
-    font-size: 13px; font-weight: 700; color: #0f172a;
+    font-size: 13.5px; font-weight: 700; color: var(--text-1);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     flex: 1; margin: 0 8px;
 }
@@ -255,10 +259,10 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     font-size: 10px; font-weight: 700;
     padding: 2px 7px; border-radius: 5px;
 }
-.db-proj-dot { color: #d1d5db; }
-.db-proj-age { font-size: 10.5px; color: #94a3b8; }
+.db-proj-dot { color: var(--border); }
+.db-proj-age { font-size: 10.5px; color: var(--text-3); }
 .db-proj-row3 { display: flex; align-items: center; justify-content: space-between; }
-.db-proj-files { font-size: 10px; color: #cbd5e1; }
+.db-proj-files { font-size: 10px; color: var(--text-3); }
 .db-proj-cta {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 10.5px; font-weight: 700; color: #fff;
@@ -269,7 +273,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 
 /* ── New project ghost ── */
 .db-new-card {
-    background: #fff;
+    background: var(--card-bg);
     padding: 28px 18px;
     text-decoration: none;
     display: flex;
@@ -280,16 +284,16 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     transition: background .15s;
     min-height: 140px;
 }
-.db-new-card:hover { background: #f5f6ff; }
+.db-new-card:hover { background: var(--brand-light); }
 .db-new-ico {
     width: 36px; height: 36px; border-radius: 10px;
-    background: #f1f5f9;
-    border: 1.5px dashed #cbd5e1;
+    background: var(--hover-bg);
+    border: 1.5px dashed var(--border);
     display: flex; align-items: center; justify-content: center;
     transition: all .15s;
 }
 .db-new-card:hover .db-new-ico {
-    background: #eef2ff;
+    background: var(--brand-light);
     border-color: #a5b4fc;
 }
 .db-new-lbl { font-size: 12px; font-weight: 600; color: #94a3b8; transition: color .15s; }
@@ -303,13 +307,13 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 }
 .db-empty-ico {
     width: 56px; height: 56px; border-radius: 14px;
-    background: linear-gradient(135deg,#eef2ff,#ede9fe);
-    border: 1px solid #c7d2fe;
+    background: var(--brand-light);
+    border: 1px solid var(--brand-ring);
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 16px;
 }
-.db-empty h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
-.db-empty p  { font-size: 12px; color: #94a3b8; margin-bottom: 20px; max-width: 240px; line-height: 1.7; }
+.db-empty h3 { font-size: 14px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+.db-empty p  { font-size: 12px; color: var(--text-3); margin-bottom: 20px; max-width: 240px; line-height: 1.7; }
 .db-empty-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 10px 22px; border-radius: 11px; font-size: 13px;
@@ -324,52 +328,53 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 11px 18px;
-    border-bottom: 1px solid #f8fafc;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
     transition: background .12s;
 }
 .db-feed-row:last-child { border-bottom: none; }
-.db-feed-row:hover { background: #fafbff; }
+.db-feed-row:hover { background: var(--hover-bg); }
 .db-feed-dot {
     width: 28px; height: 28px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; margin-top: 1px;
 }
-.db-feed-title { font-size: 12.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.db-feed-meta  { font-size: 10.5px; color: #94a3b8; margin-top: 2px; }
+.db-feed-title { font-size: 12.5px; font-weight: 600; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-feed-meta  { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
 
 /* ── Sidebar ── */
 .db-sidebar { display: flex; flex-direction: column; gap: 12px; }
 
 .db-widget {
-    background: #fff;
-    border: 1px solid #e8ecf0;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    box-shadow: var(--shadow);
     overflow: hidden;
 }
 .db-widget-hd {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 15px;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 12px; font-weight: 700; color: #0f172a;
+    border-bottom: 1px solid var(--border);
+    background: var(--hover-bg);
+    font-size: 12px; font-weight: 700; color: var(--text-1);
 }
 
 .db-action {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px;
+    padding: 11px 14px;
     text-decoration: none;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--border);
     transition: background .12s;
 }
 .db-action:last-child { border-bottom: none; }
-.db-action:hover { background: #fafbff; }
+.db-action:hover { background: var(--hover-bg); }
 .db-action-ico {
-    width: 30px; height: 30px; border-radius: 8px;
+    width: 32px; height: 32px; border-radius: 9px;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.db-action-label { font-size: 12px; font-weight: 600; color: #1e293b; flex: 1; }
-.db-action-hint  { font-size: 10.5px; color: #94a3b8; margin-top: 1px; }
+.db-action-label { font-size: 12.5px; font-weight: 600; color: var(--text-1); flex: 1; }
+.db-action-hint  { font-size: 10.5px; color: var(--text-3); margin-top: 1px; }
 
 .db-tpl {
     display: flex; align-items: center; gap: 9px;
@@ -378,18 +383,18 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     margin: 2px 6px;
     transition: background .12s;
 }
-.db-tpl:hover { background: #f0f1ff; }
+.db-tpl:hover { background: var(--brand-light); }
 .db-tpl-ico {
     width: 24px; height: 24px; border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; flex-shrink: 0;
 }
-.db-tpl-lbl { font-size: 12px; font-weight: 500; color: #334155; flex: 1; }
+.db-tpl-lbl { font-size: 12px; font-weight: 500; color: var(--text-2); flex: 1; }
 
 .db-sys-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 7px 14px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--border);
 }
 .db-sys-row:last-child { border-bottom: none; }
 
@@ -429,7 +434,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 {{-- ══ KPI ROW ═══════════════════════════════════════════════════ --}}
 <div class="db-kpi-row">
     {{-- Projects --}}
-    <div class="db-kpi">
+    <div class="db-kpi" style="border-top-color:#6366f1;">
         <div class="db-kpi-ico" style="background:#eef2ff;">
             <svg style="width:16px;height:16px;stroke:#6366f1" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
@@ -441,7 +446,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     </div>
 
     {{-- AI Messages --}}
-    <div class="db-kpi">
+    <div class="db-kpi" style="border-top-color:#8b5cf6;">
         <div class="db-kpi-ico" style="background:#fdf4ff;">
             <svg style="width:16px;height:16px;stroke:#8b5cf6" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
@@ -453,7 +458,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     </div>
 
     {{-- Deployments --}}
-    <div class="db-kpi">
+    <div class="db-kpi" style="border-top-color:#10b981;">
         <div class="db-kpi-ico" style="background:#ecfdf5;">
             <svg style="width:16px;height:16px;stroke:#10b981" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
@@ -465,7 +470,7 @@ $feedItems = $feedItems->sortByDesc('time')->take(8)->values();
     </div>
 
     {{-- Storage --}}
-    <div class="db-kpi">
+    <div class="db-kpi" style="border-top-color:#f97316;">
         <div class="db-kpi-ico" style="background:#fff7ed;">
             <svg style="width:16px;height:16px;stroke:#f97316" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>

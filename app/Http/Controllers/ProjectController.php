@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MarketplaceInstallation;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectModule;
+use App\Services\Module\ModuleRegistry;
+use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -198,6 +202,28 @@ class ProjectController extends Controller
 
         $fullPath = Storage::disk('local')->path($storedPath);
         return response()->download($fullPath, basename($storedPath));
+    }
+
+    // ── Unified Installed Packages ───────────────────────────────────────────
+    public function installedPackages(Project $project)
+    {
+        abort_unless($project->user_id === Auth::id(), 403);
+
+        $projectModules = ProjectModule::where('project_id', $project->id)->get();
+
+        $templates     = $projectModules->filter(fn($m) => str_starts_with($m->module_key, 'template.'));
+        $modules       = $projectModules->filter(fn($m) => !str_starts_with($m->module_key, 'template.'));
+        $installations = MarketplaceInstallation::where('project_id', $project->id)
+            ->with('item')
+            ->latest()
+            ->get();
+
+        $allTemplates = app(TemplateRegistry::class)->all();
+        $allModules   = app(ModuleRegistry::class)->all();
+
+        return view('projects.installed', compact(
+            'project', 'templates', 'modules', 'installations', 'allTemplates', 'allModules'
+        ));
     }
 
     protected function getTechStack(string $type): array
