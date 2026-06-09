@@ -37,7 +37,7 @@ jobs:
           echo "$CURRENT -> $NEW"
 
       - name: Composer install (production)
-        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
       - name: Build cPanel ZIP
         run: |
