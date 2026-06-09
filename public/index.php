@@ -8,6 +8,17 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+set_exception_handler(function (\Throwable $e) {
+    http_response_code(500);
+    echo '<!DOCTYPE html><html><head><title>RyaanCMS Error</title>'
+        . '<style>body{font-family:monospace;max-width:900px;margin:40px auto;padding:24px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px}</style></head><body>'
+        . '<h2 style="color:#991b1b">Error: ' . htmlspecialchars($e->getMessage()) . '</h2>'
+        . '<p><b>File:</b> ' . htmlspecialchars($e->getFile()) . ' <b>Line:</b> ' . $e->getLine() . '</p>'
+        . '<pre style="background:#fff;padding:16px;border-radius:6px;overflow:auto;font-size:12px">' . htmlspecialchars($e->getTraceAsString()) . '</pre>'
+        . '</body></html>';
+    exit;
+});
+
 // ── PHP version gate ──────────────────────────────────────────────────────────────
 if (PHP_VERSION_ID < 80200) {
     http_response_code(500);
@@ -18,12 +29,10 @@ if (PHP_VERSION_ID < 80200) {
         . '</body></html>');
 }
 
-// ── Auto-detect app root (works for both flat cPanel and traditional structure) ─
-// Flat:         public_html/ has storage/, vendor/, bootstrap/ alongside index.php
-// Traditional:  public/ is separate, app root is one level up
+// ── Auto-detect app root ──────────────────────────────────────────────────────────
 $appRoot = is_dir(__DIR__ . '/vendor') ? __DIR__ : dirname(__DIR__);
 
-// ── Auto-fix permissions (no manual chmod needed on shared hosting) ──────────────
+// ── Auto-fix permissions ──────────────────────────────────────────────────────────
 $writableDirs = [
     $appRoot . '/storage',
     $appRoot . '/storage/app',
@@ -41,7 +50,7 @@ foreach ($writableDirs as $dir) {
     if (!is_writable($dir)) { @chmod($dir, 0755); }
 }
 
-// ── Auto-installer: show installer if not yet installed ──────────────────────────
+// ── Show installer if not yet installed ──────────────────────────────────────────
 $installedFlag = $appRoot . '/storage/app/.installed';
 $installScript = __DIR__ . '/install.php';
 
@@ -59,18 +68,17 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
     http_response_code(500);
     die('<!DOCTYPE html><html><head><title>Setup Incomplete</title><style>body{font-family:sans-serif;max-width:600px;margin:80px auto;padding:24px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#991b1b}</style></head><body>'
         . '<h2>vendor/ directory missing</h2>'
-        . '<p>The application dependencies are not installed. Please re-download the latest ZIP from '
-        . '<a href="https://github.com/RyaanCMS/RyaanCMS/releases/latest">GitHub Releases</a> and re-extract it.</p>'
+        . '<p>Please re-download the latest ZIP from <a href="https://github.com/RyaanCMS/RyaanCMS/releases/latest">GitHub Releases</a> and re-extract.</p>'
         . '</body></html>');
 }
 
-// ── Maintenance mode ─────────────────────────────────────────────────────────────
+// ── Maintenance mode ──────────────────────────────────────────────────────────────
 $maintenance = $appRoot . '/storage/framework/maintenance.php';
 if (file_exists($maintenance)) {
     require $maintenance;
 }
 
-// ── Bootstrap Laravel ────────────────────────────────────────────────────────────
+// ── Bootstrap Laravel ─────────────────────────────────────────────────────────────
 require $appRoot . '/vendor/autoload.php';
 
 (require_once $appRoot . '/bootstrap/app.php')
