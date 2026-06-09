@@ -13,6 +13,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptRoot = $PSScriptRoot
 Set-Location $ScriptRoot
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
 
 Write-Host ""
 Write-Host "  RyaanCMS - Build & Release" -ForegroundColor Cyan
@@ -36,7 +37,7 @@ function Set-EnvValue($key, $value) {
     } else {
         $content = $content.TrimEnd() + "`n$key=$value`n"
     }
-    [System.IO.File]::WriteAllText((Resolve-Path $envPath).Path, $content, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Resolve-Path $envPath).Path, $content, $utf8NoBom)
 }
 
 function Bump-Patch($ver) {
@@ -195,9 +196,10 @@ if (-not $exists) {
 # Update latest
 $versionsData.latest = $Version
 
-# Save back (pretty print)
+# Save back (pretty print) - UTF-8 without BOM
 $versionsJson = $versionsData | ConvertTo-Json -Depth 10
-[System.IO.File]::WriteAllText($versionsPath, $versionsJson, [System.Text.Encoding]::UTF8)
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($versionsPath, $versionsJson, $utf8NoBom)
 
 # ─────────────────────────────────────────────────────────────
 # STEP 3: Git commit version bump
@@ -268,13 +270,13 @@ $content = $content `
     -replace [regex]::Escape("__DIR__.'/../storage/framework/maintenance.php'"),    "__DIR__.'/../$AppFolderName/storage/framework/maintenance.php'" `
     -replace [regex]::Escape("__DIR__.'/../vendor/autoload.php'"),                 "__DIR__.'/../$AppFolderName/vendor/autoload.php'" `
     -replace [regex]::Escape("__DIR__.'/../bootstrap/app.php'"),                   "__DIR__.'/../$AppFolderName/bootstrap/app.php'"
-[System.IO.File]::WriteAllText($indexPath, $content, [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText($indexPath, $content, $utf8NoBom)
 
 if (Test-Path "$pubDir\install.php") {
     $ic = Get-Content "$pubDir\install.php" -Raw
     $ic = $ic -replace [regex]::Escape("__DIR__ . '/../"), "__DIR__ . '/../$AppFolderName/"
     $ic = $ic -replace [regex]::Escape("__DIR__.'/../"),   "__DIR__.'/../$AppFolderName/"
-    [System.IO.File]::WriteAllText("$pubDir\install.php", $ic, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText("$pubDir\install.php", $ic, $utf8NoBom)
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -356,7 +358,7 @@ $vJson = Get-Content $versionsPath -Raw
 $vJson = [regex]::Replace($vJson,
     "(?<=\""download_url\""\s*:\s*\"")[^""]*(?=\"")",
     $asset.browser_download_url)
-[System.IO.File]::WriteAllText($versionsPath, $vJson, [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText($versionsPath, $vJson, $utf8NoBom)
 
 $prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
 git add versions.json 2>&1 | Out-Null

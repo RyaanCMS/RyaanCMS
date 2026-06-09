@@ -29,6 +29,7 @@ jobs:
       - name: Bump version
         id: ver
         run: |
+          sed -i '1s/^\xEF\xBB\xBF//' versions.json
           CURRENT=$(php -r "echo json_decode(file_get_contents('versions.json'))->latest;")
           IFS='.' read -ra P <<< "$CURRENT"
           NEW="${P[0]}.${P[1]}.$((${P[2]}+1))"
