@@ -10,6 +10,7 @@ use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\WisdomController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,9 @@ Route::post('/install/migrate',  [InstallController::class, 'runMigrate'])->name
 Route::get('/install/admin',     [InstallController::class, 'admin'])->name('install.admin');
 Route::post('/install/admin',    [InstallController::class, 'saveAdmin'])->name('install.admin.save');
 Route::get('/install/complete',  [InstallController::class, 'complete'])->name('install.complete');
+
+// Public site serving — active template for a project (no auth required)
+Route::get('/site/{project}', [TemplateController::class, 'serve'])->name('site.serve');
 
 // Welcome / Landing Page
 Route::get('/', function () {
@@ -147,6 +151,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/installations/{installation}/toggle',  [MarketplaceController::class, 'toggleInstallation'])->name('installation.toggle');
         Route::delete('/installations/{installation}',         [MarketplaceController::class, 'uninstallInstallation'])->name('installation.uninstall');
         Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
+        // Templates browser
+        Route::get('/templates',                           [TemplateController::class, 'browse'])->name('templates');
         // Admin approval panel (admin role only — enforced inside controller)
         Route::get('/admin/panel',                         [MarketplaceController::class, 'adminPanel'])->name('admin.panel');
         Route::post('/admin/{item}/approve',               [MarketplaceController::class, 'approveItem'])->name('admin.approve');
@@ -154,6 +160,14 @@ Route::middleware('auth')->group(function () {
         // Must be last — catch-all wildcard
         Route::get('/{item}',                              [MarketplaceController::class, 'show'])->name('show');
         Route::post('/{item}/install',                     [MarketplaceController::class, 'install'])->name('install');
+    });
+
+    // Template install / activate / uninstall per project
+    Route::prefix('projects/{project}/templates')->name('template.')->group(function () {
+        Route::post('/{key}/install',   [TemplateController::class, 'install'])->name('install');
+        Route::post('/{key}/activate',  [TemplateController::class, 'activate'])->name('activate');
+        Route::post('/{key}/deactivate',[TemplateController::class, 'deactivate'])->name('deactivate');
+        Route::delete('/{key}',         [TemplateController::class, 'uninstall'])->name('uninstall');
     });
 
     // Project packaging (developer export)

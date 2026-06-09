@@ -4,6 +4,12 @@
 
 @section('header-actions')
 <div class="flex items-center gap-2">
+    <a href="{{ route('marketplace.templates') }}"
+       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
+       style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
+       onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-bg)'">
+        🎨 Templates
+    </a>
     <a href="{{ route('marketplace.my-items') }}"
        class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
        style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
