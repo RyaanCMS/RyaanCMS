@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.18",
+    "latest": "1.1.19",
     "versions": [
         {
             "version": "1.0.0",
@@ -251,6 +251,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.17",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.19",
+            "type": "feature",
+            "released_at": "2026-06-09",
+            "changelog": "fix: graceful update_history table handling + remove temp migration file\n\n- UpdateController now catches missing update_history table and returns\n  empty history instead of 500 error (existing installs without the table)\n- Deleted public/run-migrations.php (temp one-time script, security risk in prod)\n- New installs from ZIP will have the table via migration automatically\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.19/ryaancms-v1.1.19-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.18",
             "critical": false,
             "file_count": null
         }
