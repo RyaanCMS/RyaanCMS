@@ -9,18 +9,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('marketplace_items', function (Blueprint $table) {
-            $table->string('status')->default('pending')->after('is_published');
-            // pending | approved | rejected
-            $table->text('rejection_reason')->nullable()->after('status');
-            $table->string('package_file')->nullable()->after('rejection_reason');
-            $table->string('demo_url_submission')->nullable()->after('package_file');
+            if (!Schema::hasColumn('marketplace_items', 'status')) {
+                $table->string('status')->default('pending')->after('is_published');
+            }
+            if (!Schema::hasColumn('marketplace_items', 'rejection_reason')) {
+                $table->text('rejection_reason')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('marketplace_items', 'demo_url_submission')) {
+                $table->string('demo_url_submission')->nullable()->after('rejection_reason');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('marketplace_items', function (Blueprint $table) {
-            $table->dropColumn(['status', 'rejection_reason', 'package_file', 'demo_url_submission']);
+            $cols = array_filter(
+                ['status', 'rejection_reason', 'demo_url_submission'],
+                fn($c) => Schema::hasColumn('marketplace_items', $c)
+            );
+            if ($cols) {
+                $table->dropColumn(array_values($cols));
+            }
         });
     }
 };
