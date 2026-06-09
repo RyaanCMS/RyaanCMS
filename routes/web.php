@@ -139,11 +139,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/installed',                         [MarketplaceController::class, 'installed'])->name('installed');
         Route::post('/activate/{installation}',          [MarketplaceController::class, 'activate'])->name('activate');
         // Built-in Module Registry (zero AI cost)
-        Route::get('/modules',                           [MarketplaceController::class, 'modules'])->name('modules');
-        Route::post('/modules/{key}/install',            [MarketplaceController::class, 'installModule'])->name('module.install')->middleware('throttle:30,1');
-        Route::get('/agents',                            [MarketplaceController::class, 'agents'])->name('agents');
-        Route::get('/{item}',                            [MarketplaceController::class, 'show'])->name('show');
-        Route::post('/{item}/install',                   [MarketplaceController::class, 'install'])->name('install');
+        Route::get('/modules',                             [MarketplaceController::class, 'modules'])->name('modules');
+        Route::post('/modules/{key}/install',              [MarketplaceController::class, 'installModule'])->name('module.install')->middleware('throttle:30,1');
+        Route::patch('/modules/{key}/toggle',              [MarketplaceController::class, 'toggleModule'])->name('module.toggle');
+        Route::delete('/modules/{key}/uninstall',          [MarketplaceController::class, 'uninstallModule'])->name('module.uninstall');
+        // Marketplace installation management
+        Route::patch('/installations/{installation}/toggle',  [MarketplaceController::class, 'toggleInstallation'])->name('installation.toggle');
+        Route::delete('/installations/{installation}',         [MarketplaceController::class, 'uninstallInstallation'])->name('installation.uninstall');
+        Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
+        Route::get('/{item}',                              [MarketplaceController::class, 'show'])->name('show');
+        Route::post('/{item}/install',                     [MarketplaceController::class, 'install'])->name('install');
     });
 
     // Project packaging (developer export)

@@ -48,13 +48,26 @@ class MarketplaceController extends Controller
         $agents   = $this->moduleRegistry->agents();
         $projects = Auth::user()->projects()->select('id', 'name')->orderBy('name')->get();
 
-        // Track which modules are already installed across user projects
+        // Track which modules are already installed across user projects (with status + project name)
         $installedKeys = ProjectModule::whereIn(
             'project_id', $projects->pluck('id')
         )->pluck('module_key')->unique()->values();
 
+        // Richer map: module_key => [{project_id, project_name, status, pm_id}]
+        $installedModules = ProjectModule::whereIn('project_id', $projects->pluck('id'))
+            ->with('project:id,name')
+            ->get()
+            ->groupBy('module_key')
+            ->map(fn($rows) => $rows->map(fn($r) => [
+                'pm_id'        => $r->id,
+                'project_id'   => $r->project_id,
+                'project_name' => $r->project->name ?? '—',
+                'status'       => $r->status,
+                'active'       => in_array($r->status, ['installed', 'active']),
+            ])->values());
+
         return view('marketplace.index', compact(
-            'items', 'featured', 'categories', 'modules', 'agents', 'projects', 'installedKeys'
+            'items', 'featured', 'categories', 'modules', 'agents', 'projects', 'installedKeys', 'installedModules'
         ));
     }
 
@@ -94,6 +107,79 @@ class MarketplaceController extends Controller
             'ai_tokens'  => 0,
             'files'      => $result['files'],
             'menu_items' => $menuItems,
+        ]);
+    }
+
+    public function toggleModule(Request $request, string $key)
+    {
+        $request->validate(['project_id' => 'required|exists:projects,id']);
+
+        $project = Project::where('id', $request->project_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $pm = ProjectModule::where('project_id', $project->id)
+            ->where('module_key', $key)
+            ->firstOrFail();
+
+        $newStatus = in_array($pm->status, ['active', 'installed']) ? 'inactive' : 'active';
+        $pm->update(['status' => $newStatus]);
+
+        $module = $this->moduleRegistry->get($key);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $newStatus,
+            'active'  => $newStatus === 'active',
+            'message' => ($module['name'] ?? $key) . ' is now ' . $newStatus . '.',
+        ]);
+    }
+
+    public function uninstallModule(Request $request, string $key)
+    {
+        $request->validate(['project_id' => 'required|exists:projects,id']);
+
+        $project = Project::where('id', $request->project_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        ProjectModule::where('project_id', $project->id)
+            ->where('module_key', $key)
+            ->delete();
+
+        $module = $this->moduleRegistry->get($key);
+
+        return response()->json([
+            'success' => true,
+            'message' => ($module['name'] ?? $key) . ' uninstalled from ' . $project->name . '.',
+        ]);
+    }
+
+    public function toggleInstallation(MarketplaceInstallation $installation)
+    {
+        abort_unless($installation->user_id === Auth::id(), 403);
+
+        $newStatus = $installation->status === 'active' ? 'inactive' : 'active';
+        $installation->update(['status' => $newStatus]);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $newStatus,
+            'active'  => $newStatus === 'active',
+            'message' => ($installation->item->name ?? 'Item') . ' is now ' . $newStatus . '.',
+        ]);
+    }
+
+    public function uninstallInstallation(MarketplaceInstallation $installation)
+    {
+        abort_unless($installation->user_id === Auth::id(), 403);
+
+        $name = $installation->item->name ?? 'Item';
+        $installation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => $name . ' has been uninstalled.',
         ]);
     }
 

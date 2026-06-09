@@ -816,20 +816,24 @@
 <!-- ══════════════════════════════════════════
      FOOTER
 ══════════════════════════════════════════ -->
-<footer class="px-6 py-14">
+<footer class="px-6 py-14" style="background:#f9fafb;border-top:1px solid #e5e7eb;">
     <div class="max-w-7xl mx-auto">
-        <div class="grid sm:grid-cols-4 gap-10 mb-10">
-            <div class="sm:col-span-2">
+
+        {{-- Brand + columns grid --}}
+        <div style="display:grid;grid-template-columns:280px repeat(5,1fr);gap:40px;margin-bottom:40px;align-items:start;">
+
+            {{-- Brand --}}
+            <div>
                 <div class="flex items-center gap-2.5 mb-4">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                          style="background:linear-gradient(135deg,#6d28d9,#4f46e5);">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                     </div>
-                    <span class="font-bold" style="color:#0f172a;">RyaanCMS</span>
+                    <span class="font-bold text-sm" style="color:#0f172a;">RyaanCMS</span>
                 </div>
-                <p class="text-sm leading-relaxed max-w-xs mb-4" style="color:#6b7280;">
+                <p class="text-sm leading-relaxed mb-5" style="color:#6b7280;max-width:220px;">
                     The world's first AI Business Operating System Builder. Free forever. Self-hosted. Open source.
                 </p>
                 <a href="https://github.com/ryaancms" target="_blank" rel="noopener"
@@ -839,35 +843,91 @@
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
                     </svg>
-                    github.com/ryaancms
+                    GitHub
                 </a>
             </div>
 
+            {{-- Product --}}
             <div>
-                <h4 class="font-semibold text-sm mb-4" style="color:#0f172a;">Product</h4>
+                <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#9ca3af;">Product</h4>
                 <ul class="space-y-2.5 text-sm" style="color:#6b7280;">
                     <li><a href="#features"     class="hover:text-violet-700 transition-colors">Features</a></li>
                     <li><a href="#domains"      class="hover:text-violet-700 transition-colors">Domains</a></li>
                     <li><a href="#intelligence" class="hover:text-violet-700 transition-colors">Intelligence</a></li>
-                    <li><a href="{{ route('register') }}" class="hover:text-violet-700 transition-colors">Get Started</a></li>
+                    <li><a href="#how-it-works" class="hover:text-violet-700 transition-colors">How It Works</a></li>
+                    <li><a href="{{ route('register') }}" class="hover:text-violet-700 transition-colors">Get Started Free</a></li>
+                    <li><a href="{{ route('login') }}"    class="hover:text-violet-700 transition-colors">Sign In</a></li>
                 </ul>
             </div>
 
+            {{-- Domains --}}
             <div>
-                <h4 class="font-semibold text-sm mb-4" style="color:#0f172a;">Legal</h4>
+                <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#9ca3af;">Domains</h4>
+                <ul class="space-y-2.5 text-sm" style="color:#6b7280;">
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">Laravel / React</a></li>
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">eCommerce</a></li>
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">CRM &amp; HRM</a></li>
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">Hospital &amp; School</a></li>
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">Restaurant &amp; POS</a></li>
+                    <li><a href="#domains" class="hover:text-violet-700 transition-colors">SaaS &amp; ERP</a></li>
+                </ul>
+            </div>
+
+            {{-- Modules --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#9ca3af;">Modules</h4>
+                <ul class="space-y-2.5 text-sm" style="color:#6b7280;">
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">RBAC &amp; Auth</a></li>
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">Billing &amp; Invoices</a></li>
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">Reports &amp; Analytics</a></li>
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">Notifications</a></li>
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">API Builder</a></li>
+                    <li><a href="#features" class="hover:text-violet-700 transition-colors">Multi-tenant</a></li>
+                </ul>
+            </div>
+
+            {{-- Resources --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#9ca3af;">Resources</h4>
+                <ul class="space-y-2.5 text-sm" style="color:#6b7280;">
+                    <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Documentation</a></li>
+                    <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">API Reference</a></li>
+                    <li><a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">GitHub</a></li>
+                    <li><a href="https://github.com/ryaancms/releases" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Changelog</a></li>
+                    <li><a href="https://github.com/ryaancms/issues" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Report Issue</a></li>
+                </ul>
+            </div>
+
+            {{-- Legal --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color:#9ca3af;">Legal</h4>
                 <ul class="space-y-2.5 text-sm" style="color:#6b7280;">
                     <li><a href="{{ route('terms') }}"   class="hover:text-violet-700 transition-colors">Terms of Service</a></li>
                     <li><a href="{{ route('privacy') }}" class="hover:text-violet-700 transition-colors">Privacy Policy</a></li>
+                    <li><a href="{{ route('privacy') }}" class="hover:text-violet-700 transition-colors">Cookie Policy</a></li>
+                    <li><a href="{{ route('privacy') }}" class="hover:text-violet-700 transition-colors">Open Source License</a></li>
                 </ul>
             </div>
+
         </div>
 
+        {{-- Bottom bar --}}
         <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
              style="border-top:1px solid #e5e7eb;">
-            <p class="text-xs" style="color:#9ca3af;">© {{ date('Y') }} RyaanCMS. Open Source. Free Forever.</p>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full pulse-dot" style="background:#22c55e;"></span>
-                <span class="text-xs" style="color:#9ca3af;">All systems operational</span>
+            <div class="flex items-center gap-6">
+                <p class="text-xs" style="color:#9ca3af;">© {{ date('Y') }} RyaanCMS. Open Source. Free Forever.</p>
+                <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">v1.0 — MIT License</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full" style="background:#22c55e;"></span>
+                    <span class="text-xs" style="color:#9ca3af;">All systems operational</span>
+                </div>
+                <a href="https://github.com/ryaancms" target="_blank" rel="noopener"
+                   class="text-xs transition-colors" style="color:#9ca3af;"
+                   onmouseover="this.style.color='#6d28d9'" onmouseout="this.style.color='#9ca3af'">
+                    Star on GitHub ★
+                </a>
             </div>
         </div>
     </div>

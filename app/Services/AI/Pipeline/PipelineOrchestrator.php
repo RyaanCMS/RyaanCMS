@@ -130,7 +130,7 @@ class PipelineOrchestrator
                 'domain'           => $context['kb_app_type'] ?? 'general',
                 'lesson'           => "Full pipeline completed: " . mb_substr($run->prompt, 0, 200),
                 'what_went_right'  => "10-agent pipeline succeeded with {$freshRun->total_files} files",
-                'recommendation'   => "Blueprint: {$context['architecture'] ?? 'modular'}, Scale: {$context['scale_tier'] ?? 'small'}",
+                'recommendation'   => "Blueprint: " . ($context['architecture'] ?? 'modular') . ", Scale: " . ($context['scale_tier'] ?? 'small'),
                 'outcome'          => "success — {$freshRun->total_files} files, {$freshRun->total_tokens} tokens",
                 'confidence'       => 0.9,
                 'tags'             => array_filter([$context['kb_app_type'] ?? null, 'pipeline', 'success']),

@@ -56,12 +56,12 @@
         <div class="divide-y" style="border-color:var(--border);">
             @foreach($installed as $inst)
             <div class="flex items-center px-6 py-4 gap-4 group transition-colors"
+                 x-data="instRow('{{ $inst->id }}', '{{ $inst->status }}')"
                  onmouseover="this.style.background='var(--hover-bg)'"
                  onmouseout="this.style.background=''">
 
                 <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe);
-                            border:1px solid #c7d2fe;">
+                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
                     {{ $inst->item?->icon ?? '🔌' }}
                 </div>
 
@@ -87,6 +87,11 @@
                         @endif
                     </div>
 
+                    {{-- Feedback message --}}
+                    <p x-show="feedback" x-text="feedback"
+                       :style="feedbackOk ? 'color:#15803d;' : 'color:#ef4444;'"
+                       style="font-size:11.5px;margin-top:4px;font-weight:500;"></p>
+
                     {{-- License key row --}}
                     <div class="flex items-center space-x-2 mt-1.5">
                         <svg class="w-3 h-3 flex-shrink-0" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,15 +108,31 @@
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {{-- Status badge --}}
                     <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full border"
-                          style="{{ $inst->status === 'active'
+                          :style="status === 'active'
                               ? 'background:#ecfdf5;color:#065f46;border-color:#a7f3d0'
-                              : ($inst->status === 'installed'
+                              : (status === 'installed'
                                   ? 'background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe'
-                                  : 'background:var(--hover-bg);color:var(--text-3);border-color:var(--border)') }}">
-                        {{ ucfirst($inst->status) }}
-                    </span>
+                                  : 'background:#f9fafb;color:#6b7280;border-color:#e5e7eb')"
+                          x-text="status.charAt(0).toUpperCase() + status.slice(1)"></span>
+
+                    {{-- Toggle button --}}
+                    <button @click="doToggle()" :disabled="working"
+                            :style="(status === 'active' || status === 'installed')
+                                ? 'background:#fef9c3;color:#a16207;border:1px solid #fde68a;'
+                                : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'"
+                            style="padding:5px 13px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .13s;"
+                            x-text="(status === 'active' || status === 'installed') ? 'Deactivate' : 'Activate'">
+                    </button>
+
+                    {{-- Uninstall button --}}
+                    <button @click="doUninstall()" :disabled="working"
+                            style="padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:700;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;cursor:pointer;transition:all .13s;"
+                            onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                        Uninstall
+                    </button>
                 </div>
             </div>
             @endforeach
@@ -121,4 +142,72 @@
     {{ $installed->links() }}
     @endif
 </div>
+
+<script>
+function instRow(id, initialStatus) {
+    return {
+        id: id,
+        status: initialStatus,
+        working: false,
+        feedback: '',
+        feedbackOk: true,
+
+        async doToggle() {
+            this.working = true;
+            try {
+                const res = await fetch(`/marketplace/installations/${this.id}/toggle`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.status      = data.status;
+                    this.feedback    = data.message;
+                    this.feedbackOk  = true;
+                } else {
+                    this.feedback   = data.message || 'Toggle failed.';
+                    this.feedbackOk = false;
+                }
+            } catch {
+                this.feedback   = 'Network error — please try again.';
+                this.feedbackOk = false;
+            }
+            this.working = false;
+        },
+
+        async doUninstall() {
+            if (!confirm('Uninstall this package? This cannot be undone.')) return;
+            this.working = true;
+            try {
+                const res = await fetch(`/marketplace/installations/${this.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.$el.style.opacity = '0';
+                    this.$el.style.transition = 'opacity .3s';
+                    setTimeout(() => this.$el.remove(), 320);
+                } else {
+                    this.feedback   = data.message || 'Uninstall failed.';
+                    this.feedbackOk = false;
+                    this.working    = false;
+                }
+            } catch {
+                this.feedback   = 'Network error — please try again.';
+                this.feedbackOk = false;
+                this.working    = false;
+            }
+        },
+    };
+}
+</script>
 @endsection

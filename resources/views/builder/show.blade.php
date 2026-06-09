@@ -82,13 +82,8 @@
                                 style="border:2px solid #e2e8f0; color:#1e293b; background:#fff;"
                                 onfocus="this.style.borderColor='#6366f1'"
                                 onblur="this.style.borderColor='#e2e8f0'">
-                            @foreach(config('ryaan.project_types', [
-                                'laravel' => 'Laravel App', 'react' => 'React App', 'nextjs' => 'Next.js App',
-                                'ecommerce' => 'eCommerce', 'crm' => 'CRM', 'hrm' => 'HRM',
-                                'erp' => 'ERP', 'saas' => 'SaaS', 'hospital' => 'Hospital',
-                                'school' => 'School', 'restaurant' => 'Restaurant', 'pos' => 'POS',
-                            ]) as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
+                            @foreach(config('ryaan.project_types', []) as $key => $typeData)
+                            <option value="{{ $key }}">{{ is_array($typeData) ? $typeData['label'] : $typeData }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -560,15 +555,14 @@
                 this.smartPanel = null;
             }
         }"
-        @component-inserted.window="
+        x-on:component-inserted.window="
             const msg = $event.detail.message;
             const saved = $event.detail.tokens_saved;
-            // Inject as AI response turn
             turns.push({ id: Date.now(), prompt: '⚡ Component inserted', response: msg, files:[], activities:[], status:'done', expanded:true });
             tokensSaved += saved;
             $nextTick(() => scrollChat());
         "
-        @use-question.window="chatInput = $event.detail.text; $nextTick(() => $el.querySelector('textarea')?.focus())"
+        x-on:use-question.window="chatInput = $event.detail.text; $nextTick(() => $el.querySelector('textarea')?.focus())"
         class="border-t" style="border-color:#e5e7eb; background:#fafafa;">
 
             <!-- Panel Toggle Buttons -->

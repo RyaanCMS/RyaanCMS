@@ -1,396 +1,716 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
-@section('header', 'Dashboard')
+@section('header', 'Overview')
 
 @php
-$hour = now()->hour;
+$hour     = now()->hour;
 $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+$storageMB = round($stats['storage'] / 1048576, 1);
+$userName  = explode(' ', auth()->user()->name)[0];
+
+$typeMap = [
+    'laravel'    => ['emoji'=>'⚡','from'=>'#f97316','to'=>'#ef4444','bg'=>'#fff7ed','bd'=>'#fed7aa','txt'=>'#c2410c','label'=>'Laravel'],
+    'react'      => ['emoji'=>'⚛️','from'=>'#06b6d4','to'=>'#3b82f6','bg'=>'#ecfeff','bd'=>'#a5f3fc','txt'=>'#0e7490','label'=>'React'],
+    'nextjs'     => ['emoji'=>'▲', 'from'=>'#475569','to'=>'#1e293b','bg'=>'#f8fafc','bd'=>'#e2e8f0','txt'=>'#475569','label'=>'Next.js'],
+    'ecommerce'  => ['emoji'=>'🛒','from'=>'#10b981','to'=>'#059669','bg'=>'#ecfdf5','bd'=>'#a7f3d0','txt'=>'#065f46','label'=>'eCommerce'],
+    'crm'        => ['emoji'=>'👥','from'=>'#8b5cf6','to'=>'#7c3aed','bg'=>'#fdf4ff','bd'=>'#e9d5ff','txt'=>'#6d28d9','label'=>'CRM'],
+    'hrm'        => ['emoji'=>'🧑','from'=>'#0ea5e9','to'=>'#6366f1','bg'=>'#f0f9ff','bd'=>'#bae6fd','txt'=>'#0369a1','label'=>'HRM'],
+    'erp'        => ['emoji'=>'🏭','from'=>'#d97706','to'=>'#b45309','bg'=>'#fffbeb','bd'=>'#fde68a','txt'=>'#92400e','label'=>'ERP'],
+    'saas'       => ['emoji'=>'🚀','from'=>'#6366f1','to'=>'#8b5cf6','bg'=>'#eef2ff','bd'=>'#c7d2fe','txt'=>'#4338ca','label'=>'SaaS'],
+    'hospital'   => ['emoji'=>'🏥','from'=>'#ef4444','to'=>'#dc2626','bg'=>'#fef2f2','bd'=>'#fecaca','txt'=>'#991b1b','label'=>'Hospital'],
+    'school'     => ['emoji'=>'🎓','from'=>'#06b6d4','to'=>'#0891b2','bg'=>'#ecfeff','bd'=>'#a5f3fc','txt'=>'#0e7490','label'=>'School'],
+    'restaurant' => ['emoji'=>'🍽️','from'=>'#f97316','to'=>'#ea580c','bg'=>'#fff7ed','bd'=>'#fed7aa','txt'=>'#c2410c','label'=>'Restaurant'],
+    'pos'        => ['emoji'=>'🏪','from'=>'#10b981','to'=>'#059669','bg'=>'#ecfdf5','bd'=>'#a7f3d0','txt'=>'#065f46','label'=>'POS'],
+    'inventory'  => ['emoji'=>'📦','from'=>'#6366f1','to'=>'#4f46e5','bg'=>'#eef2ff','bd'=>'#c7d2fe','txt'=>'#3730a3','label'=>'Inventory'],
+    'api'        => ['emoji'=>'🔌','from'=>'#475569','to'=>'#334155','bg'=>'#f8fafc','bd'=>'#e2e8f0','txt'=>'#475569','label'=>'API'],
+    'default'    => ['emoji'=>'🗂️','from'=>'#6366f1','to'=>'#8b5cf6','bg'=>'#eef2ff','bd'=>'#c7d2fe','txt'=>'#4338ca','label'=>'App'],
+];
+
+$feedItems = collect();
+foreach($recentActivity as $c) {
+    $feedItems->push(['kind'=>'ai','title'=>$c->title ?? 'AI Conversation','proj'=>$c->project->name ?? '—','sub'=>$c->message_count.' msgs','time'=>$c->updated_at]);
+}
+foreach($recentDeployments as $d) {
+    $feedItems->push(['kind'=>'deploy','status'=>$d->status,'title'=>$d->project->name ?? 'Project','proj'=>null,'sub'=>ucfirst($d->status).' deployment','time'=>$d->created_at]);
+}
+$feedItems = $feedItems->sortByDesc('time')->take(8)->values();
 @endphp
 
+@section('header-actions')
+<a href="{{ route('projects.create') }}"
+   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+   style="background:var(--brand);box-shadow:0 2px 10px var(--brand-ring);">
+    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+    </svg>
+    New Project
+</a>
+@endsection
+
+@push('head')
+<style>
+/* ═══════════════════════════════════════════
+   Dashboard — Professional SaaS design
+   Inspired by Linear · Vercel · Stripe
+═══════════════════════════════════════════ */
+
+/* ── Greeting bar ── */
+.db-greet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.db-greet-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: 1.5px solid #e8ecf0;
+    flex-shrink: 0;
+}
+.db-greet-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -.025em;
+    line-height: 1.15;
+}
+.db-greet-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.db-greet-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* ── KPI row ── */
+.db-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+.db-kpi {
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    transition: box-shadow .2s, transform .2s;
+    cursor: default;
+}
+.db-kpi:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+}
+.db-kpi-ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+}
+.db-kpi-val {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -.04em;
+    line-height: 1;
+}
+.db-kpi-unit {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-left: 2px;
+}
+.db-kpi-label {
+    font-size: 11.5px;
+    color: #64748b;
+    font-weight: 500;
+    margin-top: 6px;
+}
+.db-kpi-bar {
+    height: 3px;
+    border-radius: 99px;
+    margin-top: 12px;
+    background: #f1f5f9;
+    overflow: hidden;
+}
+.db-kpi-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+}
+
+/* ── Main layout ── */
+.db-layout {
+    display: grid;
+    grid-template-columns: 1fr 256px;
+    gap: 14px;
+    align-items: start;
+}
+
+/* ── Section card ── */
+.db-section {
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    overflow: hidden;
+}
+.db-section-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.db-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.db-section-link {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6366f1;
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 7px;
+    background: #eef2ff;
+    transition: background .13s;
+}
+.db-section-link:hover { background: #e0e7ff; }
+.db-section-count {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 1px solid #e8ecf0;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: 6px;
+}
+
+/* ── Project grid — 2 columns ── */
+.db-proj-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: #f1f5f9;
+}
+
+/* ── Project card ── */
+.db-proj-card {
+    background: #fff;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: background .15s;
+    position: relative;
+}
+.db-proj-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 0;
+    opacity: 0;
+    transition: opacity .15s;
+}
+.db-proj-card:hover { background: #fafbff; }
+.db-proj-card:hover::after { opacity: 1; }
+
+.db-proj-row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.db-proj-ico  {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+}
+.db-proj-name {
+    font-size: 13px; font-weight: 700; color: #0f172a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1; margin: 0 8px;
+}
+.db-proj-status {
+    font-size: 9px; font-weight: 700;
+    padding: 2px 7px; border-radius: 99px;
+    white-space: nowrap; flex-shrink: 0;
+}
+.db-proj-row2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.db-proj-type {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 5px;
+}
+.db-proj-dot { color: #d1d5db; }
+.db-proj-age { font-size: 10.5px; color: #94a3b8; }
+.db-proj-row3 { display: flex; align-items: center; justify-content: space-between; }
+.db-proj-files { font-size: 10px; color: #cbd5e1; }
+.db-proj-cta {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; font-weight: 700; color: #fff;
+    padding: 5px 12px; border-radius: 7px; text-decoration: none;
+    transition: opacity .13s, transform .13s;
+}
+.db-proj-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ── New project ghost ── */
+.db-new-card {
+    background: #fff;
+    padding: 28px 18px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .15s;
+    min-height: 140px;
+}
+.db-new-card:hover { background: #f5f6ff; }
+.db-new-ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #f1f5f9;
+    border: 1.5px dashed #cbd5e1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+}
+.db-new-card:hover .db-new-ico {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+}
+.db-new-lbl { font-size: 12px; font-weight: 600; color: #94a3b8; transition: color .15s; }
+.db-new-card:hover .db-new-lbl { color: #6366f1; }
+
+/* ── Empty state ── */
+.db-empty {
+    padding: 52px 24px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+}
+.db-empty-ico {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg,#eef2ff,#ede9fe);
+    border: 1px solid #c7d2fe;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+}
+.db-empty h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+.db-empty p  { font-size: 12px; color: #94a3b8; margin-bottom: 20px; max-width: 240px; line-height: 1.7; }
+.db-empty-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 22px; border-radius: 11px; font-size: 13px;
+    font-weight: 700; color: #fff; text-decoration: none;
+    background: var(--brand); box-shadow: 0 3px 12px var(--brand-ring);
+    transition: all .15s;
+}
+.db-empty-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+/* ── Activity feed ── */
+.db-feed-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 18px;
+    border-bottom: 1px solid #f8fafc;
+    transition: background .12s;
+}
+.db-feed-row:last-child { border-bottom: none; }
+.db-feed-row:hover { background: #fafbff; }
+.db-feed-dot {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+}
+.db-feed-title { font-size: 12.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-feed-meta  { font-size: 10.5px; color: #94a3b8; margin-top: 2px; }
+
+/* ── Sidebar ── */
+.db-sidebar { display: flex; flex-direction: column; gap: 12px; }
+
+.db-widget {
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    overflow: hidden;
+}
+.db-widget-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px; font-weight: 700; color: #0f172a;
+}
+
+.db-action {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    text-decoration: none;
+    border-bottom: 1px solid #f8fafc;
+    transition: background .12s;
+}
+.db-action:last-child { border-bottom: none; }
+.db-action:hover { background: #fafbff; }
+.db-action-ico {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.db-action-label { font-size: 12px; font-weight: 600; color: #1e293b; flex: 1; }
+.db-action-hint  { font-size: 10.5px; color: #94a3b8; margin-top: 1px; }
+
+.db-tpl {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 12px; border-radius: 8px;
+    text-decoration: none;
+    margin: 2px 6px;
+    transition: background .12s;
+}
+.db-tpl:hover { background: #f0f1ff; }
+.db-tpl-ico {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+}
+.db-tpl-lbl { font-size: 12px; font-weight: 500; color: #334155; flex: 1; }
+
+.db-sys-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 14px;
+    border-bottom: 1px solid #f8fafc;
+}
+.db-sys-row:last-child { border-bottom: none; }
+
+/* ── Responsive ── */
+@media (max-width: 1180px) {
+    .db-kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .db-layout  { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+    .db-kpi-row  { grid-template-columns: repeat(2, 1fr); }
+    .db-proj-grid { grid-template-columns: 1fr; }
+}
+</style>
+@endpush
+
 @section('content')
-<div class="space-y-6">
+<div style="display:flex;flex-direction:column;gap:16px;">
 
-    {{-- ══════════ WELCOME BANNER ══════════ --}}
-    <div class="rounded-2xl overflow-hidden relative"
-         style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#1e1b4b 100%);
-                border:1px solid rgba(139,92,246,0.3);
-                box-shadow:0 4px 24px rgba(99,102,241,.25);">
-        <!-- decorative glows -->
-        <div class="absolute right-0 top-0 w-72 h-72 rounded-full pointer-events-none"
-             style="background:radial-gradient(circle,rgba(139,92,246,0.25),transparent);
-                    transform:translate(20%,-20%)"></div>
-        <div class="absolute left-0 bottom-0 w-48 h-48 rounded-full pointer-events-none"
-             style="background:radial-gradient(circle,rgba(99,102,241,0.15),transparent);
-                    transform:translate(-20%,20%)"></div>
-        <div class="relative px-7 py-7">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-5">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
-                              style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.25);color:#c4b5fd;">
-                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                            AI Ready
-                        </span>
-                    </div>
-                    <p class="text-sm font-medium mb-0.5" style="color:#a5b4fc;">{{ $greeting }},</p>
-                    <h2 class="text-2xl font-bold mb-2" style="color:#ffffff;">{{ auth()->user()->name }} 👋</h2>
-                    <p class="text-sm" style="color:#a5b4fc;">
-                        You have <span class="font-bold" style="color:#c4b5fd;">{{ $stats['projects'] }}
-                        project{{ $stats['projects'] != 1 ? 's' : '' }}</span> running. Keep building!
-                    </p>
-                </div>
-                <div class="flex items-center gap-3 flex-shrink-0">
-                    <a href="https://github.com/ryaancms" target="_blank" rel="noopener"
-                       class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium text-sm
-                              transition-all hover:-translate-y-px"
-                       style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-                        </svg>
-                        <span>GitHub</span>
-                    </a>
-                    <a href="{{ route('projects.create') }}"
-                       class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl font-semibold text-sm
-                              transition-all hover:-translate-y-px text-white"
-                       style="background:linear-gradient(135deg,#6366f1,#8b5cf6);
-                              box-shadow:0 4px 16px rgba(99,102,241,.45);"
-                       onmouseover="this.style.filter='brightness(1.1)'"
-                       onmouseout="this.style.filter=''">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        <span>New Project</span>
-                    </a>
-                </div>
-            </div>
+{{-- ══ GREETING ══════════════════════════════════════════════════ --}}
+<div class="db-greet">
+    <div style="display:flex;align-items:center;gap:13px;">
+        <img src="{{ auth()->user()->avatar_url }}"
+             class="db-greet-avatar" alt="{{ $userName }}">
+        <div>
+            <div class="db-greet-name">{{ $greeting }}, {{ $userName }}</div>
+            <div class="db-greet-sub">{{ now()->format('l, F j, Y') }}</div>
         </div>
     </div>
-
-    {{-- ══════════ STAT CARDS ══════════ --}}
-    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        @php
-        $statCards = [
-            [
-                'label'     => 'Total Projects',
-                'value'     => $stats['projects'],
-                'unit'      => '',
-                'iconColor' => '#6366f1',
-                'accent'    => '#6366f1',
-                'iconBg'    => 'linear-gradient(135deg,#eef2ff,#e0e7ff)',
-                'numColor'  => '#3730a3',
-                'badge'     => 'Active',
-                'icon'      => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
-            ],
-            [
-                'label'     => 'AI Messages',
-                'value'     => number_format($stats['ai_messages']),
-                'unit'      => '',
-                'iconColor' => '#8b5cf6',
-                'accent'    => '#8b5cf6',
-                'iconBg'    => 'linear-gradient(135deg,#fdf4ff,#ede9fe)',
-                'numColor'  => '#6d28d9',
-                'badge'     => 'Conversations',
-                'icon'      => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
-            ],
-            [
-                'label'     => 'Deployments',
-                'value'     => $stats['deployments'],
-                'unit'      => '',
-                'iconColor' => '#0ea5e9',
-                'accent'    => '#0ea5e9',
-                'iconBg'    => 'linear-gradient(135deg,#ecfeff,#e0f2fe)',
-                'numColor'  => '#0369a1',
-                'badge'     => 'Shipped',
-                'icon'      => 'M5 12h14M12 5l7 7-7 7',
-            ],
-            [
-                'label'     => 'Storage Used',
-                'value'     => round($stats['storage']/1048576,1),
-                'unit'      => 'MB',
-                'iconColor' => '#10b981',
-                'accent'    => '#10b981',
-                'iconBg'    => 'linear-gradient(135deg,#ecfdf5,#d1fae5)',
-                'numColor'  => '#065f46',
-                'badge'     => 'Used',
-                'icon'      => 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4',
-            ],
-        ];
-        @endphp
-
-        @foreach($statCards as $sc)
-        <div class="rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
-             style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
-            <!-- Colored top accent bar -->
-            <div class="h-1" style="background:{{ $sc['accent'] }};opacity:0.7;"></div>
-            <div class="p-5">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                         style="background:{{ $sc['iconBg'] }}; border:1px solid {{ $sc['accent'] }}22;">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                             style="color:{{ $sc['iconColor'] }}">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $sc['icon'] }}"/>
-                        </svg>
-                    </div>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                          style="background:{{ $sc['accent'] }}15; color:{{ $sc['accent'] }}; border:1px solid {{ $sc['accent'] }}22;">
-                        {{ $sc['badge'] }}
-                    </span>
-                </div>
-                <p class="text-3xl font-black tracking-tight mb-0.5" style="color:{{ $sc['numColor'] }}; letter-spacing:-0.03em;">
-                    {{ $sc['value'] }}@if($sc['unit'])<span class="text-base font-semibold ml-0.5" style="color:{{ $sc['accent'] }};">{{ $sc['unit'] }}</span>@endif
-                </p>
-                <p class="text-xs font-medium" style="color:var(--text-3);">{{ $sc['label'] }}</p>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    {{-- ══════════ MAIN GRID ══════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {{-- ── Recent Projects ── --}}
-        <div class="lg:col-span-2">
-            <div class="rounded-2xl overflow-hidden"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
-                <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid var(--border);">
-                    <div class="flex items-center space-x-2.5">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-                             style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
-                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-sm font-semibold" style="color:var(--text-1);">Recent Projects</h3>
-                    </div>
-                    <a href="{{ route('projects.index') }}"
-                       class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                       style="color:#6366f1; background:#eef2ff;"
-                       onmouseover="this.style.background='#e0e7ff'"
-                       onmouseout="this.style.background='#eef2ff'">View all →</a>
-                </div>
-
-                @if($recentProjects->isEmpty())
-                <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                         style="background:linear-gradient(135deg,#eef2ff,#ede9fe);">
-                        <svg class="w-8 h-8" style="color:#6366f1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <h4 class="text-sm mb-1" style="color:#9ca3af;">No projects yet</h4>
-                    <p class="text-xs mb-5" style="color:var(--text-3);">Create your first AI-powered app</p>
-                    <a href="{{ route('projects.create') }}"
-                       class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-                       style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3);">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        <span>Create First Project</span>
-                    </a>
-                </div>
-                @else
-                @php
-                $typeMap = [
-                    'laravel'   => ['from'=>'#f97316','to'=>'#ef4444','emoji'=>'⚡','bg'=>'#fff7ed','txt'=>'#c2410c'],
-                    'react'     => ['from'=>'#06b6d4','to'=>'#3b82f6','emoji'=>'⚛️','bg'=>'#ecfeff','txt'=>'#0e7490'],
-                    'nextjs'    => ['from'=>'#6b7280','to'=>'#374151','emoji'=>'▲','bg'=>'#f9fafb','txt'=>'#374151'],
-                    'ecommerce' => ['from'=>'#10b981','to'=>'#059669','emoji'=>'🛒','bg'=>'#ecfdf5','txt'=>'#065f46'],
-                    'crm'       => ['from'=>'#8b5cf6','to'=>'#7c3aed','emoji'=>'👥','bg'=>'#fdf4ff','txt'=>'#6d28d9'],
-                    'saas'      => ['from'=>'#f59e0b','to'=>'#d97706','emoji'=>'🚀','bg'=>'#fffbeb','txt'=>'#92400e'],
-                    'default'   => ['from'=>'#6366f1','to'=>'#8b5cf6','emoji'=>'🗂️','bg'=>'#eef2ff','txt'=>'#4338ca'],
-                ];
-                @endphp
-                @foreach($recentProjects as $proj)
-                @php $tc = $typeMap[$proj->type] ?? $typeMap['default']; @endphp
-                <div class="group flex items-center px-5 py-3.5 transition-colors cursor-pointer"
-                     style="border-bottom:1px solid var(--border);"
-                     onclick="window.location='{{ route('projects.show', $proj) }}'"
-                     onmouseover="this.style.background='var(--hover-bg)'"
-                     onmouseout="this.style.background=''">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 mr-4"
-                         style="background:linear-gradient(135deg,{{ $tc['from'] }}18,{{ $tc['to'] }}28);
-                                border:1px solid {{ $tc['from'] }}33;">
-                        {{ $tc['emoji'] }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium truncate" style="color:var(--text-1);">{{ $proj->name }}</p>
-                        <div class="flex items-center space-x-2 mt-0.5">
-                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
-                                  style="background:{{ $tc['bg'] }};color:{{ $tc['txt'] }};">{{ $proj->type }}</span>
-                            <span class="text-[10px]" style="color:var(--text-3);">{{ $proj->updated_at->diffForHumans() }}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
-                        <span class="text-[10px] font-semibold px-2 py-1 rounded-full border"
-                              style="{{ $proj->status === 'active'
-                                 ? 'background:#ecfdf5;color:#065f46;border-color:#a7f3d0'
-                                 : 'background:var(--card-sub);color:var(--text-3);border-color:var(--border)' }}">
-                            {{ ucfirst($proj->status) }}
-                        </span>
-                        <a href="{{ route('projects.show', $proj) }}"
-                           class="opacity-0 group-hover:opacity-100 text-[10px] font-bold px-3 py-1.5 rounded-lg
-                                  transition-all text-white whitespace-nowrap"
-                           style="background:linear-gradient(135deg,{{ $tc['from'] }},{{ $tc['to'] }});">
-                            Open →
-                        </a>
-                    </div>
-                </div>
-                @endforeach
-                @endif
-            </div>
-        </div>
-
-        {{-- ── Right Column ── --}}
-        <div class="space-y-5">
-
-            {{-- Quick Start --}}
-            <div class="rounded-2xl overflow-hidden"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
-                <div class="flex items-center space-x-2.5 px-5 py-4" style="border-bottom:1px solid var(--border);">
-                    <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-                         style="background:#6366f1;">
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-semibold" style="color:var(--text-1);">Quick Start</h3>
-                </div>
-                <div class="p-3 space-y-0.5">
-                    @foreach([
-                        ['name'=>'eCommerce Store','emoji'=>'🛒'],
-                        ['name'=>'CRM System',     'emoji'=>'👥'],
-                        ['name'=>'Restaurant App', 'emoji'=>'🍽️'],
-                        ['name'=>'SaaS Platform',  'emoji'=>'🚀'],
-                        ['name'=>'Clinic System',  'emoji'=>'🏥'],
-                    ] as $tpl)
-                    <a href="{{ route('projects.create') }}?template={{ Str::slug($tpl['name']) }}"
-                       class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-                       style="color:var(--text-2);"
-                       onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)';"
-                       onmouseout="this.style.background='';this.style.color='var(--text-2)';">
-                        <div class="flex items-center space-x-2.5">
-                            <span class="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
-                                  style="background:#f1f5f9; border:1px solid #e2e8f0;">{{ $tpl['emoji'] }}</span>
-                            <span>{{ $tpl['name'] }}</span>
-                        </div>
-                        <svg class="w-3.5 h-3.5" style="color:#cbd5e1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Install Plugin --}}
-            <div class="rounded-2xl overflow-hidden"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
-                <div class="flex items-center space-x-2.5 px-5 py-4" style="border-bottom:1px solid var(--border);">
-                    <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-                         style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-semibold flex-1" style="color:var(--text-1);">Packages</h3>
-                    <a href="{{ route('marketplace.installed') }}" class="text-xs" style="color:#6366f1;">View all →</a>
-                </div>
-                <div class="p-4 space-y-2">
-                    <a href="{{ route('marketplace.upload-install') }}"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group"
-                       style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;"
-                       onmouseover="this.style.filter='brightness(0.97)'"
-                       onmouseout="this.style.filter=''">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                             style="background:#6366f1;">
-                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold" style="color:#4338ca;">Upload & Install</p>
-                            <p class="text-xs" style="color:#6d28d9;">Install a downloaded .zip package</p>
-                        </div>
-                        <svg class="w-4 h-4 flex-shrink-0" style="color:#6366f1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                    <a href="{{ route('marketplace.index') }}"
-                       class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all"
-                       style="color:var(--text-2);"
-                       onmouseover="this.style.background='var(--hover-bg)'"
-                       onmouseout="this.style.background=''">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                             style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1px solid #bbf7d0;">
-                            <svg class="w-4 h-4" style="color:#16a34a" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm" style="color:#9ca3af;">Browse Marketplace</p>
-                            <p class="text-xs" style="color:var(--text-3);">Find plugins & applications</p>
-                        </div>
-                        <svg class="w-4 h-4 flex-shrink-0" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            {{-- AI Activity --}}
-            <div class="rounded-2xl overflow-hidden"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
-                <div class="flex items-center space-x-2.5 px-5 py-4" style="border-bottom:1px solid var(--border);">
-                    <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-                         style="background:#6366f1;">
-                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-semibold" style="color:var(--text-1);">AI Activity</h3>
-                </div>
-
-                @if($recentActivity->isEmpty())
-                <div class="flex flex-col items-center justify-center py-10 px-5 text-center">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                         style="background:#eef2ff; border:1px solid #e0e7ff;">
-                        <svg class="w-5 h-5" style="color:#6366f1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <p class="text-xs font-medium" style="color:var(--text-3);">Start building to see AI activity</p>
-                </div>
-                @else
-                <div>
-                    @foreach($recentActivity as $conv)
-                    <div class="flex items-start px-4 py-3 transition-colors"
-                         style="border-bottom:1px solid var(--border);"
-                         onmouseover="this.style.background='var(--hover-bg)'"
-                         onmouseout="this.style.background=''">
-                        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 mr-3"
-                             style="background:#eef2ff; border:1px solid #e0e7ff;">
-                            <svg class="w-3.5 h-3.5" style="color:#6366f1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-medium truncate" style="color:var(--text-1);">
-                                {{ Str::limit($conv->title ?? 'AI Conversation', 32) }}
-                            </p>
-                            <div class="flex items-center space-x-1.5 mt-0.5">
-                                <span class="text-[10px] font-medium" style="color:#6366f1;">{{ $conv->project->name ?? '—' }}</span>
-                                <span style="color:var(--border)">·</span>
-                                <span class="text-[10px]" style="color:var(--text-3);">{{ $conv->message_count }} msgs</span>
-                                <span style="color:var(--border)">·</span>
-                                <span class="text-[10px]" style="color:var(--text-3);">{{ $conv->updated_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-
-        </div>
+    <div class="db-greet-badge">
+        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        AI Builder Active
     </div>
 </div>
+
+{{-- ══ KPI ROW ═══════════════════════════════════════════════════ --}}
+<div class="db-kpi-row">
+    {{-- Projects --}}
+    <div class="db-kpi">
+        <div class="db-kpi-ico" style="background:#eef2ff;">
+            <svg style="width:16px;height:16px;stroke:#6366f1" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+        </div>
+        <div class="db-kpi-val">{{ $stats['projects'] }}</div>
+        <div class="db-kpi-label">Total Projects</div>
+        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, $stats['projects'] * 10) }}%;background:#6366f1;"></div></div>
+    </div>
+
+    {{-- AI Messages --}}
+    <div class="db-kpi">
+        <div class="db-kpi-ico" style="background:#fdf4ff;">
+            <svg style="width:16px;height:16px;stroke:#8b5cf6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+            </svg>
+        </div>
+        <div class="db-kpi-val">{{ number_format($stats['ai_messages']) }}</div>
+        <div class="db-kpi-label">AI Messages</div>
+        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, ($stats['ai_messages'] / max(1, 500)) * 100) }}%;background:#8b5cf6;"></div></div>
+    </div>
+
+    {{-- Deployments --}}
+    <div class="db-kpi">
+        <div class="db-kpi-ico" style="background:#ecfdf5;">
+            <svg style="width:16px;height:16px;stroke:#10b981" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <div class="db-kpi-val">{{ $stats['deployments'] }}</div>
+        <div class="db-kpi-label">Deployments</div>
+        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, $stats['deployments'] * 20) }}%;background:#10b981;"></div></div>
+    </div>
+
+    {{-- Storage --}}
+    <div class="db-kpi">
+        <div class="db-kpi-ico" style="background:#fff7ed;">
+            <svg style="width:16px;height:16px;stroke:#f97316" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+            </svg>
+        </div>
+        <div>
+            <span class="db-kpi-val">{{ $storageMB }}</span>
+            <span class="db-kpi-unit">MB</span>
+        </div>
+        <div class="db-kpi-label">Storage Used</div>
+        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, ($storageMB / 500) * 100) }}%;background:#f97316;"></div></div>
+    </div>
+</div>
+
+{{-- ══ MAIN LAYOUT ═══════════════════════════════════════════════ --}}
+<div class="db-layout">
+
+    {{-- LEFT ──────────────────────────────────────────────── --}}
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+        {{-- Projects ── --}}
+        <div class="db-section">
+            <div class="db-section-hd">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="db-section-title">My Projects</span>
+                    @if(!$recentProjects->isEmpty())
+                    <span class="db-section-count">{{ $stats['projects'] }} total</span>
+                    @endif
+                </div>
+                <a href="{{ route('projects.index') }}" class="db-section-link">View all →</a>
+            </div>
+
+            @if($recentProjects->isEmpty())
+            <div class="db-empty">
+                <div class="db-empty-ico">
+                    <svg style="width:26px;height:26px;stroke:#6366f1" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h3>No projects yet</h3>
+                <p>Describe any application and the AI will architect, code, and deliver it — front-end to database.</p>
+                <a href="{{ route('projects.create') }}" class="db-empty-btn">
+                    <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create First Project
+                </a>
+            </div>
+            @else
+            <div class="db-proj-grid">
+                @foreach($recentProjects as $proj)
+                @php $tc = $typeMap[$proj->type] ?? $typeMap['default']; @endphp
+                <a class="db-proj-card" href="{{ route('projects.show', $proj) }}"
+                   style="--stripe:{{ $tc['from'] }};"
+                   onmouseover="this.querySelector('.db-proj-card-line').style.opacity='1'"
+                   onmouseout="this.querySelector('.db-proj-card-line').style.opacity='0'">
+                    <div class="db-proj-card-line"
+                         style="position:absolute;left:0;top:0;bottom:0;width:3px;background:{{ $tc['from'] }};opacity:0;border-radius:2px 0 0 2px;transition:opacity .15s;"></div>
+                    <div class="db-proj-row1">
+                        <div class="db-proj-ico"
+                             style="background:{{ $tc['bg'] }};border:1px solid {{ $tc['bd'] }};">
+                            {{ $tc['emoji'] }}
+                        </div>
+                        <span class="db-proj-name">{{ $proj->name }}</span>
+                        @if($proj->status === 'active')
+                        <span class="db-proj-status"
+                              style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Active</span>
+                        @else
+                        <span class="db-proj-status"
+                              style="background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0;">{{ ucfirst($proj->status ?? 'Draft') }}</span>
+                        @endif
+                    </div>
+                    <div class="db-proj-row2">
+                        <span class="db-proj-type"
+                              style="background:{{ $tc['bg'] }};color:{{ $tc['txt'] }};border:1px solid {{ $tc['bd'] }};">
+                            {{ $tc['label'] }}
+                        </span>
+                        <span class="db-proj-dot">·</span>
+                        <span class="db-proj-age">{{ $proj->updated_at->diffForHumans() }}</span>
+                    </div>
+                    <div class="db-proj-row3">
+                        <span class="db-proj-files">{{ $proj->files_count ?? 0 }} files</span>
+                        <a class="db-proj-cta"
+                           href="{{ route('builder.show', $proj) }}"
+                           style="background:linear-gradient(135deg,{{ $tc['from'] }},{{ $tc['to'] }});"
+                           onclick="event.stopPropagation()">
+                            <svg style="width:9px;height:9px;stroke:currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Builder
+                        </a>
+                    </div>
+                </a>
+                @endforeach
+
+                <a href="{{ route('projects.create') }}" class="db-new-card">
+                    <div class="db-new-ico">
+                        <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <span class="db-new-lbl">New Project</span>
+                </a>
+            </div>
+            @endif
+        </div>
+
+        {{-- Activity feed ── --}}
+        <div class="db-section">
+            <div class="db-section-hd">
+                <span class="db-section-title">Recent Activity</span>
+                <span style="font-size:10.5px;color:#94a3b8;">AI sessions &amp; deployments</span>
+            </div>
+            @if($feedItems->isEmpty())
+            <div style="padding:28px;text-align:center;">
+                <p style="font-size:12px;color:#94a3b8;">No activity yet — start building to see your history here.</p>
+            </div>
+            @else
+            @foreach($feedItems as $item)
+            <div class="db-feed-row">
+                @if($item['kind'] === 'ai')
+                <div class="db-feed-dot" style="background:#fdf4ff;border:1px solid #ede9fe;">
+                    <svg style="width:11px;height:11px;stroke:#8b5cf6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                    </svg>
+                </div>
+                @elseif(($item['status'] ?? '') === 'success')
+                <div class="db-feed-dot" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                    <svg style="width:11px;height:11px;stroke:#16a34a" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                @elseif(($item['status'] ?? '') === 'failed')
+                <div class="db-feed-dot" style="background:#fef2f2;border:1px solid #fecaca;">
+                    <svg style="width:11px;height:11px;stroke:#dc2626" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                @else
+                <div class="db-feed-dot" style="background:#fffbeb;border:1px solid #fde68a;">
+                    <svg style="width:11px;height:11px;stroke:#d97706" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118h4z"/>
+                    </svg>
+                </div>
+                @endif
+                <div style="flex:1;min-width:0;">
+                    <div class="db-feed-title">{{ Str::limit($item['title'], 50) }}</div>
+                    <div class="db-feed-meta">
+                        @if($item['proj'])<span style="color:#6366f1;font-weight:600;">{{ $item['proj'] }}</span> &middot; @endif
+                        {{ $item['sub'] }} &middot; {{ $item['time']->diffForHumans() }}
+                    </div>
+                </div>
+            </div>
+            @endforeach
+            @endif
+        </div>
+
+    </div>{{-- /left --}}
+
+    {{-- SIDEBAR ──────────────────────────────────────── --}}
+    <div class="db-sidebar">
+
+        {{-- Quick Actions ── --}}
+        <div class="db-widget">
+            <div class="db-widget-hd">Quick Actions</div>
+            @foreach([
+                ['href'=>route('projects.create'),           'label'=>'New Project',    'hint'=>'Build with AI',         'bg'=>'#eef2ff','ic'=>'#6366f1','path'=>'M12 4v16m8-8H4'],
+                ['href'=>route('marketplace.index'),         'label'=>'Module Store',   'hint'=>'30+ free modules',      'bg'=>'#ecfdf5','ic'=>'#10b981','path'=>'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+                ['href'=>route('marketplace.upload-install'),'label'=>'Upload Package', 'hint'=>'Install a .zip module', 'bg'=>'#fdf4ff','ic'=>'#8b5cf6','path'=>'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'],
+                ['href'=>route('settings.index'),            'label'=>'Settings',       'hint'=>'AI keys · branding',    'bg'=>'#f0f9ff','ic'=>'#0ea5e9','path'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+            ] as $a)
+            <a href="{{ $a['href'] }}" class="db-action">
+                <div class="db-action-ico" style="background:{{ $a['bg'] }};">
+                    <svg style="width:13px;height:13px;stroke:{{ $a['ic'] }}" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $a['path'] }}"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="db-action-label">{{ $a['label'] }}</div>
+                    <div class="db-action-hint">{{ $a['hint'] }}</div>
+                </div>
+                <svg style="width:10px;height:10px;stroke:#d1d5db;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+            @endforeach
+        </div>
+
+        {{-- Templates ── --}}
+        <div class="db-widget">
+            <div class="db-widget-hd">
+                Start a Template
+                <span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">0 tokens</span>
+            </div>
+            <div style="padding:6px 0 8px;">
+                @foreach([
+                    ['e'=>'🛒','l'=>'eCommerce', 't'=>'ecommerce', 'c'=>'#10b981'],
+                    ['e'=>'👥','l'=>'CRM System', 't'=>'crm',       'c'=>'#8b5cf6'],
+                    ['e'=>'🏥','l'=>'Hospital',   't'=>'hospital',  'c'=>'#ef4444'],
+                    ['e'=>'🚀','l'=>'SaaS App',   't'=>'saas',      'c'=>'#6366f1'],
+                    ['e'=>'🎓','l'=>'School ERP', 't'=>'school',    'c'=>'#06b6d4'],
+                    ['e'=>'🍽️','l'=>'Restaurant', 't'=>'restaurant','c'=>'#f97316'],
+                ] as $t)
+                <a href="{{ route('projects.create') }}?template={{ $t['t'] }}" class="db-tpl">
+                    <span class="db-tpl-ico" style="background:{{ $t['c'] }}15;border:1px solid {{ $t['c'] }}25;">{{ $t['e'] }}</span>
+                    <span class="db-tpl-lbl">{{ $t['l'] }}</span>
+                    <svg style="width:9px;height:9px;stroke:#d1d5db;flex-shrink:0;" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- System ── --}}
+        <div class="db-widget">
+            <div class="db-widget-hd">
+                System
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">
+                    <span style="width:5px;height:5px;border-radius:50%;background:#22c55e;display:inline-block;"></span>
+                    Healthy
+                </span>
+            </div>
+            @php
+            $sys = [
+                ['k'=>'Laravel', 'v'=>'v'.app()->version(),                              'ok'=>true],
+                ['k'=>'PHP',     'v'=>phpversion(),                                      'ok'=>PHP_MAJOR_VERSION>=8],
+                ['k'=>'Cache',   'v'=>ucfirst(config('cache.default','file')),           'ok'=>true],
+                ['k'=>'Session', 'v'=>ucfirst(config('session.driver','file')),          'ok'=>true],
+                ['k'=>'Storage', 'v'=>is_writable(storage_path()) ? 'Writable':'Error', 'ok'=>is_writable(storage_path())],
+            ];
+            @endphp
+            @foreach($sys as $s)
+            <div class="db-sys-row">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="width:5px;height:5px;border-radius:50%;background:{{ $s['ok']?'#22c55e':'#f59e0b' }};display:inline-block;flex-shrink:0;"></span>
+                    <span style="font-size:11.5px;color:#475569;">{{ $s['k'] }}</span>
+                </div>
+                <span style="font-size:10.5px;color:#94a3b8;font-family:monospace;">{{ $s['v'] }}</span>
+            </div>
+            @endforeach
+        </div>
+
+    </div>{{-- /sidebar --}}
+
+</div>{{-- /layout --}}
+</div>{{-- /page --}}
 @endsection

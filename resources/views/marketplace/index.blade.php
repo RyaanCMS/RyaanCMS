@@ -1,136 +1,351 @@
 @extends('layouts.app')
-@section('title', 'Marketplace')
-@section('header', 'Marketplace')
+@section('title', 'RyaanCMS Module Store')
+@section('header', 'RyaanCMS Module Store')
 
 @section('header-actions')
 <div class="flex items-center gap-2">
     <a href="{{ route('marketplace.my-items') }}"
-       class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
        style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-bg)'">
         My Items
     </a>
     <a href="{{ route('marketplace.upload-install') }}"
-       class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
        style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
         Upload Package
     </a>
 </div>
 @endsection
 
+@push('head')
+<style>
+/* ═══════════════════════════════════════════════
+   Module Store — unified card design system
+═══════════════════════════════════════════════ */
+
+/* Search bar */
+.ms-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: var(--shadow);
+    max-width: 440px;
+}
+.ms-search input {
+    flex: 1; border: none; outline: none; font-size: 13.5px;
+    color: var(--text-1); background: transparent; font-family: inherit;
+}
+.ms-search svg { color: #94a3b8; flex-shrink: 0; }
+
+/* Tabs */
+.ms-tabs {
+    display: flex;
+    gap: 2px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+}
+.ms-tab {
+    padding: 7px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    background: transparent;
+    color: var(--text-2);
+}
+.ms-tab:hover:not(.ms-tab-active) { background: #fff; color: var(--text-1); }
+.ms-tab-active {
+    background: #fff !important;
+    color: var(--text-1) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    font-weight: 600;
+}
+
+/* Section heading */
+.ms-section-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+}
+.ms-section-title {
+    font-size: 13px; font-weight: 700; color: #0f172a;
+}
+.ms-section-hint {
+    font-size: 11.5px; color: #94a3b8;
+}
+.ms-cat-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: #94a3b8;
+    padding: 0 2px; margin-bottom: 10px;
+}
+
+/* ══ THE UNIFIED CARD ══
+   Same structure everywhere.
+   .ms-card      = standard size (category lists, agents)
+   .ms-card-lg   = featured/popular size (larger, more prominent)
+*/
+.ms-card, .ms-card-lg {
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .18s, border-color .18s, transform .18s;
+    overflow: hidden;
+}
+.ms-card:hover    { box-shadow: 0 6px 24px rgba(0,0,0,.08); border-color: #c7d2fe; transform: translateY(-2px); }
+.ms-card-lg:hover { box-shadow: 0 8px 32px rgba(0,0,0,.1);  border-color: #c7d2fe; transform: translateY(-2px); }
+
+/* Card top accent stripe */
+.ms-card-stripe { height: 3px; width: 100%; }
+
+/* Card body */
+.ms-card .ms-body   { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.ms-card-lg .ms-body{ padding: 18px 20px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+/* Icon sizes */
+.ms-card    .ms-ico { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.ms-card-lg .ms-ico { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+
+/* Name */
+.ms-card    .ms-name { font-size: 13px;   font-weight: 700; color: #0f172a; }
+.ms-card-lg .ms-name { font-size: 14.5px; font-weight: 700; color: #0f172a; }
+
+/* Description */
+.ms-card    .ms-desc { font-size: 11.5px; color: #64748b; line-height: 1.55; flex: 1; }
+.ms-card-lg .ms-desc { font-size: 12.5px; color: #64748b; line-height: 1.6;  flex: 1; }
+
+/* Tag row */
+.ms-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ms-tag  {
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px;
+    background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;
+}
+
+/* Badges */
+.ms-badge-free    { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+.ms-badge-pro     { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; background:#fdf4ff; color:#6d28d9; border:1px solid #e9d5ff; }
+.ms-badge-tokens  { font-size:10px; font-weight:600; padding:2px 8px; border-radius:99px; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; }
+.ms-badge-agent   { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; }
+
+/* Card footer */
+.ms-card    .ms-foot { padding: 0 16px 14px; margin-top: auto; }
+.ms-card-lg .ms-foot { padding: 0 20px 18px; margin-top: auto; }
+
+/* Action buttons */
+.ms-btn-install {
+    width: 100%; padding: 7px 0; border-radius: 9px; font-size: 12px; font-weight: 700;
+    color: #fff; border: none; cursor: pointer; transition: all .15s;
+    background: var(--brand); box-shadow: 0 2px 8px var(--brand-ring);
+}
+.ms-btn-install:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.ms-btn-install-lg {
+    width: 100%; padding: 9px 0; border-radius: 10px; font-size: 13px; font-weight: 700;
+    color: #fff; border: none; cursor: pointer; transition: all .15s;
+    background: var(--brand); box-shadow: 0 2px 8px var(--brand-ring);
+}
+.ms-btn-install-lg:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.ms-btn-installed {
+    width: 100%; padding: 7px 0; border-radius: 9px; font-size: 12px; font-weight: 700;
+    color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; cursor: pointer;
+    transition: all .13s;
+}
+.ms-btn-installed:hover { background: #dcfce7; }
+.ms-btn-installed-lg {
+    width: 100%; padding: 9px 0; border-radius: 10px; font-size: 13px; font-weight: 700;
+    color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; cursor: pointer;
+    transition: all .13s;
+}
+.ms-btn-installed-lg:hover { background: #dcfce7; }
+
+/* Grids */
+.ms-grid-lg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ms-grid    { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* Agent tier badge colors */
+.tier-free    { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+.tier-cheap   { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+.tier-premium { background:#fdf4ff; color:#6d28d9; border:1px solid #e9d5ff; }
+
+/* Category pills */
+.ms-cat-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.ms-cat-pill {
+    padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 500;
+    text-decoration: none; transition: all .13s; border: 1px solid var(--border);
+    color: var(--text-2); background: #f8fafc;
+}
+.ms-cat-pill:hover      { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+.ms-cat-pill-active     { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 2px 8px var(--brand-ring); }
+
+/* Stats strip */
+.ms-stats {
+    display: flex; align-items: center; gap: 20px;
+    padding: 12px 18px; background: #f8fafc;
+    border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 22px;
+}
+.ms-stat-item { display: flex; align-items: center; gap: 8px; }
+.ms-stat-ico  { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.ms-stat-val  { font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -.02em; }
+.ms-stat-lbl  { font-size: 11px; color: #94a3b8; }
+.ms-stat-sep  { width: 1px; height: 28px; background: var(--border); }
+
+@media (max-width: 1100px) { .ms-grid-lg { grid-template-columns: repeat(2,1fr); } .ms-grid { grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 768px)  { .ms-grid-lg { grid-template-columns: repeat(1,1fr); } .ms-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 480px)  { .ms-grid { grid-template-columns: 1fr; } }
+</style>
+@endpush
+
 @section('content')
 <div x-data="marketplace()" x-init="init()">
 
-{{-- ── Hero ─────────────────────────────────────────────────────────────── --}}
-<div class="mb-6 rounded-2xl overflow-hidden"
-     style="background:linear-gradient(135deg,#eef2ff 0%,#fdf4ff 50%,#ecfdf5 100%); border:1px solid var(--border); box-shadow:var(--shadow);">
-    <div class="px-6 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-bold mb-1" style="color:var(--text-1);">RyaanCMS Module Store</h2>
-            <p class="text-sm mb-2" style="color:var(--text-2);">Install production-ready modules in one click. Zero AI tokens for built-in modules.</p>
-            <div class="flex items-center gap-4">
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                      style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">
-                    🧩 {{ count($modules) }} modules
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                      style="background:#fdf4ff; color:#6d28d9; border:1px solid #e9d5ff;">
-                    🤖 {{ count($agents) }} agents
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                      style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">
-                    ⚡ 0 tokens for CRUD
-                </span>
+{{-- ── Top bar: search + stats ──────────────────────────────────────── --}}
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <form method="GET" action="{{ route('marketplace.index') }}" class="ms-search">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search modules, agents, plugins…">
+        <button type="submit"
+                style="padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:var(--brand);border:none;cursor:pointer;">
+            Search
+        </button>
+    </form>
+    <div class="ms-stats" style="margin-bottom:0;">
+        <div class="ms-stat-item">
+            <div class="ms-stat-ico" style="background:#eef2ff;">🧩</div>
+            <div>
+                <div class="ms-stat-val">{{ count($modules) }}</div>
+                <div class="ms-stat-lbl">Modules</div>
             </div>
         </div>
-        <form method="GET" action="{{ route('marketplace.index') }}" class="flex gap-2 w-full md:w-80">
-            <input type="text" name="search" value="{{ request('search') }}"
-                   class="flex-1 rounded-xl px-3.5 py-2 text-sm outline-none transition-all"
-                   style="background:var(--card-bg); border:1.5px solid var(--border); color:var(--text-1);"
-                   placeholder="Search marketplace..."
-                   onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-            <button type="submit"
-                    class="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-                    style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-                Search
-            </button>
-        </form>
+        <div class="ms-stat-sep"></div>
+        <div class="ms-stat-item">
+            <div class="ms-stat-ico" style="background:#fdf4ff;">🤖</div>
+            <div>
+                <div class="ms-stat-val">{{ count($agents) }}</div>
+                <div class="ms-stat-lbl">AI Agents</div>
+            </div>
+        </div>
+        <div class="ms-stat-sep"></div>
+        <div class="ms-stat-item">
+            <div class="ms-stat-ico" style="background:#ecfdf5;">⚡</div>
+            <div>
+                <div class="ms-stat-val">0</div>
+                <div class="ms-stat-lbl">Tokens for CRUD</div>
+            </div>
+        </div>
     </div>
 </div>
 
-{{-- ── Tab Navigation ──────────────────────────────────────────────────── --}}
-<div class="flex items-center gap-1 mb-6 p-1 rounded-xl w-fit" style="background:var(--card-sub); border:1px solid var(--border);">
-    @foreach([
-        ['key'=>'modules',     'label'=>'🧩 Modules'],
-        ['key'=>'agents',      'label'=>'🤖 AI Agents'],
-        ['key'=>'marketplace', 'label'=>'🔌 Plugins & Templates'],
-    ] as $tab)
-    <button @click="tab = '{{ $tab['key'] }}'"
-            :style="tab === '{{ $tab['key'] }}'
-                ? 'background:var(--brand); color:#fff; box-shadow:0 2px 8px var(--brand-ring);'
-                : 'background:none; color:var(--text-2);'"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-            onmouseover="if(this.style.background === 'none' || !this.style.background) this.style.background='var(--hover-bg)'"
-            onmouseout="">
-        {{ $tab['label'] }}
-    </button>
-    @endforeach
+{{-- ── Tab Navigation ───────────────────────────────────────────────── --}}
+<div style="margin-bottom:24px;">
+    <div class="ms-tabs">
+        <button @click="tab='modules'"
+                :class="tab==='modules' ? 'ms-tab ms-tab-active' : 'ms-tab'">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Modules
+        </button>
+        <button @click="tab='agents'"
+                :class="tab==='agents' ? 'ms-tab ms-tab-active' : 'ms-tab'">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            AI Agents
+        </button>
+        <button @click="tab='marketplace'"
+                :class="tab==='marketplace' ? 'ms-tab ms-tab-active' : 'ms-tab'">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Plugins & Templates
+        </button>
+    </div>
 </div>
 
-{{-- ════════════════════════════════════════════
-     TAB: BUILT-IN MODULES
-════════════════════════════════════════════ --}}
+{{-- ════════════════════════════════════════
+     TAB: MODULES
+════════════════════════════════════════ --}}
 <div x-show="tab === 'modules'" x-cloak>
 
     @php
-        $popular = collect($modules)->filter(fn($m) => $m['popular'] ?? false)->values();
+        $popular  = collect($modules)->filter(fn($m) => $m['popular'] ?? false)->values();
+        $grouped  = [];
+        foreach ($modules as $key => $module) {
+            $grouped[$module['category']][] = array_merge($module, ['key' => $key]);
+        }
+        ksort($grouped);
+        $categoryLabels = [
+            'core'=>'Core','billing'=>'Billing','communication'=>'Communication',
+            'analytics'=>'Analytics','business'=>'Business','ecommerce'=>'eCommerce',
+            'compliance'=>'Compliance','integration'=>'Integration','utility'=>'Utility','saas'=>'SaaS',
+        ];
+        $categoryColors = [
+            'core'=>'#6366f1','billing'=>'#10b981','communication'=>'#0ea5e9',
+            'analytics'=>'#8b5cf6','business'=>'#f97316','ecommerce'=>'#059669',
+            'compliance'=>'#64748b','integration'=>'#ec4899','utility'=>'#d97706','saas'=>'#6366f1',
+        ];
     @endphp
 
+    {{-- Popular / Featured — large cards --}}
     @if($popular->count())
-    <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-bold" style="color:var(--text-1);">Popular Modules</h3>
-            <span class="text-xs" style="color:var(--text-3);">All 0 AI tokens — pure PHP generation</span>
+    <div style="margin-bottom:32px;">
+        <div class="ms-section-hd">
+            <span class="ms-section-title">Popular Modules</span>
+            <span class="ms-section-hint">0 AI tokens — pure PHP generation</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="ms-grid-lg">
             @foreach($modules as $key => $module)
             @if($module['popular'] ?? false)
-            <div class="rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);"
-                 onmouseover="this.style.boxShadow='var(--shadow-lg)'; this.style.borderColor='#c7d2fe';"
-                 onmouseout="this.style.boxShadow='var(--shadow)'; this.style.borderColor='var(--border)';">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                         style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
-                        {{ $module['icon'] }}
+            @php $color = $categoryColors[$module['category']] ?? '#6366f1'; @endphp
+            <div class="ms-card-lg">
+                <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $color }},{{ $color }}88);"></div>
+                <div class="ms-body">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                        <div class="ms-ico" style="background:{{ $color }}12;border:1px solid {{ $color }}25;">
+                            {{ $module['icon'] }}
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                            <span class="ms-badge-free">Free</span>
+                            <span class="ms-badge-tokens">0 tokens</span>
+                        </div>
                     </div>
-                    <div class="flex flex-col items-end gap-1">
-                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full"
-                              style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">Free</span>
-                        <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
-                              style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">0 tokens</span>
+                    <div>
+                        <div class="ms-name">{{ $module['name'] }}</div>
+                        <div class="ms-desc" style="margin-top:4px;">{{ $module['description'] }}</div>
+                    </div>
+                    <div class="ms-tags">
+                        @foreach(array_slice($module['features'], 0, 3) as $f)
+                        <span class="ms-tag">{{ str_replace('_',' ',$f) }}</span>
+                        @endforeach
                     </div>
                 </div>
-                <h4 class="font-semibold text-sm mb-1 transition-colors group-hover:text-indigo-600"
-                    style="color:var(--text-1);">{{ $module['name'] }}</h4>
-                <p class="text-xs leading-relaxed mb-3" style="color:var(--text-3);">{{ $module['description'] }}</p>
-                <div class="flex flex-wrap gap-1 mb-4">
-                    @foreach(array_slice($module['features'], 0, 3) as $feature)
-                    <span class="px-1.5 py-0.5 text-[10px] rounded-md"
-                          style="background:var(--card-sub); color:var(--text-3); border:1px solid var(--border);">{{ str_replace('_',' ',$feature) }}</span>
-                    @endforeach
+                <div class="ms-foot">
+                    @if($installedKeys->contains($key))
+                    @php $mgInstalls = $installedModules->get($key, collect())->toArray(); @endphp
+                    <button class="ms-btn-installed-lg"
+                            @click="openManageModal('{{ $key }}', '{{ addslashes($module['name']) }}', '{{ addslashes(json_encode($mgInstalls)) }}')">
+                        ✓ Installed — Manage
+                    </button>
+                    @else
+                    <button class="ms-btn-install-lg"
+                            @click="openInstallModal('{{ $key }}', '{{ addslashes($module['name']) }}')">
+                        Install Module
+                    </button>
+                    @endif
                 </div>
-                @if($installedKeys->contains($key))
-                <div class="w-full py-2 rounded-xl text-xs font-semibold text-center"
-                     style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">✓ Installed</div>
-                @else
-                <button @click="openInstallModal('{{ $key }}', '{{ addslashes($module['name']) }}')"
-                        class="w-full py-2 rounded-xl text-xs font-semibold text-white transition-all hover:-translate-y-px"
-                        style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-                    Install Module
-                </button>
-                @endif
             </div>
             @endif
             @endforeach
@@ -138,62 +353,49 @@
     </div>
     @endif
 
-    @php
-        $grouped = [];
-        foreach ($modules as $key => $module) {
-            $grouped[$module['category']][] = array_merge($module, ['key' => $key]);
-        }
-        ksort($grouped);
-        $categoryLabels = [
-            'core'=>'⚙️ Core','billing'=>'💰 Billing','communication'=>'💬 Communication',
-            'analytics'=>'📊 Analytics','business'=>'🏪 Business','ecommerce'=>'🛒 eCommerce',
-            'compliance'=>'📋 Compliance','integration'=>'🔌 Integration','utility'=>'🛠️ Utility','saas'=>'🏢 SaaS',
-        ];
-    @endphp
-
+    {{-- All modules by category — standard cards --}}
     @foreach($grouped as $category => $mods)
-    <div class="mb-7">
-        <p class="text-[10px] font-bold uppercase tracking-widest mb-3" style="color:var(--text-3);">
-            {{ $categoryLabels[$category] ?? ucfirst($category) }}
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    @php $catColor = $categoryColors[$category] ?? '#6366f1'; @endphp
+    <div style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="width:3px;height:14px;border-radius:99px;background:{{ $catColor }};display:inline-block;"></span>
+            <span class="ms-cat-label" style="margin-bottom:0;">{{ $categoryLabels[$category] ?? ucfirst($category) }}</span>
+        </div>
+        <div class="ms-grid">
             @foreach($mods as $mod)
-            <div class="rounded-xl p-4 transition-all flex items-start gap-3 group cursor-default"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow-sm);"
-                 onmouseover="this.style.boxShadow='var(--shadow)'; this.style.borderColor='#e0e7ff';"
-                 onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.borderColor='var(--border)';">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                     style="background:var(--card-sub); border:1px solid var(--border);">
-                    {{ $mod['icon'] }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-0.5">
-                        <h4 class="font-medium text-sm transition-colors group-hover:text-indigo-600"
-                            style="color:var(--text-1);">{{ $mod['name'] }}</h4>
-                        @if(!($mod['free'] ?? true))
-                        <span class="px-1.5 py-0.5 text-[10px] rounded-full flex-shrink-0"
-                              style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;">Pro</span>
-                        @endif
-                    </div>
-                    <p class="text-xs leading-relaxed mb-2" style="color:var(--text-3);">{{ $mod['description'] }}</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex gap-1">
-                            @foreach(array_slice($mod['generates'], 0, 3) as $gen)
-                            <span class="px-1.5 py-0.5 text-[10px] rounded"
-                                  style="background:var(--card-sub); color:var(--text-3);">{{ $gen }}</span>
-                            @endforeach
+            @php $c = $categoryColors[$category] ?? '#6366f1'; @endphp
+            <div class="ms-card">
+                <div class="ms-card-stripe" style="background:{{ $c }};opacity:.5;"></div>
+                <div class="ms-body">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+                        <div class="ms-ico" style="background:{{ $c }}10;border:1px solid {{ $c }}20;">
+                            {{ $mod['icon'] }}
                         </div>
-                        @if($installedKeys->contains($mod['key']))
-                        <span class="text-xs font-semibold" style="color:#16a34a;">✓ Installed</span>
-                        @else
-                        <button @click="openInstallModal('{{ $mod['key'] }}', '{{ addslashes($mod['name']) }}')"
-                                class="text-xs font-semibold transition-colors"
-                                style="color:var(--brand);"
-                                onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
-                            Install →
-                        </button>
-                        @endif
+                        <span class="ms-badge-free" style="flex-shrink:0;">Free</span>
                     </div>
+                    <div>
+                        <div class="ms-name">{{ $mod['name'] }}</div>
+                        <div class="ms-desc" style="margin-top:3px;">{{ Str::limit($mod['description'], 70) }}</div>
+                    </div>
+                    <div class="ms-tags">
+                        @foreach(array_slice($mod['generates'] ?? [], 0, 2) as $g)
+                        <span class="ms-tag">{{ $g }}</span>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="ms-foot">
+                    @if($installedKeys->contains($mod['key']))
+                    @php $mgInstalls2 = $installedModules->get($mod['key'], collect())->toArray(); @endphp
+                    <button class="ms-btn-installed"
+                            @click="openManageModal('{{ $mod['key'] }}', '{{ addslashes($mod['name']) }}', '{{ addslashes(json_encode($mgInstalls2)) }}')">
+                        ✓ Manage
+                    </button>
+                    @else
+                    <button class="ms-btn-install"
+                            @click="openInstallModal('{{ $mod['key'] }}', '{{ addslashes($mod['name']) }}')">
+                        Install →
+                    </button>
+                    @endif
                 </div>
             </div>
             @endforeach
@@ -202,89 +404,95 @@
     @endforeach
 </div>
 
-{{-- ════════════════════════════════════════════
+{{-- ════════════════════════════════════════
      TAB: AI AGENTS
-════════════════════════════════════════════ --}}
+════════════════════════════════════════ --}}
 <div x-show="tab === 'agents'" x-cloak>
-    <div class="mb-5 rounded-2xl p-5"
-         style="background:linear-gradient(135deg,#fdf4ff,#ede9fe); border:1px solid #e9d5ff; box-shadow:var(--shadow);">
-        <h3 class="text-sm font-bold mb-1" style="color:#3b0764;">AI Agents</h3>
-        <p class="text-sm" style="color:#6d28d9;">Specialized AI agents that enhance your builder — each focused on one job, using the cheapest model that can do it.</p>
+    <div style="margin-bottom:24px;">
+        <div class="ms-section-hd">
+            <span class="ms-section-title">AI Agents</span>
+            <span class="ms-section-hint">Specialised agents using the cheapest capable model</span>
+        </div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="ms-grid-lg">
         @foreach($agents as $key => $agent)
         @php
-            $tierStyle = match($agent['model_tier'] ?? 'free') {
-                'free'    => ['bg'=>'#ecfdf5','txt'=>'#065f46','bd'=>'#a7f3d0'],
-                'cheap'   => ['bg'=>'#eff6ff','txt'=>'#1d4ed8','bd'=>'#bfdbfe'],
-                'premium' => ['bg'=>'#fdf4ff','txt'=>'#6d28d9','bd'=>'#e9d5ff'],
-                default   => ['bg'=>'#f9fafb','txt'=>'#374151','bd'=>'#e5e7eb'],
+            $tierClass = match($agent['model_tier'] ?? 'free') {
+                'free'    => 'tier-free',
+                'cheap'   => 'tier-cheap',
+                'premium' => 'tier-premium',
+                default   => '',
+            };
+            $agentColor = match($agent['model_tier'] ?? 'free') {
+                'premium' => '#8b5cf6',
+                'cheap'   => '#3b82f6',
+                default   => '#10b981',
             };
         @endphp
-        <div class="rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
-             style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);"
-             onmouseover="this.style.boxShadow='var(--shadow-lg)'; this.style.borderColor='#e9d5ff';"
-             onmouseout="this.style.boxShadow='var(--shadow)'; this.style.borderColor='var(--border)';">
-            <div class="flex items-start justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                     style="background:linear-gradient(135deg,#fdf4ff,#ede9fe); border:1px solid #e9d5ff;">
-                    {{ $agent['icon'] }}
+        <div class="ms-card-lg">
+            <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $agentColor }},{{ $agentColor }}66);"></div>
+            <div class="ms-body">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                    <div class="ms-ico" style="background:{{ $agentColor }}12;border:1px solid {{ $agentColor }}25;">
+                        {{ $agent['icon'] }}
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="ms-badge-agent {{ $tierClass }}" style="text-transform:capitalize;">
+                            {{ $agent['model_tier'] ?? 'free' }} model
+                        </span>
+                        @if($agent['free'])
+                        <span class="ms-badge-free">Free</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full capitalize"
-                          style="background:{{ $tierStyle['bg'] }}; color:{{ $tierStyle['txt'] }}; border:1px solid {{ $tierStyle['bd'] }};">
-                        {{ $agent['model_tier'] }} model
-                    </span>
-                    @if($agent['free'])
-                    <span class="px-2 py-0.5 text-[10px] rounded-full" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">Free</span>
-                    @endif
+                <div>
+                    <div class="ms-name">{{ $agent['name'] }}</div>
+                    <div class="ms-desc" style="margin-top:4px;">{{ $agent['description'] }}</div>
                 </div>
             </div>
-            <h4 class="font-semibold text-sm mb-1 transition-colors group-hover:text-purple-600"
-                style="color:var(--text-1);">{{ $agent['name'] }}</h4>
-            <p class="text-xs leading-relaxed mb-4" style="color:var(--text-3);">{{ $agent['description'] }}</p>
-            <button @click="openInstallModal('agent:{{ $key }}', '{{ addslashes($agent['name']) }}')"
-                    class="w-full py-2 rounded-xl text-xs font-semibold text-white transition-all hover:-translate-y-px"
-                    style="background:linear-gradient(135deg,#8b5cf6,#a855f7); box-shadow:0 2px 8px rgba(139,92,246,.3);">
-                Activate Agent
-            </button>
+            <div class="ms-foot">
+                <button class="ms-btn-install-lg"
+                        style="background:linear-gradient(135deg,{{ $agentColor }},{{ $agentColor }}cc);"
+                        @click="openInstallModal('agent:{{ $key }}', '{{ addslashes($agent['name']) }}')">
+                    Activate Agent
+                </button>
+            </div>
         </div>
         @endforeach
     </div>
 </div>
 
-{{-- ════════════════════════════════════════════
+{{-- ════════════════════════════════════════
      TAB: PLUGINS & TEMPLATES
-════════════════════════════════════════════ --}}
+════════════════════════════════════════ --}}
 <div x-show="tab === 'marketplace'" x-cloak>
 
+    {{-- Featured — large cards --}}
     @if($featured->isNotEmpty() && !request('search'))
-    <div class="mb-7">
-        <h3 class="text-sm font-bold mb-4" style="color:var(--text-1);">Featured</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div style="margin-bottom:32px;">
+        <div class="ms-section-hd">
+            <span class="ms-section-title">Featured</span>
+        </div>
+        <div class="ms-grid-lg">
             @foreach($featured as $item)
-            <a href="{{ route('marketplace.show', $item) }}"
-               class="block rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
-               style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);"
-               onmouseover="this.style.boxShadow='var(--shadow-lg)'; this.style.borderColor='#c7d2fe';"
-               onmouseout="this.style.boxShadow='var(--shadow)'; this.style.borderColor='var(--border)';">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-                         style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
-                        @switch($item->type)
-                            @case('module') 📦 @break @case('theme') 🎨 @break
-                            @case('agent')  🤖 @break @case('template') 📄 @break @default 🔌
-                        @endswitch
+            @php
+                $ico = match($item->type) { 'module'=>'📦','theme'=>'🎨','agent'=>'🤖','template'=>'📄', default=>'🔌' };
+            @endphp
+            <a href="{{ route('marketplace.show', $item) }}" class="ms-card-lg" style="text-decoration:none;color:inherit;">
+                <div class="ms-card-stripe" style="background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div>
+                <div class="ms-body">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                        <div class="ms-ico" style="background:#eef2ff;border:1px solid #c7d2fe;">{{ $ico }}</div>
+                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;flex-shrink:0;">{{ $item->category }}</span>
                     </div>
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full"
-                          style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">{{ $item->category }}</span>
-                </div>
-                <h4 class="font-semibold text-sm mb-1 transition-colors group-hover:text-indigo-600"
-                    style="color:var(--text-1);">{{ $item->name }}</h4>
-                <p class="text-xs line-clamp-2 mb-3" style="color:var(--text-3);">{{ $item->description }}</p>
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-bold" style="color:{{ $item->is_free ? '#16a34a' : 'var(--text-1)' }};">{{ $item->price_formatted }}</span>
-                    <span class="text-xs" style="color:var(--text-3);">↓ {{ number_format($item->downloads) }}</span>
+                    <div>
+                        <div class="ms-name">{{ $item->name }}</div>
+                        <div class="ms-desc" style="margin-top:4px;">{{ Str::limit($item->description, 90) }}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;">
+                        <span style="font-size:14px;font-weight:800;color:{{ $item->is_free ? '#16a34a' : '#0f172a' }};">{{ $item->price_formatted }}</span>
+                        <span style="font-size:11px;color:#94a3b8;">↓ {{ number_format($item->downloads) }}</span>
+                    </div>
                 </div>
             </a>
             @endforeach
@@ -293,164 +501,145 @@
     @endif
 
     {{-- Category pills --}}
-    <div class="flex flex-wrap gap-2 mb-5">
-        <a href="{{ route('marketplace.index', request()->except('category')) }}"
-           class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-           style="{{ !request('category') ? 'background:var(--brand); color:#fff; box-shadow:0 2px 8px var(--brand-ring);' : 'background:var(--card-sub); color:var(--text-2); border:1px solid var(--border);' }}">
-            All
-        </a>
-        @foreach($categories as $key => $label)
-        <a href="{{ route('marketplace.index', array_merge(request()->all(), ['category' => $key])) }}"
-           class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-           style="{{ request('category') === $key ? 'background:var(--brand); color:#fff; box-shadow:0 2px 8px var(--brand-ring);' : 'background:var(--card-sub); color:var(--text-2); border:1px solid var(--border);' }}"
-           onmouseover="if('{{ request('category') }}' !== '{{ $key }}') this.style.background='var(--hover-bg)'"
-           onmouseout="if('{{ request('category') }}' !== '{{ $key }}') this.style.background='var(--card-sub)'">
-            {{ $label }}
-        </a>
-        @endforeach
+    <div style="margin-bottom:20px;">
+        <div class="ms-cat-pills">
+            <a href="{{ route('marketplace.index', request()->except('category')) }}"
+               class="ms-cat-pill {{ !request('category') ? 'ms-cat-pill-active' : '' }}">All</a>
+            @foreach($categories as $key => $label)
+            <a href="{{ route('marketplace.index', array_merge(request()->all(), ['category' => $key])) }}"
+               class="ms-cat-pill {{ request('category') === $key ? 'ms-cat-pill-active' : '' }}">
+                {{ $label }}
+            </a>
+            @endforeach
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {{-- All items — standard cards --}}
+    <div class="ms-grid">
         @forelse($items as $item)
-        <a href="{{ route('marketplace.show', $item) }}"
-           class="block rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
-           style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);"
-           onmouseover="this.style.boxShadow='var(--shadow-lg)'; this.style.borderColor='#c7d2fe';"
-           onmouseout="this.style.boxShadow='var(--shadow)'; this.style.borderColor='var(--border)';">
-            <div class="flex items-start justify-between mb-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-                     style="background:var(--card-sub); border:1px solid var(--border);">
-                    {{ $item->icon ?? match($item->type) { 'module'=>'📦','theme'=>'🎨','agent'=>'🤖','template'=>'📄', default=>'🔌' } }}
+        @php $ico = match($item->type) { 'module'=>'📦','theme'=>'🎨','agent'=>'🤖','template'=>'📄', default=>'🔌' }; @endphp
+        <a href="{{ route('marketplace.show', $item) }}" class="ms-card" style="text-decoration:none;color:inherit;">
+            <div class="ms-card-stripe" style="background:#6366f1;opacity:.4;"></div>
+            <div class="ms-body">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+                    <div class="ms-ico" style="background:#f1f5f9;border:1px solid #e2e8f0;">
+                        {{ $item->icon ?? $ico }}
+                    </div>
+                    <span class="{{ $item->is_free ? 'ms-badge-free' : 'ms-badge-tokens' }}" style="flex-shrink:0;">
+                        {{ $item->price_formatted }}
+                    </span>
                 </div>
-                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full"
-                      style="{{ $item->is_free ? 'background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;' : 'background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;' }}">
-                    {{ $item->price_formatted }}
-                </span>
-            </div>
-            <h4 class="font-semibold text-sm mb-1 transition-colors group-hover:text-indigo-600"
-                style="color:var(--text-1);">{{ $item->name }}</h4>
-            <p class="text-xs line-clamp-2 mb-3" style="color:var(--text-3);">{{ $item->description }}</p>
-            <div class="flex items-center justify-between text-[10px]" style="color:var(--text-3);">
-                <span>{{ $item->category }}</span>
-                <span>v{{ $item->version }}</span>
+                <div>
+                    <div class="ms-name">{{ $item->name }}</div>
+                    <div class="ms-desc" style="margin-top:3px;">{{ Str::limit($item->description, 70) }}</div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:10.5px;color:#94a3b8;">{{ $item->category }}</span>
+                    <span style="font-size:10px;color:#94a3b8;">v{{ $item->version }}</span>
+                </div>
             </div>
         </a>
         @empty
-        <div class="col-span-4 flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
-                 style="background:var(--card-sub); border:1px solid var(--border);">
-                <svg class="w-7 h-7" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div style="grid-column:1/-1;text-align:center;padding:56px 24px;">
+            <div style="width:52px;height:52px;border-radius:14px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <svg style="width:24px;height:24px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <p class="text-sm font-medium mb-1" style="color:var(--text-2);">No items found</p>
-            <p class="text-xs" style="color:var(--text-3);">Try a different search or category</p>
+            <p style="font-size:13.5px;font-weight:700;color:#1e293b;margin-bottom:4px;">No items found</p>
+            <p style="font-size:12px;color:#94a3b8;">Try a different search or category filter</p>
         </div>
         @endforelse
     </div>
-
     <div class="mt-6">{{ $items->withQueryString()->links() }}</div>
 </div>
 
-{{-- ════════════════════════════════════════════
-     INSTALL MODAL
-════════════════════════════════════════════ --}}
+{{-- ════════════════════════════════════════
+     INSTALL MODAL (unchanged logic)
+════════════════════════════════════════ --}}
 <div x-show="modalOpen" x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center p-4"
      @keydown.escape.window="closeModal()">
-    <div class="absolute inset-0 backdrop-blur-sm" style="background:rgba(0,0,0,.4);" @click="closeModal()"></div>
-    <div class="relative w-full max-w-md rounded-2xl p-6 overflow-hidden"
-         style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow-lg);"
+    <div class="absolute inset-0 backdrop-blur-sm" style="background:rgba(0,0,0,.35);" @click="closeModal()"></div>
+    <div class="relative w-full max-w-md rounded-2xl p-6"
+         style="background:#fff; border:1px solid #e2e8f0; box-shadow:0 20px 60px rgba(0,0,0,.15);"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100">
 
         <button @click="closeModal()"
-                class="absolute top-4 right-4 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                style="color:var(--text-3);"
-                onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background=''">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                style="position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;"
+                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
 
-        <h3 class="text-base font-bold mb-0.5" style="color:var(--text-1);" x-text="'Install ' + modalModuleName"></h3>
-        <p class="text-sm mb-5" style="color:var(--text-3);">Select a project to install this module into</p>
+        <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:2px;" x-text="'Install ' + modalModuleName"></h3>
+        <p style="font-size:12.5px;color:#94a3b8;margin-bottom:20px;">Select a project to install this module into</p>
 
-        {{-- Success --}}
         <div x-show="installSuccess" class="space-y-4">
-            <div class="rounded-xl p-4 text-center" style="background:#ecfdf5; border:1px solid #a7f3d0;">
-                <p class="text-2xl mb-2">✅</p>
-                <p class="text-sm font-semibold" style="color:#065f46;" x-text="successMessage"></p>
-                <p class="text-xs mt-1" style="color:#16a34a;">0 AI tokens used — pure PHP generation</p>
+            <div style="border-radius:12px;padding:16px;text-align:center;background:#f0fdf4;border:1px solid #bbf7d0;">
+                <p style="font-size:24px;margin-bottom:8px;">✅</p>
+                <p style="font-size:13px;font-weight:600;color:#15803d;" x-text="successMessage"></p>
+                <p style="font-size:11.5px;color:#16a34a;margin-top:4px;">0 AI tokens used — pure PHP generation</p>
             </div>
-            <div x-show="menuItems.length > 0" class="rounded-xl p-4" style="background:var(--card-sub); border:1px solid var(--border);">
-                <p class="text-xs font-semibold mb-2" style="color:var(--text-2);">📌 Add these to your navigation menu:</p>
+            <div x-show="menuItems.length > 0" style="border-radius:12px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;">
+                <p style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;">📌 Add to your navigation:</p>
                 <div class="space-y-2">
                     <template x-for="item in menuItems" :key="item.route">
-                        <div class="flex items-center justify-between rounded-lg px-3 py-2" style="background:var(--card-bg); border:1px solid var(--border);">
-                            <div class="flex items-center gap-2">
-                                <span x-text="item.icon" class="text-base"></span>
-                                <div>
-                                    <span class="text-sm font-medium" style="color:var(--text-1);" x-text="item.label"></span>
-                                    <span class="text-xs ml-2" style="color:var(--text-3);" x-text="'Group: ' + item.group"></span>
-                                </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span x-text="item.icon"></span>
+                                <span style="font-size:12.5px;font-weight:500;color:#1e293b;" x-text="item.label"></span>
                             </div>
-                            <code class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--card-sub); color:var(--brand);" x-text="item.route"></code>
+                            <code style="font-size:10.5px;padding:2px 7px;border-radius:5px;background:#f1f5f9;color:#6366f1;font-family:monospace;" x-text="item.route"></code>
                         </div>
                     </template>
                 </div>
-                <p class="text-xs mt-3" style="color:var(--text-3);">
-                    Go to <a href="{{ route('menus.index') }}" class="font-semibold underline" style="color:var(--brand);">Menu Management</a> to add these routes.
+                <p style="font-size:11px;color:#94a3b8;margin-top:10px;">
+                    Go to <a href="{{ route('menus.index') }}" style="font-weight:600;color:var(--brand);text-decoration:underline;">Menu Management</a> to add these routes.
                 </p>
             </div>
             <button @click="closeModal()"
-                    class="w-full py-2 rounded-xl text-sm font-medium transition-colors"
-                    style="background:var(--card-sub); border:1px solid var(--border); color:var(--text-2);"
-                    onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-sub)'">
+                    style="width:100%;padding:9px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;"
+                    onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
                 Close
             </button>
         </div>
 
-        {{-- Error --}}
-        <div x-show="installError"
-             class="mb-4 p-3 rounded-xl text-sm" style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b;"
-             x-text="errorMessage"></div>
+        <div x-show="installError" style="margin-bottom:14px;padding:12px 14px;border-radius:10px;font-size:12.5px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;" x-text="errorMessage"></div>
 
-        {{-- Install form --}}
         <div x-show="!installSuccess">
             @if($projects->count())
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5" style="color:var(--text-3);">Select Project</label>
+                    <label style="display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Select Project</label>
                     <select x-model="selectedProject"
-                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
-                            style="background:var(--input-bg); border:1.5px solid var(--border); color:var(--text-1); appearance:none; cursor:pointer;"
-                            onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                            style="width:100%;padding:9px 13px;border-radius:10px;font-size:13.5px;border:1.5px solid #e2e8f0;color:#0f172a;background:#fff;outline:none;appearance:none;cursor:pointer;font-family:inherit;"
+                            onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='#e2e8f0'">
                         <option value="">— Choose a project —</option>
                         @foreach($projects as $project)
                         <option value="{{ $project->id }}">{{ $project->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <button @click="doInstall()"
-                        :disabled="!selectedProject || installing"
-                        class="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2"
-                        :style="(!selectedProject || installing) ? 'opacity:.5; cursor:not-allowed; background:var(--brand);' : 'background:var(--brand); box-shadow:0 2px 8px var(--brand-ring); cursor:pointer;'">
+                <button @click="doInstall()" :disabled="!selectedProject || installing"
+                        style="width:100%;padding:10px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;"
+                        :style="(!selectedProject || installing) ? 'opacity:.5;cursor:not-allowed;background:var(--brand);' : 'background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);cursor:pointer;'">
                     <span x-show="!installing">Install Module — 0 AI Tokens</span>
-                    <span x-show="installing" class="flex items-center gap-2">
-                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <span x-show="installing" style="display:flex;align-items:center;gap:8px;">
+                        <svg class="animate-spin" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
-                        Installing...
+                        Installing…
                     </span>
                 </button>
             </div>
             @else
-            <div class="text-center py-6">
-                <p class="text-sm mb-3" style="color:var(--text-2);">You don't have any projects yet.</p>
+            <div style="text-align:center;padding:24px 0;">
+                <p style="font-size:13px;color:#64748b;margin-bottom:14px;">You don't have any projects yet.</p>
                 <a href="{{ route('projects.create') }}"
-                   class="inline-block px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-                   style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
+                   style="display:inline-block;padding:9px 20px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
                     Create a project
                 </a>
             </div>
@@ -459,22 +648,95 @@
     </div>
 </div>
 
-</div>{{-- end x-data --}}
+{{-- ════════════════════════════════════════
+     MANAGE MODAL (toggle / uninstall per project)
+════════════════════════════════════════ --}}
+<div x-show="manageOpen" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     @keydown.escape.window="closeManage()">
+    <div class="absolute inset-0 backdrop-blur-sm" style="background:rgba(0,0,0,.35);" @click="closeManage()"></div>
+    <div class="relative w-full max-w-lg rounded-2xl"
+         style="background:#fff; border:1px solid #e2e8f0; box-shadow:0 20px 60px rgba(0,0,0,.15); max-height:80vh; overflow:hidden; display:flex; flex-direction:column;"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100">
+
+        {{-- Header --}}
+        <div style="padding:20px 24px 16px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+            <button @click="closeManage()"
+                    style="position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;"
+                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:2px;" x-text="'Manage: ' + manageName"></h3>
+            <p style="font-size:12px;color:#94a3b8;">Toggle or uninstall per project below</p>
+        </div>
+
+        {{-- Feedback bar --}}
+        <div x-show="manageFeedback"
+             :style="manageFeedbackOk ? 'background:#f0fdf4;border-color:#bbf7d0;color:#15803d;' : 'background:#fef2f2;border-color:#fecaca;color:#991b1b;'"
+             style="margin:12px 24px 0;padding:10px 14px;border-radius:10px;font-size:12.5px;border:1px solid;"
+             x-text="manageFeedback"></div>
+
+        {{-- Project rows --}}
+        <div style="overflow-y:auto;flex:1;padding:16px 24px;">
+            <template x-if="manageInstalls.length === 0">
+                <p style="text-align:center;padding:32px 0;font-size:13px;color:#94a3b8;">No installations found.</p>
+            </template>
+            <template x-for="(inst, idx) in manageInstalls" :key="inst.pm_id">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #f1f5f9;">
+                    <div style="min-width:0;flex:1;">
+                        <p style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="inst.project_name"></p>
+                        <p style="font-size:11px;margin-top:2px;"
+                           :style="inst.active ? 'color:#15803d;' : 'color:#ef4444;'"
+                           x-text="inst.active ? '● Active' : '○ Inactive'"></p>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-shrink:0;">
+                        <button @click="doToggle(inst.project_id, inst.status, idx)"
+                                :disabled="manageWorking"
+                                :style="inst.active
+                                    ? 'background:#fef9c3;color:#a16207;border:1px solid #fde68a;'
+                                    : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'"
+                                style="padding:5px 14px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .13s;"
+                                x-text="inst.active ? 'Deactivate' : 'Activate'">
+                        </button>
+                        <button @click="doUninstall(inst.project_id, idx)"
+                                :disabled="manageWorking"
+                                style="padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:700;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;cursor:pointer;transition:all .13s;"
+                                onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                            Uninstall
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        {{-- Footer --}}
+        <div style="padding:14px 24px;border-top:1px solid #f1f5f9;flex-shrink:0;">
+            <button @click="closeManage()"
+                    style="width:100%;padding:9px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;"
+                    onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+</div>{{-- /x-data --}}
 
 <script>
 function marketplace() {
     return {
         tab: 'modules',
-        modalOpen: false,
-        modalModuleKey: '',
-        modalModuleName: '',
-        selectedProject: '',
-        installing: false,
-        installSuccess: false,
-        installError: false,
-        successMessage: '',
-        errorMessage: '',
-        menuItems: [],
+        modalOpen: false, modalModuleKey: '', modalModuleName: '',
+        selectedProject: '', installing: false,
+        installSuccess: false, installError: false,
+        successMessage: '', errorMessage: '', menuItems: [],
+
+        manageOpen: false, manageKey: '', manageName: '', manageInstalls: [],
+        manageWorking: false, manageFeedback: '', manageFeedbackOk: true,
 
         init() {
             if (new URLSearchParams(window.location.search).has('search') ||
@@ -484,51 +746,92 @@ function marketplace() {
         },
 
         openInstallModal(key, name) {
-            this.modalModuleKey  = key;
-            this.modalModuleName = name;
-            this.selectedProject = '';
-            this.installing      = false;
-            this.installSuccess  = false;
-            this.installError    = false;
-            this.successMessage  = '';
-            this.errorMessage    = '';
+            this.modalModuleKey  = key;   this.modalModuleName = name;
+            this.selectedProject = '';    this.installing      = false;
+            this.installSuccess  = false; this.installError    = false;
+            this.successMessage  = '';    this.errorMessage    = '';
             this.modalOpen       = true;
         },
 
         closeModal() { this.modalOpen = false; },
 
+        openManageModal(key, name, installsJson) {
+            this.manageKey      = key;
+            this.manageName     = name;
+            this.manageInstalls = JSON.parse(installsJson);
+            this.manageFeedback = '';
+            this.manageOpen     = true;
+        },
+
+        closeManage() { this.manageOpen = false; },
+
         async doInstall() {
             if (!this.selectedProject || this.installing) return;
-            this.installing   = true;
-            this.installError = false;
+            this.installing = true; this.installError = false;
             try {
-                const res = await fetch(`/marketplace/modules/${this.modalModuleKey}/install`, {
+                const res  = await fetch(`/marketplace/modules/${this.modalModuleKey}/install`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                        'Accept': 'application/json',
-                    },
+                    headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '', 'Accept':'application/json' },
                     body: JSON.stringify({ project_id: this.selectedProject }),
                 });
                 const data = await res.json();
+                if (data.success) { this.installSuccess = true; this.successMessage = data.message || 'Installed!'; this.menuItems = data.menu_items || []; }
+                else              { this.installError = true; this.errorMessage = data.message || 'Installation failed.'; }
+            } catch { this.installError = true; this.errorMessage = 'Network error — please try again.'; }
+            finally   { this.installing = false; }
+        },
+
+        async doToggle(projectId, currentStatus, idx) {
+            this.manageWorking = true;
+            try {
+                const res = await fetch(`/marketplace/modules/${this.manageKey}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '', 'Accept':'application/json' },
+                    body: JSON.stringify({ project_id: projectId }),
+                });
+                const data = await res.json();
                 if (data.success) {
-                    this.installSuccess = true;
-                    this.successMessage = data.message || 'Module installed successfully!';
-                    this.menuItems      = data.menu_items || [];
+                    this.manageInstalls[idx].status = data.status;
+                    this.manageInstalls[idx].active = data.active;
+                    this.manageFeedback    = data.message;
+                    this.manageFeedbackOk  = true;
                 } else {
-                    this.installError = true;
-                    this.errorMessage = data.message || 'Installation failed.';
+                    this.manageFeedback   = data.message || 'Toggle failed.';
+                    this.manageFeedbackOk = false;
                 }
-            } catch (err) {
-                this.installError = true;
-                this.errorMessage = 'Network error — please try again.';
-            } finally {
-                this.installing = false;
+            } catch {
+                this.manageFeedback   = 'Network error — please try again.';
+                this.manageFeedbackOk = false;
             }
+            this.manageWorking = false;
+        },
+
+        async doUninstall(projectId, idx) {
+            if (!confirm('Uninstall this module from the project? This cannot be undone.')) return;
+            this.manageWorking = true;
+            try {
+                const res = await fetch(`/marketplace/modules/${this.manageKey}/uninstall`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '', 'Accept':'application/json' },
+                    body: JSON.stringify({ project_id: projectId }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.manageInstalls.splice(idx, 1);
+                    this.manageFeedback   = data.message;
+                    this.manageFeedbackOk = true;
+                    if (this.manageInstalls.length === 0) { setTimeout(() => { this.manageOpen = false; }, 1200); }
+                } else {
+                    this.manageFeedback   = data.message || 'Uninstall failed.';
+                    this.manageFeedbackOk = false;
+                }
+            } catch {
+                this.manageFeedback   = 'Network error — please try again.';
+                this.manageFeedbackOk = false;
+            }
+            this.manageWorking = false;
         },
     };
 }
 </script>
-
 @endsection
