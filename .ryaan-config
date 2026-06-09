@@ -1,0 +1,12 @@
+# RyaanCMS Dual-Repo Configuration
+# ───────────────────────────────────────────────────────
+# PUBLIC_REPO_URL  = GitHub URL of the public repo
+# PUBLIC_DIR       = Absolute path of public folder on THIS machine
+#
+# After cloning on a new PC:
+#   1. Update PUBLIC_DIR to match the new machine's path
+#   2. Run: .\setup.ps1
+# ───────────────────────────────────────────────────────
+
+PUBLIC_REPO_URL = https://github.com/RyaanCMS/RyaanCMS.git
+PUBLIC_DIR      = C:\Users\hp\Desktop\AI claude\RyaanCMS-public

@@ -58,7 +58,7 @@ Most AI builders operate at L1 (code). RyaanCMS operates at all 6 levels simulta
 
 ### 🏗️ Blueprint Assembly
 
-12 pre-researched domain blueprints — tables, roles, modules, MVP scope, KPIs, and business rules — assembled in seconds, not generated from scratch.
+Pre-researched domain blueprints for any industry — tables, roles, modules, MVP scope, KPIs, and business rules — assembled in seconds, not generated from scratch. Unlimited: the AI generates blueprints for any domain not yet in the built-in library.
 
 | Domain | Includes |
 |--------|----------|
@@ -526,7 +526,7 @@ resources/
 ## Roadmap
 
 - [x] 10-agent autonomous pipeline
-- [x] 12 domain blueprints
+- [x] Domain blueprints system (unlimited — AI generates for any industry)
 - [x] 21 knowledge base files
 - [x] Intelligence Ledger (organizational memory)
 - [x] 6 country packs
