@@ -82,12 +82,8 @@ if (-not $RepoPath) {
 
 # ── Determine new version ─────────────────────────────────────
 if (-not $Version) {
-    $suggested = Bump-Patch $CurrentVersion
-    Write-Host "  Current version : v$CurrentVersion" -ForegroundColor DarkGray
-    Write-Host "  Suggested next  : v$suggested" -ForegroundColor DarkGray
-    Write-Host ""
-    $input = Read-Host "  Enter new version (press Enter for v$suggested)"
-    $Version = if ($input.Trim()) { $input.Trim() } else { $suggested }
+    $Version = Bump-Patch $CurrentVersion
+    Write-Host "  Auto version    : v$CurrentVersion  ->  v$Version" -ForegroundColor DarkGray
 }
 
 # Strip leading 'v' if user typed it
@@ -101,13 +97,7 @@ if ($Version -eq $CurrentVersion) {
 
 # ── Determine changelog ───────────────────────────────────────
 if (-not $Changelog) {
-    $autoLog = Get-GitChangelog $CurrentVersion
-    Write-Host ""
-    Write-Host "  Auto-generated changelog from git log:" -ForegroundColor DarkGray
-    Write-Host $autoLog -ForegroundColor DarkGray
-    Write-Host ""
-    $input = Read-Host "  Press Enter to use this changelog, or type a custom one"
-    $Changelog = if ($input.Trim()) { $input.Trim() } else { $autoLog }
+    $Changelog = Get-GitChangelog $CurrentVersion
 }
 
 Write-Host ""
@@ -154,6 +144,21 @@ foreach ($p in @(
 Write-Host "  PHP      : $phpExe" -ForegroundColor DarkGray
 Write-Host "  Composer : $composerPhar" -ForegroundColor DarkGray
 Write-Host ""
+
+# ─────────────────────────────────────────────────────────────
+# STEP 0: Auto-commit any pending code changes
+# ─────────────────────────────────────────────────────────────
+$prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+$pendingFiles = git status --porcelain 2>&1 | Where-Object { $_ -match "^\s*[MADRCU?]" -and $_ -notmatch "\.env$" -and $_ -notmatch "cpanel\.zip$" }
+if ($pendingFiles) {
+    Write-Host "  [0/8] Auto-committing pending changes..." -ForegroundColor Yellow
+    git add --all 2>&1 | Out-Null
+    git reset HEAD -- .env 2>&1 | Out-Null
+    git reset HEAD -- "ryaancms-v*-cpanel.zip" 2>&1 | Out-Null
+    git commit -m "chore: pre-release changes for v$Version" 2>&1 | Out-Null
+    git push origin main 2>&1 | Out-Null
+}
+$ErrorActionPreference = $prev
 
 # ─────────────────────────────────────────────────────────────
 # STEP 1: Update .env APP_VERSION

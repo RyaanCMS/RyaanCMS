@@ -1,3 +1,7 @@
+# Dual-repo config — stays in private repo, never goes public
+# (push.ps1 strips it before public sync)
+.ryaan-config-local
+
 /.phpunit.cache
 /node_modules
 /public/hot
@@ -24,3 +28,5 @@ yarn-error.log
 /.idea
 /.vscode
 *.tmp.*
+/dist
+/ryaancms-v*-cpanel.zip
