@@ -5,7 +5,8 @@
  * Place at: public/install.php  (auto-served when not installed)
  */
 
-define('BASE_PATH', dirname(__DIR__));
+// Auto-detect: flat cPanel (vendor/ next to install.php) or traditional structure
+define('BASE_PATH', is_dir(__DIR__ . '/vendor') ? __DIR__ : dirname(__DIR__));
 define('INSTALLED_FLAG', BASE_PATH . '/storage/app/.installed');
 define('INSTALLER_VERSION', '1.0.0');
 

@@ -67,17 +67,8 @@ jobs:
           # Copy public/ contents on top (index.php, .htaccess, install.php, assets)
           cp -r public/. dist/
 
-          # Fix index.php: paths are now same-directory (no /../)
-          sed -i "s|__DIR__ . '/../storage/app/.installed'|__DIR__ . '/storage/app/.installed'|g" dist/index.php
-          sed -i "s|__DIR__ . '/../storage/framework/maintenance.php'|__DIR__ . '/storage/framework/maintenance.php'|g" dist/index.php
-          sed -i "s|__DIR__.'/../storage/framework/maintenance.php'|__DIR__.'/storage/framework/maintenance.php'|g" dist/index.php
-          sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/vendor/autoload.php'|g" dist/index.php
-          sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/bootstrap/app.php'|g" dist/index.php
-
-          # Fix install.php: BASE_PATH is now __DIR__ (same folder as index.php)
-          if [ -f dist/install.php ]; then
-            sed -i "s|define('BASE_PATH', dirname(__DIR__));|define('BASE_PATH', __DIR__);|g" dist/install.php
-          fi
+          # No path replacement needed — index.php and install.php auto-detect
+          # flat cPanel structure vs traditional Laravel structure at runtime
 
           # Clean runtime files
           for d in dist/storage/logs \

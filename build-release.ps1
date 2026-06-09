@@ -252,23 +252,7 @@ Get-ChildItem -Path $ScriptRoot | Where-Object {
 # Copy public/ contents on top (index.php, .htaccess, install.php, assets)
 Copy-Item "$ScriptRoot\public\*" -Destination $distDir -Recurse -Force
 
-# Fix index.php: paths are now same-directory (no /../)
-$indexPath = "$distDir\index.php"
-$content = Get-Content $indexPath -Raw
-$content = $content `
-    -replace [regex]::Escape("__DIR__ . '/../storage/app/.installed'"),            "__DIR__ . '/storage/app/.installed'" `
-    -replace [regex]::Escape("__DIR__ . '/../storage/framework/maintenance.php'"), "__DIR__ . '/storage/framework/maintenance.php'" `
-    -replace [regex]::Escape("__DIR__.'/../storage/framework/maintenance.php'"),   "__DIR__.'/storage/framework/maintenance.php'" `
-    -replace [regex]::Escape("__DIR__.'/../vendor/autoload.php'"),                 "__DIR__.'/vendor/autoload.php'" `
-    -replace [regex]::Escape("__DIR__.'/../bootstrap/app.php'"),                   "__DIR__.'/bootstrap/app.php'"
-[System.IO.File]::WriteAllText($indexPath, $content, $utf8NoBom)
-
-# Fix install.php: BASE_PATH is now __DIR__
-if (Test-Path "$distDir\install.php") {
-    $ic = Get-Content "$distDir\install.php" -Raw
-    $ic = $ic -replace [regex]::Escape("define('BASE_PATH', dirname(__DIR__));"), "define('BASE_PATH', __DIR__);"
-    [System.IO.File]::WriteAllText("$distDir\install.php", $ic, $utf8NoBom)
-}
+# No path replacement needed — index.php and install.php auto-detect structure
 
 # Clean storage runtime
 @("$distDir\storage\logs","$distDir\storage\framework\cache\data",
