@@ -13,7 +13,12 @@ class UpdateController extends Controller
     public function index()
     {
         $currentVersion = $this->updater->getCurrentVersion();
-        $history        = UpdateHistory::latest('started_at')->limit(30)->get();
+
+        try {
+            $history = UpdateHistory::latest('started_at')->limit(30)->get();
+        } catch (\Exception) {
+            $history = collect();
+        }
 
         try {
             $manifest   = $this->updater->getManifest();
