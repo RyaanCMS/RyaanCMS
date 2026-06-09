@@ -4,6 +4,16 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// ── PHP version gate ──────────────────────────────────────────────────────────────
+if (PHP_VERSION_ID < 80200) {
+    http_response_code(500);
+    die('<!DOCTYPE html><html><head><title>PHP Version Error</title><style>body{font-family:sans-serif;max-width:600px;margin:80px auto;padding:24px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#991b1b}</style></head><body>'
+        . '<h2>PHP 8.2+ Required</h2>'
+        . '<p>Current PHP version: <strong>' . PHP_VERSION . '</strong></p>'
+        . '<p>Please update PHP in <strong>cPanel &rarr; MultiPHP Manager</strong> — select PHP 8.2 or 8.3 for this domain, then reload this page.</p>'
+        . '</body></html>');
+}
+
 // ── Auto-detect app root (works for both flat cPanel and traditional structure) ─
 // Flat:         public_html/ has storage/, vendor/, bootstrap/ alongside index.php
 // Traditional:  public/ is separate, app root is one level up
@@ -34,10 +44,20 @@ $installScript = __DIR__ . '/install.php';
 if (!file_exists($installedFlag) && file_exists($installScript)) {
     $uri     = $_SERVER['REQUEST_URI'] ?? '/';
     $isAsset = (bool) preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map)(\?.*)?$/i', $uri);
-    if (!$isAsset && !str_contains($uri, '/install.php')) {
+    if (!$isAsset && strpos($uri, '/install.php') === false) {
         require $installScript;
         exit;
     }
+}
+
+// ── Vendor existence check ────────────────────────────────────────────────────────
+if (!file_exists($appRoot . '/vendor/autoload.php')) {
+    http_response_code(500);
+    die('<!DOCTYPE html><html><head><title>Setup Incomplete</title><style>body{font-family:sans-serif;max-width:600px;margin:80px auto;padding:24px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;color:#991b1b}</style></head><body>'
+        . '<h2>vendor/ directory missing</h2>'
+        . '<p>The application dependencies are not installed. Please re-download the latest ZIP from '
+        . '<a href="https://github.com/RyaanCMS/RyaanCMS/releases/latest">GitHub Releases</a> and re-extract it.</p>'
+        . '</body></html>');
 }
 
 // ── Maintenance mode ─────────────────────────────────────────────────────────────
