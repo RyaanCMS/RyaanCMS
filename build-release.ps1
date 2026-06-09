@@ -196,8 +196,11 @@ try {
 $release = $existingRelease
 if (-not $release) {
     # Push git tag first
-    git tag "v$Version" 2>$null
-    git push origin "v$Version" 2>$null
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    git tag "v$Version" 2>&1 | Out-Null
+    git push origin "v$Version" 2>&1 | Out-Null
+    $ErrorActionPreference = $prev
 
     $releaseBody = @{
         tag_name         = "v$Version"
@@ -268,11 +271,12 @@ $versionsJson = [regex]::Replace($versionsJson,
 [System.IO.File]::WriteAllText($versionsPath, $versionsJson, [System.Text.Encoding]::UTF8)
 
 # Git commit versions.json
-git add versions.json 2>$null
-$commitResult = git commit -m "chore: update versions.json download_url for v$Version" 2>&1
-if ($LASTEXITCODE -eq 0) {
-    git push origin main 2>$null
-}
+$prev = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+git add versions.json 2>&1 | Out-Null
+git commit -m "chore: update versions.json download_url for v$Version" 2>&1 | Out-Null
+git push origin main 2>&1 | Out-Null
+$ErrorActionPreference = $prev
 
 # ── Done ──────────────────────────────────────────────────────
 $releaseUrl = "https://github.com/$RepoPath/releases/tag/v$Version"
