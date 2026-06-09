@@ -132,19 +132,10 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           VERSION="${{ steps.ver.outputs.new }}"
-          NOTES="## RyaanCMS v${VERSION}
-
-${COMMIT_MSG}
-
-### cPanel Installation
-1. Download ryaancms-v${VERSION}-cpanel.zip below
-2. Upload to /home/username/ via File Manager
-3. Extract - place public_html/ contents and ryaancms/ folder correctly
-4. chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache
-5. Visit your domain - install wizard starts automatically!"
-
+          printf "## RyaanCMS v%s\n\n%s\n\n### cPanel Installation\n1. Download ryaancms-v%s-cpanel.zip below\n2. Upload to /home/username/ via File Manager\n3. Extract - place public_html/ contents and ryaancms/ folder correctly\n4. chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache\n5. Visit your domain - install wizard starts automatically!" \
+            "${VERSION}" "${COMMIT_MSG}" "${VERSION}" > release-notes.md
           gh release create "v${VERSION}" \
             --title "RyaanCMS v${VERSION}" \
             --latest \
-            --notes "${NOTES}" \
+            --notes-file release-notes.md \
             "ryaancms-v${VERSION}-cpanel.zip"
