@@ -215,68 +215,68 @@ $ErrorActionPreference = $prev
 # STEP 4: Clean dist
 # ─────────────────────────────────────────────────────────────
 $distDir = "$ScriptRoot\dist"
-$appDir  = "$distDir\$AppFolderName"
-$pubDir  = "$distDir\public_html"
 $zipName = "ryaancms-v$Version-cpanel.zip"
 $zipPath = "$ScriptRoot\$zipName"
 
 Write-Host "  [4/8] Cleaning dist folder..." -ForegroundColor Yellow
 if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force }
-New-Item -ItemType Directory -Path $appDir -Force | Out-Null
-New-Item -ItemType Directory -Path $pubDir -Force | Out-Null
+New-Item -ItemType Directory -Path $distDir -Force | Out-Null
 
 # ─────────────────────────────────────────────────────────────
 # STEP 5: Composer install
 # ─────────────────────────────────────────────────────────────
 Write-Host "  [5/8] Running composer install (production)..." -ForegroundColor Yellow
 if ($composerPhar) {
-    & $phpExe $composerPhar install --no-dev --optimize-autoloader --no-interaction --no-progress
+    & $phpExe $composerPhar install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 } else {
     $ce = Get-Command composer -ErrorAction SilentlyContinue
-    if ($ce) { & $ce.Source install --no-dev --optimize-autoloader --no-interaction --no-progress }
+    if ($ce) { & $ce.Source install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts }
     else { Write-Host "  [ERROR] Composer not found!" -ForegroundColor Red; exit 1 }
 }
 if ($LASTEXITCODE -ne 0) { Write-Host "  [ERROR] Composer install failed!" -ForegroundColor Red; exit 1 }
 
 # ─────────────────────────────────────────────────────────────
-# STEP 6: Copy files + fix public/index.php
+# STEP 6: Copy files (flat - everything goes into public_html directly)
 # ─────────────────────────────────────────────────────────────
 Write-Host "  [6/8] Copying application files..." -ForegroundColor Yellow
 $skipNames = @(".git","node_modules","dist","build",".github","public",".env",
-               "push.ps1","setup.ps1","build-release.ps1",".ryaan-config")
+               "push.ps1","setup.ps1","build-release.ps1",".ryaan-config",
+               "release.bat","auto-push.ps1","setup-watcher.bat")
 
 Get-ChildItem -Path $ScriptRoot | Where-Object {
     $skipNames -notcontains $_.Name -and $_.Name -notlike "ryaancms-v*-cpanel.zip"
 } | ForEach-Object {
-    Copy-Item $_.FullName -Destination "$appDir\$($_.Name)" -Recurse -Force
+    Copy-Item $_.FullName -Destination "$distDir\$($_.Name)" -Recurse -Force
+}
+
+# Copy public/ contents on top (index.php, .htaccess, install.php, assets)
+Copy-Item "$ScriptRoot\public\*" -Destination $distDir -Recurse -Force
+
+# Fix index.php: paths are now same-directory (no /../)
+$indexPath = "$distDir\index.php"
+$content = Get-Content $indexPath -Raw
+$content = $content `
+    -replace [regex]::Escape("__DIR__ . '/../storage/app/.installed'"),            "__DIR__ . '/storage/app/.installed'" `
+    -replace [regex]::Escape("__DIR__ . '/../storage/framework/maintenance.php'"), "__DIR__ . '/storage/framework/maintenance.php'" `
+    -replace [regex]::Escape("__DIR__.'/../storage/framework/maintenance.php'"),   "__DIR__.'/storage/framework/maintenance.php'" `
+    -replace [regex]::Escape("__DIR__.'/../vendor/autoload.php'"),                 "__DIR__.'/vendor/autoload.php'" `
+    -replace [regex]::Escape("__DIR__.'/../bootstrap/app.php'"),                   "__DIR__.'/bootstrap/app.php'"
+[System.IO.File]::WriteAllText($indexPath, $content, $utf8NoBom)
+
+# Fix install.php: BASE_PATH is now __DIR__
+if (Test-Path "$distDir\install.php") {
+    $ic = Get-Content "$distDir\install.php" -Raw
+    $ic = $ic -replace [regex]::Escape("define('BASE_PATH', dirname(__DIR__));"), "define('BASE_PATH', __DIR__);"
+    [System.IO.File]::WriteAllText("$distDir\install.php", $ic, $utf8NoBom)
 }
 
 # Clean storage runtime
-@("$appDir\storage\logs","$appDir\storage\framework\cache\data",
-  "$appDir\storage\framework\sessions","$appDir\storage\framework\views",
-  "$appDir\bootstrap\cache") | ForEach-Object {
+@("$distDir\storage\logs","$distDir\storage\framework\cache\data",
+  "$distDir\storage\framework\sessions","$distDir\storage\framework\views",
+  "$distDir\bootstrap\cache") | ForEach-Object {
     if (-not (Test-Path $_)) { New-Item -ItemType Directory -Path $_ -Force | Out-Null }
     Get-ChildItem $_ -File -ErrorAction SilentlyContinue | Remove-Item -Force
     New-Item -Path "$_\.gitkeep" -ItemType File -Force | Out-Null
-}
-
-# Copy public + fix paths
-Copy-Item "$ScriptRoot\public\*" -Destination $pubDir -Recurse -Force
-$indexPath = "$pubDir\index.php"
-$content = Get-Content $indexPath -Raw
-$content = $content `
-    -replace [regex]::Escape("__DIR__ . '/../storage/app/.installed'"),           "__DIR__ . '/../$AppFolderName/storage/app/.installed'" `
-    -replace [regex]::Escape("__DIR__ . '/../storage/framework/maintenance.php'"), "__DIR__ . '/../$AppFolderName/storage/framework/maintenance.php'" `
-    -replace [regex]::Escape("__DIR__.'/../storage/framework/maintenance.php'"),    "__DIR__.'/../$AppFolderName/storage/framework/maintenance.php'" `
-    -replace [regex]::Escape("__DIR__.'/../vendor/autoload.php'"),                 "__DIR__.'/../$AppFolderName/vendor/autoload.php'" `
-    -replace [regex]::Escape("__DIR__.'/../bootstrap/app.php'"),                   "__DIR__.'/../$AppFolderName/bootstrap/app.php'"
-[System.IO.File]::WriteAllText($indexPath, $content, $utf8NoBom)
-
-if (Test-Path "$pubDir\install.php") {
-    $ic = Get-Content "$pubDir\install.php" -Raw
-    $ic = $ic -replace [regex]::Escape("__DIR__ . '/../"), "__DIR__ . '/../$AppFolderName/"
-    $ic = $ic -replace [regex]::Escape("__DIR__.'/../"),   "__DIR__.'/../$AppFolderName/"
-    [System.IO.File]::WriteAllText("$pubDir\install.php", $ic, $utf8NoBom)
 }
 
 # ─────────────────────────────────────────────────────────────

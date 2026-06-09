@@ -45,9 +45,9 @@ jobs:
       - name: Build cPanel ZIP
         run: |
           VERSION="${{ steps.ver.outputs.new }}"
-          APP="ryaancms"
-          mkdir -p dist/$APP dist/public_html
+          mkdir -p dist
 
+          # Copy all app files into dist/ (flat - everything goes into public_html directly)
           rsync -a \
             --exclude='.git' \
             --exclude='node_modules' \
@@ -60,28 +60,31 @@ jobs:
             --exclude='push.ps1' \
             --exclude='setup.ps1' \
             --exclude='.ryaan-config' \
-            . dist/$APP/
+            --exclude='auto-push.ps1' \
+            --exclude='setup-watcher.bat' \
+            . dist/
 
-          cp -r public/. dist/public_html/
+          # Copy public/ contents on top (index.php, .htaccess, install.php, assets)
+          cp -r public/. dist/
 
-          # Fix index.php paths for cPanel layout (public_html/ + ryaancms/ side by side)
-          sed -i "s|__DIR__ . '/../storage/app/.installed'|__DIR__ . '/../${APP}/storage/app/.installed'|g" dist/public_html/index.php
-          sed -i "s|__DIR__ . '/../storage/framework/maintenance.php'|__DIR__ . '/../${APP}/storage/framework/maintenance.php'|g" dist/public_html/index.php
-          sed -i "s|__DIR__.'/../storage/framework/maintenance.php'|__DIR__.'/../${APP}/storage/framework/maintenance.php'|g" dist/public_html/index.php
-          sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../${APP}/vendor/autoload.php'|g" dist/public_html/index.php
-          sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../${APP}/bootstrap/app.php'|g" dist/public_html/index.php
+          # Fix index.php: paths are now same-directory (no /../)
+          sed -i "s|__DIR__ . '/../storage/app/.installed'|__DIR__ . '/storage/app/.installed'|g" dist/index.php
+          sed -i "s|__DIR__ . '/../storage/framework/maintenance.php'|__DIR__ . '/storage/framework/maintenance.php'|g" dist/index.php
+          sed -i "s|__DIR__.'/../storage/framework/maintenance.php'|__DIR__.'/storage/framework/maintenance.php'|g" dist/index.php
+          sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/vendor/autoload.php'|g" dist/index.php
+          sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/bootstrap/app.php'|g" dist/index.php
 
-          # Fix install.php: BASE_PATH must point inside ryaancms/ folder
-          if [ -f dist/public_html/install.php ]; then
-            sed -i "s|define('BASE_PATH', dirname(__DIR__));|define('BASE_PATH', dirname(__DIR__) . '/${APP}');|g" dist/public_html/install.php
+          # Fix install.php: BASE_PATH is now __DIR__ (same folder as index.php)
+          if [ -f dist/install.php ]; then
+            sed -i "s|define('BASE_PATH', dirname(__DIR__));|define('BASE_PATH', __DIR__);|g" dist/install.php
           fi
 
           # Clean runtime files
-          for d in dist/$APP/storage/logs \
-                   dist/$APP/storage/framework/cache/data \
-                   dist/$APP/storage/framework/sessions \
-                   dist/$APP/storage/framework/views \
-                   dist/$APP/bootstrap/cache; do
+          for d in dist/storage/logs \
+                   dist/storage/framework/cache/data \
+                   dist/storage/framework/sessions \
+                   dist/storage/framework/views \
+                   dist/bootstrap/cache; do
             mkdir -p "$d"
             find "$d" -maxdepth 1 -type f ! -name '.gitkeep' -delete 2>/dev/null || true
             touch "$d/.gitkeep"
