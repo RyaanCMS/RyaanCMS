@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.12",
+    "latest": "1.1.13",
     "versions": [
         {
             "version": "1.0.0",
@@ -179,6 +179,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.11",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.13",
+            "type": "feature",
+            "released_at": "2026-06-09",
+            "changelog": "debug: empty .htaccess + phptest.php to isolate 500 cause",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.13/ryaancms-v1.1.13-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.12",
             "critical": false,
             "file_count": null
         }
