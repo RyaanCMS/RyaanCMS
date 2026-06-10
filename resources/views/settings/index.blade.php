@@ -119,8 +119,8 @@
 .scard-body{padding:20px;}
 
 /* Section nav separator */
-.st-nav-sep{height:1px;background:var(--border);margin:4px 0;}
-.st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);padding:8px 14px 4px;}
+.st-nav-sep{height:1px;background:var(--border);margin:2px 0;}
+.st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);padding:5px 14px 3px;}
 
 /* System-config toggle switch */
 .sys-toggle-btn{position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;background:#d1d5db;}
@@ -174,7 +174,13 @@
                 const h = resolveTab(window.location.hash.replace('#', ''));
                 if (h && valid.includes(h)) this.tab = h;
             });
-            this.$watch('brandColor', v => { if(/^#[0-9a-fA-F]{6}$/.test(v)) this.hexInput=v.replace('#','').toUpperCase(); });
+            this.$watch('brandColor', v => {
+                if(/^#[0-9a-fA-F]{6}$/.test(v)) {
+                    this.hexInput = v.replace('#','').toUpperCase();
+                    document.documentElement.style.setProperty('--brand', v);
+                    document.documentElement.style.setProperty('--brand-ring', v+'66');
+                }
+            });
         },
         async saveSystemConfig() {
             this.sysSaving = true;
@@ -198,6 +204,8 @@
                 if (res.ok || res.status === 302) {
                     this.brandSaved = true;
                     setTimeout(() => this.brandSaved = false, 2500);
+                    document.documentElement.style.setProperty('--brand', this.brandColor);
+                    document.documentElement.style.setProperty('--brand-ring', this.brandColor+'66');
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Branding saved successfully.' } }));
                 } else {
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Could not save branding.' } }));

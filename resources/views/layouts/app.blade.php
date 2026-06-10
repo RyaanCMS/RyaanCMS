@@ -903,7 +903,7 @@
 
     @stack('head')
 </head>
-<body>
+<body x-cloak>
 
 {{-- ═══════════════ TOAST STACK ═══════════════ --}}
 <div class="toast-stack" x-data="toastSystem()" @toast.window="addToast($event.detail)">
