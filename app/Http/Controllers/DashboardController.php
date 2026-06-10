@@ -15,12 +15,23 @@ class DashboardController extends Controller
         $user   = Auth::user();
         $userId = $user->id;
 
+        $deploySucc = Deployment::whereHas('project', fn($q) => $q->where('user_id', $userId))
+                         ->where('status', 'success')->count();
+        $deployTotal = Deployment::whereHas('project', fn($q) => $q->where('user_id', $userId))->count();
+
         $stats = [
-            'projects'    => Project::where('user_id', $userId)->count(),
-            'ai_messages' => AIConversation::where('user_id', $userId)->sum('message_count'),
-            'deployments' => Deployment::whereHas('project', fn($q) => $q->where('user_id', $userId))
-                                ->where('status', 'success')->count(),
-            'storage'     => Project::where('user_id', $userId)->sum('storage_used'),
+            'projects'          => Project::where('user_id', $userId)->count(),
+            'ai_messages'       => AIConversation::where('user_id', $userId)->sum('message_count'),
+            'ai_conversations'  => AIConversation::where('user_id', $userId)->count(),
+            'deployments'       => $deploySucc,
+            'deployments_total' => $deployTotal,
+            'deploy_rate'       => $deployTotal > 0 ? round(($deploySucc / $deployTotal) * 100) : 0,
+            'storage'           => Project::where('user_id', $userId)->sum('storage_used'),
+            'modules_installed' => \App\Models\MarketplaceInstallation::where('user_id', $userId)->count(),
+            'projects_week'     => Project::where('user_id', $userId)
+                                    ->where('created_at', '>=', now()->subWeek())->count(),
+            'ai_week'           => AIConversation::where('user_id', $userId)
+                                    ->where('created_at', '>=', now()->subWeek())->count(),
         ];
 
         $recentProjects = Project::where('user_id', $userId)
