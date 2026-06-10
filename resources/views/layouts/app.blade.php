@@ -477,26 +477,26 @@
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            width: 18px;
-            height: 48px;
+            width: 12px;
+            height: 34px;
             background: var(--surface-base);
             border: 1px solid var(--border);
-            border-left: 3px solid var(--brand);
-            border-radius: 0 10px 10px 0;
+            border-left: 2px solid var(--brand);
+            border-radius: 0 8px 8px 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 35;
             cursor: pointer;
-            box-shadow: 3px 0 14px rgba(0,0,0,.1);
+            box-shadow: 2px 0 10px rgba(0,0,0,.08);
             transition: width .18s ease, background .13s;
         }
         .sb-peek:hover {
-            width: 24px;
+            width: 18px;
             background: var(--brand-light);
         }
         .sb-peek svg {
-            width: 10px; height: 10px;
+            width: 8px; height: 8px;
             color: var(--text-3);
             flex-shrink: 0;
             transition: color .13s;
@@ -948,7 +948,7 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="sidebarHovered=true"
+           @mouseenter="if (!{{ $sidebarAutoHide ? 'true' : 'false' }} || sidebarOpen || sidebarHovered || mobileSidebarOpen) sidebarHovered=true"
            @mouseleave="sidebarHovered=false">
 
         {{-- Logo --}}

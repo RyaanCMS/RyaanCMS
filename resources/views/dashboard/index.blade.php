@@ -9,11 +9,34 @@ $storageMB = round($stats['storage'] / 1048576, 1);
 $userName  = explode(' ', auth()->user()->name)[0];
 
 // AI Provider status
-$providerKey     = \App\Models\Setting::get('ai.provider', 'openai', auth()->id());
-$providerApiKey  = \App\Models\Setting::get('ai.'.$providerKey.'.api_key', '', auth()->id());
-$aiProviderReady = !empty($providerApiKey);
-$providerLabels  = ['openai'=>'OpenAI','anthropic'=>'Anthropic','gemini'=>'Gemini','groq'=>'Groq','ollama'=>'Ollama'];
-$providerLabel   = $providerLabels[$providerKey] ?? ucfirst($providerKey);
+$activeAiProvider = \App\Models\AIProvider::where('user_id', auth()->id())
+    ->where('is_active', true)
+    ->orderByDesc('is_default')
+    ->latest()
+    ->first();
+$aiProviderReady = (bool) $activeAiProvider;
+$providerLabel   = $activeAiProvider?->name ?? 'No provider';
+
+$readinessChecks = [
+    $aiProviderReady,
+    $stats['projects'] > 0,
+    $stats['deployments_total'] > 0,
+    $stats['modules_installed'] > 0,
+    $stats['ai_week'] > 0,
+];
+$readinessScore = round((collect($readinessChecks)->filter()->count() / count($readinessChecks)) * 100);
+$smartSignals = [
+    ['label' => 'AI Provider', 'value' => $aiProviderReady ? $providerLabel : 'Needs key', 'ok' => $aiProviderReady],
+    ['label' => 'Projects', 'value' => $stats['projects'].' total', 'ok' => $stats['projects'] > 0],
+    ['label' => 'Deployments', 'value' => $stats['deploy_rate'].'% success', 'ok' => $stats['deployments_total'] > 0 && $stats['deploy_rate'] >= 70],
+];
+$nextAction = !$aiProviderReady
+    ? ['label' => 'Connect AI Provider', 'href' => route('settings.index'), 'hint' => 'Unlock generation and project intelligence']
+    : ($stats['projects'] === 0
+        ? ['label' => 'Create First Project', 'href' => route('projects.create'), 'hint' => 'Start with a real app blueprint']
+        : ($stats['modules_installed'] === 0
+            ? ['label' => 'Install a Module', 'href' => route('marketplace.index'), 'hint' => 'Add CRUD-ready capability without AI tokens']
+            : ['label' => 'Open Builder', 'href' => $recentProjects->first() ? route('builder.show', $recentProjects->first()) : route('projects.create'), 'hint' => 'Continue your most recent build']));
 
 $typeMap = [
     'laravel'    => ['emoji'=>'⚡','from'=>'#f97316','to'=>'#ef4444','bg'=>'#fff7ed','bd'=>'#fed7aa','txt'=>'#c2410c','label'=>'Laravel'],
@@ -59,6 +82,48 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 .db-greet-avatar { width:44px;height:44px;border-radius:12px;border:2px solid var(--brand);flex-shrink:0;box-shadow:0 0 0 3px var(--brand-ring); }
 .db-greet-name   { font-size:18px;font-weight:800;color:var(--text-1);letter-spacing:-.025em;line-height:1.15; }
 .db-greet-sub    { font-size:12px;color:var(--text-3);margin-top:2px; }
+
+/* Smart brief */
+.db-smart {
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap:14px;
+}
+.db-smart-card {
+    background:var(--surface-base);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+}
+.db-smart-main { padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px; }
+.db-smart-kicker { font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3); }
+.db-smart-title { font-size:16px;font-weight:800;color:var(--text-1);margin-top:4px;letter-spacing:-.015em; }
+.db-smart-hint { font-size:12px;color:var(--text-3);margin-top:4px;line-height:1.55; }
+.db-score {
+    width:78px;height:78px;border-radius:20px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:conic-gradient(var(--brand) calc(var(--score) * 1%), var(--surface-overlay) 0);
+    position:relative;flex-shrink:0;
+}
+.db-score::before { content:'';position:absolute;inset:7px;border-radius:16px;background:var(--surface-base); }
+.db-score-val { position:relative;font-size:22px;font-weight:850;color:var(--text-1);line-height:1; }
+.db-score-lbl { position:relative;font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-top:3px; }
+.db-signal-row { display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border); }
+.db-signal { padding:11px 14px;border-right:1px solid var(--border); }
+.db-signal:last-child { border-right:none; }
+.db-signal-label { font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em; }
+.db-signal-val { display:flex;align-items:center;gap:6px;font-size:12px;font-weight:650;color:var(--text-2);margin-top:4px;min-width:0; }
+.db-signal-dot { width:6px;height:6px;border-radius:99px;flex-shrink:0; }
+.db-next { padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;height:100%; }
+.db-next-link {
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    padding:9px 16px;border-radius:11px;text-decoration:none;
+    background:color-mix(in srgb,var(--brand) 10%,#fff);
+    color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 28%,transparent);
+    font-size:12.5px;font-weight:750;transition:all .18s ease;width:fit-content;
+}
+.db-next-link:hover { background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 4px 14px var(--brand-ring);transform:translateY(-1px); }
 
 /* ── KPI grid — 6 cards, 3 columns each row ── */
 .db-kpi-row {
@@ -226,11 +291,16 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 @media(max-width:1180px) {
     .db-kpi-row { grid-template-columns:repeat(3,1fr); }
     .db-layout  { grid-template-columns:1fr; }
+    .db-smart { grid-template-columns:1fr; }
 }
 @media(max-width:768px) {
     .db-kpi-row { grid-template-columns:repeat(2,1fr); }
     .db-proj-grid { grid-template-columns:1fr; }
     .db-greet { flex-direction:column;align-items:flex-start;gap:12px;padding:16px; }
+    .db-smart-main { align-items:flex-start;flex-direction:column; }
+    .db-signal-row { grid-template-columns:1fr; }
+    .db-signal { border-right:none;border-bottom:1px solid var(--border); }
+    .db-signal:last-child { border-bottom:none; }
 }
 @media(max-width:480px) {
     .db-kpi-row { grid-template-columns:1fr 1fr; }
