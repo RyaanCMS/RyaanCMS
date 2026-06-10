@@ -31,8 +31,7 @@ Route::get('/site/{project}', [TemplateController::class, 'serve'])->name('site.
 
 // Welcome / Landing Page — serves active public-site template if configured
 Route::get('/', function () {
-    if (auth()->check()) return redirect()->route('dashboard');
-
+    // Project-based active template (highest priority)
     $projectId = \App\Models\Setting::get('system.public_site_project_id');
     if ($projectId) {
         $project = \App\Models\Project::find((int) $projectId);
@@ -46,6 +45,19 @@ Route::get('/', function () {
             }
         }
     }
+
+    // Global (is_global) template — served directly from registry (no project required)
+    $templateKey = \App\Models\Setting::get('system.public_site_template_key', 'template.ryaancms');
+    if ($templateKey) {
+        $registry = app(\App\Services\Template\TemplateRegistry::class);
+        $template = $registry->get($templateKey);
+        if ($template && view()->exists($template['view'])) {
+            return view($template['view'], ['template' => $template, 'project' => null]);
+        }
+    }
+
+    // No public site configured — redirect logged-in users to dashboard
+    if (auth()->check()) return redirect()->route('dashboard');
 
     return view('welcome');
 })->name('home');

@@ -210,7 +210,7 @@
                     </template>
 
                     <template x-if="selectedProject && getStatus('{{ $key }}') === 'active'">
-                        <a href="{{ route('home') }}" target="_blank" class="live-btn flex-1 justify-center py-2">
+                        <a :href="'/site/' + selectedProject" target="_blank" class="live-btn flex-1 justify-center py-2">
                             🌐 View Live
                         </a>
                     </template>
