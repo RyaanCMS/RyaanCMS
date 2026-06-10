@@ -13,7 +13,6 @@ class TemplateRegistry
                 'description' => 'Default RyaanCMS public landing page with product, domain, marketplace, and download sections.',
                 'category'    => 'RyaanCMS',
                 'type'        => 'template',
-                'is_global'   => true,
                 'icon'        => 'R',
                 'color'       => '#6366f1',
                 'view'        => 'templates.ryaancms',
