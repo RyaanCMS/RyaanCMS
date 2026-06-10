@@ -21,7 +21,7 @@ class EnsureAIProvider
                 return response()->json([
                     'success'  => false,
                     'error'    => 'No AI provider configured yet. Go to Settings → AI Providers to add your API key.',
-                    'redirect' => route('settings.index') . '#ai-providers',
+                    'redirect' => route('settings.index') . '#ai',
                     'needs_provider' => true,
                 ], 422);
             }

@@ -32,7 +32,7 @@ $smartSignals = [
     ['label' => 'Modules', 'value' => $stats['modules_installed'].' installed', 'ok' => $stats['modules_installed'] > 0],
 ];
 $nextAction = !$aiProviderReady
-    ? ['label' => 'Connect AI Provider', 'href' => route('settings.index'), 'hint' => 'Unlock generation and project intelligence']
+    ? ['label' => 'Connect AI Provider', 'href' => route('settings.index') . '#ai', 'hint' => 'Unlock generation and project intelligence']
     : ($stats['projects'] === 0
         ? ['label' => 'Create First Project', 'href' => route('projects.create'), 'hint' => 'Start with a real app blueprint']
         : ($stats['modules_installed'] === 0
@@ -379,7 +379,7 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
             {{ $providerLabel }} Active
         </div>
         @else
-        <a href="{{ route('settings.index') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;font-size:12px;font-weight:600;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;text-decoration:none;">
+        <a href="{{ route('settings.index') }}#ai" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;font-size:12px;font-weight:600;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;text-decoration:none;">
             <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Add AI Key
         </a>

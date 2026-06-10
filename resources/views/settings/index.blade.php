@@ -38,6 +38,14 @@
     gap:24px;
     align-items:start;
     max-width:880px;
+    width:100%;
+}
+.st-wrap-wide{
+    max-width:none;
+    grid-template-columns:210px minmax(0,1fr);
+}
+.st-wrap > div{
+    min-width:0;
 }
 /* Left nav */
 .st-nav{
@@ -48,6 +56,16 @@
     box-shadow:var(--shadow);
     position:sticky;
     top:24px;
+}
+@media (max-width:900px){
+    .st-wrap,
+    .st-wrap-wide{
+        grid-template-columns:1fr;
+        max-width:none;
+    }
+    .st-nav{
+        position:static;
+    }
 }
 .st-nav-user{
     padding:16px;
@@ -132,6 +150,7 @@
 
 @section('content')
 <div class="st-wrap"
+     :class="{ 'st-wrap-wide': tab === 'ai' }"
      x-data="{
         tab: '{{ session('_tab', 'profile') }}',
         brandColor: '{{ $savedColor }}',
@@ -143,11 +162,12 @@
         sysSaved: false,
         init() {
             const valid = ['profile','ai','branding','updates','system_config','notifications','integrations','team','danger'];
-            const hash = window.location.hash.replace('#', '');
+            const resolveTab = h => ({ 'ai-providers': 'ai', 'ai_provider': 'ai', 'ai-provider': 'ai' }[h] || h);
+            const hash = resolveTab(window.location.hash.replace('#', ''));
             if (hash && valid.includes(hash)) this.tab = hash;
             this.$watch('tab', t => history.replaceState(null, '', '#' + t));
             window.addEventListener('hashchange', () => {
-                const h = window.location.hash.replace('#', '');
+                const h = resolveTab(window.location.hash.replace('#', ''));
                 if (h && valid.includes(h)) this.tab = h;
             });
             this.$watch('brandColor', v => { if(/^#[0-9a-fA-F]{6}$/.test(v)) this.hexInput=v.replace('#','').toUpperCase(); });
@@ -411,7 +431,8 @@
 
         {{-- â”€â”€â”€â”€ AI PROVIDERS â”€â”€â”€â”€ --}}
         <div x-show="tab === 'ai'" class="st-panel">
-            <div class="dt-wrap" x-data="aiProviderTable(@json($providerRows ?? []))">
+            <script type="application/json" id="ai-provider-rows">@json($providerRows ?? [])</script>
+            <div class="dt-wrap" x-data="aiProviderTable()">
                 <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="dt-search">
@@ -656,9 +677,10 @@
                                                       x-text="k.fail_count + ' fail' + (k.fail_count > 1 ? 's' : '')"></span>
                                             </div>
                                             {{-- Active toggle --}}
-                                            <span x-show="!k.is_primary" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;"
-                                                  :style="k.is_active ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'"
-                                                  x-text="k.is_active ? 'Active' : 'Off'"></span>
+                                            <button type="button" x-show="!k.is_primary" @click="toggleProviderKey(k.id)"
+                                                    style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;cursor:pointer;"
+                                                    :style="k.is_active ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'"
+                                                    x-text="k.is_active ? 'Active' : 'Off'"></button>
                                             <span x-show="k.is_primary" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">Primary</span>
                                             {{-- Delete --}}
                                             <button type="button" @click="deleteProviderKey(k.id)"
@@ -1325,7 +1347,21 @@
 
 @push('scripts')
 <script>
+function aiProviderRowsPayload() {
+    const source = document.getElementById('ai-provider-rows');
+    if (!source) return [];
+
+    try {
+        return JSON.parse(source.textContent || '[]');
+    } catch (error) {
+        console.error('Could not parse AI provider rows.', error);
+        return [];
+    }
+}
+
 function aiProviderTable(providerRows) {
+    providerRows = providerRows ?? aiProviderRowsPayload();
+
     return {
         ...dtMixin({ perPage: 10 }),
 
@@ -1473,6 +1509,26 @@ function aiProviderTable(providerRows) {
             }).then(r => r.json());
             if (res.success) {
                 this.form.keys = this.form.keys.map(k => ({ ...k, is_primary: k.id === keyId }));
+                this.allProviders = this.allProviders.map(p =>
+                    p.provider === this.editing.provider
+                        ? { ...p, keys: [...this.form.keys] }
+                        : p
+                );
+            }
+        },
+
+        async toggleProviderKey(keyId) {
+            const res = await fetch(`/settings/ai-providers/${this.editing.provider_id}/keys/${keyId}/toggle`, {
+                method: 'PATCH',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            }).then(r => r.json());
+            if (res.success) {
+                this.form.keys = this.form.keys.map(k => k.id === keyId ? { ...k, is_active: res.is_active } : k);
+                this.allProviders = this.allProviders.map(p =>
+                    p.provider === this.editing.provider
+                        ? { ...p, keys: [...this.form.keys], key_count: this.form.keys.length }
+                        : p
+                );
             }
         },
 

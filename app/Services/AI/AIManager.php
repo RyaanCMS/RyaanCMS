@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\AI\Contracts\AIProviderInterface;
 use App\Services\AI\Providers\ClaudeProvider;
 use App\Services\AI\Providers\GeminiProvider;
+use App\Services\AI\Providers\KeyFailoverProvider;
 use App\Services\AI\Providers\MistralProvider;
 use App\Services\AI\Providers\OllamaProvider;
 use App\Services\AI\Providers\OpenAIProvider;
@@ -45,7 +46,11 @@ class AIManager
                 ->first();
 
             if ($savedProvider) {
-                $instance = $this->makeFromModel($savedProvider);
+                if (!isset($this->driverMap[$savedProvider->provider])) {
+                    throw new \RuntimeException("No driver found for AI provider [{$savedProvider->provider}].");
+                }
+
+                $instance = $this->makeFailoverProvider($savedProvider);
                 if ($instance->isConfigured()) {
                     return $instance;
                 }
@@ -63,7 +68,7 @@ class AIManager
         if ($user && !$name) {
             $defaultProvider = $user->defaultAIProvider;
             if ($defaultProvider) {
-                return $this->makeFromModel($defaultProvider);
+                return $this->makeFailoverProvider($defaultProvider);
             }
         }
 
@@ -120,21 +125,38 @@ class AIManager
         }
 
         return $candidates
-            ->map(fn (AIProviderModel $provider) => [
-                'provider' => $provider->provider,
-                'name'     => $provider->name,
-                'model'    => $provider->default_model,
-                'driver'   => $this->makeFromModel($provider),
-            ])
-            ->filter(fn (array $candidate) => $candidate['driver']->isConfigured())
+            ->map(function (AIProviderModel $provider) {
+                if (!isset($this->driverMap[$provider->provider])) {
+                    return null;
+                }
+
+                $driver = $this->makeFailoverProvider($provider);
+                if (!$driver->isConfigured()) {
+                    return null;
+                }
+
+                return [
+                    'provider'     => $provider->provider,
+                    'name'         => $provider->name,
+                    'model'        => $provider->default_model,
+                    'model_record' => $provider,
+                    'driver'       => $driver,
+                ];
+            })
+            ->filter()
             ->values()
             ->all();
+    }
+
+    public function makeFailoverProvider(AIProviderModel $model): AIProviderInterface
+    {
+        return new KeyFailoverProvider($this, $model);
     }
 
     public function makeFromModel(AIProviderModel $model): AIProviderInterface
     {
         $config = config("ai.providers.{$model->provider}", []);
-        $config['default_model'] = $model->default_model ?? $config['default_model'];
+        $config['default_model'] = $model->default_model ?? ($config['default_model'] ?? null);
 
         if ($model->api_url) {
             $config['api_url'] = $model->api_url;
@@ -157,11 +179,11 @@ class AIManager
      * Try an AI call with automatic key failover.
      * Rotates through all active keys when a key-related error occurs.
      */
-    public function withKeyFallback(AIProviderModel $model, callable $call): mixed
+    public function withKeyFallback(AIProviderModel $model, callable $call, ?callable $canRetry = null): mixed
     {
         $activeKeys = $model->activeKeysForFailover()->get();
         $baseConfig = config("ai.providers.{$model->provider}", []);
-        $baseConfig['default_model'] = $model->default_model ?? $baseConfig['default_model'];
+        $baseConfig['default_model'] = $model->default_model ?? ($baseConfig['default_model'] ?? null);
         if ($model->api_url) {
             $baseConfig['api_url'] = $model->api_url;
         }
@@ -185,16 +207,21 @@ class AIManager
                 $result = $call($provider);
 
                 if ($attempt['key_model']) {
+                    $attempt['key_model']->resetFailures();
                     $attempt['key_model']->markAsUsed();
                 } else {
                     $model->markAsUsed();
                 }
 
                 return $result;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $lastException = $e;
 
                 if ($this->isKeyRelatedError($e)) {
+                    if ($canRetry && !$canRetry($e)) {
+                        throw $e;
+                    }
+
                     if ($attempt['key_model']) {
                         $attempt['key_model']->recordFailure();
                     }
@@ -210,7 +237,7 @@ class AIManager
         );
     }
 
-    protected function isKeyRelatedError(\Exception $e): bool
+    public function isKeyRelatedError(\Throwable $e): bool
     {
         $msg = strtolower($e->getMessage());
         $phrases = [
@@ -218,6 +245,10 @@ class AIManager
             'insufficient_quota', 'insufficient credit', 'rate limit exceeded',
             'authentication', 'unauthorized', 'api_key_invalid',
             'credits exhausted', 'billing', 'payment required',
+            'no credit', 'no credits', 'credit exhausted', 'balance exhausted',
+            'insufficient balance', 'billing hard limit', 'usage limit',
+            'too many requests', 'resource exhausted', 'resource_exhausted',
+            'rate_limit_exceeded', 'rate limit reached',
         ];
         foreach ($phrases as $phrase) {
             if (str_contains($msg, $phrase)) return true;

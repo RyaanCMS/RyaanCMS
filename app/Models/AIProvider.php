@@ -39,8 +39,8 @@ class AIProvider extends Model
     {
         return $this->hasMany(AIProviderKey::class, 'ai_provider_id')
             ->where('is_active', true)
-            ->orderByDesc('is_primary')
             ->orderBy('fail_count')
+            ->orderByDesc('is_primary')
             ->orderBy('last_failed_at');
     }
 

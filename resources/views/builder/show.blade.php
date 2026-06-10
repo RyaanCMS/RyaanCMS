@@ -329,7 +329,7 @@
             <div class="mx-3 mb-2 px-3 py-2 rounded-lg flex items-center gap-2"
                  style="background:#fffbeb; border:1px solid #fde68a;">
                 <span class="text-sm flex-shrink-0">⚠️</span>
-                <span class="text-xs" style="color:#92400e;">No AI provider yet. <a href="{{ route('settings.index') }}#ai-providers" class="font-semibold underline">Add an API key in Settings</a> to start building.</span>
+                <span class="text-xs" style="color:#92400e;">No AI provider yet. <a href="{{ route('settings.index') }}#ai" class="font-semibold underline">Add an API key in Settings</a> to start building.</span>
             </div>
             @endif
 
