@@ -171,6 +171,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{menu}/items/{item}',          [MenuController::class, 'updateItem'])->name('items.update');
         Route::delete('/{menu}/items/{item}',       [MenuController::class, 'destroyItem'])->name('items.destroy');
         Route::post('/{menu}/items/reorder',        [MenuController::class, 'reorderItems'])->name('items.reorder');
+        Route::patch('/{menu}/move',                [MenuController::class, 'move'])->name('move');
     });
 
     // Intelligence Ledger (Wisdom Dashboard)

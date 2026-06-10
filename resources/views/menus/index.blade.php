@@ -67,6 +67,7 @@
                 <div class="dt-per-page">
                     <span>Sort</span>
                     <select x-model="sortBy" @change="page = 1">
+                        <option value="sort_order">Custom Order</option>
                         <option value="name_asc">Name A → Z</option>
                         <option value="name_desc">Name Z → A</option>
                         <option value="category">Category</option>
@@ -135,7 +136,23 @@
                                 </span>
                             </td>
                             <td class="dt-td" style="text-align:right">
-                                <div class="flex items-center justify-end gap-2">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <div class="flex flex-col gap-0.5">
+                                        <button @click="moveMenu(menu, 'up')" :disabled="moving"
+                                                class="w-6 h-6 rounded flex items-center justify-center transition-colors"
+                                                style="background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border);" title="Move up">
+                                            <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+                                            </svg>
+                                        </button>
+                                        <button @click="moveMenu(menu, 'down')" :disabled="moving"
+                                                class="w-6 h-6 rounded flex items-center justify-center transition-colors"
+                                                style="background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border);" title="Move down">
+                                            <svg style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <button @click="openEdit(menu)"
                                             class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                             style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">
@@ -577,10 +594,10 @@ function addMenuForm() {
 function menuTable() {
     return {
         search: '', page: 1, perPage: 15, perPageOpts: [10, 15, 25, 50],
-        statusFilter: 'all', sortBy: 'name_asc', categoryFilter: '',
+        statusFilter: 'all', sortBy: 'sort_order', categoryFilter: '',
         showAddModal: false, showEditModal: false,
         editMenu: { name: '', url: '', icon: '', category: '', is_active: true },
-        deleteTarget: null,
+        deleteTarget: null, moving: false,
         allMenus: @json($menus),
         categories: @json($categoryOptions),
 
@@ -609,9 +626,10 @@ function menuTable() {
             if (this.statusFilter === 'active')   rows = rows.filter(m => m.is_active);
             if (this.statusFilter === 'inactive') rows = rows.filter(m => !m.is_active);
             if (this.categoryFilter) rows = rows.filter(m => m.category === this.categoryFilter);
-            if (this.sortBy === 'name_asc')  rows = [...rows].sort((a,b) => a.name.localeCompare(b.name));
-            if (this.sortBy === 'name_desc') rows = [...rows].sort((a,b) => b.name.localeCompare(a.name));
-            if (this.sortBy === 'category')  rows = [...rows].sort((a,b) => a.category.localeCompare(b.category));
+            if (this.sortBy === 'sort_order') rows = [...rows].sort((a,b) => (a.sort_order??0) - (b.sort_order??0) || a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_asc')   rows = [...rows].sort((a,b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_desc')  rows = [...rows].sort((a,b) => b.name.localeCompare(a.name));
+            if (this.sortBy === 'category')   rows = [...rows].sort((a,b) => a.category.localeCompare(b.category));
             return rows;
         },
         get paginated() { return this.filtered.slice((this.page-1)*this.perPage, this.page*this.perPage); },
@@ -644,6 +662,31 @@ function menuTable() {
         },
 
         openEdit(m) { this.editMenu = {...m}; this.showEditModal = true; },
+
+        async moveMenu(menu, direction) {
+            if (this.moving) return;
+            this.moving = true;
+            try {
+                const r = await fetch('/menus/' + menu.id + '/move', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    },
+                    body: JSON.stringify({ direction }),
+                });
+                const j = await r.json();
+                if (j.success) {
+                    const m1 = this.allMenus.find(m => m.id === j.menu.id);
+                    const m2 = this.allMenus.find(m => m.id === j.adjacent.id);
+                    if (m1) m1.sort_order = j.menu.sort_order;
+                    if (m2) m2.sort_order = j.adjacent.sort_order;
+                }
+            } catch {}
+            this.moving = false;
+        },
+
         doDelete(m) {
             if (!confirm('Delete "'+m.name+'"?\nAll items inside will be deleted too.')) return;
             this.deleteTarget = m;

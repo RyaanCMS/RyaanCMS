@@ -232,6 +232,32 @@ class MenuController extends Controller
             ->toArray();
     }
 
+    public function move(Request $request, Menu $menu): \Illuminate\Http\JsonResponse
+    {
+        $this->checkOwner($menu);
+        $direction = $request->validate(['direction' => ['required', 'in:up,down']])['direction'];
+
+        $query = Menu::where('user_id', Auth::id())->where('category', $menu->category);
+
+        $adjacent = $direction === 'up'
+            ? $query->where('sort_order', '<', $menu->sort_order)->orderByDesc('sort_order')->first()
+            : $query->where('sort_order', '>', $menu->sort_order)->orderBy('sort_order')->first();
+
+        if (!$adjacent) {
+            return response()->json(['success' => false]);
+        }
+
+        [$menu->sort_order, $adjacent->sort_order] = [$adjacent->sort_order, $menu->sort_order];
+        $menu->save();
+        $adjacent->save();
+
+        return response()->json([
+            'success'  => true,
+            'menu'     => ['id' => $menu->id,     'sort_order' => $menu->sort_order],
+            'adjacent' => ['id' => $adjacent->id, 'sort_order' => $adjacent->sort_order],
+        ]);
+    }
+
     public function reorderItems(Request $request, Menu $menu)
     {
         $this->checkOwner($menu);
