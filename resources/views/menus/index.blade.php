@@ -8,7 +8,7 @@
     {{-- Header row --}}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:10px;">
-            <div style="display:flex;align-items:center;gap:8px;background:var(--surface-base);border:1.5px solid var(--border);border-radius:11px;padding:0 12px;width:260px;transition:border-color .13s;" onfocus-within-hack>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--surface-base);border:1.5px solid var(--border);border-radius:11px;padding:0 12px;width:260px;transition:border-color .13s;">
                 <svg style="width:14px;height:14px;color:var(--text-3);flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input x-model="search" @input="page=1" @keydown.escape="search='';page=1" type="text"
                        placeholder="Search menus…"
@@ -75,11 +75,11 @@
                             </td>
                             <td style="padding:12px 16px;">
                                 <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
-                                    <a :href="'/menus/' + menu.id"
-                                       style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:var(--brand);color:#fff;font-size:12px;font-weight:600;text-decoration:none;">
+                                    <button @click="openItems(menu)"
+                                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:var(--brand);color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;">
                                         <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-                                        Edit Items
-                                    </a>
+                                        Items
+                                    </button>
                                     <button @click="openEdit(menu)"
                                             style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);background:var(--surface-base);cursor:pointer;color:var(--text-3);"
                                             title="Rename / settings">
@@ -157,7 +157,7 @@
                             <input type="color" x-model="newCatColor" style="width:38px;height:33px;border-radius:7px;border:1px solid var(--border);cursor:pointer;padding:2px;">
                         </div>
                         <button type="button" @click="saveNewCategory()" :disabled="savingCat||!newCatName.trim()"
-                                style="width:100%;padding:7px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:var(--brand);border:none;cursor:pointer;opacity:1;"
+                                style="width:100%;padding:7px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:var(--brand);border:none;cursor:pointer;"
                                 :style="(savingCat||!newCatName.trim())?'opacity:.5':''"
                                 x-text="savingCat ? 'Saving…' : 'Add Category'"></button>
                         <p x-show="catError" x-text="catError" style="font-size:11.5px;color:#ef4444;margin:0;" x-cloak></p>
@@ -216,16 +216,166 @@
                     </div>
                     <span style="font-size:13px;font-weight:600;color:var(--text-2);" x-text="editMenu.is_active ? 'Active' : 'Inactive'"></span>
                 </label>
-                <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border);margin-top:4px;">
-                    <a :href="'/menus/' + (editMenu?.id ?? '')" style="font-size:12.5px;font-weight:600;color:var(--brand);text-decoration:none;">→ Edit Items</a>
-                    <div style="display:flex;gap:8px;">
-                        <button type="button" @click="showEditModal=false"
-                                style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);cursor:pointer;">Cancel</button>
-                        <button type="submit"
-                                style="padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;background:var(--brand);color:#fff;border:none;cursor:pointer;">Save</button>
-                    </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;border-top:1px solid var(--border);margin-top:4px;">
+                    <button type="button" @click="showEditModal=false"
+                            style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);cursor:pointer;">Cancel</button>
+                    <button type="submit"
+                            style="padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;background:var(--brand);color:#fff;border:none;cursor:pointer;">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- ── Items Modal ─────────────────────────────────────────────── --}}
+    <div x-show="showItemsModal" x-cloak
+         style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.45);"
+         @click.self="showItemsModal=false"
+         x-transition:enter="transition duration-200" x-transition:leave="transition duration-150">
+        <div style="width:100%;max-width:660px;max-height:90vh;border-radius:20px;overflow:hidden;background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;"
+             @click.stop
+             x-transition:enter="transition duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+
+            {{-- Modal header --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
+                <div>
+                    <h3 style="font-size:15px;font-weight:800;color:var(--text-1);margin:0;" x-text="itemsMenu ? 'Items: ' + itemsMenu.name : 'Menu Items'"></h3>
+                    <p style="font-size:11.5px;color:var(--text-3);margin:3px 0 0;" x-text="items.length + ' item' + (items.length===1?'':'s')"></p>
+                </div>
+                <button @click="showItemsModal=false" style="width:28px;height:28px;border-radius:8px;border:none;background:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;justify-content:center;"
+                        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background=''">
+                    <svg style="width:14px;height:14px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Add item form --}}
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface-raised);">
+                <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:130px;">
+                        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Label *</label>
+                        <input type="text" x-model="newItem.label" @keydown.enter.prevent="addItem()" placeholder="Link text"
+                               style="width:100%;border-radius:9px;padding:8px 11px;font-size:13px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;box-sizing:border-box;"
+                               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                    </div>
+                    <div style="flex:2;min-width:160px;">
+                        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">URL</label>
+                        <input type="text" x-model="newItem.url" @keydown.enter.prevent="addItem()" placeholder="https:// or /path"
+                               style="width:100%;border-radius:9px;padding:8px 11px;font-size:13px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;box-sizing:border-box;"
+                               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                    </div>
+                    <div style="width:120px;">
+                        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Parent</label>
+                        <select x-model="newItem.parent_id"
+                                style="width:100%;border-radius:9px;padding:8px 11px;font-size:12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;">
+                            <option value="">— None —</option>
+                            <template x-for="it in items" :key="it.id">
+                                <option :value="it.id" x-text="it.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;padding-bottom:2px;">
+                        <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;white-space:nowrap;">
+                            <input type="checkbox" x-model="newItem.newTab" style="width:13px;height:13px;accent-color:var(--brand);">
+                            New tab
+                        </label>
+                    </div>
+                    <button @click="addItem()" :disabled="savingItem||!newItem.label.trim()"
+                            style="padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;background:var(--brand);color:#fff;border:none;cursor:pointer;white-space:nowrap;"
+                            :style="(savingItem||!newItem.label.trim())?'opacity:.5':''">
+                        <span x-text="savingItem ? '…' : '+ Add'"></span>
+                    </button>
+                </div>
+                <p x-show="itemError" x-text="itemError" style="font-size:12px;color:#ef4444;margin:6px 0 0;" x-cloak></p>
+            </div>
+
+            {{-- Items list --}}
+            <div style="overflow-y:auto;flex:1;padding:8px 0;">
+                {{-- Loading --}}
+                <div x-show="loadingItems" style="padding:40px;text-align:center;color:var(--text-3);">
+                    <svg style="width:28px;height:28px;animation:spin 1s linear infinite;stroke:currentColor;opacity:.5;margin:0 auto" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </div>
+
+                {{-- Empty --}}
+                <div x-show="!loadingItems && items.length === 0" style="padding:40px;text-align:center;color:var(--text-3);">
+                    <p style="font-size:13px;font-weight:600;color:var(--text-2);margin:0 0 4px;">No items yet</p>
+                    <p style="font-size:12px;margin:0;">Use the form above to add your first link.</p>
+                </div>
+
+                {{-- Item rows --}}
+                <template x-for="item in items" :key="item.id">
+                    <div style="padding:0 16px;">
+                        {{-- View row --}}
+                        <div x-show="editItemId !== item.id"
+                             style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);"
+                             onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background=''">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                                    <span x-show="item.parent_label" style="font-size:11px;color:var(--text-3);" x-text="'↳ ' + item.parent_label"></span>
+                                    <span style="font-size:13px;font-weight:600;color:var(--text-1);" x-text="item.label"></span>
+                                    <span x-show="item.url" style="font-size:11.5px;color:var(--text-3);background:var(--surface-raised);padding:1px 7px;border-radius:5px;font-family:monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="item.url"></span>
+                                    <span x-show="item.target==='_blank'" style="font-size:10.5px;color:var(--brand);background:var(--brand-ring);padding:1px 6px;border-radius:5px;font-weight:700;">↗ new tab</span>
+                                    <span x-show="!item.is_active" style="font-size:10.5px;color:#94a3b8;background:#f1f5f9;padding:1px 6px;border-radius:5px;font-weight:700;">hidden</span>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                                <button @click="startEditItem(item)"
+                                        style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface-base);cursor:pointer;color:var(--text-3);">
+                                    <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button @click="deleteItem(item)"
+                                        style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1px solid #fecaca;background:#fef2f2;cursor:pointer;color:#ef4444;">
+                                    <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Edit row --}}
+                        <div x-show="editItemId === item.id" x-cloak
+                             style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;">
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:120px;">
+                                    <label style="font-size:11px;font-weight:700;color:var(--text-3);display:block;margin-bottom:3px;">Label *</label>
+                                    <input type="text" x-model="editItemData.label"
+                                           style="width:100%;border-radius:8px;padding:7px 10px;font-size:13px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;box-sizing:border-box;"
+                                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                                </div>
+                                <div style="flex:2;min-width:150px;">
+                                    <label style="font-size:11px;font-weight:700;color:var(--text-3);display:block;margin-bottom:3px;">URL</label>
+                                    <input type="text" x-model="editItemData.url"
+                                           style="width:100%;border-radius:8px;padding:7px 10px;font-size:13px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;box-sizing:border-box;"
+                                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                                </div>
+                                <div style="width:110px;">
+                                    <label style="font-size:11px;font-weight:700;color:var(--text-3);display:block;margin-bottom:3px;">Parent</label>
+                                    <select x-model="editItemData.parent_id"
+                                            style="width:100%;border-radius:8px;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);outline:none;">
+                                        <option value="">— None —</option>
+                                        <template x-for="it in items.filter(x => x.id !== item.id)" :key="it.id">
+                                            <option :value="it.id" x-text="it.label"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:16px;">
+                                <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                                    <input type="checkbox" :checked="editItemData.target==='_blank'" @change="editItemData.target=$event.target.checked?'_blank':'_self'" style="width:13px;height:13px;accent-color:var(--brand);">
+                                    New tab
+                                </label>
+                                <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                                    <input type="checkbox" x-model="editItemData.is_active" style="width:13px;height:13px;accent-color:var(--brand);">
+                                    Visible
+                                </label>
+                                <div style="flex:1"></div>
+                                <button @click="editItemId=null" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface-base);cursor:pointer;color:var(--text-2);">Cancel</button>
+                                <button @click="saveEditItem(item)" :disabled="savingEdit||!editItemData.label.trim()"
+                                        style="padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;background:var(--brand);color:#fff;border:none;cursor:pointer;"
+                                        :style="(savingEdit||!editItemData.label.trim())?'opacity:.5':''">
+                                    <span x-text="savingEdit ? 'Saving…' : 'Save'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 
@@ -236,6 +386,9 @@
 @endsection
 
 @push('scripts')
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 <script>
 function addMenuForm() {
     return {
@@ -273,6 +426,18 @@ function menuTable() {
         allMenus: @json($menus),
         categories: @json($categoryOptions),
 
+        // Items modal state
+        showItemsModal: false,
+        itemsMenu: null,
+        items: [],
+        loadingItems: false,
+        itemError: '',
+        newItem: { label: '', url: '', parent_id: '', newTab: false },
+        savingItem: false,
+        editItemId: null,
+        editItemData: { label: '', url: '', target: '_self', parent_id: '', is_active: true },
+        savingEdit: false,
+
         get filtered() {
             const q = this.search.trim().toLowerCase();
             if (!q) return this.allMenus;
@@ -296,6 +461,99 @@ function menuTable() {
             if (!confirm('Delete "'+m.name+'"?\nAll items inside will be deleted too.')) return;
             this.deleteTarget = m;
             this.$nextTick(() => this.$refs.deleteForm.submit());
+        },
+
+        // Items modal
+        async openItems(menu) {
+            this.itemsMenu = menu;
+            this.items = [];
+            this.editItemId = null;
+            this.itemError = '';
+            this.newItem = { label: '', url: '', parent_id: '', newTab: false };
+            this.showItemsModal = true;
+            this.loadingItems = true;
+            try {
+                const r = await fetch('/menus/'+menu.id+'/items-data', {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
+                });
+                const j = await r.json();
+                if (j.success) this.items = j.items;
+            } catch {}
+            this.loadingItems = false;
+        },
+
+        async addItem() {
+            if (!this.newItem.label.trim() || this.savingItem) return;
+            this.savingItem = true; this.itemError = '';
+            try {
+                const body = {
+                    label: this.newItem.label.trim(),
+                    url: this.newItem.url.trim() || null,
+                    target: this.newItem.newTab ? '_blank' : '_self',
+                    parent_id: this.newItem.parent_id || null,
+                };
+                const r = await fetch('/menus/'+this.itemsMenu.id+'/items', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify(body),
+                });
+                const j = await r.json();
+                if (j.success) {
+                    this.items = j.items;
+                    this.newItem = { label: '', url: '', parent_id: '', newTab: false };
+                    this._syncCount(this.itemsMenu.id, j.items.length);
+                } else {
+                    this.itemError = j.message || 'Could not add item.';
+                }
+            } catch { this.itemError = 'Network error.'; }
+            this.savingItem = false;
+        },
+
+        startEditItem(item) {
+            this.editItemId = item.id;
+            this.editItemData = { label: item.label, url: item.url || '', target: item.target || '_self', parent_id: item.parent_id || '', is_active: item.is_active };
+        },
+
+        async saveEditItem(item) {
+            if (!this.editItemData.label.trim() || this.savingEdit) return;
+            this.savingEdit = true;
+            try {
+                const body = {
+                    label: this.editItemData.label.trim(),
+                    url: this.editItemData.url.trim() || null,
+                    target: this.editItemData.target,
+                    parent_id: this.editItemData.parent_id || null,
+                    is_active: this.editItemData.is_active ? 1 : 0,
+                };
+                const r = await fetch('/menus/'+this.itemsMenu.id+'/items/'+item.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify(body),
+                });
+                const j = await r.json();
+                if (j.success) { this.items = j.items; this.editItemId = null; }
+            } catch {}
+            this.savingEdit = false;
+        },
+
+        async deleteItem(item) {
+            if (!confirm('Delete "'+item.label+'"?')) return;
+            try {
+                const r = await fetch('/menus/'+this.itemsMenu.id+'/items/'+item.id, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                });
+                const j = await r.json();
+                if (j.success) {
+                    this.items = j.items;
+                    this._syncCount(this.itemsMenu.id, j.items.length);
+                }
+            } catch {}
+        },
+
+        _syncCount(menuId, count) {
+            const m = this.allMenus.find(x => x.id === menuId);
+            if (m) m.all_items_count = count;
         },
     };
 }
