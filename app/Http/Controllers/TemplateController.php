@@ -235,6 +235,79 @@ class TemplateController extends Controller
         return response()->download($tmpPath, $zipName)->deleteFileAfterSend(true);
     }
 
+    // ── Auth: Templates management page (WordPress-like) ─────────────────────
+    public function manage()
+    {
+        $user      = Auth::user();
+        $templates = $this->registry->all();
+
+        // Resolve the public-site project
+        $publicProjectId = (int) Setting::get('system.public_site_project_id', 0);
+        $siteProject     = $publicProjectId ? Project::find($publicProjectId) : null;
+
+        $activeKey    = null;
+        $statusMap    = []; // key => 'active'|'installed'|'available'
+
+        if ($siteProject && $siteProject->user_id === $user->id) {
+            $modules = ProjectModule::where('project_id', $siteProject->id)
+                ->where('module_key', 'like', 'template.%')
+                ->get()->keyBy('module_key');
+
+            foreach ($templates as $key => $tpl) {
+                $mod = $modules->get($key);
+                $statusMap[$key] = $mod ? $mod->status : 'available';
+                if ($mod && $mod->status === 'active') {
+                    $activeKey = $key;
+                }
+            }
+        } else {
+            foreach ($templates as $key => $tpl) {
+                $statusMap[$key] = 'available';
+            }
+        }
+
+        $userProjects = $user->projects()->orderBy('name')->get(['id', 'name']);
+
+        return view('templates.manage', compact('templates', 'siteProject', 'activeKey', 'statusMap', 'userProjects'));
+    }
+
+    // ── Auth: activate template on the public-site project ────────────────────
+    public function activateForSite(Request $request, string $key)
+    {
+        $template = $this->registry->get($key);
+        if (!$template) {
+            return response()->json(['success' => false, 'message' => 'Template not found.'], 404);
+        }
+
+        $publicProjectId = (int) Setting::get('system.public_site_project_id', 0);
+        if (!$publicProjectId) {
+            return response()->json(['success' => false, 'message' => 'No public site project configured. Go to Settings → System Config to set one.'], 422);
+        }
+
+        $project = Project::find($publicProjectId);
+        if (!$project || $project->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Site project not found or access denied.'], 403);
+        }
+
+        return $this->activate($request, $project, $key);
+    }
+
+    // ── Auth: deactivate template on the public-site project ─────────────────
+    public function deactivateForSite(Request $request, string $key)
+    {
+        $publicProjectId = (int) Setting::get('system.public_site_project_id', 0);
+        if (!$publicProjectId) {
+            return response()->json(['success' => false, 'message' => 'No public site project configured.'], 422);
+        }
+
+        $project = Project::find($publicProjectId);
+        if (!$project || $project->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Access denied.'], 403);
+        }
+
+        return $this->deactivate($request, $project, $key);
+    }
+
     private function publishProjectOnRootDomain(Project $project): void
     {
         Setting::set('system.public_site_project_id', $project->id, 'integer');

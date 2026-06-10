@@ -211,6 +211,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/{item}/install',                     [MarketplaceController::class, 'install'])->name('install');
     });
 
+    // Templates management (WordPress-like theme manager)
+    Route::get('/templates',                       [\App\Http\Controllers\TemplateController::class, 'manage'])->name('templates.manage');
+    Route::post('/templates/{key}/activate-site',  [\App\Http\Controllers\TemplateController::class, 'activateForSite'])->name('templates.activate-site');
+    Route::post('/templates/{key}/deactivate-site',[\App\Http\Controllers\TemplateController::class, 'deactivateForSite'])->name('templates.deactivate-site');
+
     // Template install / activate / uninstall per project
     Route::prefix('projects/{project}/templates')->name('template.')->group(function () {
         Route::post('/{key}/install',   [TemplateController::class, 'install'])->name('install');
