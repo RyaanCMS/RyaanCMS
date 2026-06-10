@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\MarketplaceInstallation;
 use App\Models\Project;
@@ -10,25 +11,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
 {
     public function index()
     {
+        $menuCategories = $this->menuCategories();
+        $categoryOptions = $this->categoryOptions($menuCategories);
         $menus = Menu::where('user_id', Auth::id())->withCount('allItems')->latest()->get();
-        return view('menus.index', compact('menus'));
+        return view('menus.index', compact('menus', 'menuCategories', 'categoryOptions'));
     }
 
     public function create()
     {
-        return view('menus.create');
+        $menuCategories = $this->menuCategories();
+        return view('menus.create', compact('menuCategories'));
     }
 
     public function store(Request $request)
     {
+        $this->menuCategories();
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
-            'category' => ['required', 'in:header,footer,sidebar,custom,admin_sidebar,user_topbar'],
+            'category' => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
         ]);
 
         $data['user_id'] = Auth::id();
@@ -59,6 +66,7 @@ class MenuController extends Controller
             ->orderBy('order')
             ->orderBy('label')
             ->get();
+        $menuCategories = $this->menuCategories();
 
         // Build categorised quick-link list for the dropdown
         $siteLinks = [];
@@ -105,15 +113,17 @@ class MenuController extends Controller
             ])->toArray();
         }
 
-        return view('menus.edit', compact('menu', 'installations', 'allItems', 'tableItems', 'siteLinks'));
+        return view('menus.edit', compact('menu', 'installations', 'allItems', 'tableItems', 'siteLinks', 'menuCategories'));
     }
 
     public function update(Request $request, Menu $menu)
     {
         $this->checkOwner($menu);
+        $this->menuCategories();
+
         $data = $request->validate([
             'name'      => ['required', 'string', 'max:100'],
-            'category'  => ['required', 'in:header,footer,sidebar,custom,admin_sidebar,user_topbar'],
+            'category'  => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
             'is_active' => ['boolean'],
         ]);
         $menu->update($data);
@@ -202,6 +212,31 @@ class MenuController extends Controller
     private function checkOwner(Menu $menu): void
     {
         if ($menu->user_id !== Auth::id()) abort(403);
+    }
+
+    private function menuCategories()
+    {
+        MenuCategory::ensureDefaultsForUser(Auth::id());
+
+        return MenuCategory::where('user_id', Auth::id())
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function categoryOptions($menuCategories): array
+    {
+        return $menuCategories
+            ->map(fn (MenuCategory $category) => [
+                'slug' => $category->slug,
+                'name' => $category->name,
+                'description' => $category->description,
+                'color' => $category->color,
+                'is_active' => $category->is_active,
+                'is_system' => $category->is_system,
+            ])
+            ->values()
+            ->toArray();
     }
 
     private function checkItemBelongsToMenu(Menu $menu, MenuItem $item): void

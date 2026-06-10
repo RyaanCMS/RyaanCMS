@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TemplateController;
@@ -145,6 +146,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/updates/check',       [UpdateController::class, 'check'])->name('updates.check');
         Route::post('/updates/apply',       [UpdateController::class, 'apply'])->name('updates.apply');
         Route::post('/updates/plugin/{key}', [UpdateController::class, 'applyPlugin'])->name('updates.plugin');
+    });
+
+    // Menu Category Management
+    Route::prefix('menu-categories')->name('menu-categories.')->group(function () {
+        Route::get('/',                         [MenuCategoryController::class, 'index'])->name('index');
+        Route::post('/',                        [MenuCategoryController::class, 'store'])->name('store');
+        Route::put('/{menuCategory}',           [MenuCategoryController::class, 'update'])->name('update');
+        Route::delete('/{menuCategory}',        [MenuCategoryController::class, 'destroy'])->name('destroy');
     });
 
     // Menu Management
