@@ -19,6 +19,7 @@
     $showDashMenu      = \App\Models\Setting::get('system.show_dashboard_menu',    true,  $userId);
     $showDashSidebar   = \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
     $sidebarAutoHide   = \App\Models\Setting::get('system.sidebar_auto_hide',      false, $userId);
+    $aiBuilderDocs     = \App\Models\Setting::get('ai_builder.auto_docs',          false, $userId);
 @endphp
 
 @push('head')
@@ -158,6 +159,7 @@
         sysShowMenu: {{ $showDashMenu ? 'true' : 'false' }},
         sysShowSidebar: {{ $showDashSidebar ? 'true' : 'false' }},
         sysAutoHideSidebar: {{ $sidebarAutoHide ? 'true' : 'false' }},
+        sysAiBuilderDocs: {{ $aiBuilderDocs ? 'true' : 'false' }},
         sysSaving: false,
         sysSaved: false,
         init() {
@@ -177,7 +179,7 @@
             await fetch('{{ route('settings.system-config') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar, sidebar_auto_hide: this.sysAutoHideSidebar })
+                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar, sidebar_auto_hide: this.sysAutoHideSidebar, ai_builder_auto_docs: this.sysAiBuilderDocs })
             });
             this.sysSaving = false;
             this.sysSaved = true;
@@ -335,16 +337,30 @@
                     </div>
                 </div>
                 <div class="scard-body">
-                    {{-- Avatar row --}}
+                    {{-- Avatar row with upload --}}
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid #f1f5f9;">
-                        <img src="{{ auth()->user()->avatar_url }}"
-                             style="width:56px;height:56px;border-radius:14px;border:2px solid #e2e8f0;" alt="Avatar">
+                        <form method="POST" action="{{ route('settings.profile.avatar') }}" enctype="multipart/form-data"
+                              x-data="{ previewUrl: '{{ auth()->user()->avatar_url }}' }"
+                              style="position:relative;flex-shrink:0;">
+                            @csrf
+                            <div style="position:relative;cursor:pointer;" @click="$refs.avatarInput.click()">
+                                <img :src="previewUrl"
+                                     style="width:64px;height:64px;border-radius:14px;border:2px solid #e2e8f0;display:block;" alt="Avatar">
+                                <div style="position:absolute;inset:0;border-radius:14px;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;"
+                                     @mouseenter="$el.style.opacity='1'" @mouseleave="$el.style.opacity='0'">
+                                    <svg style="width:18px;height:18px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                            </div>
+                            <input type="file" name="avatar" x-ref="avatarInput" accept="image/*" style="display:none;"
+                                   @change="previewUrl = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
+                        </form>
                         <div>
                             <div style="font-size:14px;font-weight:700;color:#0f172a;">{{ auth()->user()->name }}</div>
                             <div style="font-size:12px;color:#94a3b8;margin-top:2px;">{{ auth()->user()->email }}</div>
                             <span style="display:inline-block;margin-top:5px;padding:2px 10px;border-radius:99px;font-size:10px;font-weight:700;background:var(--brand-light,#eef2ff);color:var(--brand);">
                                 {{ ucfirst(auth()->user()->role) }}
                             </span>
+                            <div style="margin-top:4px;font-size:10.5px;color:#94a3b8;">Click avatar to change photo</div>
                         </div>
                     </div>
                     <form method="POST" action="{{ route('settings.profile') }}" style="display:flex;flex-direction:column;gap:16px;">
@@ -475,6 +491,7 @@
                         <div class="dt-per-page">
                             <span>Sort</span>
                             <select x-model="sortBy" @change="page = 1">
+                                <option value="active_first">Active & Connected First</option>
                                 <option value="name_asc">Name A to Z</option>
                                 <option value="name_desc">Name Z to A</option>
                                 <option value="connected">Connected First</option>
@@ -508,7 +525,8 @@
                                 <th class="dt-th">Category</th>
                                 <th class="dt-th">Model</th>
                                 <th class="dt-th">Keys</th>
-                                <th class="dt-th">Status</th>
+                                <th class="dt-th">Connection</th>
+                                <th class="dt-th">Active</th>
                                 <th class="dt-th">Updated</th>
                                 <th class="dt-th" style="text-align:right">Actions</th>
                             </tr>
@@ -541,7 +559,7 @@
                                         <p class="text-[11px] mt-0.5" style="color:var(--text-3)" x-text="provider.model_count + ' models'"></p>
                                     </td>
                                     <td class="dt-td">
-                                        <div x-show="provider.configured && provider.key_count > 0" class="flex items-center gap-1">
+                                        <div x-show="provider.has_key && provider.key_count > 0" class="flex items-center gap-1">
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
                                                   style="background:color-mix(in srgb,var(--brand) 10%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent)">
                                                 <svg style="width:9px;height:9px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -550,14 +568,33 @@
                                                 <span x-text="provider.key_count"></span>
                                             </span>
                                         </div>
-                                        <span x-show="!provider.configured || provider.key_count === 0" style="color:var(--text-3);font-size:12px;">—</span>
+                                        <span x-show="!provider.has_key || provider.key_count === 0" style="color:var(--text-3);font-size:12px;">—</span>
                                     </td>
+                                    {{-- Connection status --}}
                                     <td class="dt-td">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                                              :style="provider.configured ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'">
-                                            <span class="w-1.5 h-1.5 rounded-full" :class="provider.configured ? 'bg-green-500' : 'bg-gray-400'"></span>
-                                            <span x-text="provider.configured ? (provider.is_default ? 'Default' : 'Connected') : 'Not configured'"></span>
+                                              :style="provider.has_key ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="provider.has_key ? 'bg-green-500' : 'bg-gray-400'"></span>
+                                            <span x-text="provider.has_key ? (provider.is_default ? 'Default' : 'Connected') : 'Not configured'"></span>
                                         </span>
+                                    </td>
+                                    {{-- Active/Inactive toggle --}}
+                                    <td class="dt-td">
+                                        <template x-if="provider.has_key && provider.provider_id">
+                                            <button @click="toggleProviderActive(provider)"
+                                                    :title="provider.is_active ? 'Click to deactivate' : 'Click to activate'"
+                                                    :disabled="togglingActive === provider.provider"
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border"
+                                                    :style="provider.is_active
+                                                        ? 'background:#f0fdf4;color:#15803d;border-color:#bbf7d0;'
+                                                        : 'background:#fef2f2;color:#ef4444;border-color:#fecaca;'"
+                                                    style="border:1px solid;">
+                                                <span class="w-1.5 h-1.5 rounded-full"
+                                                      :class="provider.is_active ? 'bg-green-500' : 'bg-red-400'"></span>
+                                                <span x-text="togglingActive === provider.provider ? '...' : (provider.is_active ? 'Active' : 'Inactive')"></span>
+                                            </button>
+                                        </template>
+                                        <span x-show="!provider.has_key || !provider.provider_id" style="color:var(--text-3);font-size:12px;">—</span>
                                     </td>
                                     <td class="dt-td" style="color:var(--text-3)" x-text="fmtDate(provider.updated_at)"></td>
                                     <td class="dt-td" style="text-align:right">
@@ -574,7 +611,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </button>
-                                            <button x-show="provider.configured" x-cloak @click="removeProvider(provider)"
+                                            <button x-show="provider.has_key" x-cloak @click="removeProvider(provider)"
                                                     class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                                     style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;" title="Delete">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -869,10 +906,20 @@
                         <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Brand Identity</div>
                         <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Colors, typography, and visual style</div>
                     </div>
-                    <button type="submit" class="sbtn-primary" style="margin-left:auto;padding:7px 18px;font-size:12.5px;">
-                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Save
-                    </button>
+                    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">
+                        @if(auth()->user()->isAdmin())
+                        <button type="button" onclick="saveBrandingGlobal(this)"
+                                style="display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:10px;font-size:12px;font-weight:600;background:#faf5ff;color:#7c3aed;border:1.5px solid #ddd6fe;cursor:pointer;transition:all .15s;"
+                                title="Set this as the default branding for all users (admin only)">
+                            <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+                            Site Default
+                        </button>
+                        @endif
+                        <button type="submit" class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;">
+                            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Save
+                        </button>
+                    </div>
                 </div>
                 <div class="scard-body" style="display:flex;flex-direction:column;gap:24px;">
 
@@ -1142,6 +1189,55 @@
                 </div>
             </div>
 
+            {{-- AI Builder Settings --}}
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#eff6ff;">
+                        <svg style="width:15px;height:15px;stroke:#3b82f6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">AI Builder Preferences</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Control how the AI Builder generates your applications</div>
+                    </div>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:0;">
+
+                    {{-- Auto HTML Documentation --}}
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);gap:16px;">
+                        <div style="flex:1;">
+                            <div style="font-size:13.5px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:8px;">
+                                Auto HTML Documentation
+                                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;">NEW</span>
+                            </div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:3px;line-height:1.5;">
+                                Automatically generate a <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:4px;">docs/index.html</code> documentation file with every AI build — includes component catalogue, API endpoints, data models, and usage guides.
+                            </div>
+                        </div>
+                        <button type="button"
+                                @click="sysAiBuilderDocs = !sysAiBuilderDocs; saveSystemConfig()"
+                                :aria-checked="sysAiBuilderDocs" role="switch"
+                                class="sys-toggle-btn"
+                                :class="sysAiBuilderDocs ? 'sys-toggle-on' : 'sys-toggle-off'"
+                                style="flex-shrink:0;margin-top:2px;">
+                            <span class="sys-toggle-thumb" :class="sysAiBuilderDocs ? 'sys-toggle-thumb-on' : ''"></span>
+                        </button>
+                    </div>
+
+                    {{-- Info tip --}}
+                    <div style="padding:14px 0 0;">
+                        <div style="padding:11px 14px;border-radius:10px;background:var(--hover-bg);border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+                            <svg style="width:14px;height:14px;stroke:#94a3b8;flex-shrink:0;margin-top:1px;" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">
+                                When enabled, each AI generation will produce a living HTML documentation page alongside your code. The doc updates automatically on every build — no manual effort needed.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
 
         {{-- â”€â”€â”€â”€ NOTIFICATIONS â”€â”€â”€â”€ --}}
@@ -1219,42 +1315,241 @@
             </div>
         </div>
 
-        {{-- â”€â”€â”€â”€ TEAM â”€â”€â”€â”€ --}}
-        <div x-show="tab === 'team'" class="st-panel" x-cloak>
-            <div class="scard">
-                <div class="scard-hd">
-                    <div class="scard-hd-icon" style="background:#ecfdf5;">
-                        <svg style="width:15px;height:15px;stroke:#10b981" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
+        {{-- ──── TEAM ──── --}}
+        <div x-show=”tab === 'team'” class=”st-panel” x-cloak
+             x-data=”teamManager()” x-init=”init()”>
+
+            {{-- Header --}}
+            <div class=”dt-wrap”>
+                <div class=”dt-head”>
                     <div>
-                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Team Members</div>
-                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Invite colleagues and manage access</div>
+                        <h2 class=”dt-title”>Team Members</h2>
+                        <p class=”dt-subtitle”>Manage who has access to this workspace and their roles.</p>
+                    </div>
+                    @if(auth()->user()->isAdmin())
+                    <button @click=”showAddModal = true”
+                            class=”sbtn-primary” style=”flex-shrink:0;”>
+                        <svg style=”width:13px;height:13px;stroke:currentColor” fill=”none” viewBox=”0 0 24 24”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M12 4v16m8-8H4”/></svg>
+                        Add Member
+                    </button>
+                    @endif
+                </div>
+
+                {{-- Current user row --}}
+                <div style=”padding:12px 18px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,transparent);”>
+                    <div style=”display:flex;align-items:center;gap:12px;”>
+                        <img src=”{{ auth()->user()->avatar_url }}”
+                             style=”width:38px;height:38px;border-radius:10px;border:2px solid var(--brand-ring);flex-shrink:0;” alt=””>
+                        <div style=”flex:1;min-width:0;”>
+                            <div style=”font-size:13px;font-weight:700;color:var(--text-1);”>
+                                {{ auth()->user()->name }}
+                                <span style=”font-size:10px;font-weight:500;color:var(--text-3);”>(you)</span>
+                            </div>
+                            <div style=”font-size:11px;color:var(--text-3);margin-top:1px;”>{{ auth()->user()->email }}</div>
+                        </div>
+                        <span style=”font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);”>
+                            {{ ucfirst(auth()->user()->role) }}
+                        </span>
+                        <span style=”font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;”>Active</span>
                     </div>
                 </div>
-                <div class="scard-body">
-                    {{-- Current user --}}
-                    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:11px;background:var(--surface-raised);border:1px solid var(--border);margin-bottom:14px;">
-                        <img src="{{ auth()->user()->avatar_url }}" style="width:38px;height:38px;border-radius:10px;flex-shrink:0;" alt="">
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ auth()->user()->name }} <span style="font-size:10px;color:var(--text-3);">(you)</span></div>
-                            <div style="font-size:11px;color:var(--text-3);">{{ auth()->user()->email }}</div>
-                        </div>
-                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--brand) 10%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">{{ ucfirst(auth()->user()->role) }}</span>
-                    </div>
-                    {{-- Invite --}}
-                    <div style="border-radius:12px;padding:20px;border:2px dashed var(--border);text-align:center;">
-                        <div style="width:44px;height:44px;border-radius:12px;background:var(--surface-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-                            <svg style="width:20px;height:20px;stroke:var(--text-3)" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                        </div>
-                        <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:5px;">Invite Team Members</div>
-                        <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Multi-user team support is coming soon. Stay tuned!</div>
-                        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 14px;border-radius:99px;background:var(--surface-overlay);color:var(--text-3);border:1px solid var(--border);">
-                            <svg style="width:11px;height:11px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Coming Soon
-                        </span>
-                    </div>
+
+                {{-- Team members table --}}
+                <div class=”overflow-x-auto”>
+                    <table class=”dt-table”>
+                        <thead>
+                            <tr>
+                                <th class=”dt-th”>Member</th>
+                                <th class=”dt-th”>Role</th>
+                                <th class=”dt-th”>Status</th>
+                                <th class=”dt-th”>Joined</th>
+                                @if(auth()->user()->isAdmin())
+                                <th class=”dt-th” style=”text-align:right”>Actions</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if=”loading”>
+                                <tr><td colspan=”5” class=”dt-empty”>
+                                    <svg style=”width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite” fill=”none” viewBox=”0 0 24 24”><circle cx=”12” cy=”12” r=”10” stroke=”currentColor” stroke-width=”3” stroke-dasharray=”60” stroke-dashoffset=”20”/></svg>
+                                    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                                    Loading team...
+                                </td></tr>
+                            </template>
+                            <template x-if=”!loading && members.length === 0”>
+                                <tr><td colspan=”5” class=”dt-empty”>
+                                    <svg class=”w-10 h-10 mb-3 mx-auto” style=”color:var(--border)” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
+                                        <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”1.5” d=”M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z”/>
+                                    </svg>
+                                    <p class=”text-sm font-medium”>No other team members yet</p>
+                                    @if(auth()->user()->isAdmin())
+                                    <p class=”text-xs mt-1”>Click “Add Member” to invite someone</p>
+                                    @endif
+                                </td></tr>
+                            </template>
+                            <template x-for=”m in members” :key=”m.id”>
+                                <tr class=”dt-tr”>
+                                    <td class=”dt-td”>
+                                        <div style=”display:flex;align-items:center;gap:10px;”>
+                                            <img :src=”m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff'”
+                                                 style=”width:34px;height:34px;border-radius:9px;flex-shrink:0;” alt=””>
+                                            <div>
+                                                <div style=”font-size:13px;font-weight:600;color:var(--text-1);” x-text=”m.name”></div>
+                                                <div style=”font-size:11px;color:var(--text-3);” x-text=”m.email”></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class=”dt-td”>
+                                        @if(auth()->user()->isAdmin())
+                                        <select @change=”updateRole(m, $event.target.value)”
+                                                style=”padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;color:var(--text-1);outline:none;cursor:pointer;transition:border-color .13s;”
+                                                :value=”m.role”>
+                                            <option value=”admin”>Admin</option>
+                                            <option value=”developer”>Developer</option>
+                                            <option value=”user”>User</option>
+                                        </select>
+                                        @else
+                                        <span style=”font-size:12px;color:var(--text-2);font-weight:600;” x-text=”m.role.charAt(0).toUpperCase() + m.role.slice(1)”></span>
+                                        @endif
+                                    </td>
+                                    <td class=”dt-td”>
+                                        <span class=”inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold”
+                                              :style=”m.is_active
+                                                ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
+                                                : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'”>
+                                            <span class=”w-1.5 h-1.5 rounded-full” :class=”m.is_active ? 'bg-green-500' : 'bg-red-400'”></span>
+                                            <span x-text=”m.is_active ? 'Active' : 'Inactive'”></span>
+                                        </span>
+                                    </td>
+                                    <td class=”dt-td” style=”color:var(--text-3);font-size:12px;” x-text=”fmtDate(m.created_at)”></td>
+                                    @if(auth()->user()->isAdmin())
+                                    <td class=”dt-td” style=”text-align:right”>
+                                        <div style=”display:flex;align-items:center;justify-content:flex-end;gap:6px;”>
+                                            <button @click=”toggleStatus(m)”
+                                                    :title=”m.is_active ? 'Deactivate' : 'Activate'”
+                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
+                                                    :style=”m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca;' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'”>
+                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
+                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636”/>
+                                                </svg>
+                                            </button>
+                                            <button @click=”openEdit(m)”
+                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
+                                                    style=”background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;” title=”Edit”>
+                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
+                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z”/>
+                                                </svg>
+                                            </button>
+                                            <button @click=”removeMember(m)”
+                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
+                                                    style=”background:#fef2f2;color:#ef4444;border:1px solid #fecaca;” title=”Remove”>
+                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
+                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16”/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    @endif
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+            {{-- Add Member Modal --}}
+            @if(auth()->user()->isAdmin())
+            <div x-show=”showAddModal” x-transition class=”fixed inset-0 z-50 flex items-center justify-center p-4” style=”background:rgba(0,0,0,.45);” @click.self=”showAddModal=false” x-cloak>
+                <div class=”w-full max-w-md rounded-2xl overflow-hidden” style=”background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);” @click.stop>
+                    <div class=”flex items-center justify-between px-6 py-4” style=”border-bottom:1px solid var(--border);”>
+                        <div>
+                            <h3 class=”font-bold text-base” style=”color:var(--text-1)”>Add Team Member</h3>
+                            <p class=”text-xs mt-0.5” style=”color:var(--text-3)”>Create a new account and add them to the team</p>
+                        </div>
+                        <button @click=”showAddModal=false” class=”w-8 h-8 rounded-lg flex items-center justify-center” style=”color:var(--text-3);”>
+                            <svg class=”w-4 h-4” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M6 18L18 6M6 6l12 12”/></svg>
+                        </button>
+                    </div>
+                    <form @submit.prevent=”addMember()” class=”p-6 space-y-4”>
+                        <div style=”display:grid;grid-template-columns:1fr 1fr;gap:12px;”>
+                            <div>
+                                <label class=”slabel”>Full Name *</label>
+                                <input type=”text” x-model=”addForm.name” required
+                                       class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
+                                       placeholder=”Jane Smith”>
+                            </div>
+                            <div>
+                                <label class=”slabel”>Role *</label>
+                                <select x-model=”addForm.role”
+                                        style=”width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;”>
+                                    <option value=”user”>User</option>
+                                    <option value=”developer”>Developer</option>
+                                    <option value=”admin”>Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class=”slabel”>Email Address *</label>
+                            <input type=”email” x-model=”addForm.email” required
+                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
+                                   placeholder=”jane@example.com”>
+                        </div>
+                        <div>
+                            <label class=”slabel”>Password *</label>
+                            <input type=”password” x-model=”addForm.password” required minlength=”8”
+                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
+                                   placeholder=”Min 8 characters”>
+                        </div>
+                        <div x-show=”addError” x-cloak
+                             style=”padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12.5px;” x-text=”addError”></div>
+                        <div class=”flex items-center justify-end gap-3 pt-2” style=”border-top:1px solid var(--border);”>
+                            <button type=”button” @click=”showAddModal=false” class=”px-4 py-2 rounded-xl text-sm font-medium” style=”color:var(--text-2);border:1px solid var(--border);”>Cancel</button>
+                            <button type=”submit” :disabled=”addSaving”
+                                    class=”px-5 py-2 rounded-xl text-sm font-semibold text-white”
+                                    style=”background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);”>
+                                <span x-text=”addSaving ? 'Adding...' : 'Add Member'”></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Edit Member Modal --}}
+            <div x-show=”showEditModal && editTarget” x-transition class=”fixed inset-0 z-50 flex items-center justify-center p-4” style=”background:rgba(0,0,0,.45);” @click.self=”showEditModal=false” x-cloak>
+                <div class=”w-full max-w-sm rounded-2xl overflow-hidden” style=”background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);” @click.stop>
+                    <div class=”flex items-center justify-between px-6 py-4” style=”border-bottom:1px solid var(--border);”>
+                        <h3 class=”font-bold text-base” style=”color:var(--text-1)” x-text=”'Edit — ' + (editTarget?.name || '')”></h3>
+                        <button @click=”showEditModal=false” class=”w-8 h-8 rounded-lg flex items-center justify-center” style=”color:var(--text-3);”>
+                            <svg class=”w-4 h-4” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M6 18L18 6M6 6l12 12”/></svg>
+                        </button>
+                    </div>
+                    <form @submit.prevent=”saveEdit()” class=”p-6 space-y-4”>
+                        <div>
+                            <label class=”slabel”>Full Name</label>
+                            <input type=”text” x-model=”editForm.name”
+                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”>
+                        </div>
+                        <div>
+                            <label class=”slabel”>Role</label>
+                            <select x-model=”editForm.role”
+                                    style=”width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;”>
+                                <option value=”user”>User</option>
+                                <option value=”developer”>Developer</option>
+                                <option value=”admin”>Admin</option>
+                            </select>
+                        </div>
+                        <div class=”flex items-center justify-end gap-3 pt-2” style=”border-top:1px solid var(--border);”>
+                            <button type=”button” @click=”showEditModal=false” class=”px-4 py-2 rounded-xl text-sm font-medium” style=”color:var(--text-2);border:1px solid var(--border);”>Cancel</button>
+                            <button type=”submit” :disabled=”editSaving”
+                                    class=”px-5 py-2 rounded-xl text-sm font-semibold text-white”
+                                    style=”background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);”>
+                                <span x-text=”editSaving ? 'Saving...' : 'Save Changes'”></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- â”€â”€â”€â”€ DANGER ZONE â”€â”€â”€â”€ --}}
@@ -1353,6 +1648,37 @@
 
 @push('scripts')
 <script>
+async function saveBrandingGlobal(btn) {
+    const form = btn.closest('form');
+    if (!form) return;
+    const data = new FormData(form);
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg style="width:12px;height:12px;stroke:currentColor;animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/></svg> Saving...';
+    try {
+        const res = await fetch('{{ route("settings.branding.global") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: data,
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok) {
+            btn.innerHTML = '<svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Saved!';
+            window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Site default branding updated.' } }));
+        } else {
+            window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: json.message || 'Failed to save.' } }));
+            btn.innerHTML = originalText;
+        }
+    } catch {
+        btn.innerHTML = originalText;
+    } finally {
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = originalText; }, 3000);
+    }
+}
+
 function aiProviderRowsPayload() {
     const source = document.getElementById('ai-provider-rows');
     if (!source) return [];
@@ -1374,12 +1700,13 @@ function aiProviderTable(providerRows) {
         allProviders: providerRows || [],
         statusFilter: 'all',
         categoryFilter: '',
-        sortBy: 'name_asc',
+        sortBy: 'active_first',
         page: 1,
         showModal: false,
         editing: null,
         saving: false,
         testing: null,
+        togglingActive: null,
         result: null,
         form: { api_key: '', api_url: '', default_model: '', set_default: false },
 
@@ -1401,8 +1728,8 @@ function aiProviderTable(providerRows) {
         get filtered() {
             let list = this.allProviders;
 
-            if (this.statusFilter === 'connected') list = list.filter(p => p.configured);
-            if (this.statusFilter === 'missing') list = list.filter(p => !p.configured);
+            if (this.statusFilter === 'connected') list = list.filter(p => p.has_key);
+            if (this.statusFilter === 'missing')   list = list.filter(p => !p.has_key);
             if (this.categoryFilter) list = list.filter(p => p.category === this.categoryFilter);
 
             const q = this.search.trim().toLowerCase();
@@ -1417,10 +1744,15 @@ function aiProviderTable(providerRows) {
             }
 
             list = [...list];
-            if (this.sortBy === 'name_asc') list.sort((a, b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'active_first') list.sort((a, b) =>
+                (Number(b.configured) - Number(a.configured)) ||
+                (Number(b.has_key) - Number(a.has_key)) ||
+                a.name.localeCompare(b.name)
+            );
+            if (this.sortBy === 'name_asc')  list.sort((a, b) => a.name.localeCompare(b.name));
             if (this.sortBy === 'name_desc') list.sort((a, b) => b.name.localeCompare(a.name));
-            if (this.sortBy === 'connected') list.sort((a, b) => Number(b.configured) - Number(a.configured) || a.name.localeCompare(b.name));
-            if (this.sortBy === 'category') list.sort((a, b) => a.category_label.localeCompare(b.category_label) || a.name.localeCompare(b.name));
+            if (this.sortBy === 'connected') list.sort((a, b) => Number(b.has_key) - Number(a.has_key) || a.name.localeCompare(b.name));
+            if (this.sortBy === 'category')  list.sort((a, b) => a.category_label.localeCompare(b.category_label) || a.name.localeCompare(b.name));
 
             return list;
         },
@@ -1582,6 +1914,8 @@ function aiProviderTable(providerRows) {
 
                     return {
                         ...provider,
+                        has_key: true,
+                        is_active: true,
                         configured: true,
                         provider_id: data.provider_id || provider.provider_id,
                         api_url: this.form.api_url,
@@ -1626,6 +1960,28 @@ function aiProviderTable(providerRows) {
             });
         },
 
+        async toggleProviderActive(provider) {
+            if (!provider.provider_id || this.togglingActive === provider.provider) return;
+            this.togglingActive = provider.provider;
+            try {
+                const res = await fetch(`/settings/ai-providers/${provider.provider_id}/toggle-active`, {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                }).then(r => r.json());
+                if (res.success) {
+                    this.allProviders = this.allProviders.map(p => p.provider === provider.provider
+                        ? { ...p, is_active: res.is_active, configured: p.has_key && res.is_active }
+                        : p
+                    );
+                    window.dispatchEvent(new CustomEvent('toast', {
+                        detail: { type: 'info', message: provider.name + ' ' + (res.is_active ? 'activated.' : 'deactivated.') }
+                    }));
+                }
+            } finally {
+                this.togglingActive = null;
+            }
+        },
+
         removeProvider(provider) {
             if (!provider.provider_id || !confirm('Remove ' + provider.name + ' and its API key?')) return;
 
@@ -1640,7 +1996,7 @@ function aiProviderTable(providerRows) {
             .then(data => {
                 if (!data.success) return;
                 this.allProviders = this.allProviders.map(p => p.provider === provider.provider
-                    ? { ...p, configured: false, provider_id: null, is_default: false, updated_at: null, key_count: 0, keys: [] }
+                    ? { ...p, has_key: false, is_active: false, configured: false, provider_id: null, is_default: false, updated_at: null, key_count: 0, keys: [] }
                     : p
                 );
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: provider.name + ' removed.' } }));
@@ -1658,6 +2014,145 @@ function aiProviderTable(providerRows) {
         fmtDate(date) {
             if (!date) return '-';
             return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        },
+    };
+}
+
+function teamManager() {
+    return {
+        members:       [],
+        loading:       true,
+        showAddModal:  false,
+        showEditModal: false,
+        editTarget:    null,
+        addSaving:     false,
+        editSaving:    false,
+        addError:      '',
+        addForm:  { name: '', email: '', password: '', role: 'user' },
+        editForm: { name: '', role: 'user' },
+
+        async init() {
+            try {
+                const res = await fetch('{{ route("settings.team.index") }}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                if (res.ok) this.members = await res.json();
+            } catch (e) { /* non-admin: silently skip */ }
+            this.loading = false;
+        },
+
+        fmtDate(d) {
+            if (!d) return '-';
+            return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        },
+
+        openEdit(m) {
+            this.editTarget = m;
+            this.editForm = { name: m.name, role: m.role };
+            this.showEditModal = true;
+        },
+
+        async addMember() {
+            this.addError = '';
+            this.addSaving = true;
+            try {
+                const res = await fetch('{{ route("settings.team.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(this.addForm),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    const errs = data.errors ? Object.values(data.errors).flat() : [data.message || 'Failed to add member.'];
+                    this.addError = errs.join(' ');
+                    return;
+                }
+                this.members.unshift(data.member);
+                this.showAddModal = false;
+                this.addForm = { name: '', email: '', password: '', role: 'user' };
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            } catch (e) {
+                this.addError = 'Network error. Please try again.';
+            } finally {
+                this.addSaving = false;
+            }
+        },
+
+        async saveEdit() {
+            this.editSaving = true;
+            try {
+                const res = await fetch(`{{ url('settings/team') }}/${this.editTarget.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(this.editForm),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...this.editForm } : m);
+                    this.showEditModal = false;
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+                }
+            } finally {
+                this.editSaving = false;
+            }
+        },
+
+        async updateRole(m, role) {
+            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ role }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                m.role = role;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            }
+        },
+
+        async toggleStatus(m) {
+            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ is_active: !m.is_active }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                m.is_active = !m.is_active;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            }
+        },
+
+        async removeMember(m) {
+            if (!confirm(`Remove ${m.name} from the team? This cannot be undone.`)) return;
+            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.members = this.members.filter(x => x.id !== m.id);
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            }
         },
     };
 }

@@ -114,7 +114,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/ai-providers/{aiProvider}/keys/{key}',             [SettingsController::class, 'deleteProviderKey'])->name('ai-provider.key.delete');
         Route::patch('/ai-providers/{aiProvider}/keys/{key}/primary',      [SettingsController::class, 'setPrimaryProviderKey'])->name('ai-provider.key.primary');
         Route::patch('/ai-providers/{aiProvider}/keys/{key}/toggle',       [SettingsController::class, 'toggleProviderKey'])->name('ai-provider.key.toggle');
+        Route::patch('/ai-providers/{aiProvider}/toggle-active',           [SettingsController::class, 'toggleAIProviderActive'])->name('ai-provider.toggle-active');
         Route::post('/system-config',                                      [SettingsController::class, 'saveSystemConfig'])->name('system-config');
+        Route::post('/profile/avatar',                                     [SettingsController::class, 'uploadAvatar'])->name('profile.avatar');
+        Route::post('/branding/global',                                    [SettingsController::class, 'saveBrandingGlobal'])->name('branding.global');
+        // Team CRUD
+        Route::get('/team',                                                [SettingsController::class, 'teamIndex'])->name('team.index');
+        Route::post('/team',                                               [SettingsController::class, 'storeTeamMember'])->name('team.store');
+        Route::put('/team/{user}',                                         [SettingsController::class, 'updateTeamMember'])->name('team.update');
+        Route::delete('/team/{user}',                                      [SettingsController::class, 'destroyTeamMember'])->name('team.destroy');
 
         // System Updates
         Route::get('/updates',              [UpdateController::class, 'index'])->name('updates');

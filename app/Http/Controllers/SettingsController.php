@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AIProvider;
 use App\Models\AIProviderKey;
 use App\Models\Setting;
+use App\Models\User;
 use App\Services\AI\AIManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -67,12 +68,18 @@ class SettingsController extends Controller
                 $hasCredential = $this->providerHasCredential($saved);
                 $keyCount = count($savedKeys) ?: ($hasCredential ? 1 : 0);
 
+                $hasKey     = $this->providerHasCredential($saved);
+                $isActive   = (bool) ($saved?->is_active);
+                $configured = $hasKey && $isActive;
+
                 return [
                     'provider'          => $key,
                     'name'              => $saved?->name ?? ($provider['name'] ?? ucfirst(str_replace('_', ' ', $key))),
                     'category'          => $category,
                     'category_label'    => $categoryTitles[$category] ?? ucfirst($category),
-                    'configured'        => (bool) ($saved && $saved->is_active),
+                    'has_key'           => $hasKey,
+                    'is_active'         => $isActive,
+                    'configured'        => $configured,
                     'provider_id'       => $saved?->id,
                     'api_url'           => $saved?->api_url ?? ($provider['api_url'] ?? ''),
                     'default_model'     => $saved?->default_model ?? ($provider['default_model'] ?? ''),
@@ -188,6 +195,7 @@ class SettingsController extends Controller
         Setting::set('system.show_dashboard_menu',    $request->boolean('show_dashboard_menu')    ? '1' : '0', 'boolean', $userId);
         Setting::set('system.show_dashboard_sidebar', $request->boolean('show_dashboard_sidebar') ? '1' : '0', 'boolean', $userId);
         Setting::set('system.sidebar_auto_hide',      $request->boolean('sidebar_auto_hide')      ? '1' : '0', 'boolean', $userId);
+        Setting::set('ai_builder.auto_docs',          $request->boolean('ai_builder_auto_docs')   ? '1' : '0', 'boolean', $userId);
 
         return response()->json(['success' => true]);
     }
@@ -434,5 +442,137 @@ class SettingsController extends Controller
         Setting::set("branding.{$type}_path", $path, 'string', $userId);
 
         return back()->with('success', ucfirst($type).' uploaded successfully.');
+    }
+
+    public function saveBrandingGlobal(Request $request)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $request->validate([
+            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'font_family'   => ['nullable', 'string', 'max:60'],
+        ]);
+
+        Setting::set('branding.primary_color', $request->input('primary_color', '#6366f1'), 'string', null);
+        Setting::set('branding.font_family',   $request->input('font_family', 'Poppins'),   'string', null);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Branding saved as site default.']);
+        }
+
+        return back()->with('success', 'Branding saved as site default.');
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => ['required', 'file', 'image', 'mimes:png,jpg,jpeg,gif,webp', 'max:2048'],
+        ]);
+
+        $user = Auth::user();
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $request->file('avatar')->store("avatars/{$user->id}", 'public');
+        $user->update(['avatar' => $path]);
+
+        return back()->with('success', 'Avatar updated successfully.');
+    }
+
+    public function toggleAIProviderActive(AIProvider $aiProvider)
+    {
+        abort_if($aiProvider->user_id !== Auth::id(), 403);
+
+        $aiProvider->update(['is_active' => !$aiProvider->is_active]);
+
+        return response()->json([
+            'success'   => true,
+            'is_active' => $aiProvider->is_active,
+        ]);
+    }
+
+    // ── Team CRUD ────────────────────────────────────────────────────────────
+
+    public function teamIndex()
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $members = User::where('id', '!=', Auth::id())
+            ->orderByDesc('is_active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'username', 'role', 'avatar', 'is_active', 'created_at'])
+            ->map(fn($u) => array_merge($u->toArray(), ['avatar_url' => $u->avatar_url]));
+
+        return response()->json($members);
+    }
+
+    public function storeTeamMember(Request $request)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+
+        $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'role'     => ['required', 'in:admin,developer,user'],
+        ]);
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => $request->role,
+            'username' => $request->input('username'),
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->name.' added to team.',
+            'member'  => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'username'   => $user->username,
+                'role'       => $user->role,
+                'is_active'  => $user->is_active,
+                'avatar_url' => $user->avatar_url,
+                'created_at' => $user->created_at->toISOString(),
+            ],
+        ]);
+    }
+
+    public function updateTeamMember(Request $request, User $user)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+        abort_if($user->id === Auth::id(), 422, 'Cannot modify your own account here.');
+
+        $request->validate([
+            'role'      => ['nullable', 'in:admin,developer,user'],
+            'is_active' => ['nullable', 'boolean'],
+            'name'      => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $data = array_filter([
+            'role'      => $request->input('role'),
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : null,
+            'name'      => $request->input('name'),
+        ], fn($v) => $v !== null);
+
+        $user->update($data);
+
+        return response()->json(['success' => true, 'message' => $user->name.' updated.']);
+    }
+
+    public function destroyTeamMember(User $user)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403);
+        abort_if($user->id === Auth::id(), 422, 'Cannot delete your own account here.');
+
+        $name = $user->name;
+        $user->delete();
+
+        return response()->json(['success' => true, 'message' => $name.' removed from team.']);
     }
 }

@@ -7,7 +7,6 @@ use App\Models\Deployment;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {

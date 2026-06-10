@@ -328,35 +328,35 @@
 
         /* ── DataTable system ── */
         .dt-wrap { border-radius:16px; overflow:hidden; background:var(--surface-base); border:1px solid var(--border); box-shadow:var(--shadow); }
-        .dt-head { padding:16px 18px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:14px; background:var(--surface-base); }
-        .dt-title { margin:0; font-size:15px; line-height:1.35; font-weight:800; color:var(--text-1); }
-        .dt-subtitle { margin:3px 0 0; font-size:12px; line-height:1.5; color:var(--text-3); }
-        .dt-toolbar { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-        .dt-search { position:relative; flex:1; min-width:200px; }
-        .dt-search-ico { position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-2); pointer-events:none; }
-        .dt-search-input { width:100%; padding:8px 34px 8px 34px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:13px; color:var(--text-1); outline:none; font-family:inherit; transition:border-color .15s, box-shadow .15s; box-sizing:border-box; }
+        .dt-head { padding:12px 16px 10px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; background:var(--surface-base); }
+        .dt-title { margin:0; font-size:14px; line-height:1.35; font-weight:800; color:var(--text-1); }
+        .dt-subtitle { margin:2px 0 0; font-size:11.5px; line-height:1.5; color:var(--text-3); }
+        .dt-toolbar { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .dt-search { position:relative; flex:1; min-width:180px; }
+        .dt-search-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-2); pointer-events:none; }
+        .dt-search-input { width:100%; padding:7px 30px 7px 30px; border-radius:9px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:12.5px; color:var(--text-1); outline:none; font-family:inherit; transition:border-color .15s, box-shadow .15s; box-sizing:border-box; }
         .dt-search-input:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
-        .dt-clear { position:absolute; right:9px; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%; background:var(--border); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-3); transition:all .13s; line-height:1; }
+        .dt-clear { position:absolute; right:8px; top:50%; transform:translateY(-50%); width:16px; height:16px; border-radius:50%; background:var(--border); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-3); transition:all .13s; line-height:1; }
         .dt-clear:hover { background:var(--text-3); color:#fff; }
-        .dt-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-2); flex-shrink:0; }
-        .dt-per-page select { padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:12px; color:var(--text-1); outline:none; cursor:pointer; transition:border-color .15s; }
+        .dt-per-page { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-2); flex-shrink:0; }
+        .dt-per-page select { padding:5px 8px; border-radius:7px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:12px; color:var(--text-1); outline:none; cursor:pointer; transition:border-color .15s; }
         .dt-per-page select:focus { border-color:var(--brand); }
         .dt-count { font-size:12px; color:var(--text-3); flex-shrink:0; margin-left:auto; white-space:nowrap; }
         .dt-table { width:100%; border-collapse:collapse; }
-        .dt-th { padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); background:var(--surface-raised); white-space:nowrap; }
+        .dt-th { padding:8px 14px; text-align:left; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); background:var(--surface-raised); white-space:nowrap; }
         .dt-th:last-child { text-align:right; }
-        .dt-td { padding:12px 16px; font-size:13px; color:var(--text-1); border-top:1px solid var(--border); vertical-align:middle; }
+        .dt-td { padding:9px 14px; font-size:12.5px; color:var(--text-1); border-top:1px solid var(--border); vertical-align:middle; }
         .dt-tr { transition:background .1s; }
         .dt-tr:hover .dt-td { background:var(--hover-bg, var(--surface-raised)); }
-        .dt-foot { padding:12px 18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+        .dt-foot { padding:10px 14px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
         .dt-foot-info { font-size:12px; color:var(--text-3); }
         .dt-pages { display:flex; align-items:center; gap:3px; }
-        .dt-page-btn { min-width:30px; height:30px; padding:0 6px; border-radius:8px; border:1.5px solid var(--border); background:none; cursor:pointer; font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; justify-content:center; transition:all .13s; }
+        .dt-page-btn { min-width:28px; height:28px; padding:0 5px; border-radius:7px; border:1.5px solid var(--border); background:none; cursor:pointer; font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; justify-content:center; transition:all .13s; }
         .dt-page-btn:hover:not(:disabled):not(.dt-page-on) { background:var(--surface-raised); }
         .dt-page-btn:disabled { opacity:.35; cursor:default; }
         .dt-page-on { background:var(--brand) !important; color:#fff !important; border-color:var(--brand) !important; }
         .dt-page-dot { padding:0 4px; font-size:13px; color:var(--text-3); }
-        .dt-empty { padding:52px 20px; text-align:center; color:var(--text-3); font-size:13px; }
+        .dt-empty { padding:40px 20px; text-align:center; color:var(--text-3); font-size:13px; }
         .dt-mark { background:color-mix(in srgb,var(--brand) 18%,#fff); color:var(--brand); border-radius:2px; padding:0 1px; }
 
         /* ═══════════════════════════════════════════════════════════
@@ -389,10 +389,10 @@
 
         .sb-item {
             display: flex; align-items: center;
-            padding: 0 10px;
-            margin: 1px 6px;
-            height: 36px;
-            border-radius: 10px;
+            padding: 0 8px;
+            margin: 1px 4px;
+            height: 42px;
+            border-radius: 11px;
             cursor: pointer;
             text-decoration: none;
             transition: background var(--dur-fast) ease;
@@ -407,18 +407,35 @@
         .sb-item.active::before {
             content: '';
             position: absolute;
-            left: -6px; top: 6px; bottom: 6px;
+            left: -4px; top: 7px; bottom: 7px;
             width: 3px;
             background: var(--brand);
             border-radius: 0 3px 3px 0;
         }
+        /* In collapsed mode: icon fills the full item width as a centered block */
+        .app-sidebar:not(.sidebar-expanded) .sb-item {
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            height: 48px;
+        }
+        /* Collapsed: icon fills the full item so entire row is the click target */
+        .app-sidebar:not(.sidebar-expanded) .sb-item .sb-ico {
+            width: calc(var(--sidebar-w-collapsed) - 16px);
+            height: 40px;
+            border-radius: 10px;
+        }
         .sb-ico {
-            width: 22px; height: 22px;
+            width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            border-radius: 6px;
+            border-radius: 9px;
+            transition: background var(--dur-fast) ease;
         }
-        .sb-ico svg { width: 15px; height: 15px; }
+        .sb-ico svg { width: 18px; height: 18px; }
+        .sb-item:hover .sb-ico { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+        .sb-item.active .sb-ico { background: color-mix(in srgb, var(--brand) 14%, transparent); }
         .sb-label {
             font-size: 13px; font-weight: 500;
             color: var(--text-2);
@@ -440,14 +457,14 @@
         }
         .sidebar-expanded .sb-badge { opacity: 1; }
 
-        /* Sidebar tooltip on collapsed */
+        /* Sidebar tooltip on collapsed — appears next to the icon, full height */
         .sb-item .sb-tooltip {
-            position: absolute; left: calc(var(--sidebar-w-collapsed) + 4px);
+            position: absolute; left: calc(var(--sidebar-w-collapsed) + 6px);
             background: #1e293b; color: #fff;
-            font-size: 12px; font-weight: 500;
-            padding: 5px 10px; border-radius: 8px;
+            font-size: 12px; font-weight: 600;
+            padding: 6px 12px; border-radius: 8px;
             pointer-events: none; opacity: 0;
-            transition: opacity .1s ease;
+            transition: opacity .12s ease;
             white-space: nowrap; z-index: 999;
             box-shadow: var(--shadow-lg);
         }
@@ -941,9 +958,9 @@
     <!-- ═══════ SIDEBAR ═══════ -->
     @if($showSidebar)
 
-    {{-- Peek arrow: small centered hover target, visible when sidebar is collapsed --}}
+    {{-- Peek arrow: shown only in auto-hide mode when sidebar is fully hidden --}}
     <div class="sb-peek"
-         x-show="!(sidebarOpen || sidebarHovered || mobileSidebarOpen)"
+         x-show="{{ $sidebarAutoHide ? 'true' : 'false' }} && !(sidebarOpen || sidebarHovered || mobileSidebarOpen)"
          x-cloak
          @mouseenter="sidebarHovered = true"
          title="Open sidebar">
@@ -954,7 +971,7 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="if (sidebarOpen || sidebarHovered || mobileSidebarOpen) sidebarHovered=true"
+           @mouseenter="sidebarHovered=true"
            @mouseleave="sidebarHovered=false">
 
         {{-- Logo --}}
