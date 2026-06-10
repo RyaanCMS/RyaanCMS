@@ -1126,9 +1126,8 @@
             $userSidebarMenus = $loadSidebarMenus('user');
             $devSidebarMenus  = $loadSidebarMenus('developer');
 
-            // Lazy-seed default menus for any user whose menus were never initialised
-            // (covers fresh installs and registrations before this seeding was added)
-            if (auth()->check() && ($userSidebarMenus->isEmpty() || $devSidebarMenus->isEmpty())) {
+            // Lazy-seed developer menus on first load for any user not yet seeded
+            if (auth()->check() && $devSidebarMenus->isEmpty()) {
                 app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
                 $userSidebarMenus = $loadSidebarMenus('user');
                 $devSidebarMenus  = $loadSidebarMenus('developer');
@@ -1137,10 +1136,11 @@
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
 
-            {{-- ─── USER section (top) ─── --}}
+            {{-- ─── USER section (top) — only shown when custom menus exist ─── --}}
             @php
             $sbColors = ['#6366f1','#f59e0b','#10b981','#3b82f6','#ec4899','#14b8a6','#f97316','#8b5cf6','#ef4444','#06b6d4'];
             @endphp
+            @if($userSidebarMenus->isNotEmpty())
             <div class="sb-section-user" style="padding:6px 0 0;" @mouseenter="hoveredSection='user'">
                 <div class="sb-section-label">USER</div>
                 @foreach($userSidebarMenus as $sbIdx => $sMenu)
@@ -1171,6 +1171,7 @@
                 </a>
                 @endforeach
             </div>
+            @endif
 
             {{-- Spacer: hidden when collapsed (icons fill space), visible when expanded --}}
             <div class="sb-mid-spacer"></div>
