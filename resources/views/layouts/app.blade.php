@@ -2,13 +2,12 @@
 @php
     $userId      = auth()->id();
     $brandColor  = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
-    $fontFamily  = \App\Models\Setting::get('branding.font_family',   'Poppins', $userId);
+    $fontFamily  = \App\Models\Setting::get('branding.font_family',   'Inter',   $userId);
     $logoPath    = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $faviconPath = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
     $fontSlug    = strtolower(str_replace(' ', '+', $fontFamily));
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-      x-data="appLayout()">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="appLayout()">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,38 +24,77 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* ─── Theme (always light / white) ──────────────────── */
+        /* ═══════════════════════════════════════════════════════════
+           DESIGN TOKEN SYSTEM — RyaanCMS v2
+           Proper CSS custom properties — no nuclear overrides
+        ═══════════════════════════════════════════════════════════ */
         :root {
-            --page-bg:    #ffffff;
-            --card-bg:    #ffffff;
-            --card-sub:   #f8fafc;
-            --border:     #e5e7eb;
-            --sidebar-bg: #ffffff;
-            --header-bg:  #ffffff;
-            --text-1:     #111827;
-            --text-2:     #374151;
-            --text-3:     #9ca3af;
-            --hover-bg:   #f9fafb;
-            --input-bg:   #ffffff;
-            --shadow-sm:  0 1px 2px rgba(0,0,0,.04);
-            --shadow:     0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.03);
-            --shadow-md:  0 4px 12px rgba(0,0,0,.06);
-            --shadow-lg:  0 8px 24px rgba(0,0,0,.08);
+            /* Brand (user-configurable) */
+            --brand:        {{ $brandColor }};
+            --brand-dark:   color-mix(in srgb, {{ $brandColor }} 80%, #000);
+            --brand-light:  color-mix(in srgb, {{ $brandColor }} 10%, #fff);
+            --brand-ring:   color-mix(in srgb, {{ $brandColor }} 25%, transparent);
 
-            --brand:       {{ $brandColor }};
-            --brand-dark:  color-mix(in srgb, {{ $brandColor }} 80%, #000);
-            --brand-light: color-mix(in srgb, {{ $brandColor }} 10%, transparent);
-            --brand-ring:  color-mix(in srgb, {{ $brandColor }} 25%, transparent);
+            /* Surfaces */
+            --surface-base:    #ffffff;
+            --surface-raised:  #f8fafc;
+            --surface-overlay: #f1f5f9;
+            --surface-invert:  #0f172a;
+
+            /* Semantic aliases (backward compat) */
+            --page-bg:    var(--surface-base);
+            --card-bg:    var(--surface-base);
+            --card-sub:   var(--surface-raised);
+            --sidebar-bg: var(--surface-base);
+            --header-bg:  var(--surface-base);
+            --hover-bg:   var(--surface-raised);
+            --input-bg:   var(--surface-base);
+
+            /* Borders */
+            --border:        #e2e8f0;
+            --border-strong: #cbd5e1;
+
+            /* Text */
+            --text-1: #0f172a;
+            --text-2: #475569;
+            --text-3: #94a3b8;
+
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(0,0,0,.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.03);
+            --shadow-md: 0 4px 12px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,.08), 0 4px 8px rgba(0,0,0,.04);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,.10), 0 8px 16px rgba(0,0,0,.06);
+
+            /* Animation */
+            --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --dur-fast:    100ms;
+            --dur-base:    150ms;
+            --dur-slow:    250ms;
+
+            /* Sidebar */
+            --sidebar-w-collapsed: 64px;
+            --sidebar-w-expanded:  256px;
         }
 
-        /* ─── Base Styles ────────────────────────────────────── */
+        /* ─── Base ──────────────────────────────────────── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            transition: background-color var(--dur-base) ease,
+                        border-color var(--dur-fast) ease,
+                        color var(--dur-fast) ease;
+        }
+        html { color-scheme: light; }
         body {
-            font-family: '{{ $fontFamily }}', 'Inter', sans-serif;
-            background: var(--page-bg);
+            font-family: '{{ $fontFamily }}', 'Inter', system-ui, sans-serif;
+            background: var(--surface-base);
             color: var(--text-1);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ─── Form Elements ──────────────────────────────────── */
+        /* ─── Form elements ─────────────────────────────── */
         input, select, textarea {
             background: var(--input-bg) !important;
             border-color: var(--border) !important;
@@ -64,27 +102,21 @@
         }
         input::placeholder, textarea::placeholder { color: var(--text-3) !important; }
 
-        /* ─── Scrollbar ──────────────────────────────────────── */
+        /* ─── Scrollbar ─────────────────────────────────── */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-        /* ─── Smooth Transitions ─────────────────────────────── */
-        *, *::before, *::after {
-            transition: background-color 0.2s ease, border-color 0.15s ease, color 0.1s ease;
-        }
+        /* ─── Focus ring ────────────────────────────────── */
+        :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
-        /* ═══════════════════════════════════════════════════════
-           ALWAYS LIGHT — Override dark Tailwind utility classes
-        ═══════════════════════════════════════════════════════ */
-
-        /* ── Backgrounds ──────────────────────────────────────── */
+        /* ── Override ONLY dark backgrounds (force light mode) ── */
+        /* Do NOT override text-white — it's needed on colored buttons */
         .bg-gray-950, .bg-gray-900 { background-color: #ffffff !important; }
         .bg-gray-800               { background-color: #f9fafb !important; }
         .bg-gray-700               { background-color: #f3f4f6 !important; }
         .bg-gray-600               { background-color: #e5e7eb !important; }
-
-        /* opacity variants */
         .bg-gray-950\/50,.bg-gray-950\/90,.bg-gray-950\/95 { background-color: rgba(255,255,255,.95) !important; }
         .bg-gray-900\/50 { background-color: rgba(255,255,255,.5)  !important; }
         .bg-gray-900\/70 { background-color: rgba(255,255,255,.7)  !important; }
@@ -93,90 +125,344 @@
         .bg-gray-800\/40 { background-color: rgba(249,250,251,.4)  !important; }
         .bg-gray-800\/60 { background-color: rgba(249,250,251,.6)  !important; }
         .bg-gray-800\/80 { background-color: rgba(249,250,251,.8)  !important; }
-        .bg-gray-700\/60 { background-color: rgba(243,244,246,.6)  !important; }
-        .bg-gray-950\/10,.bg-gray-950\/20,.bg-gray-950\/30,.bg-gray-950\/40,
-        .bg-gray-950\/60,.bg-gray-950\/70,.bg-gray-950\/80 { background-color: rgba(249,250,251,.9) !important; }
-        .bg-gray-900\/10,.bg-gray-900\/20,.bg-gray-900\/30,.bg-gray-900\/40,
-        .bg-gray-900\/60,.bg-gray-900\/80 { background-color: rgba(249,250,251,.7) !important; }
-        .bg-gray-800\/10,.bg-gray-800\/30,.bg-gray-800\/50,.bg-gray-800\/70,
-        .bg-gray-800\/90 { background-color: rgba(249,250,251,.8) !important; }
-        .bg-gray-700\/20,.bg-gray-700\/30,.bg-gray-700\/40,.bg-gray-700\/50,
-        .bg-gray-700\/80 { background-color: rgba(243,244,246,.6) !important; }
 
-        /* ── Hover Backgrounds ────────────────────────────────── */
-        .hover\:bg-gray-950:hover,.hover\:bg-gray-900:hover,
-        .hover\:bg-gray-800:hover,.hover\:bg-gray-750:hover { background-color: #f3f4f6 !important; }
-        .hover\:bg-gray-700:hover { background-color: #e5e7eb !important; }
+        /* Override near-white text colors to be readable on light bg */
+        .text-gray-100 { color: #1e293b !important; }
+        .text-gray-200 { color: #334155 !important; }
+        .text-gray-300 { color: #475569 !important; }
+        .hover\:text-gray-100:hover { color: #0f172a !important; }
+        .hover\:text-gray-200:hover { color: #1e293b !important; }
+        .hover\:text-gray-300:hover { color: #334155 !important; }
 
-        /* ── Text Colors ──────────────────────────────────────── */
-        .text-white    { color: #111827 !important; }
-        .text-gray-100 { color: #1f2937 !important; }
-        .text-gray-200 { color: #374151 !important; }
-        .text-gray-300 { color: #4b5563 !important; }
-        .text-gray-400 { color: #6b7280 !important; }
-        .text-gray-500 { color: #6b7280 !important; }
-        .text-gray-600 { color: #4b5563 !important; }
+        /* Borders */
+        .border-gray-800,.border-gray-700 { border-color: #e2e8f0 !important; }
+        .border-gray-600 { border-color: #cbd5e1 !important; }
+        .divide-gray-800 > * + *,.divide-gray-700 > * + * { border-color: #e2e8f0 !important; }
 
-        .hover\:text-white:hover    { color: #111827 !important; }
-        .hover\:text-gray-100:hover { color: #1f2937 !important; }
-        .hover\:text-gray-200:hover { color: #374151 !important; }
-        .hover\:text-gray-300:hover { color: #4b5563 !important; }
+        /* Shadows */
+        .shadow-xl         { box-shadow: 0 8px 24px rgba(0,0,0,.06) !important; }
+        .shadow-black\/50  { box-shadow: 0 8px 24px rgba(0,0,0,.05) !important; }
+        .backdrop-blur-xl  { background-color: rgba(255,255,255,.92) !important; }
 
-        /* ── Borders ──────────────────────────────────────────── */
-        .border-gray-800    { border-color: #e5e7eb !important; }
-        .border-gray-700    { border-color: #e5e7eb !important; }
-        .border-gray-600    { border-color: #d1d5db !important; }
-        .border-gray-800\/60,.border-gray-700\/60 { border-color: rgba(229,231,235,.6) !important; }
-        .divide-gray-800 > * + * { border-color: #e5e7eb !important; }
-        .divide-gray-700 > * + * { border-color: #e5e7eb !important; }
+        /* Builder code editor */
+        #codeEditor { background-color: #f8fafc !important; color: #1e293b !important; }
 
-        /* ── Placeholders ─────────────────────────────────────── */
-        .placeholder-gray-600::placeholder,
-        .placeholder-gray-500::placeholder { color: #9ca3af !important; }
+        /* Attribution */
+        .ryaan-powered { display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.02em;text-decoration:none; }
+        .ryaan-powered:hover { color:#6366f1; }
+        .ryaan-powered span  { color:#6366f1;font-weight:700; }
 
-        /* ── Shadows ──────────────────────────────────────────── */
-        .shadow-xl        { box-shadow: 0 8px 24px rgba(0,0,0,.06) !important; }
-        .shadow-black\/50 { box-shadow: 0 8px 24px rgba(0,0,0,.05) !important; }
-        .shadow-black\/20 { box-shadow: 0 4px 12px rgba(0,0,0,.04) !important; }
+        /* x-cloak */
+        [x-cloak] { display: none !important; }
 
-        /* ── Focus ────────────────────────────────────────────── */
-        .focus\:ring-indigo-500:focus         { box-shadow: 0 0 0 2px var(--brand-ring) !important; }
-        .focus\:border-indigo-500:focus       { border-color: var(--brand) !important; }
-        .focus-within\:border-indigo-500:focus-within { border-color: var(--brand) !important; }
-        .focus-within\:ring-1:focus-within    { box-shadow: 0 0 0 1px var(--brand-ring) !important; }
-
-        /* ── Misc ─────────────────────────────────────────────── */
-        .font-mono        { color: #374151 !important; }
-        .text-indigo-300  { color: #4338ca !important; }
-        .text-green-400   { color: #15803d !important; }
-        .text-green-300   { color: #15803d !important; }
-        .backdrop-blur-xl { background-color: rgba(255,255,255,.92) !important; }
-
-        /* ── Builder code editor ──────────────────────────────── */
-        #codeEditor {
-            background-color: #f8fafc !important;
-            color: #1e293b !important;
+        /* ═══════════════════════════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════════════════════════ */
+        .app-sidebar {
+            width: var(--sidebar-w-collapsed);
+            background: var(--surface-base);
+            border-right: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            transition: width var(--dur-slow) var(--ease-out);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 30;
         }
+        .sidebar-expanded { width: var(--sidebar-w-expanded) !important; }
 
-        /* ════════════════════════════════════════════════════════
-           POWERED BY RyaanCMS — Required attribution
-           Copyright © RyaanCMS. Do not remove.
-        ════════════════════════════════════════════════════════ */
-        /* ryaancms-attribution-v1 */
-        .ryaan-powered {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #94a3b8;
-            letter-spacing: 0.02em;
+        .sb-section-label {
+            font-size: 9.5px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .1em;
+            color: var(--text-3);
+            padding: 14px 18px 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity var(--dur-base) ease;
+        }
+        .sidebar-expanded .sb-section-label { opacity: 1; }
+
+        .sb-item {
+            display: flex; align-items: center;
+            padding: 0 10px;
+            margin: 1px 6px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
             text-decoration: none;
+            transition: background var(--dur-fast) ease;
+            position: relative;
+            white-space: nowrap;
+            overflow: hidden;
         }
-        .ryaan-powered:hover { color: #6366f1; }
-        .ryaan-powered span  { color: #6366f1; font-weight: 700; }
+        .sb-item:hover { background: var(--surface-overlay); }
+        .sb-item.active {
+            background: var(--brand-light);
+        }
+        .sb-item.active::before {
+            content: '';
+            position: absolute;
+            left: -6px; top: 6px; bottom: 6px;
+            width: 3px;
+            background: var(--brand);
+            border-radius: 0 3px 3px 0;
+        }
+        .sb-ico {
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            border-radius: 6px;
+        }
+        .sb-ico svg { width: 15px; height: 15px; }
+        .sb-label {
+            font-size: 13px; font-weight: 500;
+            color: var(--text-2);
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity var(--dur-base) ease;
+            flex: 1;
+        }
+        .sidebar-expanded .sb-label { opacity: 1; }
+        .sb-item.active .sb-label { color: var(--brand); font-weight: 600; }
+        .sb-badge {
+            font-size: 9px; font-weight: 800;
+            background: var(--brand); color: #fff;
+            padding: 1px 5px; border-radius: 99px;
+            margin-left: 4px;
+            opacity: 0;
+            transition: opacity var(--dur-base) ease;
+            flex-shrink: 0;
+        }
+        .sidebar-expanded .sb-badge { opacity: 1; }
 
-        /* ─── Mobile sidebar ─────────────────────────────────── */
+        /* Sidebar tooltip on collapsed */
+        .sb-item .sb-tooltip {
+            position: absolute; left: calc(var(--sidebar-w-collapsed) + 4px);
+            background: #1e293b; color: #fff;
+            font-size: 12px; font-weight: 500;
+            padding: 5px 10px; border-radius: 8px;
+            pointer-events: none; opacity: 0;
+            transition: opacity .1s ease;
+            white-space: nowrap; z-index: 999;
+            box-shadow: var(--shadow-lg);
+        }
+        .sb-item .sb-tooltip::before {
+            content: '';
+            position: absolute; right: 100%; top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #1e293b;
+        }
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-tooltip { opacity: 1; }
+
+        /* Sidebar divider */
+        .sb-divider {
+            height: 1px; background: var(--border);
+            margin: 6px 14px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           TOPBAR
+        ═══════════════════════════════════════════════════════════ */
+        .app-topbar {
+            height: 56px;
+            background: var(--surface-base);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-xs);
+            display: flex; align-items: center;
+            padding: 0 20px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .topbar-breadcrumb {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--text-3);
+            min-width: 0; flex: 1;
+        }
+        .topbar-breadcrumb a { color: var(--text-3); text-decoration: none; transition: color .1s; }
+        .topbar-breadcrumb a:hover { color: var(--text-1); }
+        .topbar-breadcrumb .bc-current { color: var(--text-1); font-weight: 600; }
+        .topbar-breadcrumb .bc-sep { color: var(--border-strong); }
+
+        .topbar-btn {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: none; background: none;
+            color: var(--text-3);
+            transition: background var(--dur-fast), color var(--dur-fast);
+            flex-shrink: 0; position: relative;
+        }
+        .topbar-btn:hover { background: var(--surface-overlay); color: var(--text-1); }
+        .topbar-btn svg { width: 17px; height: 17px; }
+
+        .notif-badge {
+            position: absolute; top: 4px; right: 4px;
+            width: 8px; height: 8px;
+            background: #ef4444; border-radius: 50%;
+            border: 2px solid var(--surface-base);
+        }
+
+        .btn-new-project {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            background: var(--brand);
+            color: #fff !important;
+            box-shadow: 0 2px 8px var(--brand-ring);
+            transition: all var(--dur-base) ease;
+            text-decoration: none; border: none; cursor: pointer;
+            flex-shrink: 0;
+        }
+        .btn-new-project:hover {
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--brand-ring);
+        }
+        .btn-new-project svg { width: 14px; height: 14px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           COMMAND PALETTE
+        ═══════════════════════════════════════════════════════════ */
+        .cmd-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,.5);
+            z-index: 9000;
+            backdrop-filter: blur(3px);
+        }
+        .cmd-box {
+            position: fixed;
+            top: 15vh; left: 50%;
+            transform: translateX(-50%);
+            width: min(560px, calc(100vw - 32px));
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            z-index: 9001;
+            overflow: hidden;
+        }
+        .cmd-input-wrap {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .cmd-input-wrap svg { color: var(--text-3); flex-shrink: 0; width: 17px; height: 17px; }
+        .cmd-input {
+            flex: 1; border: none; outline: none;
+            font-size: 15px; font-family: inherit;
+            color: var(--text-1); background: transparent;
+        }
+        .cmd-input::placeholder { color: var(--text-3); }
+        .cmd-kbd {
+            font-size: 11px; color: var(--text-3);
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            padding: 2px 6px; border-radius: 5px;
+            font-family: monospace; white-space: nowrap;
+        }
+        .cmd-section-label {
+            font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-3);
+            padding: 10px 16px 4px;
+        }
+        .cmd-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 16px;
+            cursor: pointer;
+            transition: background var(--dur-fast);
+            text-decoration: none; color: var(--text-1);
+        }
+        .cmd-item:hover, .cmd-item.cmd-active { background: var(--surface-raised); }
+        .cmd-item-ico {
+            width: 28px; height: 28px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface-overlay); flex-shrink: 0;
+        }
+        .cmd-item-ico svg { width: 13px; height: 13px; color: var(--text-2); }
+        .cmd-item-label { font-size: 13.5px; font-weight: 500; flex: 1; }
+        .cmd-item-hint  { font-size: 11px; color: var(--text-3); }
+        .cmd-footer {
+            padding: 8px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--surface-raised);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .cmd-footer-tip { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           NOTIFICATIONS PANEL
+        ═══════════════════════════════════════════════════════════ */
+        .notif-panel {
+            position: fixed; inset-y: 0; right: 0;
+            width: 340px; max-width: 100vw;
+            background: var(--surface-base);
+            border-left: 1px solid var(--border);
+            box-shadow: var(--shadow-xl);
+            z-index: 8000;
+            display: flex; flex-direction: column;
+        }
+        .notif-hd {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .notif-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            transition: background var(--dur-fast);
+        }
+        .notif-row:hover { background: var(--surface-raised); }
+        .notif-dot {
+            width: 30px; height: 30px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .notif-dot svg { width: 13px; height: 13px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           TOAST SYSTEM
+        ═══════════════════════════════════════════════════════════ */
+        .toast-stack {
+            position: fixed; top: 16px; right: 16px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px; font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            max-width: 360px; pointer-events: all;
+            border: 1px solid;
+            animation: toastIn .22s var(--ease-out) both;
+        }
+        .toast-success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        .toast-error   { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+        .toast-info    { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+        .toast svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .toast-close { margin-left: auto; opacity: .6; cursor: pointer; background: none; border: none; color: inherit; padding: 0; }
+        .toast-close:hover { opacity: 1; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(16px) scale(.96); }
+            to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           MOBILE RESPONSIVE
+        ═══════════════════════════════════════════════════════════ */
+        .mobile-backdrop {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,.45); z-index: 35;
+        }
+        .mobile-backdrop.active { display: block; }
+
         @media (max-width: 1023px) {
             .app-sidebar {
                 position: fixed !important;
@@ -185,296 +471,395 @@
                 width: 260px !important;
                 z-index: 40;
                 transform: translateX(-100%);
-                transition: transform .25s cubic-bezier(.4,0,.2,1), width .2s;
+                transition: transform .25s var(--ease-out), width .2s;
             }
+            .app-sidebar.sidebar-expanded { transform: translateX(0) !important; width: 260px !important; }
             .app-sidebar.sidebar-mobile-open { transform: translateX(0); }
+            .sidebar-expanded .sb-label,
+            .sidebar-mobile-open .sb-label { opacity: 1 !important; }
+            .sidebar-expanded .sb-section-label,
+            .sidebar-mobile-open .sb-section-label { opacity: 1 !important; }
+            .sidebar-expanded .sb-badge,
+            .sidebar-mobile-open .sb-badge { opacity: 1 !important; }
             .btn-hamburger { display: flex !important; }
-            .topbar-new-project-text { display: none !important; }
-            .main-padding { padding: 12px !important; }
-            .app-topbar { padding-left: 12px !important; padding-right: 12px !important; }
+            .btn-new-project-label { display: none; }
+            .main-content { padding: 12px !important; }
+            .app-topbar { padding: 0 12px !important; }
         }
         @media (min-width: 1024px) {
             .btn-hamburger { display: none !important; }
         }
-        .mobile-backdrop {
+
+        /* Mobile bottom nav */
+        .mobile-bottom-nav {
             display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.45);
-            z-index: 35;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px; z-index: 50;
+            background: var(--surface-base);
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -4px 12px rgba(0,0,0,.06);
         }
-        .mobile-backdrop.active { display: block; }
-        [x-cloak] { display: none !important; }
+        .mobile-bottom-nav-inner {
+            display: flex; align-items: center; justify-content: space-around;
+            height: 100%; padding: 0 8px;
+        }
+        .mbn-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            text-decoration: none; padding: 6px 12px; border-radius: 10px;
+            transition: background .1s;
+        }
+        .mbn-item svg { width: 20px; height: 20px; }
+        .mbn-item span { font-size: 10px; font-weight: 600; }
+        .mbn-item:hover, .mbn-item.active { background: var(--brand-light); }
+        .mbn-item.active svg, .mbn-item.active span { color: var(--brand); }
+        .mbn-item:not(.active) svg, .mbn-item:not(.active) span { color: var(--text-3); }
+
+        @media (max-width: 640px) {
+            .mobile-bottom-nav { display: block; }
+            .main-content { padding-bottom: 72px !important; }
+            .notif-panel { width: 100%; }
+        }
+
+        /* Smooth main transitions */
+        .app-main-area { transition: none; }
     </style>
 
     @stack('head')
 </head>
 <body>
 
-<div class="flex h-screen overflow-hidden">
+{{-- ═══════════════ TOAST STACK ═══════════════ --}}
+<div class="toast-stack" x-data="toastSystem()" @toast.window="addToast($event.detail)">
+    <template x-for="t in toasts" :key="t.id">
+        <div class="toast" :class="'toast-' + t.type" x-show="t.show"
+             x-transition:leave="transition duration-200 ease-in"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-4">
+            <svg x-show="t.type === 'success'" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <svg x-show="t.type === 'error'" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <svg x-show="t.type === 'info'" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span x-text="t.message"></span>
+            <button class="toast-close" @click="dismiss(t.id)" aria-label="Close">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </template>
+</div>
 
-    <!-- Mobile sidebar backdrop -->
-    <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
+{{-- ═══════════════ COMMAND PALETTE ═══════════════ --}}
+<template x-teleport="body">
+<div x-show="cmdOpen" x-cloak @keydown.escape.window="cmdOpen=false" x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+    <div class="cmd-overlay" @click="cmdOpen=false"></div>
+    <div class="cmd-box" @click.stop x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+        <div class="cmd-input-wrap">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" class="cmd-input" x-model="cmdQuery" x-ref="cmdInput"
+                   placeholder="Search pages, actions…"
+                   @keydown.arrow-down.prevent="cmdMove(1)"
+                   @keydown.arrow-up.prevent="cmdMove(-1)"
+                   @keydown.enter.prevent="cmdGo()"
+                   autocomplete="off">
+            <span class="cmd-kbd">ESC</span>
+        </div>
 
-    <!-- ───────────── SIDEBAR ───────────── -->
-    <aside :class="{ 'w-64': sidebarOpen || sidebarHovered, 'w-[68px]': !sidebarOpen && !sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="sidebarHovered = true"
-           @mouseleave="sidebarHovered = false"
-           class="app-sidebar flex-shrink-0 flex flex-col transition-all duration-200 ease-in-out z-30 overflow-hidden"
-           style="background:var(--sidebar-bg); border-right:1px solid var(--border); box-shadow:var(--shadow-md);">
+        <div style="max-height:360px; overflow-y:auto;" x-ref="cmdList">
+            <template x-if="filteredCmdItems().length === 0">
+                <div style="padding:28px;text-align:center;color:var(--text-3);font-size:13px;">No results for "<span x-text="cmdQuery"></span>"</div>
+            </template>
 
-        <!-- Logo row -->
-        <div class="flex items-center h-16 px-4 flex-shrink-0" style="border-bottom:1px solid var(--border);">
-            <div class="flex items-center space-x-3 min-w-0">
-                @if($logoPath)
-                <img src="{{ Storage::url($logoPath) }}" alt="Logo" class="w-8 h-8 rounded-xl object-cover flex-shrink-0">
+            <template x-for="(group, gi) in groupedCmdItems()" :key="gi">
+                <div>
+                    <div class="cmd-section-label" x-text="group.label"></div>
+                    <template x-for="(item, ii) in group.items" :key="item.href">
+                        <a :href="item.href" class="cmd-item" :class="{'cmd-active': cmdIdx === item._idx}"
+                           @mouseover="cmdIdx = item._idx" @click="cmdOpen=false">
+                            <div class="cmd-item-ico">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.icon"/>
+                                </svg>
+                            </div>
+                            <span class="cmd-item-label" x-text="item.label"></span>
+                            <span class="cmd-item-hint" x-text="item.hint || ''"></span>
+                        </a>
+                    </template>
+                </div>
+            </template>
+        </div>
+
+        <div class="cmd-footer">
+            <div class="cmd-footer-tip"><span class="cmd-kbd">↑↓</span> navigate</div>
+            <div class="cmd-footer-tip"><span class="cmd-kbd">↵</span> open</div>
+            <div class="cmd-footer-tip"><span class="cmd-kbd">ESC</span> close</div>
+        </div>
+    </div>
+</div>
+</template>
+
+{{-- ═══════════════ NOTIFICATIONS PANEL ═══════════════ --}}
+<template x-teleport="body">
+<div x-show="notifOpen" x-cloak>
+    <div style="position:fixed;inset:0;z-index:7999;" @click="notifOpen=false"
+         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         style="background:rgba(15,23,42,.2)"></div>
+    <div class="notif-panel"
+         x-transition:enter="transition duration-200 ease-out"
+         x-transition:enter-start="opacity-0 translate-x-8"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         x-transition:leave="transition duration-150 ease-in"
+         x-transition:leave-start="opacity-100 translate-x-0"
+         x-transition:leave-end="opacity-0 translate-x-8">
+        <div class="notif-hd">
+            <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text-1);">Notifications</div>
+                <div style="font-size:11px;color:var(--text-3);margin-top:1px;">Recent activity &amp; alerts</div>
+            </div>
+            <button class="topbar-btn" @click="notifOpen=false" aria-label="Close notifications">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div style="flex:1;overflow-y:auto;">
+            @php
+                $notifItems = collect();
+                if(auth()->check()) {
+                    $notifItems = \App\Models\AIConversation::where('user_id', auth()->id())
+                        ->with('project:id,name')
+                        ->latest()->limit(5)->get()
+                        ->map(fn($c) => ['type'=>'ai','title'=>'AI build: '.($c->project->name ?? 'Project'),'sub'=>$c->message_count.' messages','time'=>$c->updated_at]);
+                    $deploys = \App\Models\Deployment::whereHas('project', fn($q)=>$q->where('user_id',auth()->id()))
+                        ->with('project:id,name')->latest()->limit(3)->get()
+                        ->map(fn($d) => ['type'=>$d->status==='success'?'success':'warning','title'=>($d->project->name??'Project').' deployment','sub'=>ucfirst($d->status),'time'=>$d->created_at]);
+                    $notifItems = $notifItems->concat($deploys)->sortByDesc('time')->take(8)->values();
+                }
+            @endphp
+            @if($notifItems->isEmpty())
+            <div style="padding:40px 20px;text-align:center;">
+                <div style="width:44px;height:44px;border-radius:12px;background:var(--surface-raised);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <svg style="width:20px;height:20px;stroke:var(--text-3)" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:4px;">All caught up!</div>
+                <div style="font-size:12px;color:var(--text-3);">No new notifications</div>
+            </div>
+            @else
+            @foreach($notifItems as $n)
+            <div class="notif-row">
+                @if($n['type'] === 'ai')
+                <div class="notif-dot" style="background:#fdf4ff;border:1px solid #ede9fe;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                @elseif($n['type'] === 'success')
+                <div class="notif-dot" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#16a34a" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                </div>
                 @else
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                     style="background:linear-gradient(135deg,var(--brand),var(--brand-dark));">
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
+                <div class="notif-dot" style="background:#fffbeb;border:1px solid #fde68a;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#d97706" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 @endif
-                <span x-show="sidebarOpen || sidebarHovered" x-transition:enter="transition-opacity duration-150"
-                      x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                      class="font-extrabold text-base truncate" style="color:var(--text-1);">
-                    {{ config('app.name') }}
-                </span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12.5px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $n['title'] }}</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:2px;">{{ $n['sub'] }} · {{ $n['time']->diffForHumans() }}</div>
+                </div>
             </div>
-            <button @click="sidebarOpen = !sidebarOpen"
-                    class="ml-auto w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
-                    style="color:var(--text-3);"
-                    onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)'"
-                    onmouseout="this.style.background='';this.style.color='var(--text-3)'">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            @endforeach
+            @endif
+        </div>
+    </div>
+</div>
+</template>
+
+{{-- ═══════════════ APP SHELL ═══════════════ --}}
+<div class="flex h-screen overflow-hidden">
+
+    <!-- Mobile backdrop -->
+    <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+    <!-- ═══════ SIDEBAR ═══════ -->
+    <aside class="app-sidebar"
+           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
+           @mouseenter="sidebarHovered=true"
+           @mouseleave="sidebarHovered=false">
+
+        {{-- Logo --}}
+        <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
+            @if($logoPath)
+            <img src="{{ Storage::url($logoPath) }}" alt="Logo"
+                 style="width:32px;height:32px;border-radius:9px;object-cover;flex-shrink:0;">
+            @else
+            <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px var(--brand-ring);">
+                <svg style="width:16px;height:16px;color:#fff" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            @endif
+            <div style="flex:1;min-width:0;opacity:0;transition:opacity var(--dur-base) ease;" :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'">
+                <div style="font-size:14px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ config('app.name') }}</div>
+            </div>
+            <button @click="sidebarOpen=!sidebarOpen"
+                    style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--text-3);flex-shrink:0;opacity:0;transition:opacity var(--dur-base),background var(--dur-fast);"
+                    :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'"
+                    onmouseover="this.style.background='var(--surface-overlay)'" onmouseout="this.style.background='none'"
+                    aria-label="Toggle sidebar">
+                <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path x-show="sidebarOpen"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                     <path x-show="!sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                 </svg>
             </button>
         </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 px-2 py-1.5 space-y-0.5 overflow-y-auto overflow-x-hidden">
-            @php
-                // Both 'sidebar' (legacy) and 'admin_sidebar' (new) render in the sidebar
-                $dynamicSidebarMenus = auth()->check()
-                    ? \App\Models\Menu::where('user_id', auth()->id())
-                          ->whereIn('category', ['sidebar', 'admin_sidebar'])
-                          ->where('is_active', true)
-                          ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')->with([
-                              'children' => fn($q2) => $q2->where('is_active', true)->orderBy('order'),
-                          ])])
-                          ->get()
-                    : collect();
-            @endphp
-            @php
-                $navItems = [
-                    [
-                        'route' => 'dashboard',
-                        'label' => 'Dashboard',
-                        'icon'  => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-                        'from'  => '#38bdf8', 'to' => '#6366f1', 'txt' => '#0ea5e9',
-                    ],
-                    [
-                        'route' => 'projects.index',
-                        'label' => 'Projects',
-                        'icon'  => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
-                        'from'  => '#a78bfa', 'to' => '#f472b6', 'txt' => '#8b5cf6',
-                    ],
-                    [
-                        'route' => 'marketplace.index',
-                        'label' => 'Marketplace',
-                        'icon'  => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
-                        'from'  => '#34d399', 'to' => '#06b6d4', 'txt' => '#10b981',
-                    ],
-                    [
-                        'route' => 'wisdom.index',
-                        'label' => 'Wisdom',
-                        'icon'  => 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-                        'from'  => '#f59e0b', 'to' => '#fbbf24', 'txt' => '#f59e0b',
-                    ],
-                    [
-                        'route' => 'menus.index',
-                        'label' => 'Menus',
-                        'icon'  => 'M4 6h16M4 12h16M4 18h7',
-                        'from'  => '#f472b6', 'to' => '#fb7185', 'txt' => '#ec4899',
-                    ],
-                    [
-                        'route' => 'settings.index',
-                        'label' => 'Settings',
-                        'icon'  => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
-                        'from'  => '#fb923c', 'to' => '#f59e0b', 'txt' => '#f97316',
-                    ],
-                ];
-            @endphp
+        {{-- Navigation --}}
+        <nav style="flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0;" aria-label="Main navigation">
+        @php
+            $navGroups = [
+                'WORKSPACE' => [
+                    ['route'=>'dashboard',       'label'=>'Dashboard',    'color'=>'#6366f1', 'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ],
+                'BUILD' => [
+                    ['route'=>'projects.index',  'label'=>'Projects',     'color'=>'#8b5cf6', 'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'badge'=>'projects'],
+                    ['route'=>'marketplace.index','label'=>'Marketplace', 'color'=>'#10b981', 'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+                ],
+                'AI TOOLS' => [
+                    ['route'=>'wisdom.index',    'label'=>'AI Knowledge', 'color'=>'#f59e0b', 'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
+                ],
+                'CONFIGURE' => [
+                    ['route'=>'menus.index',     'label'=>'Menus',        'color'=>'#ec4899', 'icon'=>'M4 6h16M4 12h16M4 18h7'],
+                    ['route'=>'settings.index',  'label'=>'Settings',     'color'=>'#f97316', 'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+                ],
+            ];
+            $projectCount = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
+            $dynamicSidebarMenus = auth()->check()
+                ? \App\Models\Menu::where('user_id', auth()->id())
+                      ->whereIn('category', ['sidebar', 'admin_sidebar'])
+                      ->where('is_active', true)
+                      ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')->with([
+                          'children' => fn($q2) => $q2->where('is_active', true)->orderBy('order'),
+                      ])])
+                      ->get()
+                : collect();
+        @endphp
 
-            @foreach($navItems as $item)
+        @foreach($navGroups as $groupLabel => $items)
+            <div class="sb-section-label">{{ $groupLabel }}</div>
+            @foreach($items as $item)
             @php $active = request()->routeIs(explode('.', $item['route'])[0].'*'); @endphp
             <a href="{{ route($item['route']) }}"
-               class="flex items-center px-2 py-1 rounded-lg text-sm font-normal transition-all duration-150 group/item"
-               style="{{ $active
-                   ? 'background:color-mix(in srgb,'.$item['from'].' 12%,transparent);'
-                   : '' }}"
-               onmouseover="if(!{{ $active ? 'true' : 'false' }}) this.style.background='var(--hover-bg)';"
-               onmouseout="if(!{{ $active ? 'true' : 'false' }}) this.style.background='';">
-                <div class="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4" style="color:{{ $item['txt'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               class="sb-item{{ $active ? ' active' : '' }}"
+               aria-current="{{ $active ? 'page' : 'false' }}">
+                <div class="sb-ico" style="{{ $active ? 'background:color-mix(in srgb,'.$item['color'].' 15%,transparent);' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $item['color'] : 'var(--text-3)' }}" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $item['icon'] }}"/>
                     </svg>
                 </div>
-                <span x-show="sidebarOpen || sidebarHovered"
-                      x-transition:enter="transition-opacity duration-150"
-                      x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                      class="ml-3 truncate whitespace-nowrap font-normal"
-                      style="color:{{ $active ? $item['txt'] : 'var(--text-2)' }};">
-                    {{ $item['label'] }}
-                </span>
-                @if($active)
-                <span x-show="sidebarOpen || sidebarHovered"
-                      class="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style="background:{{ $item['txt'] }};"></span>
+                <span class="sb-label" style="{{ $active ? 'color:'.$item['color'].';font-weight:600;' : '' }}">{{ $item['label'] }}</span>
+                @if(isset($item['badge']) && $item['badge'] === 'projects' && $projectCount > 0)
+                <span class="sb-badge" style="{{ $active ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
                 @endif
+                <span class="sb-tooltip" aria-hidden="true">{{ $item['label'] }}</span>
             </a>
             @endforeach
+        @endforeach
 
-            {{-- Admin Panel link (visible only to admins) --}}
-            @if(Auth::user()->isAdmin())
-            @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
-            <div class="pt-1">
-                <a href="{{ route('marketplace.admin.panel') }}"
-                   class="flex items-center px-2 py-1 rounded-lg text-sm font-normal transition-all duration-150"
-                   style="{{ $adminActive ? 'background:rgba(239,68,68,.1);' : '' }}"
-                   onmouseover="if(!{{ $adminActive ? 'true' : 'false' }}) this.style.background='var(--hover-bg)';"
-                   onmouseout="if(!{{ $adminActive ? 'true' : 'false' }}) this.style.background='';">
-                    <div class="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4" style="color:#ef4444" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                    <span x-show="sidebarOpen || sidebarHovered"
-                          x-transition:enter="transition-opacity duration-150"
-                          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                          class="ml-3 truncate whitespace-nowrap font-normal"
-                          style="color:{{ $adminActive ? '#ef4444' : 'var(--text-2)' }};">
-                        Marketplace Admin
-                    </span>
-                </a>
+        {{-- Admin section --}}
+        @if(Auth::user()->isAdmin())
+        <div class="sb-divider"></div>
+        <div class="sb-section-label">ADMIN</div>
+        @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
+        <a href="{{ route('marketplace.admin.panel') }}" class="sb-item{{ $adminActive ? ' active' : '' }}">
+            <div class="sb-ico" style="{{ $adminActive ? 'background:#fef2f2;' : '' }}">
+                <svg fill="none" viewBox="0 0 24 24" stroke="{{ $adminActive ? '#ef4444' : 'var(--text-3)' }}" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
             </div>
-            @endif
+            <span class="sb-label" style="{{ $adminActive ? 'color:#ef4444;font-weight:600;' : '' }}">Marketplace Admin</span>
+            <span class="sb-tooltip" aria-hidden="true">Marketplace Admin</span>
+        </a>
+        @endif
 
-            {{-- ── Admin Menu (sidebar bottom) ── --}}
-            @foreach($dynamicSidebarMenus as $dynMenu)
-            <div x-show="sidebarOpen || sidebarHovered" x-transition class="pt-2">
-                <p class="px-2 text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:var(--text-3);">
-                    {{ $dynMenu->name }}
-                </p>
-                @foreach($dynMenu->items as $mItem)
-                @php
-                    // Auto-fix: if URL points to the builder editor (/builder/xxx without /preview),
-                    // redirect to the preview page so the app opens full-screen instead of the AI IDE.
-                    $rawUrl  = $mItem->url ?? '';
-                    $urlPath = parse_url($rawUrl, PHP_URL_PATH) ?? '';
-                    if ($rawUrl && preg_match('#^/builder/[^/]+$#', $urlPath)) {
-                        $rawUrl = rtrim($rawUrl, '/') . '/preview';
-                    }
-                    $mPath   = ltrim($urlPath !== '' ? $urlPath : '', '/');
-                    $mActive = $rawUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
-                @endphp
-                <a href="{{ $rawUrl ?: '#' }}" target="{{ $mItem->target ?: '_blank' }}"
-                   class="flex items-center px-2 py-1 rounded-lg text-sm font-normal transition-all duration-150"
-                   style="{{ $mActive ? 'background:var(--brand-light);' : '' }}"
-                   onmouseover="if(!{{ $mActive ? 'true' : 'false' }}) this.style.background='var(--hover-bg)';"
-                   onmouseout="if(!{{ $mActive ? 'true' : 'false' }}) this.style.background='';">
-                    <div class="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                        @if($mItem->icon)
-                        <svg class="w-4 h-4" style="color:var(--brand)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
-                        </svg>
-                        @else
-                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand)"></span>
-                        @endif
-                    </div>
-                    <span x-show="sidebarOpen || sidebarHovered"
-                          x-transition:enter="transition-opacity duration-150"
-                          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                          class="ml-0 truncate whitespace-nowrap font-normal"
-                          style="color:{{ $mActive ? 'var(--brand)' : 'var(--text-2)' }};">
-                        {{ $mItem->label }}
-                    </span>
-                    @if($mActive)
-                    <span x-show="sidebarOpen || sidebarHovered"
-                          class="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style="background:var(--brand);"></span>
-                    @endif
-                </a>
-                @foreach($mItem->children as $child)
-                @php
-                    $cRaw  = $child->url ?? '';
-                    $cPath = parse_url($cRaw, PHP_URL_PATH) ?? '';
-                    if ($cRaw && preg_match('#^/builder/[^/]+$#', $cPath)) {
-                        $cRaw = rtrim($cRaw, '/') . '/preview';
-                    }
-                    $cPathTrimmed = ltrim($cPath, '/');
-                    $cActive = $cRaw && ($cPathTrimmed ? request()->is($cPathTrimmed, $cPathTrimmed.'/*') : false);
-                @endphp
-                <a href="{{ $cRaw ?: '#' }}" target="{{ $child->target ?: '_blank' }}"
-                   class="flex items-center pl-8 pr-2 py-1 rounded-lg text-xs font-normal transition-all"
-                   style="{{ $cActive ? 'color:var(--brand);' : 'color:var(--text-3);' }}"
-                   onmouseover="this.style.background='var(--hover-bg)'; this.style.color='var(--text-2)';"
-                   onmouseout="this.style.background=''; this.style.color='{{ $cActive ? 'var(--brand)' : 'var(--text-3)' }}';">
-                    <span class="w-1 h-1 rounded-full mr-2 flex-shrink-0" style="background:var(--border)"></span>
-                    <span x-show="sidebarOpen || sidebarHovered" class="truncate">{{ $child->label }}</span>
-                </a>
-                @endforeach
-                @endforeach
+        {{-- Dynamic custom menus --}}
+        @foreach($dynamicSidebarMenus as $dynMenu)
+        <div class="sb-divider"></div>
+        <div class="sb-section-label">{{ $dynMenu->name }}</div>
+        @foreach($dynMenu->items as $mItem)
+        @php
+            $rawUrl  = $mItem->url ?? '';
+            $urlPath = parse_url($rawUrl, PHP_URL_PATH) ?? '';
+            if ($rawUrl && preg_match('#^/builder/[^/]+$#', $urlPath)) {
+                $rawUrl = rtrim($rawUrl, '/') . '/preview';
+            }
+            $mPath   = ltrim($urlPath !== '' ? $urlPath : '', '/');
+            $mActive = $rawUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+        @endphp
+        <a href="{{ $rawUrl ?: '#' }}" target="{{ $mItem->target ?: '_blank' }}"
+           class="sb-item{{ $mActive ? ' active' : '' }}">
+            <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                @if($mItem->icon)
+                <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
+                </svg>
+                @else
+                <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                @endif
             </div>
+            <span class="sb-label">{{ $mItem->label }}</span>
+            @foreach($mItem->children as $child)
+            @php
+                $cRaw  = $child->url ?? '';
+                $cPath = parse_url($cRaw, PHP_URL_PATH) ?? '';
+                if ($cRaw && preg_match('#^/builder/[^/]+$#', $cPath)) { $cRaw = rtrim($cRaw, '/') . '/preview'; }
+                $cActive = $cRaw && (ltrim($cPath,'/') ? request()->is(ltrim($cPath,'/'), ltrim($cPath,'/').'/*') : false);
+            @endphp
             @endforeach
+        </a>
+        @endforeach
+        @endforeach
 
         </nav>
 
-        <!-- User Profile -->
-        <div class="p-2.5 flex-shrink-0" style="border-top:1px solid var(--border);" x-data="{ open: false }">
-            <button @click="open = !open"
-                    class="w-full flex items-center px-2 py-2 rounded-xl transition-colors"
-                    onmouseover="this.style.background='var(--hover-bg)'"
-                    onmouseout="this.style.background=''">
+        {{-- User profile --}}
+        <div style="padding:8px;border-top:1px solid var(--border);flex-shrink:0;" x-data="{ open: false }">
+            <button @click="open=!open"
+                    style="width:100%;display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:none;background:none;cursor:pointer;text-align:left;transition:background var(--dur-fast);"
+                    onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background='none'"
+                    :aria-expanded="open">
                 <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}"
-                     class="w-8 h-8 rounded-full flex-shrink-0 ring-2"
-                     style="ring-color:var(--border);">
-                <div x-show="sidebarOpen || sidebarHovered" x-transition class="ml-3 text-left min-w-0 flex-1">
-                    <p class="text-sm font-semibold truncate" style="color:var(--text-1);">{{ auth()->user()->name }}</p>
-                    <p class="text-xs truncate" style="color:var(--text-3);">{{ auth()->user()->email }}</p>
+                     style="width:30px;height:30px;border-radius:8px;flex-shrink:0;border:2px solid var(--border);">
+                <div style="flex:1;min-width:0;opacity:0;transition:opacity var(--dur-base);" :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'">
+                    <div style="font-size:12.5px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
+                    <div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
                 </div>
-                <svg x-show="sidebarOpen || sidebarHovered" class="w-3.5 h-3.5 ml-1 flex-shrink-0"
-                     style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg style="width:12px;height:12px;color:var(--text-3);flex-shrink:0;opacity:0;transition:opacity var(--dur-base);" :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
-
-            <!-- Dropdown -->
-            <div x-show="open" x-transition @click.away="open = false"
-                 class="absolute bottom-16 left-3 right-3 rounded-xl z-50 py-1 overflow-hidden"
-                 style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow-lg);">
+            <div x-show="open" x-transition @click.away="open=false"
+                 style="position:absolute;bottom:60px;left:8px;right:8px;background:var(--surface-base);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;z-index:50;padding:4px 0;">
                 <a href="{{ route('settings.index') }}"
-                   class="flex items-center px-4 py-2.5 text-sm transition-colors"
-                   style="color:var(--text-2);"
-                   onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)';"
-                   onmouseout="this.style.background='';this.style.color='var(--text-2)';">
-                    <svg class="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:var(--text-2);text-decoration:none;transition:background var(--dur-fast);"
+                   onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background=''">
+                    <svg style="width:14px;height:14px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    Profile Settings
+                    Profile &amp; Settings
                 </a>
-                <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+                <div style="height:1px;background:var(--border);margin:3px 0;"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full flex items-center px-4 py-2.5 text-sm transition-colors"
-                            style="color:#ef4444;"
-                            onmouseover="this.style.background='#fef2f2';"
-                            onmouseout="this.style.background='';">
-                        <svg class="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:#ef4444;border:none;background:none;cursor:pointer;text-align:left;transition:background var(--dur-fast);"
+                            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+                        <svg style="width:14px;height:14px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
                         Sign Out
@@ -484,177 +869,244 @@
         </div>
     </aside>
 
-    <!-- ───────────── MAIN ───────────── -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- ═══════ MAIN AREA ═══════ -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden app-main-area">
 
-        <!-- Top Bar -->
+        <!-- TOPBAR -->
         @php
             $userTopbarMenus = auth()->check()
                 ? \App\Models\Menu::where('user_id', auth()->id())
                       ->where('category', 'user_topbar')
                       ->where('is_active', true)
-                      ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')])
+                      ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')
+                          ->with(['children' => fn($q2) => $q2->where('is_active', true)->orderBy('order')])])
                       ->get()
                 : collect();
         @endphp
-        <header class="app-topbar h-16 flex items-center px-6 flex-shrink-0"
-                style="background:var(--header-bg); border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm);">
-            <div class="flex items-center flex-1 min-w-0 gap-6">
-                <!-- Mobile hamburger -->
-                <button class="btn-hamburger w-9 h-9 rounded-xl items-center justify-center flex-shrink-0 transition-colors"
-                        style="display:none; color:var(--text-2);"
-                        @click="mobileSidebarOpen = !mobileSidebarOpen"
-                        onmouseover="this.style.background='var(--hover-bg)'"
-                        onmouseout="this.style.background=''">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <h1 class="font-bold text-base flex-shrink-0" style="color:var(--text-1);">@yield('header', 'Dashboard')</h1>
+        <header class="app-topbar">
+            {{-- Mobile hamburger --}}
+            <button class="topbar-btn btn-hamburger" style="display:none;"
+                    @click="mobileSidebarOpen=!mobileSidebarOpen"
+                    aria-label="Open navigation">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
 
-                {{-- ── User Menu (topbar) ── --}}
-                @if($userTopbarMenus->isNotEmpty())
-                <nav class="flex items-center gap-1 min-w-0 overflow-x-auto" style="scrollbar-width:none;">
-                    @foreach($userTopbarMenus as $topMenu)
-                        @foreach($topMenu->items as $topItem)
-                        @php
-                            $topPath   = ltrim(parse_url($topItem->url ?? '', PHP_URL_PATH) ?? '', '/');
-                            $topActive = $topItem->url && ($topPath ? request()->is($topPath, $topPath.'/*') : false);
-                        @endphp
-                        @if($topItem->children->isNotEmpty())
-                        {{-- Dropdown item --}}
-                        <div x-data="{ open: false }" class="relative flex-shrink-0">
-                            <button @click="open = !open" @click.away="open = false"
-                                    class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-                                    style="{{ $topActive ? 'background:var(--brand-light);color:var(--brand);' : 'color:var(--text-2);' }}"
-                                    onmouseover="this.style.background='var(--hover-bg)'"
-                                    onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)' : '' }}'">
-                                @if($topItem->icon)
-                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $topItem->icon }}"/>
-                                </svg>
-                                @endif
-                                <span class="whitespace-nowrap">{{ $topItem->label }}</span>
-                                <svg class="w-3 h-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition
-                                 class="absolute top-full left-0 mt-1 py-1 rounded-xl z-50 min-w-[160px]"
-                                 style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-md);">
-                                @foreach($topItem->children as $child)
-                                <a href="{{ $child->url ?: '#' }}" target="{{ $child->target ?: '_self' }}"
-                                   class="flex items-center gap-2 px-4 py-2 text-sm transition-colors"
-                                   style="color:var(--text-2);"
-                                   onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)';"
-                                   onmouseout="this.style.background='';this.style.color='var(--text-2)';">
-                                    {{ $child->label }}
-                                </a>
-                                @endforeach
-                            </div>
-                        </div>
-                        @else
-                        {{-- Simple link --}}
-                        <a href="{{ $topItem->url ?: '#' }}" target="{{ $topItem->target ?: '_self' }}"
-                           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex-shrink-0 whitespace-nowrap"
-                           style="{{ $topActive ? 'background:var(--brand-light);color:var(--brand);font-weight:600;' : 'color:var(--text-2);' }}"
-                           onmouseover="this.style.background='var(--hover-bg)';if(!{{ $topActive ? 'true':'false' }})this.style.color='var(--text-1)';"
-                           onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)':'' }}';this.style.color='{{ $topActive ? 'var(--brand)':'var(--text-2)' }}';">
-                            @if($topItem->icon)
-                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $topItem->icon }}"/>
-                            </svg>
-                            @endif
-                            {{ $topItem->label }}
-                            @if($topActive)
-                            <span class="w-1 h-1 rounded-full flex-shrink-0" style="background:var(--brand);"></span>
-                            @endif
-                        </a>
-                        @endif
-                        @endforeach
-                    @endforeach
-                </nav>
+            {{-- Breadcrumbs / Page title --}}
+            <div class="topbar-breadcrumb">
+                @hasSection('breadcrumb')
+                    @yield('breadcrumb')
+                @else
+                    <span class="bc-current">@yield('header', 'Dashboard')</span>
                 @endif
             </div>
-            <div class="flex items-center space-x-1.5 flex-shrink-0">
+
+            {{-- User topbar menus --}}
+            @if($userTopbarMenus->isNotEmpty())
+            <nav style="display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;" aria-label="Quick links">
+                @foreach($userTopbarMenus as $topMenu)
+                @foreach($topMenu->items as $topItem)
+                @php
+                    $topPath   = ltrim(parse_url($topItem->url ?? '', PHP_URL_PATH) ?? '', '/');
+                    $topActive = $topItem->url && ($topPath ? request()->is($topPath, $topPath.'/*') : false);
+                @endphp
+                @if($topItem->children->isNotEmpty())
+                <div x-data="{ open: false }" class="relative flex-shrink-0">
+                    <button @click="open=!open" @click.away="open=false"
+                            style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:12.5px;font-weight:500;border:none;background:{{ $topActive ? 'var(--brand-light)' : 'none' }};color:{{ $topActive ? 'var(--brand)' : 'var(--text-2)' }};cursor:pointer;transition:background var(--dur-fast);"
+                            onmouseover="this.style.background='var(--surface-overlay)'" onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)' : 'none' }}'">
+                        {{ $topItem->label }}
+                        <svg style="width:11px;height:11px" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition style="position:absolute;top:calc(100% + 4px);left:0;background:var(--surface-base);border:1px solid var(--border);border-radius:11px;box-shadow:var(--shadow-md);z-index:50;min-width:160px;padding:4px 0;overflow:hidden;">
+                        @foreach($topItem->children as $child)
+                        <a href="{{ $child->url ?: '#' }}" target="{{ $child->target ?: '_self' }}"
+                           style="display:flex;align-items:center;padding:8px 14px;font-size:12.5px;color:var(--text-2);text-decoration:none;transition:background var(--dur-fast);"
+                           onmouseover="this.style.background='var(--surface-raised)';this.style.color='var(--text-1)'"
+                           onmouseout="this.style.background='';this.style.color='var(--text-2)'">{{ $child->label }}</a>
+                        @endforeach
+                    </div>
+                </div>
+                @else
+                <a href="{{ $topItem->url ?: '#' }}" target="{{ $topItem->target ?: '_self' }}"
+                   style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:12.5px;font-weight:{{ $topActive ? '600' : '500' }};color:{{ $topActive ? 'var(--brand)' : 'var(--text-2)' }};background:{{ $topActive ? 'var(--brand-light)' : 'none' }};text-decoration:none;white-space:nowrap;transition:background var(--dur-fast);flex-shrink:0;"
+                   onmouseover="this.style.background='var(--surface-overlay)'" onmouseout="this.style.background='{{ $topActive ? 'var(--brand-light)' : 'none' }}'">
+                    {{ $topItem->label }}
+                </a>
+                @endif
+                @endforeach
+                @endforeach
+            </nav>
+            @endif
+
+            {{-- Right actions --}}
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                 @yield('header-actions')
 
-                <!-- Notifications -->
-                <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-                        style="color:var(--text-2);"
-                        onmouseover="this.style.background='var(--hover-bg)';this.style.color='var(--text-1)'"
-                        onmouseout="this.style.background='';this.style.color='var(--text-2)'">
-                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                {{-- ⌘K Search --}}
+                <button class="topbar-btn" @click="cmdOpen=true; $nextTick(()=>$refs.cmdInput?.focus())"
+                        aria-label="Open command palette (Ctrl+K)">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </button>
 
-                <!-- New Project -->
-                <a href="{{ route('projects.create') }}"
-                   class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-                   style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                {{-- Notifications --}}
+                <button class="topbar-btn" @click="notifOpen=!notifOpen"
+                        aria-label="Notifications" :aria-expanded="notifOpen">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
-                    <span class="topbar-new-project-text">New Project</span>
+                    @php $notifCount = auth()->check() ? \App\Models\AIConversation::where('user_id',auth()->id())->where('created_at','>=',now()->subDay())->count() : 0; @endphp
+                    @if($notifCount > 0)
+                    <span class="notif-badge" aria-label="{{ $notifCount }} notifications"></span>
+                    @endif
+                </button>
+
+                {{-- New Project --}}
+                <a href="{{ route('projects.create') }}" class="btn-new-project">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="btn-new-project-label">New Project</span>
                 </a>
             </div>
         </header>
 
-        <!-- Flash Messages -->
-        @if(session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-             class="mx-6 mt-4 flex items-center p-3.5 rounded-xl text-sm"
-             style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534;">
-            <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>{{ session('success') }}</span>
-            <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        @endif
-        @if(session('error'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-             class="mx-6 mt-4 flex items-center p-3.5 rounded-xl text-sm"
-             style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b;">
-            <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>{{ session('error') }}</span>
-            <button @click="show = false" class="ml-auto opacity-60 hover:opacity-100">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        @endif
-
-        <!-- Page Content -->
-        <main class="main-padding flex-1 overflow-y-auto @yield('main-class', 'p-6')">
+        {{-- Page Content --}}
+        <main class="main-content flex-1 overflow-y-auto p-6 @yield('main-class', '')">
             @yield('content')
         </main>
     </div>
 </div>
 
+{{-- ═══ MOBILE BOTTOM NAV ═══ --}}
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-bottom-nav-inner">
+        @php
+            $mbnItems = [
+                ['route'=>'dashboard',       'label'=>'Home',        'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['route'=>'projects.index',  'label'=>'Projects',    'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z'],
+                ['route'=>'marketplace.index','label'=>'Store',      'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+                ['route'=>'settings.index',  'label'=>'Settings',    'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+            ];
+        @endphp
+        @foreach($mbnItems as $mbn)
+        @php $mbnActive = request()->routeIs(explode('.', $mbn['route'])[0].'*'); @endphp
+        <a href="{{ route($mbn['route']) }}" class="mbn-item{{ $mbnActive ? ' active' : '' }}" aria-current="{{ $mbnActive ? 'page' : 'false' }}">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $mbn['icon'] }}"/>
+            </svg>
+            <span>{{ $mbn['label'] }}</span>
+        </a>
+        @endforeach
+    </div>
+</nav>
+
 @stack('modals')
 @stack('scripts')
+
+{{-- Session flash → toast --}}
+@if(session('success') || session('error'))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: @json(session('success')) } }));
+    @endif
+    @if(session('error'))
+    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: @json(session('error')) } }));
+    @endif
+});
+</script>
+@endif
 
 <script>
 function appLayout() {
     return {
-        sidebarOpen:      false,
-        sidebarHovered:   false,
+        sidebarOpen:       localStorage.getItem('sb_open') === 'true',
+        sidebarHovered:    false,
         mobileSidebarOpen: false,
+        cmdOpen:           false,
+        cmdQuery:          '',
+        cmdIdx:            0,
+        notifOpen:         false,
+
         init() {
-            // Always light mode — remove any saved dark preference
             localStorage.removeItem('theme');
             document.documentElement.classList.remove('dark');
+            // ⌘K / Ctrl+K
+            window.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    this.cmdOpen = !this.cmdOpen;
+                    if (this.cmdOpen) this.$nextTick(() => this.$refs.cmdInput?.focus());
+                }
+            });
+            this.$watch('sidebarOpen', v => localStorage.setItem('sb_open', v));
         },
-    }
+
+        cmdItems() {
+            return [
+                // Navigation
+                { group: 'Navigate', label: 'Dashboard',      hint: 'Overview',           href: '{{ route('dashboard') }}',        icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+                { group: 'Navigate', label: 'Projects',        hint: 'All projects',       href: '{{ route('projects.index') }}',   icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z' },
+                { group: 'Navigate', label: 'Marketplace',     hint: 'Module store',       href: '{{ route('marketplace.index') }}',icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
+                { group: 'Navigate', label: 'AI Knowledge',    hint: 'Intelligence ledger',href: '{{ route('wisdom.index') }}',     icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+                { group: 'Navigate', label: 'Menus',           hint: 'Navigation manager', href: '{{ route('menus.index') }}',      icon: 'M4 6h16M4 12h16M4 18h7' },
+                { group: 'Navigate', label: 'Settings',        hint: 'Account & workspace',href: '{{ route('settings.index') }}',   icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+                { group: 'Navigate', label: 'Updates',         hint: 'System updates',     href: '{{ route('settings.updates') }}', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
+                // Actions
+                { group: 'Actions',  label: 'New Project',     hint: 'Create with AI',     href: '{{ route('projects.create') }}',  icon: 'M12 4v16m8-8H4' },
+                { group: 'Actions',  label: 'Upload Package',  hint: 'Install a .zip',     href: '{{ route('marketplace.upload-install') }}', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' },
+                { group: 'Actions',  label: 'Installed Modules',hint: 'Manage modules',    href: '{{ route('marketplace.installed') }}', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
+            ];
+        },
+
+        filteredCmdItems() {
+            const q = this.cmdQuery.toLowerCase().trim();
+            const items = this.cmdItems();
+            const filtered = q ? items.filter(i => i.label.toLowerCase().includes(q) || (i.hint||'').toLowerCase().includes(q)) : items;
+            return filtered.map((item, idx) => ({ ...item, _idx: idx }));
+        },
+
+        groupedCmdItems() {
+            const items = this.filteredCmdItems();
+            const groups = {};
+            items.forEach(item => {
+                if (!groups[item.group]) groups[item.group] = { label: item.group, items: [] };
+                groups[item.group].items.push(item);
+            });
+            return Object.values(groups);
+        },
+
+        cmdMove(dir) {
+            const items = this.filteredCmdItems();
+            if (!items.length) return;
+            this.cmdIdx = ((this.cmdIdx + dir) % items.length + items.length) % items.length;
+        },
+
+        cmdGo() {
+            const items = this.filteredCmdItems();
+            const item = items[this.cmdIdx];
+            if (item) { window.location.href = item.href; this.cmdOpen = false; }
+        },
+    };
+}
+
+function toastSystem() {
+    return {
+        toasts: [],
+        addToast({ type = 'info', message, duration = 4500 }) {
+            const id = Date.now() + Math.random();
+            this.toasts.push({ id, type, message, show: true });
+            setTimeout(() => this.dismiss(id), duration);
+        },
+        dismiss(id) {
+            const t = this.toasts.find(t => t.id === id);
+            if (t) { t.show = false; setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 300); }
+        },
+    };
 }
 </script>
 </body>
