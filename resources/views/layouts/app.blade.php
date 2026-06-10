@@ -403,6 +403,14 @@
         /* Divider hidden in collapsed mode */
         .app-sidebar:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; overflow: hidden; }
 
+        /* My-Apps sub-items: only visible when sidebar is expanded */
+        .sb-my-apps { display: none; }
+        .sidebar-expanded .sb-my-apps { display: block; }
+        @media (min-width: 1024px) {
+            .app-sidebar:not(.sidebar-autohide):hover .sb-my-apps { display: block !important; }
+        }
+        .sb-sub-item { height: 36px !important; }
+
         /* ── Sidebar nav items ── */
         .sb-item {
             display: flex; align-items: center;
