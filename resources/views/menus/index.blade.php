@@ -3,14 +3,21 @@
 @section('header', 'Menu Management')
 
 @section('header-actions')
-<button x-data @click="$dispatch('open-add-menu')"
-        class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-        style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-    </svg>
-    <span>New Menu</span>
-</button>
+<div class="flex items-center gap-2">
+    <a href="{{ route('menu-categories.index') }}"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+       style="color:var(--text-2);border:1px solid var(--border);">
+        Menu Categories
+    </a>
+    <button x-data @click="$dispatch('open-add-menu')"
+            class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+            style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>New Menu</span>
+    </button>
+</div>
 @endsection
 
 @section('content')
