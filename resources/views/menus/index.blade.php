@@ -233,7 +233,7 @@
                     </div>
 
                     {{-- Icon picker --}}
-                    <div x-data="iconPicker('add')">
+                    <div x-data="iconPicker()">
                         <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon</label>
                         <input type="hidden" name="icon" x-model="selected">
                         <button type="button" @click="open = !open"
@@ -296,7 +296,7 @@
                     </div>
 
                     {{-- URL / Link type --}}
-                    <div x-data="urlPicker('add')">
+                    <div x-data="urlPicker()">
                         <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Link To</label>
                         <input type="hidden" name="url" :value="resolvedUrl">
 
@@ -432,9 +432,9 @@
                     </div>
 
                     {{-- Icon picker (edit) --}}
-                    <div x-data="iconPicker('edit')" x-init="selected = editMenu.icon || ''">
+                    <div x-data="iconPicker()" x-effect="showEditModal, selected = editMenu.icon || ''">
                         <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon</label>
-                        <input type="hidden" name="icon" x-model="selected" @change="editMenu.icon = selected">
+                        <input type="hidden" name="icon" x-model="selected">
                         <button type="button" @click="open = !open"
                                 class="w-full flex items-center gap-3 rounded-xl text-sm cursor-pointer"
                                 style="padding:8px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-2);">
@@ -466,7 +466,7 @@
                             <div class="p-2 overflow-y-auto" style="max-height:220px;">
                                 <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px;">
                                     <template x-for="ic in filteredIcons" :key="ic.n">
-                                        <button type="button" @click="selected = ic.d; editMenu.icon = ic.d; open = false"
+                                        <button type="button" @click="selected = ic.d; open = false"
                                                 :title="ic.n"
                                                 class="flex flex-col items-center justify-center rounded-lg cursor-pointer transition-all"
                                                 style="padding:6px 2px;border:none;"
@@ -484,7 +484,7 @@
                                 </div>
                             </div>
                             <div class="px-3 pb-3 pt-1 flex justify-end" style="border-top:1px solid var(--border);">
-                                <button type="button" @click="selected='';editMenu.icon='';open=false"
+                                <button type="button" @click="selected='';open=false"
                                         class="text-xs font-semibold border-none cursor-pointer"
                                         style="background:none;color:var(--text-3);">Clear icon</button>
                             </div>
@@ -492,9 +492,9 @@
                     </div>
 
                     {{-- URL / Link type (edit) --}}
-                    <div x-data="urlPicker('edit')" x-init="initFromUrl(editMenu.url)">
+                    <div x-data="urlPicker()" x-effect="showEditModal, initFromUrl(editMenu.url)">
                         <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Link To</label>
-                        <input type="hidden" name="url" :value="resolvedUrl" @change="editMenu.url = resolvedUrl">
+                        <input type="hidden" name="url" :value="resolvedUrl">
 
                         <div class="flex rounded-xl overflow-hidden mb-2" style="border:1.5px solid var(--border);">
                             <template x-for="t in types" :key="t.k">
