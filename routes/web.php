@@ -116,6 +116,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{project}/files/{file}',          [AIBuilderController::class, 'deleteFile'])->name('file.delete')->middleware('throttle:60,1');
         Route::post('/{project}/conversations',           [AIBuilderController::class, 'newConversation'])->name('conversation.new')->middleware('throttle:30,1');
         Route::get('/{project}/preview',                  [AIBuilderController::class, 'previewHtml'])->name('preview');
+        Route::get('/{project}/template-preview',         [AIBuilderController::class, 'templatePreview'])->name('template-preview');
+        Route::get('/{project}/template-files',           [AIBuilderController::class, 'templateFiles'])->name('template-files');
         // Blueprint-Driven Development endpoints (near-zero AI cost)
         Route::post('/{project}/discover',                [AIBuilderController::class, 'discover'])->name('discover')->middleware('throttle:10,1');
         Route::get('/{project}/blueprint',                [AIBuilderController::class, 'getBlueprint'])->name('blueprint.get');
@@ -217,6 +219,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
         // Templates browser + ZIP download
         Route::get('/templates',                           [TemplateController::class, 'browse'])->name('templates');
+        Route::post('/templates/upload-install',            [TemplateController::class, 'uploadInstall'])->name('template.upload-install');
         Route::post('/templates/{key}/activate-main',       [TemplateController::class, 'activateMain'])->name('template.activate-main');
         Route::get('/templates/{key}/download',            [TemplateController::class, 'download'])->name('template.download');
         // Admin approval panel (admin role only — enforced inside controller)

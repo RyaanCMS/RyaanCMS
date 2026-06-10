@@ -4,10 +4,11 @@
 @section('main-class', '')
 
 @section('header-actions')
-<div class="flex items-center space-x-2" x-data="{ newProjectOpen: false }">
+<div class="flex items-center space-x-2">
     <span class="text-sm text-gray-500">{{ $project->type }}</span>
     <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
     <span class="text-sm text-green-400">Active</span>
+    @if(false)
     <button @click="newProjectOpen = true"
        class="flex items-center space-x-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
        style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;"
@@ -124,6 +125,7 @@
         </div>
     </div>{{-- /.modal --}}
     </template>{{-- /.x-teleport --}}
+    @endif
     <a href="{{ route('pipeline.show', $project) }}"
        class="ml-2 flex items-center space-x-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
        style="background:linear-gradient(135deg,#1e1b4b,#2e1065); color:#a78bfa; border:1px solid #4c1d95;">
@@ -907,6 +909,9 @@
             <div x-show="activeFile && viewMode !== 'preview'" class="flex items-center space-x-2 ml-3">
                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0"></span>
                 <span x-text="activeFile?.path" class="text-xs text-gray-500 font-mono truncate max-w-xs"></span>
+                <span x-show="activeFile?.read_only" x-cloak
+                      class="text-[10px] px-1.5 py-0.5 rounded border"
+                      style="color:#a16207;background:#fef9c3;border-color:#fde68a;">Template source</span>
             </div>
 
             <div class="flex-1"></div>
@@ -922,7 +927,7 @@
             </button>
 
             <!-- Save button -->
-            <button @click="saveFile()" :disabled="saving" x-show="activeFile && viewMode !== 'preview'"
+            <button @click="saveFile()" :disabled="saving" x-show="activeFile && viewMode !== 'preview' && !activeFile?.read_only"
                     class="flex items-center space-x-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors">
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -946,6 +951,7 @@
                           x-ref="editor"
                           @keydown.ctrl.s.prevent="saveFile()"
                           x-model="editorContent"
+                          :readonly="activeFile?.read_only"
                           :placeholder="activeFile ? '' : '← Select a file or ask AI to generate code'">
                 </textarea>
             </div>
@@ -1053,10 +1059,12 @@
                                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             <span x-text="item.name" class="truncate flex-1" :title="item.path"></span>
+                            <span x-show="item.read_only" class="text-[9px] px-1 rounded"
+                                  style="background:#fef9c3;color:#a16207;border:1px solid #fde68a;">TPL</span>
                         </span>
                     </template>
 
-                    <button x-show="item.type === 'file'"
+                    <button x-show="item.type === 'file' && !item.read_only"
                             @click.stop="deleteFile(item)"
                             class="opacity-0 group-hover:opacity-100 p-0.5 text-gray-600 hover:text-red-400 rounded transition-all flex-shrink-0">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1111,6 +1119,7 @@ function builderApp() {
         _blobUrl: null,
         chatPanelWidth: 384,
         files: @json($files),
+        templateFiles: [],
         fileTree: [],
         collapsedDirs: {},
         messages: @json($messageData),
@@ -1168,10 +1177,18 @@ function builderApp() {
 
             this.initTurns();
             this.buildFileTree();
-            if (this.files.length > 0) this.openFile(this.files[0]);
+            if (!this.selectedTemplateKey && this.files.length > 0) this.openFile(this.files[0]);
             this.$watch('turns', () => this.scrollChat());
             this.$watch('files', () => this.buildFileTree());
-            this.$nextTick(() => { this.autoPreview(); this.scrollChat(); this.onProviderChange(); });
+            this.$watch('selectedTemplateKey', async (key) => {
+                await this.loadTemplateFiles(true);
+                key ? this.loadTemplatePreview() : this.autoPreview();
+            });
+            this.$nextTick(() => {
+                this.selectedTemplateKey ? this.loadTemplatePreview() : this.autoPreview();
+                this.scrollChat();
+                this.onProviderChange();
+            });
 
             // When AI starts, reveal preview pane if user is in code-only mode
             this.$watch('isThinking', (val) => {
@@ -1221,6 +1238,12 @@ function builderApp() {
                 this.chatInput = _params.get('prompt') || '';
             } else if (this.selectedTemplateKey) {
                 this.chatInput = this.defaultTemplatePrompt();
+            }
+
+            if (this.selectedTemplateKey) {
+                this.loadTemplateFiles(true);
+            } else if (this.files.length > 0 && !this.activeFile) {
+                this.openFile(this.files[0]);
             }
 
             if (_params.has('prompt') || _params.has('template')) {
@@ -1406,6 +1429,49 @@ function builderApp() {
         isPreviewable(filename) {
             if (!filename) return false;
             return /\.(html|htm|blade\.php)$/i.test(filename);
+        },
+
+        loadTemplatePreview() {
+            if (!this.selectedTemplateKey) {
+                this.autoPreview();
+                return;
+            }
+
+            const iframe = document.getElementById('previewFrame');
+            if (!iframe) return;
+
+            iframe.src = `/builder/${this.projectId}/template-preview?template=${encodeURIComponent(this.selectedTemplateKey)}&v=${Date.now()}`;
+            this.hasPreviewContent = true;
+            if (this.viewMode === 'editor') this.viewMode = 'split';
+        },
+
+        async loadTemplateFiles(openFirst = false) {
+            if (!this.selectedTemplateKey) {
+                this.templateFiles = [];
+                if (this.activeFile?.template_source) {
+                    this.activeFile = null;
+                    this.editorContent = '';
+                    if (this.files.length > 0) this.openFile(this.files[0]);
+                }
+                this.buildFileTree();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/builder/${this.projectId}/template-files?template=${encodeURIComponent(this.selectedTemplateKey)}`, {
+                    headers: { 'X-CSRF-TOKEN': this.csrfToken, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                this.templateFiles = data.success ? (data.files || []) : [];
+                this.buildFileTree();
+
+                if (openFirst && this.templateFiles.length > 0) {
+                    this.openFile(this.templateFiles[0]);
+                }
+            } catch {
+                this.templateFiles = [];
+                this.buildFileTree();
+            }
         },
 
         autoPreview() {
@@ -1759,7 +1825,7 @@ window.addEventListener('unhandledrejection', function(e) {
         buildFileTree() {
             const dirMap = {};
             const tree   = [];
-            const sorted = [...this.files].sort((a, b) => {
+            const sorted = [...this.templateFiles, ...this.files].sort((a, b) => {
                 const pa = (a.path || a.name).toLowerCase();
                 const pb = (b.path || b.name).toLowerCase();
                 return pa < pb ? -1 : pa > pb ? 1 : 0;
@@ -1852,6 +1918,7 @@ window.addEventListener('unhandledrejection', function(e) {
 
         async saveFile() {
             if (!this.activeFile || this.saving) return;
+            if (this.activeFile.read_only) return;
             this.saving = true;
             try {
                 await fetch(`/builder/${this.projectId}/files/${this.activeFile.id}`, {
@@ -2185,6 +2252,7 @@ window.addEventListener('unhandledrejection', function(e) {
         },
 
         async deleteFile(file) {
+            if (file.read_only) return;
             if (!confirm(`Delete ${file.name}?`)) return;
             await fetch(`/builder/${this.projectId}/files/${file.id}`, {
                 method: 'DELETE',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AIConversation;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectModule;
 use App\Services\AI\AIManager;
 use App\Services\AI\BlueprintService;
 use App\Services\AI\CodeGeneratorService;
@@ -15,7 +16,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use ZipArchive;
@@ -44,10 +48,9 @@ class AIBuilderController extends Controller
         $providers   = Auth::user()->aiProviders()->where('is_active', true)->get();
         $conversations = $project->conversations()->limit(20)->get();
         $aiProviders = config('ai.providers');
-        $templates   = $this->templateRegistry->all();
-        $selectedTemplateKey = $this->templateRegistry->get((string) $request->query('template'))
-            ? (string) $request->query('template')
-            : null;
+        $templates   = $this->builderTemplates($project);
+        $requestedTemplateKey = (string) $request->query('template');
+        $selectedTemplateKey = isset($templates[$requestedTemplateKey]) ? $requestedTemplateKey : null;
 
         // Load or create active conversation
         $conversation = $project->conversations()->latest()->first()
@@ -75,7 +78,7 @@ class AIBuilderController extends Controller
             'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
             'provider'        => ['nullable', 'string'],
             'model'           => ['nullable', 'string'],
-            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->templateRegistry->all()))],
+            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->builderTemplates($project)))],
             'url'             => ['nullable', 'url', 'max:500'],
             'files'           => ['nullable', 'array', 'max:10'],
             'files.*'         => ['nullable', 'file', 'max:10240'],
@@ -103,7 +106,7 @@ class AIBuilderController extends Controller
             }
         }
 
-        $templateContext = $this->templatePromptContext($request->input('template_key'));
+        $templateContext = $this->templatePromptContext($project, $request->input('template_key'));
         if ($templateContext) {
             $contextParts[] = $templateContext;
         }
@@ -140,7 +143,7 @@ class AIBuilderController extends Controller
                 conversation: $conversation,
                 provider:     $provider,
                 model:        $request->model,
-                visiblePrompt: $this->visiblePromptWithTemplate($userMessage, $request->input('template_key')),
+                visiblePrompt: $this->visiblePromptWithTemplate($project, $userMessage, $request->input('template_key')),
             );
 
             return response()->json([
@@ -279,13 +282,105 @@ class AIBuilderController extends Controller
         }
     }
 
-    private function templatePromptContext(?string $templateKey): ?string
+    private function builderTemplates(Project $project): array
+    {
+        return array_replace($this->templateRegistry->all(), $this->uploadedTemplatesForBuilder($project));
+    }
+
+    private function uploadedTemplatesForBuilder(Project $project): array
+    {
+        $templates = [];
+        $projectIds = Auth::user()?->projects()->pluck('id') ?? collect([$project->id]);
+        if ($projectIds->isEmpty()) {
+            return [];
+        }
+
+        $modules = ProjectModule::whereIn('project_id', $projectIds)
+            ->where('module_key', 'like', 'template.uploaded.%')
+            ->latest('updated_at')
+            ->get();
+
+        foreach ($modules as $module) {
+            if (isset($templates[$module->module_key])) {
+                continue;
+            }
+
+            $template = $this->uploadedTemplateMetaForBuilder($module);
+            if ($template) {
+                $templates[$module->module_key] = $template;
+            }
+        }
+
+        return $templates;
+    }
+
+    private function uploadedTemplateMetaForBuilder(ProjectModule $module): ?array
+    {
+        if (!data_get($module->options, 'uploaded_template')) {
+            return null;
+        }
+
+        $sourcePath = data_get($module->options, 'source_path');
+        if (!$sourcePath || !Storage::disk('local')->exists($sourcePath)) {
+            return null;
+        }
+
+        $manifest = data_get($module->options, 'manifest', []);
+        if (!is_array($manifest)) {
+            $manifest = [];
+        }
+
+        return [
+            'key' => $module->module_key,
+            'name' => (string) ($manifest['name'] ?? 'Uploaded Template'),
+            'description' => (string) ($manifest['description'] ?? 'Uploaded custom website template.'),
+            'category' => (string) ($manifest['category'] ?? 'Uploaded Template'),
+            'type' => 'template',
+            'icon' => (string) ($manifest['icon'] ?? 'T'),
+            'color' => $this->normalizeUploadedColor($manifest['color'] ?? '#6366f1'),
+            'view' => null,
+            'source_path' => $sourcePath,
+            'tags' => $this->normalizeUploadedTags($manifest['tags'] ?? []),
+            'version' => (string) ($manifest['version'] ?? '1.0.0'),
+            'is_uploaded' => true,
+            'is_global' => false,
+        ];
+    }
+
+    private function normalizeUploadedTags(mixed $tags): array
+    {
+        if (is_string($tags)) {
+            $tags = explode(',', $tags);
+        }
+
+        if (!is_array($tags)) {
+            $tags = [];
+        }
+
+        $normalized = array_values(array_filter(array_map(
+            fn($tag) => trim((string) $tag),
+            $tags
+        )));
+
+        return $normalized ?: ['uploaded', 'template'];
+    }
+
+    private function normalizeUploadedColor(mixed $color): string
+    {
+        $color = trim((string) $color);
+
+        return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $color)
+            ? $color
+            : '#6366f1';
+    }
+
+    private function templatePromptContext(Project $project, ?string $templateKey): ?string
     {
         if (!$templateKey) {
             return null;
         }
 
-        $template = $this->templateRegistry->get($templateKey);
+        $template = $this->builderTemplates($project)[$templateKey] ?? null;
         if (!$template) {
             return null;
         }
@@ -318,6 +413,11 @@ PROMPT;
 
     private function templateSource(array $template): string
     {
+        $sourcePath = $template['source_path'] ?? null;
+        if ($sourcePath && Storage::disk('local')->exists($sourcePath)) {
+            return $this->limitPromptText(Storage::disk('local')->get($sourcePath), self::MAX_TEMPLATE_SOURCE_CHARS);
+        }
+
         $view = $template['view'] ?? '';
         $path = resource_path('views/' . str_replace('.', '/', $view) . '.blade.php');
 
@@ -338,9 +438,73 @@ PROMPT;
         return $this->limitPromptText($source, self::MAX_TEMPLATE_SOURCE_CHARS);
     }
 
-    private function visiblePromptWithTemplate(string $message, ?string $templateKey): string
+    private function templateCodeFiles(array $template, string $templateKey): array
     {
-        $template = $templateKey ? $this->templateRegistry->get($templateKey) : null;
+        $sourcePath = $template['source_path'] ?? null;
+        if ($sourcePath && Storage::disk('local')->exists($sourcePath)) {
+            $name = Str::slug($template['name'] ?? 'uploaded-template') ?: 'uploaded-template';
+
+            return [[
+                'id' => 'template:' . $templateKey . ':source',
+                'type' => 'file',
+                'name' => $name . '.blade.php',
+                'path' => 'template-source/' . $name . '.blade.php',
+                'extension' => 'php',
+                'content' => Storage::disk('local')->get($sourcePath),
+                'read_only' => true,
+                'template_source' => true,
+            ]];
+        }
+
+        $view = $template['view'] ?? '';
+        if (!$view) {
+            return [];
+        }
+
+        $files = [];
+        $seen = [];
+        $this->collectTemplateViewFiles($view, $templateKey, $files, $seen);
+
+        return array_values($files);
+    }
+
+    private function collectTemplateViewFiles(string $view, string $templateKey, array &$files, array &$seen): void
+    {
+        if ($view === '' || isset($seen[$view])) {
+            return;
+        }
+
+        $seen[$view] = true;
+        $relativePath = str_replace('.', '/', $view) . '.blade.php';
+        $path = resource_path('views/' . $relativePath);
+
+        if (!is_file($path)) {
+            return;
+        }
+
+        $content = file_get_contents($path) ?: '';
+        $files[$view] = [
+            'id' => 'template:' . $templateKey . ':' . $view,
+            'type' => 'file',
+            'name' => basename($path),
+            'path' => 'resources/views/' . $relativePath,
+            'extension' => 'php',
+            'content' => $content,
+            'read_only' => true,
+            'template_source' => true,
+        ];
+
+        preg_match_all("/@(include|includeIf|extends|component)\\s*\\(\\s*['\"]([^'\"]+)['\"]/", $content, $matches);
+        foreach ($matches[2] ?? [] as $nestedView) {
+            if (str_starts_with($nestedView, 'templates.')) {
+                $this->collectTemplateViewFiles($nestedView, $templateKey, $files, $seen);
+            }
+        }
+    }
+
+    private function visiblePromptWithTemplate(Project $project, string $message, ?string $templateKey): string
+    {
+        $template = $templateKey ? ($this->builderTemplates($project)[$templateKey] ?? null) : null;
         if (!$template) {
             return $message;
         }
@@ -359,7 +523,7 @@ PROMPT;
             'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
             'provider'        => ['nullable', 'string'],
             'model'           => ['nullable', 'string'],
-            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->templateRegistry->all()))],
+            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->builderTemplates($project)))],
         ]);
 
         $provider = $request->input('provider', 'claude');
@@ -385,12 +549,12 @@ PROMPT;
         // null inside response()->stream() on some session drivers.
         $user = Auth::user();
 
-        $templateContext = $this->templatePromptContext($request->input('template_key'));
+        $templateContext = $this->templatePromptContext($project, $request->input('template_key'));
         $userMessage = trim($request->message);
         $prompt = $templateContext
             ? $templateContext . "\n\n---\n\nUser request: " . $userMessage
             : $userMessage;
-        $visiblePrompt = $this->visiblePromptWithTemplate($userMessage, $request->input('template_key'));
+        $visiblePrompt = $this->visiblePromptWithTemplate($project, $userMessage, $request->input('template_key'));
 
         return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt) {
             $emit = function (array $event) {
@@ -564,6 +728,56 @@ li:last-child{border-bottom:none}
 HTML;
 
         return response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
+    }
+
+    public function templatePreview(Request $request, Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $templates = $this->builderTemplates($project);
+        $request->validate([
+            'template' => ['required', 'string', Rule::in(array_keys($templates))],
+        ]);
+
+        $templateKey = (string) $request->query('template');
+        $template = $templates[$templateKey] ?? null;
+        abort_if(!$template, 404);
+
+        $sourcePath = $template['source_path'] ?? null;
+        if ($sourcePath) {
+            abort_unless(Storage::disk('local')->exists($sourcePath), 404);
+
+            return response(Blade::render(Storage::disk('local')->get($sourcePath), [
+                'project' => $project,
+                'template' => $template,
+            ]), 200, ['Content-Type' => 'text/html; charset=utf-8']);
+        }
+
+        $view = $template['view'] ?? null;
+        abort_unless($view && view()->exists($view), 404);
+
+        return response()
+            ->view($view, ['project' => $project, 'template' => $template])
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    public function templateFiles(Request $request, Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $templates = $this->builderTemplates($project);
+        $request->validate([
+            'template' => ['required', 'string', Rule::in(array_keys($templates))],
+        ]);
+
+        $templateKey = (string) $request->query('template');
+        $template = $templates[$templateKey] ?? null;
+        abort_if(!$template, 404);
+
+        return response()->json([
+            'success' => true,
+            'files' => $this->templateCodeFiles($template, $templateKey),
+        ]);
     }
 
     public function newConversation(Request $request, Project $project)

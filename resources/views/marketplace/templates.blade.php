@@ -4,21 +4,69 @@
 
 @push('head')
 <style>
-.tpl-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all .2s;
+.tpl-page {
+    width: min(1600px, calc(100vw - 48px));
+    margin: 0 auto;
 }
-.tpl-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 32px rgba(99,102,241,.1); transform: translateY(-2px); }
+.tpl-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.tpl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+    gap: 18px;
+}
+.tpl-card {
+    --c: var(--brand);
+    background: color-mix(in srgb, var(--surface-base, #fff) 96%, #f8fafc);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: box-shadow .22s ease, transform .22s ease, border-color .18s ease, background .18s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+}
+.tpl-card:hover {
+    background: #fff;
+    border-left-color: var(--c);
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--c) 12%, transparent),
+                0 2px 8px color-mix(in srgb, var(--c) 7%, transparent);
+    transform: translateY(-3px);
+}
+.tpl-card-stripe {
+    height: 3px;
+    width: 100%;
+    flex-shrink: 0;
+    background: color-mix(in srgb, var(--c) 70%, #fff);
+}
 .tpl-preview {
-    height: 200px;
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 20px 6px;
+    font-size: 24px;
+    position: relative;
+    background: transparent;
+}
+.tpl-preview > span {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 72px;
-    position: relative;
+    background: color-mix(in srgb, var(--c) 10%, #fff);
+    border: 1px solid color-mix(in srgb, var(--c) 20%, transparent);
+    color: var(--c);
+    font-weight: 800;
+    flex-shrink: 0;
 }
 .tpl-active-badge {
     position: absolute;
@@ -46,6 +94,65 @@
     padding: 4px 12px;
     border-radius: 100px;
 }
+.tpl-body {
+    padding: 10px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+.tpl-title {
+    font-size: 14px;
+    font-weight: 640;
+    color: #7c8a9b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tpl-category {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 650;
+    background: #fcfdff;
+    color: #a3afbf;
+    border: 1px solid #eef3f8;
+}
+.tpl-desc {
+    font-size: 12.5px;
+    color: #a8b4c3;
+    line-height: 1.6;
+    font-weight: 400;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 40px;
+}
+.tpl-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+}
+.tpl-tag {
+    font-size: 10px;
+    font-weight: 580;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #fcfdff;
+    color: #a3afbf;
+    border: 1px solid #eef3f8;
+}
+.tpl-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.tpl-actions > button,
+.tpl-actions > a {
+    min-height: 34px;
+}
 .form-select {
     background: var(--hover-bg);
     border: 1px solid var(--border);
@@ -72,20 +179,36 @@
     transition: all .15s;
 }
 .live-btn:hover { background: #e0e7ff; }
+.tpl-upload-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px auto auto;
+    gap: 12px;
+    align-items: end;
+}
+@media (max-width: 768px) {
+    .tpl-upload-grid { grid-template-columns: 1fr; }
+    .tpl-page { width: min(100%, calc(100vw - 24px)); }
+}
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-6" x-data="templateBrowser()">
+<div class="tpl-page space-y-6" x-data="templateBrowser()">
 
     {{-- Header bar --}}
-    <div class="flex items-center justify-between">
+    <div class="tpl-toolbar">
         <div>
-            <p class="text-sm font-semibold" style="color:var(--text-1);">{{ count($templates) }} built-in templates available</p>
+            <p class="text-sm font-semibold" style="color:var(--text-1);">{{ count($templates) }} website templates available</p>
             <p class="text-xs mt-0.5" style="color:var(--text-3);">Select Core CMS to publish any template on the main website.</p>
         </div>
         {{-- Project selector --}}
         <div class="flex items-center gap-3">
+            <button type="button"
+                    class="py-2 px-3 rounded-lg text-xs font-bold"
+                    style="background:var(--brand);color:#fff;border:1px solid var(--brand);"
+                    x-on:click="uploadOpen = !uploadOpen">
+                Upload Template
+            </button>
             <label class="text-sm font-semibold" style="color:var(--text-2);">Project:</label>
             <select x-model="selectedProject" class="form-select" style="width:200px">
                 <option value="">— Select Project —</option>
@@ -94,6 +217,57 @@
                 @endforeach
             </select>
         </div>
+    </div>
+
+    @if(session('success'))
+    <div class="px-5 py-3.5 rounded-xl text-sm font-medium"
+         style="background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if($errors->any())
+    <div class="px-5 py-3.5 rounded-xl text-sm font-medium"
+         style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;">
+        {{ $errors->first() }}
+    </div>
+    @endif
+
+    <div x-show="uploadOpen" x-cloak
+         class="p-5 rounded-2xl"
+         style="background:var(--card-bg);border:1px solid var(--border);">
+        <form action="{{ route('marketplace.template.upload-install') }}" method="POST" enctype="multipart/form-data"
+              class="tpl-upload-grid">
+            @csrf
+            <div>
+                <label class="text-xs font-semibold block mb-2" style="color:var(--text-2);">Template ZIP</label>
+                <input type="file" name="package" accept=".zip" required
+                       class="w-full text-sm rounded-lg px-3 py-2"
+                       style="background:var(--hover-bg);border:1px solid var(--border);color:var(--text-1);">
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold block mb-2" style="color:var(--text-2);">Install To</label>
+                <select name="project_id" x-model="selectedProject" class="form-select" required>
+                    <option value="">Select Project</option>
+                    @foreach($projects as $p)
+                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <label class="flex items-center gap-2 text-xs font-semibold pb-2" style="color:var(--text-2);">
+                <input type="hidden" name="activate" value="0">
+                <input type="checkbox" name="activate" value="1" checked>
+                Activate
+            </label>
+
+            <button type="submit"
+                    class="py-2.5 px-4 rounded-lg text-xs font-bold"
+                    style="background:var(--brand);color:#fff;border:1px solid var(--brand);">
+                Upload & Install
+            </button>
+        </form>
     </div>
 
     {{-- Feedback flash --}}
@@ -106,22 +280,24 @@
     </div>
 
     {{-- Template grid --}}
-    <div class="grid grid-cols-3 gap-5">
+    <div class="tpl-grid">
         @foreach($templates as $key => $tpl)
         @php
             $colors = [
-                'template.restaurant' => 'linear-gradient(135deg,#1a0a00,#5c2a00)',
-                'template.ecommerce'  => 'linear-gradient(135deg,#1a0010,#3d001a)',
-                'template.portfolio'  => 'linear-gradient(135deg,#0b0c10,#1a1d2e)',
-                'template.saas'       => 'linear-gradient(135deg,#0f172a,#1e3a5f)',
-                'template.agency'     => 'linear-gradient(135deg,#080808,#1a1a00)',
+                'template.ryaancms'   => '#6366f1',
+                'template.restaurant' => '#d97706',
+                'template.ecommerce'  => '#e11d48',
+                'template.portfolio'  => '#7c3aed',
+                'template.saas'       => '#2563eb',
+                'template.agency'     => '#18181b',
             ];
-            $bg = $colors[$key] ?? 'linear-gradient(135deg,#1e1e2e,#2d2d44)';
+            $color = $tpl['color'] ?? ($colors[$key] ?? '#6366f1');
         @endphp
-        <div class="tpl-card" x-data="{ key: '{{ $key }}' }">
+        <div class="tpl-card" style="--c:{{ $color }}" x-data="{ key: '{{ $key }}' }">
+            <div class="tpl-card-stripe"></div>
 
             {{-- Preview --}}
-            <div class="tpl-preview" style="background:{{ $bg }}">
+            <div class="tpl-preview">
                 <span>{{ $tpl['icon'] }}</span>
 
                 {{-- Status badge from installedMap --}}
@@ -142,29 +318,27 @@
             </div>
 
             {{-- Info --}}
-            <div class="p-5">
+            <div class="tpl-body">
                 <div class="flex items-start justify-between mb-1">
-                    <p class="font-bold text-sm" style="color:var(--text-1);">{{ $tpl['name'] }}</p>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ml-2 flex-shrink-0"
-                          style="background:var(--hover-bg); color:var(--text-3);">{{ $tpl['category'] }}</span>
+                    <p class="tpl-title">{{ $tpl['name'] }}</p>
+                    <span class="tpl-category ml-2 flex-shrink-0">{{ $tpl['category'] }}</span>
                 </div>
-                <p class="text-xs mb-4 leading-relaxed" style="color:var(--text-3);">{{ $tpl['description'] }}</p>
+                <p class="tpl-desc">{{ $tpl['description'] }}</p>
 
                 {{-- Tags --}}
-                <div class="flex flex-wrap gap-1 mb-4">
+                <div class="tpl-tags">
                     @foreach($tpl['tags'] as $tag)
-                    <span class="text-[10px] px-2 py-0.5 rounded"
-                          style="background:var(--hover-bg);color:var(--text-3);">{{ $tag }}</span>
+                    <span class="tpl-tag">{{ $tag }}</span>
                     @endforeach
                 </div>
 
                 {{-- Buttons --}}
-                <div class="flex gap-2">
+                <div class="tpl-actions">
                     @if($tpl['is_global'] ?? false)
                     <template x-if="mainTemplateKey !== '{{ $key }}'">
                         <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                                 :disabled="working === '{{ $key }}'"
-                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                                style="background:color-mix(in srgb,var(--c) 10%,#fff);color:var(--c);border:1.5px solid color-mix(in srgb,var(--c) 25%,transparent);"
                                 x-on:click="activateMain('{{ $key }}')">
                             <span x-show="working !== '{{ $key }}'">Activate Main Website</span>
                             <span x-show="working === '{{ $key }}'">Activating…</span>
@@ -188,9 +362,9 @@
                     <template x-if="selectedProject && getStatus('{{ $key }}') === null">
                         <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                                 :disabled="working === '{{ $key }}'"
-                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
-                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
-                                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'"
+                                style="background:color-mix(in srgb,var(--c) 10%,#fff);color:var(--c);border:1.5px solid color-mix(in srgb,var(--c) 25%,transparent);"
+                                onmouseover="this.style.background='var(--c)';this.style.color='#fff'"
+                                onmouseout="this.style.background='color-mix(in srgb,var(--c) 10%,#fff)';this.style.color='var(--c)'"
                                 x-on:click="install('{{ $key }}')">
                             <span x-show="working !== '{{ $key }}'" x-text="String(selectedProject) === String(coreCmsProjectId) ? 'Install & Activate' : '⬇ Install'"></span>
                             <span x-show="working === '{{ $key }}'">Installing…</span>
@@ -200,9 +374,9 @@
                     <template x-if="selectedProject && getStatus('{{ $key }}') === 'installed'">
                         <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                                 :disabled="working === '{{ $key }}'"
-                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
-                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
-                                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'"
+                                style="background:color-mix(in srgb,var(--c) 10%,#fff);color:var(--c);border:1.5px solid color-mix(in srgb,var(--c) 25%,transparent);"
+                                onmouseover="this.style.background='var(--c)';this.style.color='#fff'"
+                                onmouseout="this.style.background='color-mix(in srgb,var(--c) 10%,#fff)';this.style.color='var(--c)'"
                                 x-on:click="activate('{{ $key }}')">
                             <span x-show="working !== '{{ $key }}'">⚡ Activate</span>
                             <span x-show="working === '{{ $key }}'">Activating…</span>
@@ -236,7 +410,7 @@
 
                     <button x-show="selectedProject" x-cloak
                             class="py-2 px-3 rounded-lg text-xs font-bold"
-                            style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;"
+                            style="background:color-mix(in srgb,var(--c) 10%,#fff);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 22%,transparent);"
                             x-on:click="customize('{{ $key }}')">
                         AI Customize
                     </button>
@@ -258,6 +432,7 @@ function templateBrowser() {
     return {
         selectedProject: '',
         working: null,
+        uploadOpen: @json($errors->any()),
         feedback: '',
         feedbackOk: true,
         liveUrl: '',
