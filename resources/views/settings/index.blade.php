@@ -114,6 +114,16 @@
         sysAutoHideSidebar: {{ $sidebarAutoHide ? 'true' : 'false' }},
         sysSaving: false,
         sysSaved: false,
+        init() {
+            const valid = ['profile','ai','branding','system_config','notifications','integrations','team','danger'];
+            const hash = window.location.hash.replace('#', '');
+            if (hash && valid.includes(hash)) this.tab = hash;
+            this.$watch('tab', t => history.replaceState(null, '', '#' + t));
+            window.addEventListener('hashchange', () => {
+                const h = window.location.hash.replace('#', '');
+                if (h && valid.includes(h)) this.tab = h;
+            });
+        },
         async saveSystemConfig() {
             this.sysSaving = true;
             await fetch('{{ route('settings.system-config') }}', {
@@ -373,27 +383,40 @@
                 ];
                 $categoryTitles = ['text' => 'Text Generation', 'voice' => 'Voice & Audio', 'local' => 'Local / Self-Hosted'];
                 $providerRows = collect($allProviders)->map(function ($provider, $key) use ($aiProviders, $providerLinks, $categoryTitles) {
-                    $saved = $aiProviders->where('provider', $key)->first();
+                    $saved  = $aiProviders->where('provider', $key)->first();
                     $models = collect($provider['models'] ?? [])->map(fn($name, $modelKey) => ['key' => $modelKey, 'name' => $name])->values();
 
+                    $savedKeys = $saved ? $saved->keys()
+                        ->orderByDesc('is_primary')->orderBy('fail_count')->get()
+                        ->map(fn($k) => [
+                            'id'          => $k->id,
+                            'label'       => $k->label,
+                            'is_primary'  => (bool) $k->is_primary,
+                            'is_active'   => (bool) $k->is_active,
+                            'fail_count'  => $k->fail_count,
+                            'last_used_at' => optional($k->last_used_at)->toISOString(),
+                        ])->toArray() : [];
+
                     return [
-                        'provider' => $key,
-                        'name' => $provider['name'] ?? ucfirst($key),
-                        'category' => $provider['category'] ?? 'text',
-                        'category_label' => $categoryTitles[$provider['category'] ?? 'text'] ?? ucfirst($provider['category'] ?? 'text'),
-                        'configured' => (bool) ($saved && $saved->is_active),
-                        'provider_id' => $saved?->id,
-                        'api_url' => $saved?->api_url ?? ($provider['api_url'] ?? ''),
-                        'default_model' => $saved?->default_model ?? ($provider['default_model'] ?? ''),
-                        'is_default' => (bool) ($saved?->is_default),
-                        'last_used_at' => optional($saved?->last_used_at)->toISOString(),
-                        'updated_at' => optional($saved?->updated_at)->toISOString(),
-                        'models' => $models,
-                        'model_count' => $models->count(),
+                        'provider'          => $key,
+                        'name'              => $provider['name'] ?? ucfirst($key),
+                        'category'          => $provider['category'] ?? 'text',
+                        'category_label'    => $categoryTitles[$provider['category'] ?? 'text'] ?? ucfirst($provider['category'] ?? 'text'),
+                        'configured'        => (bool) ($saved && $saved->is_active),
+                        'provider_id'       => $saved?->id,
+                        'api_url'           => $saved?->api_url ?? ($provider['api_url'] ?? ''),
+                        'default_model'     => $saved?->default_model ?? ($provider['default_model'] ?? ''),
+                        'is_default'        => (bool) ($saved?->is_default),
+                        'last_used_at'      => optional($saved?->last_used_at)->toISOString(),
+                        'updated_at'        => optional($saved?->updated_at)->toISOString(),
+                        'models'            => $models,
+                        'model_count'       => $models->count(),
                         'requires_endpoint' => !empty($provider['requires_endpoint']) || $key === 'ollama',
-                        'api_url_label' => $key === 'ollama' ? 'Ollama Host URL' : ($key === 'bedrock' ? 'AWS Region' : 'Endpoint URL'),
-                        'external_url' => $providerLinks[$key]['url'] ?? null,
-                        'external_label' => $providerLinks[$key]['label'] ?? null,
+                        'api_url_label'     => $key === 'ollama' ? 'Ollama Host URL' : ($key === 'bedrock' ? 'AWS Region' : 'Endpoint URL'),
+                        'external_url'      => $providerLinks[$key]['url'] ?? null,
+                        'external_label'    => $providerLinks[$key]['label'] ?? null,
+                        'keys'              => $savedKeys,
+                        'key_count'         => count($savedKeys),
                     ];
                 })->values();
             @endphp
@@ -467,6 +490,7 @@
                                 <th class="dt-th">Provider</th>
                                 <th class="dt-th">Category</th>
                                 <th class="dt-th">Model</th>
+                                <th class="dt-th">Keys</th>
                                 <th class="dt-th">Status</th>
                                 <th class="dt-th">Updated</th>
                                 <th class="dt-th" style="text-align:right">Actions</th>
@@ -498,6 +522,18 @@
                                     <td class="dt-td">
                                         <p class="text-sm font-semibold" style="color:var(--text-2)" x-text="provider.default_model || 'Not selected'"></p>
                                         <p class="text-[11px] mt-0.5" style="color:var(--text-3)" x-text="provider.model_count + ' models'"></p>
+                                    </td>
+                                    <td class="dt-td">
+                                        <div x-show="provider.configured && provider.key_count > 0" class="flex items-center gap-1">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                                                  style="background:color-mix(in srgb,var(--brand) 10%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent)">
+                                                <svg style="width:9px;height:9px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                                </svg>
+                                                <span x-text="provider.key_count"></span>
+                                            </span>
+                                        </div>
+                                        <span x-show="!provider.configured || provider.key_count === 0" style="color:var(--text-3);font-size:12px;">—</span>
                                     </td>
                                     <td class="dt-td">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
@@ -594,6 +630,88 @@
                                     <input type="password" x-model="form.api_key" placeholder="Enter API key"
                                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
                                            style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);">
+                                </div>
+                            </div>
+
+                            {{-- ── Multiple API Keys section (configured providers only) ── --}}
+                            <div x-show="editing?.configured" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                                <div style="padding:10px 14px;background:var(--surface-raised);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <svg style="width:13px;height:13px;color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                        </svg>
+                                        <span style="font-size:12.5px;font-weight:700;color:var(--text-1);">API Keys</span>
+                                        <span style="font-size:11px;color:var(--text-3);" x-text="'(' + form.keys.length + ' key' + (form.keys.length !== 1 ? 's' : '') + ')'"></span>
+                                    </div>
+                                    <div style="font-size:11px;color:var(--text-3);">Auto-failover between keys</div>
+                                </div>
+
+                                {{-- Key list --}}
+                                <div x-show="form.keys.length > 0" style="max-height:200px;overflow-y:auto;">
+                                    <template x-for="(k, ki) in form.keys" :key="k.id">
+                                        <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);"
+                                             :style="ki === form.keys.length - 1 ? 'border-bottom:none' : ''">
+                                            {{-- Primary star --}}
+                                            <button type="button" @click="setPrimaryProviderKey(k.id)"
+                                                    :title="k.is_primary ? 'Primary key' : 'Set as primary'"
+                                                    style="width:20px;height:20px;border:none;background:none;cursor:pointer;flex-shrink:0;padding:0;display:flex;align-items:center;justify-content:center;">
+                                                <svg style="width:14px;height:14px;" :style="k.is_primary ? 'color:#f59e0b' : 'color:var(--border)'" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                </svg>
+                                            </button>
+                                            {{-- Label + status --}}
+                                            <div style="flex:1;min-width:0;">
+                                                <span style="font-size:12.5px;font-weight:600;color:var(--text-1);" x-text="k.label"></span>
+                                                <span x-show="k.fail_count > 0" style="margin-left:6px;font-size:10px;color:#ef4444;font-weight:600;"
+                                                      x-text="k.fail_count + ' fail' + (k.fail_count > 1 ? 's' : '')"></span>
+                                            </div>
+                                            {{-- Active toggle --}}
+                                            <span x-show="!k.is_primary" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;"
+                                                  :style="k.is_active ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'"
+                                                  x-text="k.is_active ? 'Active' : 'Off'"></span>
+                                            <span x-show="k.is_primary" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">Primary</span>
+                                            {{-- Delete --}}
+                                            <button type="button" @click="deleteProviderKey(k.id)"
+                                                    style="width:22px;height:22px;border:none;background:none;cursor:pointer;flex-shrink:0;padding:0;color:var(--text-3);display:flex;align-items:center;justify-content:center;border-radius:5px;transition:all .13s;"
+                                                    onmouseover="this.style.background='#fef2f2';this.style.color='#ef4444'" onmouseout="this.style.background='none';this.style.color='var(--text-3)'"
+                                                    title="Delete key">
+                                                <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- Add new key form --}}
+                                <div style="padding:8px 14px;background:var(--surface-raised);border-top:1px solid var(--border);">
+                                    <div x-show="!form.addingKey">
+                                        <button type="button" @click="form.addingKey = true"
+                                                style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--brand);background:none;border:none;cursor:pointer;padding:0;">
+                                            <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                            Add another key
+                                        </button>
+                                    </div>
+                                    <div x-show="form.addingKey" x-transition style="display:flex;flex-direction:column;gap:6px;">
+                                        <input type="text" x-model="form.newKeyLabel" placeholder="Key label (e.g. Backup Key)"
+                                               style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:12px;outline:none;">
+                                        <div style="display:flex;gap:6px;">
+                                            <input type="password" x-model="form.newKeyValue" placeholder="Paste API key here"
+                                                   style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:12px;outline:none;">
+                                            <button type="button" @click="addProviderKey()"
+                                                    :disabled="!form.newKeyValue.trim() || form.savingKey"
+                                                    style="padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;border:none;cursor:pointer;background:var(--brand);transition:opacity .13s;"
+                                                    :style="(!form.newKeyValue.trim() || form.savingKey) ? 'opacity:.5;cursor:not-allowed' : ''">
+                                                <span x-text="form.savingKey ? '...' : 'Add'"></span>
+                                            </button>
+                                            <button type="button" @click="form.addingKey=false;form.newKeyLabel='';form.newKeyValue=''"
+                                                    style="padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--text-2);border:1px solid var(--border);cursor:pointer;background:none;">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1206,9 +1324,67 @@ function aiProviderTable(providerRows) {
                 default_model: provider.default_model || provider.models?.[0]?.key || '',
                 set_default: !!provider.is_default,
                 showKeyField: !provider.configured,
+                // Multiple keys
+                keys: [...(provider.keys || [])],
+                addingKey: false,
+                newKeyLabel: '',
+                newKeyValue: '',
+                savingKey: false,
             };
             this.result = null;
             this.showModal = true;
+        },
+
+        async addProviderKey() {
+            if (!this.form.newKeyValue.trim() || this.form.savingKey || !this.editing?.provider_id) return;
+            this.form.savingKey = true;
+            try {
+                const res = await fetch(`/settings/ai-providers/${this.editing.provider_id}/keys`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    body: JSON.stringify({ label: this.form.newKeyLabel || null, api_key: this.form.newKeyValue }),
+                }).then(r => r.json());
+
+                if (res.success) {
+                    this.form.keys.push(res.key);
+                    this.form.newKeyLabel = '';
+                    this.form.newKeyValue = '';
+                    this.form.addingKey   = false;
+                    this.allProviders = this.allProviders.map(p =>
+                        p.provider === this.editing.provider
+                            ? { ...p, key_count: this.form.keys.length, keys: [...this.form.keys] }
+                            : p
+                    );
+                }
+            } finally {
+                this.form.savingKey = false;
+            }
+        },
+
+        async deleteProviderKey(keyId) {
+            if (!confirm('Delete this API key?')) return;
+            const res = await fetch(`/settings/ai-providers/${this.editing.provider_id}/keys/${keyId}`, {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            }).then(r => r.json());
+            if (res.success) {
+                this.form.keys = this.form.keys.filter(k => k.id !== keyId);
+                this.allProviders = this.allProviders.map(p =>
+                    p.provider === this.editing.provider
+                        ? { ...p, key_count: this.form.keys.length, keys: [...this.form.keys] }
+                        : p
+                );
+            }
+        },
+
+        async setPrimaryProviderKey(keyId) {
+            const res = await fetch(`/settings/ai-providers/${this.editing.provider_id}/keys/${keyId}/primary`, {
+                method: 'PATCH',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            }).then(r => r.json());
+            if (res.success) {
+                this.form.keys = this.form.keys.map(k => ({ ...k, is_primary: k.id === keyId }));
+            }
         },
 
         closeModal() {
@@ -1311,7 +1487,7 @@ function aiProviderTable(providerRows) {
             .then(data => {
                 if (!data.success) return;
                 this.allProviders = this.allProviders.map(p => p.provider === provider.provider
-                    ? { ...p, configured: false, provider_id: null, is_default: false, updated_at: null }
+                    ? { ...p, configured: false, provider_id: null, is_default: false, updated_at: null, key_count: 0, keys: [] }
                     : p
                 );
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: provider.name + ' removed.' } }));

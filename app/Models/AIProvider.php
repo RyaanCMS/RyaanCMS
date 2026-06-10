@@ -31,13 +31,13 @@ class AIProvider extends Model
 
     public function keys(): HasMany
     {
-        return $this->hasMany(AIProviderKey::class);
+        return $this->hasMany(AIProviderKey::class, 'ai_provider_id');
     }
 
     /** Active keys sorted for failover: primary first, then fewest failures. */
     public function activeKeysForFailover(): HasMany
     {
-        return $this->hasMany(AIProviderKey::class)
+        return $this->hasMany(AIProviderKey::class, 'ai_provider_id')
             ->where('is_active', true)
             ->orderByDesc('is_primary')
             ->orderBy('fail_count')
