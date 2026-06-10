@@ -1568,5 +1568,9 @@ function dtMixin(opts) {
     };
 }
 </script>
+
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:600;color:var(--text-3);background:var(--surface-raised);border:1px solid var(--border);padding:3px 11px;border-radius:99px;z-index:40;pointer-events:none;letter-spacing:.03em;opacity:.7;">
+    Powered by RyaanCMS v{{ config('version.current', '1.1.30') }}
+</div>
 </body>
 </html>
