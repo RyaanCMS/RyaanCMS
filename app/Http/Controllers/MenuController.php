@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Menu;
 use App\Models\MenuCategory;
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use App\Models\MenuItem;
 use App\Models\MarketplaceInstallation;
 use App\Models\Project;
@@ -17,6 +18,7 @@ class MenuController extends Controller
 {
     public function index()
     {
+        app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
         $menuCategories = $this->menuCategories();
         $categoryOptions = $this->categoryOptions($menuCategories);
         $menus = Menu::where('user_id', Auth::id())->latest()->get();
