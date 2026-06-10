@@ -27,6 +27,14 @@ class LoginController extends Controller
             ]);
         }
 
+        if (!Auth::user()->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => __('This account has been deactivated.'),
+            ]);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));

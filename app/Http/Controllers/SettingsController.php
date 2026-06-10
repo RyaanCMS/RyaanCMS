@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
@@ -514,6 +515,7 @@ class SettingsController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
+            'username' => ['nullable', 'string', 'max:50', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8'],
             'role'     => ['required', 'in:admin,developer,user'],
         ]);
@@ -549,20 +551,39 @@ class SettingsController extends Controller
         abort_if($user->id === Auth::id(), 422, 'Cannot modify your own account here.');
 
         $request->validate([
+            'name'      => ['nullable', 'string', 'max:255'],
+            'email'     => ['nullable', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'username'  => ['nullable', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
+            'password'  => ['nullable', 'string', 'min:8'],
             'role'      => ['nullable', 'in:admin,developer,user'],
             'is_active' => ['nullable', 'boolean'],
-            'name'      => ['nullable', 'string', 'max:255'],
         ]);
 
         $data = array_filter([
+            'name'      => $request->input('name'),
+            'email'     => $request->input('email'),
+            'username'  => $request->input('username'),
+            'password'  => $request->filled('password') ? Hash::make($request->password) : null,
             'role'      => $request->input('role'),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : null,
-            'name'      => $request->input('name'),
         ], fn($v) => $v !== null);
 
         $user->update($data);
 
-        return response()->json(['success' => true, 'message' => $user->name.' updated.']);
+        return response()->json([
+            'success' => true,
+            'message' => $user->name.' updated.',
+            'member'  => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'username'   => $user->username,
+                'role'       => $user->role,
+                'is_active'  => $user->is_active,
+                'avatar_url' => $user->avatar_url,
+                'created_at' => $user->created_at?->toISOString(),
+            ],
+        ]);
     }
 
     public function destroyTeamMember(User $user)

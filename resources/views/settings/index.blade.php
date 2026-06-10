@@ -1,11 +1,11 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Settings')
 @section('header', 'Settings')
 
 @php
     $userId      = auth()->id();
     $savedColor  = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
-    // Update tab data (fast — no HTTP)
+    // Update tab data (fast, no HTTP)
     $currentVersion = config('version.current', '1.0.0');
     $updateServerInfo = [
         'php'      => PHP_VERSION,
@@ -32,7 +32,7 @@
 .sbtn-primary:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 4px 14px var(--brand-ring);transform:translateY(-1px);}
 .sbtn-secondary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
 
-/* â”€â”€â”€ Settings layout â”€â”€â”€ */
+/* Settings layout */
 .st-wrap{
     display:grid;
     grid-template-columns:210px 1fr;
@@ -122,14 +122,14 @@
 .st-nav-sep{height:1px;background:var(--border);margin:4px 0;}
 .st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);padding:8px 14px 4px;}
 
-/* System-config toggle switch (CSS-class driven â€” no :style string needed) */
+/* System-config toggle switch */
 .sys-toggle-btn{position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;background:#d1d5db;}
 .sys-toggle-on{background:var(--brand);}
 .sys-toggle-disabled{opacity:.4;cursor:not-allowed;}
 .sys-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;transform:translateX(0);}
 .sys-toggle-thumb-on{transform:translateX(20px);}
 
-/* ─── Branding panel ─── */
+/* --- Branding panel --- */
 .bk-preview-wrap{border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
 .bk-preview-bar{padding:11px 16px;background:var(--hover-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .bk-preview-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
@@ -151,7 +151,7 @@
 
 @section('content')
 <div class="st-wrap"
-     :class="{ 'st-wrap-wide': tab === 'ai' }"
+     :class="{ 'st-wrap-wide': tab === 'ai' || tab === 'team' }"
      x-data="{
         tab: '{{ session('_tab', 'profile') }}',
         brandColor: '{{ $savedColor }}',
@@ -235,7 +235,7 @@
         copyHex() { navigator.clipboard.writeText(this.brandColor).then(()=>{this.brandCopied=true;setTimeout(()=>this.brandCopied=false,1800);}); }
      }">
 
-    {{-- â•â• LEFT NAV â•â• --}}
+    {{-- ══ LEFT NAV ══ --}}
     <nav class="st-nav">
         <div class="st-nav-user">
             <img src="{{ auth()->user()->avatar_url }}"
@@ -336,10 +336,10 @@
         </div>
     </nav>
 
-    {{-- â•â• CONTENT â•â• --}}
+    {{-- ══ CONTENT ══ --}}
     <div>
 
-        {{-- â”€â”€â”€â”€ PROFILE â”€â”€â”€â”€ --}}
+        {{-- PROFILE --}}
         <div x-show="tab === 'profile'" class="st-panel">
             @if(session('status') === 'profile-updated')
             <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
@@ -417,7 +417,7 @@
             </div>
         </div>
 
-        {{-- â”€â”€â”€â”€ SECURITY â”€â”€â”€â”€ --}}
+        {{-- SECURITY --}}
         <div x-show="tab === 'profile'" class="st-panel">
             @if(session('status') === 'password-updated')
             <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
@@ -467,7 +467,7 @@
             </div>
         </div>
 
-        {{-- â”€â”€â”€â”€ AI PROVIDERS â”€â”€â”€â”€ --}}
+        {{-- AI PROVIDERS --}}
         <div x-show="tab === 'ai'" class="st-panel">
             <script type="application/json" id="ai-provider-rows">@json($providerRows ?? [])</script>
             <div class="dt-wrap" x-data="aiProviderTable()">
@@ -590,7 +590,7 @@
                                                 <span x-text="provider.key_count"></span>
                                             </span>
                                         </div>
-                                        <span x-show="!provider.has_key || provider.key_count === 0" style="color:var(--text-3);font-size:12px;">—</span>
+                                        <span x-show="!provider.has_key || provider.key_count === 0" style="color:var(--text-3);font-size:12px;">-</span>
                                     </td>
                                     {{-- Connection status --}}
                                     <td class="dt-td">
@@ -616,7 +616,7 @@
                                                 <span x-text="togglingActive === provider.provider ? '...' : (provider.is_active ? 'Active' : 'Inactive')"></span>
                                             </button>
                                         </template>
-                                        <span x-show="!provider.has_key || !provider.provider_id" style="color:var(--text-3);font-size:12px;">—</span>
+                                        <span x-show="!provider.has_key || !provider.provider_id" style="color:var(--text-3);font-size:12px;">-</span>
                                     </td>
                                     <td class="dt-td" style="color:var(--text-3)" x-text="fmtDate(provider.updated_at)"></td>
                                     <td class="dt-td" style="text-align:right">
@@ -666,7 +666,7 @@
                             <div>
                                 <h3 class="font-bold text-base" style="color:var(--text-1)" x-text="modalTitle"></h3>
                                 <p class="text-xs mt-0.5" style="color:var(--text-3)"
-                                   x-text="editing?.provider + (editing?.configured && editing?.updated_at ? ' Â· Updated ' + fmtDate(editing?.updated_at) : '')"></p>
+                                   x-text="editing?.provider + (editing?.configured && editing?.updated_at ? ' · Updated ' + fmtDate(editing?.updated_at) : '')"></p>
                             </div>
                             <button @click="closeModal()" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style="color:var(--text-3);">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -690,7 +690,7 @@
                                                 style="font-size:12px;font-weight:600;color:var(--brand);background:none;border:1px solid transparent;cursor:pointer;padding:4px 10px;border-radius:7px;transition:all .13s;"
                                                 onmouseover="this.style.background='var(--brand-light,#eef2ff)';this.style.borderColor='var(--brand-ring,#c7d2fe)'"
                                                 onmouseout="this.style.background='none';this.style.borderColor='transparent'">
-                                            <span x-text="form.showKeyField ? 'âœ• Cancel' : 'â†º Update key'"></span>
+                                            <span x-text="form.showKeyField ? '✕ Cancel' : '↺ Update key'"></span>
                                         </button>
                                     </div>
                                     <div x-show="form.showKeyField" x-transition style="margin-top:2px;">
@@ -709,7 +709,7 @@
                                 </div>
                             </div>
 
-                            {{-- ── Multiple API Keys section (configured providers only) ── --}}
+                            {{-- -- Multiple API Keys section (configured providers only) -- --}}
                             <div x-show="editing?.configured" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
                                 <div style="padding:10px 14px;background:var(--surface-raised);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
                                     <div style="display:flex;align-items:center;gap:6px;">
@@ -854,10 +854,10 @@
 
         </div>
 
-        {{-- ──── BRANDING ──── --}}
+        {{-- ---- BRANDING ---- --}}
         <div x-show="tab === 'branding'" class="st-panel">
 
-            {{-- ── Brand Kit Live Preview ── --}}
+            {{-- -- Brand Kit Live Preview -- --}}
             <div class="bk-preview-wrap">
                 <div class="bk-preview-bar">
                     <div style="display:flex;align-items:center;gap:6px;">
@@ -917,7 +917,7 @@
                 </div>
             </div>
 
-            {{-- ── Colors & Typography ── --}}
+            {{-- -- Colors & Typography -- --}}
             <div class="scard">
                 <div class="scard-hd">
                     <div class="scard-hd-icon" style="background:#f5f3ff;">
@@ -940,7 +940,7 @@
                             <template x-if="!brandSaved">
                                 <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             </template>
-                            <span x-text="brandSaving ? 'Saving…' : (brandSaved ? '✓ Saved' : 'Save')"></span>
+                            <span x-text="brandSaving ? 'Saving...' : (brandSaved ? 'Saved' : 'Save')"></span>
                         </button>
                     </div>
                 </div>
@@ -995,7 +995,7 @@
                         </div>
                         {{-- Tints & shades row --}}
                         <div style="margin-top:14px;">
-                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:7px;">Tints & Shades — click to apply</div>
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:7px;">Tints & Shades - click to apply</div>
                             <div style="display:flex;gap:4px;align-items:stretch;height:24px;">
                                 <template x-for="(shade, i) in getShades(brandColor)" :key="i">
                                     <div class="bk-shade" :style="'background:' + shade" @click="pickColor(shade)" :title="shade"></div>
@@ -1034,7 +1034,7 @@
                 </div>
             </div>
 
-            {{-- ── Logo & Favicon ── --}}
+            {{-- -- Logo & Favicon -- --}}
             <div class="scard">
                 <div class="scard-hd">
                     <div class="scard-hd-icon" style="background:#f0f9ff;">
@@ -1129,7 +1129,7 @@
             </div>
         </div>
 
-        {{-- â”€â”€â”€â”€ SYSTEM CONFIG â”€â”€â”€â”€ --}}
+        {{-- SYSTEM CONFIG --}}
         <div x-show="tab === 'system_config'" class="st-panel" x-cloak>
 
             {{-- Success toast --}}
@@ -1171,7 +1171,7 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
                         <div>
                             <div style="font-size:13.5px;font-weight:600;color:var(--text-1);">Auto-hide Sidebar</div>
-                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Sidebar fully hides â€” hover the left edge to reveal it</div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Sidebar fully hides; hover the left edge to reveal it</div>
                         </div>
                         <button type="button" @click="if(sysShowSidebar){ sysAutoHideSidebar = !sysAutoHideSidebar; saveSystemConfig(); }"
                                 :aria-checked="sysAutoHideSidebar" role="switch"
@@ -1237,7 +1237,7 @@
                                 <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;">NEW</span>
                             </div>
                             <div style="font-size:12px;color:var(--text-3);margin-top:3px;line-height:1.5;">
-                                Automatically generate a <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:4px;">docs/index.html</code> documentation file with every AI build — includes component catalogue, API endpoints, data models, and usage guides.
+                                Automatically generate a <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:4px;">docs/index.html</code> documentation file with every AI build, including component catalogue, API endpoints, data models, and usage guides.
                             </div>
                         </div>
                         <button type="button"
@@ -1255,7 +1255,7 @@
                         <div style="padding:11px 14px;border-radius:10px;background:var(--hover-bg);border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
                             <svg style="width:14px;height:14px;stroke:#94a3b8;flex-shrink:0;margin-top:1px;" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <div style="font-size:12px;color:var(--text-3);line-height:1.5;">
-                                When enabled, each AI generation will produce a living HTML documentation page alongside your code. The doc updates automatically on every build — no manual effort needed.
+                                When enabled, each AI generation will produce a living HTML documentation page alongside your code. The doc updates automatically on every build with no manual effort needed.
                             </div>
                         </div>
                     </div>
@@ -1265,7 +1265,7 @@
 
         </div>
 
-        {{-- â”€â”€â”€â”€ NOTIFICATIONS â”€â”€â”€â”€ --}}
+        {{-- NOTIFICATIONS --}}
         <div x-show="tab === 'notifications'" class="st-panel" x-cloak>
             <div class="scard">
                 <div class="scard-hd">
@@ -1345,139 +1345,139 @@
                 </div>
             </div>
         </div>
-        {{-- ──── TEAM ──── --}}
-        <div x-show=”tab === 'team'” class=”st-panel” x-cloak
-             x-data=”teamManager()”>
+        {{-- ---- TEAM ---- --}}
+        <div x-show="tab === 'team'" class="st-panel" x-cloak
+             x-data="teamManager()">
 
             {{-- Header --}}
-            <div class=”dt-wrap”>
-                <div class=”dt-head”>
+            <div class="dt-wrap">
+                <div class="dt-head">
                     <div>
-                        <h2 class=”dt-title”>Team Members</h2>
-                        <p class=”dt-subtitle”>Manage who has access to this workspace and their roles.</p>
+                        <h2 class="dt-title">Team Members</h2>
+                        <p class="dt-subtitle">Manage who has access to this workspace and their roles.</p>
                     </div>
                     @if(auth()->user()->isAdmin())
-                    <button @click=”showAddModal = true”
-                            class=”sbtn-primary” style=”flex-shrink:0;”>
-                        <svg style=”width:13px;height:13px;stroke:currentColor” fill=”none” viewBox=”0 0 24 24”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M12 4v16m8-8H4”/></svg>
+                    <button @click="showAddModal = true"
+                            class="sbtn-primary" style="flex-shrink:0;">
+                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add Member
                     </button>
                     @endif
                 </div>
 
                 {{-- Current user row --}}
-                <div style=”padding:12px 18px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,transparent);”>
-                    <div style=”display:flex;align-items:center;gap:12px;”>
-                        <img src=”{{ auth()->user()->avatar_url }}”
-                             style=”width:38px;height:38px;border-radius:10px;border:2px solid var(--brand-ring);flex-shrink:0;” alt=””>
-                        <div style=”flex:1;min-width:0;”>
-                            <div style=”font-size:13px;font-weight:700;color:var(--text-1);”>
+                <div style="padding:12px 18px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,transparent);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <img src="{{ auth()->user()->avatar_url }}"
+                             style="width:38px;height:38px;border-radius:10px;border:2px solid var(--brand-ring);flex-shrink:0;" alt="">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-1);">
                                 {{ auth()->user()->name }}
-                                <span style=”font-size:10px;font-weight:500;color:var(--text-3);”>(you)</span>
+                                <span style="font-size:10px;font-weight:500;color:var(--text-3);">(you)</span>
                             </div>
-                            <div style=”font-size:11px;color:var(--text-3);margin-top:1px;”>{{ auth()->user()->email }}</div>
+                            <div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ auth()->user()->email }}</div>
                         </div>
-                        <span style=”font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);”>
+                        <span style="font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">
                             {{ ucfirst(auth()->user()->role) }}
                         </span>
-                        <span style=”font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;”>Active</span>
+                        <span style="font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Active</span>
                     </div>
                 </div>
 
                 {{-- Team members table --}}
-                <div class=”overflow-x-auto”>
-                    <table class=”dt-table”>
+                <div class="overflow-x-auto">
+                    <table class="dt-table">
                         <thead>
                             <tr>
-                                <th class=”dt-th”>Member</th>
-                                <th class=”dt-th”>Role</th>
-                                <th class=”dt-th”>Status</th>
-                                <th class=”dt-th”>Joined</th>
+                                <th class="dt-th">Member</th>
+                                <th class="dt-th">Role</th>
+                                <th class="dt-th">Status</th>
+                                <th class="dt-th">Joined</th>
                                 @if(auth()->user()->isAdmin())
-                                <th class=”dt-th” style=”text-align:right”>Actions</th>
+                                <th class="dt-th" style="text-align:right">Actions</th>
                                 @endif
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-if=”loading”>
-                                <tr><td colspan=”5” class=”dt-empty”>
-                                    <svg style=”width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite” fill=”none” viewBox=”0 0 24 24”><circle cx=”12” cy=”12” r=”10” stroke=”currentColor” stroke-width=”3” stroke-dasharray=”60” stroke-dashoffset=”20”/></svg>
+                            <template x-if="loading">
+                                <tr><td colspan="5" class="dt-empty">
+                                    <svg style="width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/></svg>
                                     <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
                                     Loading team...
                                 </td></tr>
                             </template>
-                            <template x-if=”!loading && fetchError”>
-                                <tr><td colspan=”5” class=”dt-empty” style=”color:#ef4444;” x-text=”fetchError”></td></tr>
+                            <template x-if="!loading && fetchError">
+                                <tr><td colspan="5" class="dt-empty" style="color:#ef4444;" x-text="fetchError"></td></tr>
                             </template>
-                            <template x-if=”!loading && !fetchError && members.length === 0”>
-                                <tr><td colspan=”5” class=”dt-empty”>
-                                    <svg style=”width:38px;height:38px;margin:0 auto 10px;color:var(--border)” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
-                                        <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”1.5” d=”M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z”/>
+                            <template x-if="!loading && !fetchError && members.length === 0">
+                                <tr><td colspan="5" class="dt-empty">
+                                    <svg style="width:38px;height:38px;margin:0 auto 10px;color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    <p style=”font-size:13px;font-weight:600;color:var(--text-1);”>No other team members yet</p>
+                                    <p style="font-size:13px;font-weight:600;color:var(--text-1);">No other team members yet</p>
                                     @if(auth()->user()->isAdmin())
-                                    <p style=”font-size:12px;color:var(--text-3);margin-top:4px;”>Click <strong>Add Member</strong> to invite someone to your workspace</p>
+                                    <p style="font-size:12px;color:var(--text-3);margin-top:4px;">Click <strong>Add Member</strong> to invite someone to your workspace</p>
                                     @endif
                                 </td></tr>
                             </template>
-                            <template x-for=”m in members” :key=”m.id”>
-                                <tr class=”dt-tr”>
-                                    <td class=”dt-td”>
-                                        <div style=”display:flex;align-items:center;gap:10px;”>
-                                            <img :src=”m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff'”
-                                                 style=”width:34px;height:34px;border-radius:9px;flex-shrink:0;” alt=””>
+                            <template x-for="m in members" :key="m.id">
+                                <tr class="dt-tr">
+                                    <td class="dt-td">
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <img :src="m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff'"
+                                                 style="width:34px;height:34px;border-radius:9px;flex-shrink:0;" alt="">
                                             <div>
-                                                <div style=”font-size:13px;font-weight:600;color:var(--text-1);” x-text=”m.name”></div>
-                                                <div style=”font-size:11px;color:var(--text-3);” x-text=”m.email”></div>
+                                                <div style="font-size:13px;font-weight:600;color:var(--text-1);" x-text="m.name"></div>
+                                                <div style="font-size:11px;color:var(--text-3);" x-text="m.email"></div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class=”dt-td”>
+                                    <td class="dt-td">
                                         @if(auth()->user()->isAdmin())
-                                        <select @change=”updateRole(m, $event.target.value)”
-                                                style=”padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;color:var(--text-1);outline:none;cursor:pointer;transition:border-color .13s;”
-                                                :value=”m.role”>
-                                            <option value=”admin”>Admin</option>
-                                            <option value=”developer”>Developer</option>
-                                            <option value=”user”>User</option>
+                                        <select @change="updateRole(m, $event.target.value)"
+                                                style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;color:var(--text-1);outline:none;cursor:pointer;transition:border-color .13s;"
+                                                :value="m.role">
+                                            <option value="admin">Admin</option>
+                                            <option value="developer">Developer</option>
+                                            <option value="user">User</option>
                                         </select>
                                         @else
-                                        <span style=”font-size:12px;color:var(--text-2);font-weight:600;” x-text=”m.role.charAt(0).toUpperCase() + m.role.slice(1)”></span>
+                                        <span style="font-size:12px;color:var(--text-2);font-weight:600;" x-text="m.role.charAt(0).toUpperCase() + m.role.slice(1)"></span>
                                         @endif
                                     </td>
-                                    <td class=”dt-td”>
-                                        <span class=”inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold”
-                                              :style=”m.is_active
+                                    <td class="dt-td">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                              :style="m.is_active
                                                 ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
-                                                : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'”>
-                                            <span class=”w-1.5 h-1.5 rounded-full” :class=”m.is_active ? 'bg-green-500' : 'bg-red-400'”></span>
-                                            <span x-text=”m.is_active ? 'Active' : 'Inactive'”></span>
+                                                : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="m.is_active ? 'bg-green-500' : 'bg-red-400'"></span>
+                                            <span x-text="m.is_active ? 'Active' : 'Inactive'"></span>
                                         </span>
                                     </td>
-                                    <td class=”dt-td” style=”color:var(--text-3);font-size:12px;” x-text=”fmtDate(m.created_at)”></td>
+                                    <td class="dt-td" style="color:var(--text-3);font-size:12px;" x-text="fmtDate(m.created_at)"></td>
                                     @if(auth()->user()->isAdmin())
-                                    <td class=”dt-td” style=”text-align:right”>
-                                        <div style=”display:flex;align-items:center;justify-content:flex-end;gap:6px;”>
-                                            <button @click=”toggleStatus(m)”
-                                                    :title=”m.is_active ? 'Deactivate' : 'Activate'”
-                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
-                                                    :style=”m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca;' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'”>
-                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
-                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636”/>
+                                    <td class="dt-td" style="text-align:right">
+                                        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                                            <button @click="toggleStatus(m)"
+                                                    :title="m.is_active ? 'Deactivate' : 'Activate'"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                                    :style="m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca;' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                                                 </svg>
                                             </button>
-                                            <button @click=”openEdit(m)”
-                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
-                                                    style=”background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;” title=”Edit”>
-                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
-                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z”/>
+                                            <button @click="openEdit(m)"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                                    style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </button>
-                                            <button @click=”removeMember(m)”
-                                                    class=”w-8 h-8 rounded-lg flex items-center justify-center transition-colors”
-                                                    style=”background:#fef2f2;color:#ef4444;border:1px solid #fecaca;” title=”Remove”>
-                                                <svg class=”w-3.5 h-3.5” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
-                                                    <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16”/>
+                                            <button @click="removeMember(m)"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                                    style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;" title="Remove">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
                                             </button>
                                         </div>
@@ -1492,55 +1492,55 @@
 
             {{-- Add Member Modal --}}
             @if(auth()->user()->isAdmin())
-            <div x-show=”showAddModal” x-transition class=”fixed inset-0 z-50 flex items-center justify-center p-4” style=”background:rgba(0,0,0,.45);” @click.self=”showAddModal=false” x-cloak>
-                <div class=”w-full max-w-md rounded-2xl overflow-hidden” style=”background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);” @click.stop>
-                    <div class=”flex items-center justify-between px-6 py-4” style=”border-bottom:1px solid var(--border);”>
+            <div x-show="showAddModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.45);" @click.self="showAddModal=false" x-cloak>
+                <div class="w-full max-w-md rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);" @click.stop>
+                    <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
                         <div>
-                            <h3 class=”font-bold text-base” style=”color:var(--text-1)”>Add Team Member</h3>
-                            <p class=”text-xs mt-0.5” style=”color:var(--text-3)”>Create a new account and add them to the team</p>
+                            <h3 class="font-bold text-base" style="color:var(--text-1)">Add Team Member</h3>
+                            <p class="text-xs mt-0.5" style="color:var(--text-3)">Create a new account and add them to the team</p>
                         </div>
-                        <button @click=”showAddModal=false” class=”w-8 h-8 rounded-lg flex items-center justify-center” style=”color:var(--text-3);”>
-                            <svg class=”w-4 h-4” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M6 18L18 6M6 6l12 12”/></svg>
+                        <button @click="showAddModal=false" class="w-8 h-8 rounded-lg flex items-center justify-center" style="color:var(--text-3);">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    <form @submit.prevent=”addMember()” class=”p-6 space-y-4”>
-                        <div style=”display:grid;grid-template-columns:1fr 1fr;gap:12px;”>
+                    <form @submit.prevent="addMember()" class="p-6 space-y-4">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                             <div>
-                                <label class=”slabel”>Full Name *</label>
-                                <input type=”text” x-model=”addForm.name” required
-                                       class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
-                                       placeholder=”Jane Smith”>
+                                <label class="slabel">Full Name *</label>
+                                <input type="text" x-model="addForm.name" required
+                                       class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);"
+                                       placeholder="Jane Smith">
                             </div>
                             <div>
-                                <label class=”slabel”>Role *</label>
-                                <select x-model=”addForm.role”
-                                        style=”width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;”>
-                                    <option value=”user”>User</option>
-                                    <option value=”developer”>Developer</option>
-                                    <option value=”admin”>Admin</option>
+                                <label class="slabel">Role *</label>
+                                <select x-model="addForm.role"
+                                        style="width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;">
+                                    <option value="user">User</option>
+                                    <option value="developer">Developer</option>
+                                    <option value="admin">Admin</option>
                                 </select>
                             </div>
                         </div>
                         <div>
-                            <label class=”slabel”>Email Address *</label>
-                            <input type=”email” x-model=”addForm.email” required
-                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
-                                   placeholder=”jane@example.com”>
+                            <label class="slabel">Email Address *</label>
+                            <input type="email" x-model="addForm.email" required
+                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);"
+                                   placeholder="jane@example.com">
                         </div>
                         <div>
-                            <label class=”slabel”>Password *</label>
-                            <input type=”password” x-model=”addForm.password” required minlength=”8”
-                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”
-                                   placeholder=”Min 8 characters”>
+                            <label class="slabel">Password *</label>
+                            <input type="password" x-model="addForm.password" required minlength="8"
+                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);"
+                                   placeholder="Min 8 characters">
                         </div>
-                        <div x-show=”addError” x-cloak
-                             style=”padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12.5px;” x-text=”addError”></div>
-                        <div class=”flex items-center justify-end gap-3 pt-2” style=”border-top:1px solid var(--border);”>
-                            <button type=”button” @click=”showAddModal=false” class=”px-4 py-2 rounded-xl text-sm font-medium” style=”color:var(--text-2);border:1px solid var(--border);”>Cancel</button>
-                            <button type=”submit” :disabled=”addSaving”
-                                    class=”px-5 py-2 rounded-xl text-sm font-semibold text-white”
-                                    style=”background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);”>
-                                <span x-text=”addSaving ? 'Adding...' : 'Add Member'”></span>
+                        <div x-show="addError" x-cloak
+                             style="padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12.5px;" x-text="addError"></div>
+                        <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);">
+                            <button type="button" @click="showAddModal=false" class="px-4 py-2 rounded-xl text-sm font-medium" style="color:var(--text-2);border:1px solid var(--border);">Cancel</button>
+                            <button type="submit" :disabled="addSaving"
+                                    class="px-5 py-2 rounded-xl text-sm font-semibold text-white"
+                                    style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                                <span x-text="addSaving ? 'Adding...' : 'Add Member'"></span>
                             </button>
                         </div>
                     </form>
@@ -1548,35 +1548,53 @@
             </div>
 
             {{-- Edit Member Modal --}}
-            <div x-show=”showEditModal && editTarget” x-transition class=”fixed inset-0 z-50 flex items-center justify-center p-4” style=”background:rgba(0,0,0,.45);” @click.self=”showEditModal=false” x-cloak>
-                <div class=”w-full max-w-sm rounded-2xl overflow-hidden” style=”background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);” @click.stop>
-                    <div class=”flex items-center justify-between px-6 py-4” style=”border-bottom:1px solid var(--border);”>
-                        <h3 class=”font-bold text-base” style=”color:var(--text-1)” x-text=”'Edit — ' + (editTarget?.name || '')”></h3>
-                        <button @click=”showEditModal=false” class=”w-8 h-8 rounded-lg flex items-center justify-center” style=”color:var(--text-3);”>
-                            <svg class=”w-4 h-4” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”><path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”2” d=”M6 18L18 6M6 6l12 12”/></svg>
+            <div x-show="showEditModal && editTarget" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.45);" @click.self="showEditModal=false" x-cloak>
+                <div class="w-full max-w-md rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);" @click.stop>
+                    <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
+                        <h3 class="font-bold text-base" style="color:var(--text-1)" x-text="'Edit - ' + (editTarget?.name || '')"></h3>
+                        <button @click="showEditModal=false" class="w-8 h-8 rounded-lg flex items-center justify-center" style="color:var(--text-3);">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    <form @submit.prevent=”saveEdit()” class=”p-6 space-y-4”>
+                    <form @submit.prevent="saveEdit()" class="p-6 space-y-4">
                         <div>
-                            <label class=”slabel”>Full Name</label>
-                            <input type=”text” x-model=”editForm.name”
-                                   class=”sfield” style=”background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);”>
+                            <label class="slabel">Full Name</label>
+                            <input type="text" x-model="editForm.name"
+                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);">
                         </div>
                         <div>
-                            <label class=”slabel”>Role</label>
-                            <select x-model=”editForm.role”
-                                    style=”width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;”>
-                                <option value=”user”>User</option>
-                                <option value=”developer”>Developer</option>
-                                <option value=”admin”>Admin</option>
+                            <label class="slabel">Email Address</label>
+                            <input type="email" x-model="editForm.email"
+                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);">
+                        </div>
+                        <div>
+                            <label class="slabel">Role</label>
+                            <select x-model="editForm.role"
+                                    style="width:100%;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);font-size:13.5px;outline:none;">
+                                <option value="user">User</option>
+                                <option value="developer">Developer</option>
+                                <option value="admin">Admin</option>
                             </select>
                         </div>
-                        <div class=”flex items-center justify-end gap-3 pt-2” style=”border-top:1px solid var(--border);”>
-                            <button type=”button” @click=”showEditModal=false” class=”px-4 py-2 rounded-xl text-sm font-medium” style=”color:var(--text-2);border:1px solid var(--border);”>Cancel</button>
-                            <button type=”submit” :disabled=”editSaving”
-                                    class=”px-5 py-2 rounded-xl text-sm font-semibold text-white”
-                                    style=”background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);”>
-                                <span x-text=”editSaving ? 'Saving...' : 'Save Changes'”></span>
+                        <div>
+                            <label class="slabel">New Password</label>
+                            <input type="password" x-model="editForm.password" minlength="8"
+                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);"
+                                   placeholder="Leave blank to keep current password">
+                        </div>
+                        <label style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px;border-radius:10px;background:var(--surface-raised);border:1px solid var(--border);">
+                            <span>
+                                <span style="display:block;font-size:12.5px;font-weight:700;color:var(--text-1);">Active account</span>
+                                <span style="display:block;font-size:11.5px;color:var(--text-3);margin-top:1px;">Inactive members cannot sign in.</span>
+                            </span>
+                            <input type="checkbox" x-model="editForm.is_active" style="width:18px;height:18px;">
+                        </label>
+                        <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);">
+                            <button type="button" @click="showEditModal=false" class="px-4 py-2 rounded-xl text-sm font-medium" style="color:var(--text-2);border:1px solid var(--border);">Cancel</button>
+                            <button type="submit" :disabled="editSaving"
+                                    class="px-5 py-2 rounded-xl text-sm font-semibold text-white"
+                                    style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                                <span x-text="editSaving ? 'Saving...' : 'Save Changes'"></span>
                             </button>
                         </div>
                     </form>
@@ -1585,7 +1603,7 @@
             @endif
         </div>
 
-        {{-- â”€â”€â”€â”€ DANGER ZONE â”€â”€â”€â”€ --}}
+        {{-- DANGER ZONE --}}
         <div x-show="tab === 'danger'" class="st-panel" x-cloak x-data="{ confirmReset: false, confirmDelete: false, resetPhrase: '', deletePhrase: '' }">
             <div style="padding:12px 16px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12.5px;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
                 <svg style="width:16px;height:16px;stroke:currentColor;flex-shrink:0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -2062,7 +2080,7 @@ function teamManager() {
         editSaving:    false,
         addError:      '',
         addForm:  { name: '', email: '', password: '', role: 'user' },
-        editForm: { name: '', role: 'user' },
+        editForm: { name: '', email: '', password: '', role: 'user', is_active: true },
 
         fetchError: '',
         async init() {
@@ -2073,7 +2091,9 @@ function teamManager() {
                 if (res.ok) {
                     const data = await res.json();
                     this.members = Array.isArray(data) ? data : [];
-                } else if (res.status !== 403) {
+                } else if (res.status === 403) {
+                    this.fetchError = 'Only admins can manage team members.';
+                } else {
                     this.fetchError = 'Could not load team members (HTTP ' + res.status + ')';
                 }
             } catch (e) {
@@ -2089,7 +2109,7 @@ function teamManager() {
 
         openEdit(m) {
             this.editTarget = m;
-            this.editForm = { name: m.name, role: m.role };
+            this.editForm = { name: m.name, email: m.email, password: '', role: m.role, is_active: !!m.is_active };
             this.showEditModal = true;
         },
 
@@ -2130,6 +2150,9 @@ function teamManager() {
         async saveEdit() {
             this.editSaving = true;
             try {
+                const payload = { ...this.editForm };
+                if (!payload.password) delete payload.password;
+
                 const res = await fetch(this.teamUrl(this.editTarget.id), {
                     method: 'PUT',
                     headers: {
@@ -2137,11 +2160,12 @@ function teamManager() {
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify(this.editForm),
+                    body: JSON.stringify(payload),
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...this.editForm } : m);
+                    const updatedMember = data.member || payload;
+                    this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...updatedMember } : m);
                     this.showEditModal = false;
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
                 } else {
