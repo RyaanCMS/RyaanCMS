@@ -6,8 +6,9 @@
     $logoPath    = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $faviconPath = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
     $fontSlug    = strtolower(str_replace(' ', '+', $fontFamily));
-    $showSidebar = (bool) \App\Models\Setting::get('system.show_dashboard_sidebar', true, $userId);
-    $showTopbar  = (bool) \App\Models\Setting::get('system.show_dashboard_menu',    true, $userId);
+    $showSidebar     = (bool) \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
+    $showTopbar      = (bool) \App\Models\Setting::get('system.show_dashboard_menu',    true,  $userId);
+    $sidebarAutoHide = (bool) \App\Models\Setting::get('system.sidebar_auto_hide',     false, $userId);
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="appLayout()">
 <head>
@@ -462,6 +463,46 @@
             margin: 6px 14px;
         }
 
+        /* ── Auto-hide sidebar mode ── */
+        /* When .sidebar-autohide and NOT expanded: collapse to zero width */
+        .sidebar-autohide:not(.sidebar-expanded):not(.sidebar-mobile-open) {
+            width: 0 !important;
+            border-right: none !important;
+            box-shadow: none !important;
+            overflow: hidden !important;
+        }
+        /* Peek arrow tab — shows at left edge when sidebar is auto-hidden */
+        .sb-peek {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 48px;
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--brand);
+            border-radius: 0 10px 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 35;
+            cursor: pointer;
+            box-shadow: 3px 0 14px rgba(0,0,0,.1);
+            transition: width .18s ease, background .13s;
+        }
+        .sb-peek:hover {
+            width: 24px;
+            background: var(--brand-light);
+        }
+        .sb-peek svg {
+            width: 10px; height: 10px;
+            color: var(--text-3);
+            flex-shrink: 0;
+            transition: color .13s;
+        }
+        .sb-peek:hover svg { color: var(--brand); }
+
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
         ═══════════════════════════════════════════════════════════ */
@@ -891,7 +932,21 @@
 
     <!-- ═══════ SIDEBAR ═══════ -->
     @if($showSidebar)
-    <aside class="app-sidebar"
+
+    {{-- Peek arrow: only renders in auto-hide mode, visible when sidebar is fully collapsed --}}
+    @if($sidebarAutoHide)
+    <div class="sb-peek"
+         x-show="!(sidebarOpen || sidebarHovered || mobileSidebarOpen)"
+         x-cloak
+         @mouseenter="sidebarHovered = true"
+         title="Open sidebar">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+        </svg>
+    </div>
+    @endif
+
+    <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
            @mouseenter="sidebarHovered=true"
            @mouseleave="sidebarHovered=false">

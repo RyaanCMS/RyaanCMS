@@ -8,8 +8,9 @@
     $savedFont   = \App\Models\Setting::get('branding.font_family',   'Poppins', $userId);
     $savedLogo   = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $savedFav    = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
-    $showDashMenu    = \App\Models\Setting::get('system.show_dashboard_menu',    true, $userId);
-    $showDashSidebar = \App\Models\Setting::get('system.show_dashboard_sidebar', true, $userId);
+    $showDashMenu      = \App\Models\Setting::get('system.show_dashboard_menu',    true,  $userId);
+    $showDashSidebar   = \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
+    $sidebarAutoHide   = \App\Models\Setting::get('system.sidebar_auto_hide',      false, $userId);
 @endphp
 
 @push('head')
@@ -103,6 +104,7 @@
         fontFamily: '{{ $savedFont }}',
         sysShowMenu: {{ $showDashMenu ? 'true' : 'false' }},
         sysShowSidebar: {{ $showDashSidebar ? 'true' : 'false' }},
+        sysAutoHideSidebar: {{ $sidebarAutoHide ? 'true' : 'false' }},
         sysSaving: false,
         sysSaved: false,
         async saveSystemConfig() {
@@ -110,7 +112,7 @@
             await fetch('{{ route('settings.system-config') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar })
+                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar, sidebar_auto_hide: this.sysAutoHideSidebar })
             });
             this.sysSaving = false;
             this.sysSaved = true;
@@ -712,8 +714,8 @@
                     {{-- Sidebar toggle --}}
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
                         <div>
-                            <div style="font-size:13.5px;font-weight:600;color:#0f172a;">Dashboard Sidebar</div>
-                            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Show the left navigation sidebar</div>
+                            <div style="font-size:13.5px;font-weight:600;color:var(--text-1);">Dashboard Sidebar</div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Show the left navigation sidebar</div>
                         </div>
                         <button type="button" @click="sysShowSidebar = !sysShowSidebar; saveSystemConfig()"
                                 :aria-checked="sysShowSidebar" role="switch"
@@ -724,11 +726,27 @@
                         </button>
                     </div>
 
+                    {{-- Auto-hide sidebar toggle --}}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-size:13.5px;font-weight:600;color:var(--text-1);">Auto-hide Sidebar</div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Sidebar fully hides — hover the left edge to reveal it</div>
+                        </div>
+                        <button type="button" @click="sysAutoHideSidebar = !sysAutoHideSidebar; saveSystemConfig()"
+                                :aria-checked="sysAutoHideSidebar" role="switch"
+                                :disabled="!sysShowSidebar"
+                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
+                                :style="!sysShowSidebar ? 'opacity:.4;cursor:not-allowed;background:#d1d5db' : (sysAutoHideSidebar ? 'background:var(--brand)' : 'background:#d1d5db')">
+                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
+                                  :style="sysAutoHideSidebar ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                        </button>
+                    </div>
+
                     {{-- Menu toggle --}}
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;">
                         <div>
-                            <div style="font-size:13.5px;font-weight:600;color:#0f172a;">Dashboard Top Menu</div>
-                            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Show the top navigation bar with breadcrumbs and actions</div>
+                            <div style="font-size:13.5px;font-weight:600;color:var(--text-1);">Dashboard Top Menu</div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Show the top navigation bar with breadcrumbs and actions</div>
                         </div>
                         <button type="button" @click="sysShowMenu = !sysShowMenu; saveSystemConfig()"
                                 :aria-checked="sysShowMenu" role="switch"
