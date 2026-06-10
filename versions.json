@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.23",
+    "latest": "1.1.24",
     "versions": [
         {
             "version": "1.0.0",
@@ -311,6 +311,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.22",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.24",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: full system card redesign + brand color propagation\n\nAll dashboard pages now use the sys-card pattern (left border accent,\ncolorful hover shadow, --c CSS variable, light colorful buttons).\nMarketplace all tabs, Builder, Pipeline, Wisdom, Menus, Projects pages\nupdated. All hardcoded #6366f1 replaced with var(--brand) throughout.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.24/ryaancms-v1.1.24-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.23",
             "critical": false,
             "file_count": null
         }
