@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.26",
+    "latest": "1.1.27",
     "versions": [
         {
             "version": "1.0.0",
@@ -347,6 +347,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.25",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.27",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "fix: marketplace grid auto-fill minmax so cards match project card size\n\nSwitch from fixed repeat(3/4, 1fr) to auto-fill minmax(220/190px) —\nsame pattern as project grid minmax(280px). Cards are now ~220px square\ninstead of 380px+ wide, matching the project card visual weight.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.27/ryaancms-v1.1.27-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.26",
             "critical": false,
             "file_count": null
         }
