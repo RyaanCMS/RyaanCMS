@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.36",
+    "latest": "1.1.37",
     "versions": [
         {
             "version": "1.0.0",
@@ -467,6 +467,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.35",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.37",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "fix: sync developer menus — wipe stale items and re-insert correct 9\n\nProblem: firstOrCreate never replaced old menu items that had different\nslugs/names from earlier versions (My Project, Wisdom, Menu, Template,\nSetting). Existing users saw old 7-item list instead of the correct 9.\n\nChanges:\n- DefaultSidebarMenuImporter: replace firstOrCreate with full sync —\n  delete all developer menus for the user then re-insert fresh 9 items\n  (Dashboard, My Apps, AI Builder, Marketplace, Templates, AI Knowledge,\n  Menus, Menu Categories, Settings)\n- app.blade.php: change lazy-seed trigger from isEmpty() to count() < 9\n  so existing users with old 7-item menus get re-synced on next page load\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.37/ryaancms-v1.1.37-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.36",
             "critical": false,
             "file_count": null
         }
