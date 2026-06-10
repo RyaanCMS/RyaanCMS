@@ -470,6 +470,11 @@
             border-right: none !important;
             box-shadow: none !important;
             overflow: hidden !important;
+            pointer-events: none !important;
+        }
+        .sidebar-autohide.sidebar-expanded,
+        .sidebar-autohide.sidebar-mobile-open {
+            pointer-events: auto;
         }
         /* Peek arrow tab — shows at left edge when sidebar is auto-hidden */
         .sb-peek {
@@ -477,8 +482,8 @@
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            width: 12px;
-            height: 34px;
+            width: 9px;
+            height: 28px;
             background: var(--surface-base);
             border: 1px solid var(--border);
             border-left: 2px solid var(--brand);
@@ -492,7 +497,7 @@
             transition: width .18s ease, background .13s;
         }
         .sb-peek:hover {
-            width: 18px;
+            width: 14px;
             background: var(--brand-light);
         }
         .sb-peek svg {

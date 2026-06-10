@@ -257,6 +257,29 @@
 .ms-cat-pill-active { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; }
 /* Stats strip */
 .ms-stats { background: var(--surface-raised) !important; border-radius: 14px !important; }
+
+/* Final card tone pass: lighter, cleaner text hierarchy */
+.ms-card .ms-name,
+.ms-card-lg .ms-name {
+    color:#64748b !important;
+    font-weight:650 !important;
+    letter-spacing:0 !important;
+}
+.ms-card .ms-desc,
+.ms-card-lg .ms-desc {
+    color:#a0aec0 !important;
+    font-weight:400 !important;
+}
+.ms-card .ms-tag,
+.ms-card-lg .ms-tag {
+    background:#fbfdff !important;
+    color:#9aa8b8 !important;
+    border-color:#edf2f7 !important;
+}
+.ms-card:hover .ms-name,
+.ms-card-lg:hover .ms-name {
+    color:#475569 !important;
+}
 </style>
 @endpush
 
