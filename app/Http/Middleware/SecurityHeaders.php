@@ -17,6 +17,9 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+        $response->headers->set('X-Download-Options', 'noopen');
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
 
         // Only send HSTS on HTTPS
         if ($request->isSecure()) {
