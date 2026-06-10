@@ -376,9 +376,8 @@
             z-index: 30;
         }
 
-        /* ── EXPANDED STATE: sidebar-expanded class OR CSS :hover (desktop non-autohide) ── */
-        .sidebar-expanded,
-        .app-sidebar:not(.sidebar-autohide):hover {
+        /* ── EXPANDED STATE: controlled by sidebarOpen or sidebarHovered Alpine state ── */
+        .sidebar-expanded {
             width: var(--sidebar-w-expanded) !important;
             box-shadow: var(--shadow-xl) !important;
         }
@@ -395,17 +394,14 @@
             transition: opacity var(--dur-base) ease, padding var(--dur-base) ease, height var(--dur-base) ease;
         }
         /* Collapsed: section labels zero height */
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-section-label,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-section-label {
+        .app-sidebar:not(.sidebar-expanded) .sb-section-label {
             padding: 0;
             height: 0;
         }
-        .sidebar-expanded .sb-section-label,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-section-label { opacity: 1; }
+        .sidebar-expanded .sb-section-label { opacity: 1; }
 
         /* Divider hidden in collapsed mode */
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-divider,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; }
+        .app-sidebar:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; overflow: hidden; }
 
         /* ── Sidebar nav items ── */
         .sb-item {
@@ -433,8 +429,7 @@
         }
 
         /* ─── COLLAPSED MODE: full-width icon tiles ─── */
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item {
+        .app-sidebar:not(.sidebar-expanded) .sb-item {
             justify-content: center;
             align-items: center;
             padding: 0;
@@ -443,26 +438,21 @@
             border-radius: 0;
             background: transparent;
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover {
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover {
             background: color-mix(in srgb, var(--brand) 7%, transparent);
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item.active,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item.active {
+        .app-sidebar:not(.sidebar-expanded) .sb-item.active {
             background: color-mix(in srgb, var(--brand) 12%, transparent);
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item.active::before,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item.active::before {
+        .app-sidebar:not(.sidebar-expanded) .sb-item.active::before {
             left: 0; top: 10px; bottom: 10px;
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-ico,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-ico {
+        .app-sidebar:not(.sidebar-expanded) .sb-ico {
             width: 40px; height: 40px;
             border-radius: 10px;
             background: transparent;
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover .sb-ico,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover .sb-ico {
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-ico {
             background: transparent;
         }
 
@@ -486,8 +476,7 @@
             transition: opacity var(--dur-base) ease;
             flex: 1;
         }
-        .sidebar-expanded .sb-label,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-label { opacity: 1; }
+        .sidebar-expanded .sb-label { opacity: 1; }
         .sb-item.active .sb-label { color: var(--brand); font-weight: 600; }
 
         .sb-badge {
@@ -499,25 +488,22 @@
             transition: opacity var(--dur-base) ease;
             flex-shrink: 0;
         }
-        .sidebar-expanded .sb-badge,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-badge { opacity: 1; }
+        .sidebar-expanded .sb-badge { opacity: 1; }
 
-        /* Generic utility: hidden in collapsed, shown when sidebar is expanded/hovered */
+        /* Generic utility: hidden in collapsed, visible when expanded */
         .sb-show-expanded {
             opacity: 0;
             transition: opacity var(--dur-base) ease;
         }
-        .sidebar-expanded .sb-show-expanded,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1; }
+        .sidebar-expanded .sb-show-expanded { opacity: 1; }
 
-        /* Logo name + toggle button — hidden in collapsed, shown expanded/hovered */
+        /* Logo name + toggle button */
         .sb-logo-name {
             flex: 1; min-width: 0;
             opacity: 0;
             transition: opacity var(--dur-base) ease;
         }
-        .sidebar-expanded .sb-logo-name,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name { opacity: 1; }
+        .sidebar-expanded .sb-logo-name { opacity: 1; }
         .sb-toggle-btn {
             width: 26px; height: 26px; border-radius: 7px;
             display: flex; align-items: center; justify-content: center;
@@ -527,10 +513,9 @@
             transition: opacity var(--dur-base) ease, background var(--dur-fast) ease;
         }
         .sb-toggle-btn:hover { background: var(--surface-overlay); }
-        .sidebar-expanded .sb-toggle-btn,
-        .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn { opacity: 1; }
+        .sidebar-expanded .sb-toggle-btn { opacity: 1; }
 
-        /* Sidebar tooltip — only show in truly collapsed (not hover-expanded) */
+        /* Sidebar tooltip — only show when truly collapsed */
         .sb-item .sb-tooltip {
             position: absolute; left: calc(var(--sidebar-w-collapsed) + 6px);
             background: #1e293b; color: #fff;
@@ -548,8 +533,7 @@
             border: 5px solid transparent;
             border-right-color: #1e293b;
         }
-        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover .sb-tooltip,
-        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover .sb-tooltip { opacity: 1; }
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-tooltip { opacity: 1; }
 
         /* Sidebar divider */
         .sb-divider {
@@ -1051,9 +1035,7 @@
     </div>
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
-           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="clearTimeout(window._sbLeave); sidebarHovered=true"
-           @mouseleave="window._sbLeave=setTimeout(()=>{ sidebarHovered=false },200)">
+           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
