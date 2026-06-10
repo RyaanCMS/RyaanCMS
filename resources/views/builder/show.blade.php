@@ -724,8 +724,7 @@
                                @keydown.enter="if(todoInput.trim()){todos.push({text:todoInput.trim(),done:false});todoInput='';}"
                                @keydown.escape="todoInput=''"
                                placeholder="Add a task…"
-                               style="flex:1;border:none;outline:none;font-size:12px;background:transparent;color:#374151;"
-                               placeholder="Add a task…">
+                               style="flex:1;border:none;outline:none;font-size:12px;background:transparent;color:#374151;">
                     </div>
                 </div>
             </div>
@@ -775,6 +774,20 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                             </svg>
+                        </button>
+                        <!-- Tasks toggle button -->
+                        <button @click="showTodos = !showTodos" title="Build task tracker"
+                                class="p-2 rounded-xl transition-all relative"
+                                :style="todos.length ? 'color:var(--brand); background:color-mix(in srgb,var(--brand) 10%,#fff);' : 'color:#9ca3af;'"
+                                onmouseover="this.style.color='var(--brand)'; this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';"
+                                onmouseout="if(!this.classList.contains('active-tasks')) { this.style.color=window._taskHasItems?'var(--brand)':'#9ca3af'; this.style.background=window._taskHasItems?'color-mix(in srgb,var(--brand) 10%,#fff)':''; }">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            <!-- Badge: pending count -->
+                            <span x-show="todos.filter(t=>!t.done).length > 0"
+                                  x-text="todos.filter(t=>!t.done).length"
+                                  style="position:absolute;top:2px;right:2px;min-width:14px;height:14px;padding:0 3px;border-radius:99px;background:var(--brand);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
                         </button>
                     </div>
                     <div class="flex items-center gap-2">
@@ -1270,6 +1283,34 @@ function builderApp() {
             t.files    = filePaths;
             t.expanded = false;
             this.currentTurnId = null;
+            if (!isError && response) this.syncTasksFromResponse(response);
+        },
+
+        syncTasksFromResponse(text) {
+            // Extract numbered list items like "1. Task text" or "- Task text"
+            const numbered = [...text.matchAll(/^\s*(\d+)\.\s+(.{5,120}?)(?:\s*$)/gm)].map(m => m[2].trim());
+            const bulleted = numbered.length === 0
+                ? [...text.matchAll(/^\s*[-*•]\s+(.{5,120}?)(?:\s*$)/gm)].map(m => m[1].trim())
+                : [];
+            const extracted = (numbered.length ? numbered : bulleted)
+                .filter(t => !/^(```|#{1,3}|note:|tip:|warning:)/i.test(t))
+                .slice(0, 10);
+            if (!extracted.length) return;
+
+            // Mark existing todos done if text appears in the response (AI confirmed it)
+            this.todos = this.todos.map(todo => {
+                const key = todo.text.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
+                const mentioned = extracted.some(e => e.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30) === key);
+                return mentioned ? { ...todo, done: true } : todo;
+            });
+
+            // Add genuinely new tasks not already tracked
+            const existingKeys = new Set(this.todos.map(t => t.text.toLowerCase().slice(0, 40)));
+            const newTasks = extracted.filter(e => !existingKeys.has(e.toLowerCase().slice(0, 40)));
+            if (newTasks.length) {
+                this.todos = [...this.todos, ...newTasks.map(text => ({ text, done: false }))];
+                this.showTodos = true;
+            }
         },
 
         stripForPreview(content) {
