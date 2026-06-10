@@ -363,13 +363,14 @@
            SIDEBAR
         ═══════════════════════════════════════════════════════════ */
         .app-sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
             width: var(--sidebar-w-collapsed);
             background: var(--surface-base);
             border-right: 1px solid var(--border);
             box-shadow: var(--shadow-md);
-            transition: width var(--dur-slow) var(--ease-out);
+            transition: width var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out);
             overflow: hidden;
-            flex-shrink: 0;
             display: flex;
             flex-direction: column;
             z-index: 30;
@@ -379,6 +380,7 @@
         .sidebar-expanded,
         .app-sidebar:not(.sidebar-autohide):hover {
             width: var(--sidebar-w-expanded) !important;
+            box-shadow: var(--shadow-xl) !important;
         }
 
         .sb-section-label {
@@ -805,6 +807,8 @@
         .mobile-backdrop.active { display: block; }
 
         @media (max-width: 1023px) {
+            /* Spacer not needed on mobile — sidebar uses transform overlay */
+            .sb-layout-spacer { display: none !important; }
             .app-sidebar {
                 position: fixed !important;
                 top: 0; left: 0; bottom: 0;
@@ -1030,6 +1034,11 @@
     <!-- ═══════ SIDEBAR ═══════ -->
     @if($showSidebar)
 
+    {{-- Spacer: keeps main content from going under the fixed sidebar (desktop only) --}}
+    @if(!$sidebarAutoHide)
+    <div class="sb-layout-spacer" style="width:var(--sidebar-w-collapsed);flex-shrink:0;"></div>
+    @endif
+
     {{-- Peek arrow: shown only in auto-hide mode when sidebar is fully hidden --}}
     <div class="sb-peek"
          x-show="{{ $sidebarAutoHide ? 'true' : 'false' }} && !(sidebarOpen || sidebarHovered || mobileSidebarOpen)"
@@ -1044,7 +1053,7 @@
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
            @mouseenter="clearTimeout(window._sbLeave); sidebarHovered=true"
-           @mouseleave="window._sbLeave=setTimeout(()=>{ sidebarHovered=false },120)">
+           @mouseleave="window._sbLeave=setTimeout(()=>{ sidebarHovered=false },200)">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
@@ -1072,23 +1081,16 @@
         </div>
 
         {{-- Navigation --}}
-        <nav style="flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0;" aria-label="Main navigation">
         @php
-            $navGroups = [
-                'WORKSPACE' => [
-                    ['route'=>'dashboard',       'label'=>'Dashboard',    'color'=>'#6366f1', 'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                ],
-                'BUILD' => [
-                    ['route'=>'projects.index',  'label'=>'Projects',     'color'=>'#8b5cf6', 'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'badge'=>'projects'],
-                    ['route'=>'marketplace.index','label'=>'Marketplace', 'color'=>'#10b981', 'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
-                ],
-                'AI TOOLS' => [
-                    ['route'=>'wisdom.index',    'label'=>'AI Knowledge', 'color'=>'#f59e0b', 'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
-                ],
-                'CONFIGURE' => [
-                    ['route'=>'menus.index',     'label'=>'Menus',        'color'=>'#ec4899', 'icon'=>'M4 6h16M4 12h16M4 18h7'],
-                    ['route'=>'settings.index',  'label'=>'Settings',     'color'=>'#f97316', 'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
-                ],
+            $userItems = [
+                ['route'=>'dashboard',       'label'=>'Dashboard', 'color'=>'#6366f1', 'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['route'=>'projects.index',  'label'=>'My Apps',   'color'=>'#8b5cf6', 'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'badge'=>'projects'],
+            ];
+            $devItems = [
+                ['route'=>'marketplace.index', 'label'=>'Marketplace',  'color'=>'#10b981', 'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+                ['route'=>'wisdom.index',      'label'=>'AI Knowledge', 'color'=>'#f59e0b', 'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
+                ['route'=>'menus.index',       'label'=>'Menus',        'color'=>'#ec4899', 'icon'=>'M4 6h16M4 12h16M4 18h7'],
+                ['route'=>'settings.index',    'label'=>'Settings',     'color'=>'#f97316', 'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
             ];
             $projectCount = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
             $dynamicSidebarMenus = auth()->check()
@@ -1102,80 +1104,113 @@
                 : collect();
         @endphp
 
-        @foreach($navGroups as $groupLabel => $items)
-            <div class="sb-section-label">{{ $groupLabel }}</div>
-            @foreach($items as $item)
-            @php $active = request()->routeIs(explode('.', $item['route'])[0].'*'); @endphp
-            <a href="{{ route($item['route']) }}"
-               class="sb-item{{ $active ? ' active' : '' }}"
-               aria-current="{{ $active ? 'page' : 'false' }}">
-                <div class="sb-ico" style="{{ $active ? 'background:color-mix(in srgb,'.$item['color'].' 15%,transparent);' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $item['color'] : 'var(--text-3)' }}" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $item['icon'] }}"/>
-                    </svg>
-                </div>
-                <span class="sb-label" style="{{ $active ? 'color:'.$item['color'].';font-weight:600;' : '' }}">{{ $item['label'] }}</span>
-                @if(isset($item['badge']) && $item['badge'] === 'projects' && $projectCount > 0)
-                <span class="sb-badge" style="{{ $active ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
-                @endif
-                <span class="sb-tooltip" aria-hidden="true">{{ $item['label'] }}</span>
-            </a>
-            @endforeach
-        @endforeach
-
-        {{-- Admin section --}}
-        @if(Auth::user()->isAdmin())
-        <div class="sb-divider"></div>
-        <div class="sb-section-label">ADMIN</div>
-        @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
-        <a href="{{ route('marketplace.admin.panel') }}" class="sb-item{{ $adminActive ? ' active' : '' }}">
-            <div class="sb-ico" style="{{ $adminActive ? 'background:#fef2f2;' : '' }}">
-                <svg fill="none" viewBox="0 0 24 24" stroke="{{ $adminActive ? '#ef4444' : 'var(--text-3)' }}" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <span class="sb-label" style="{{ $adminActive ? 'color:#ef4444;font-weight:600;' : '' }}">Marketplace Admin</span>
-            <span class="sb-tooltip" aria-hidden="true">Marketplace Admin</span>
-        </a>
-        @endif
-
-        {{-- Dynamic custom menus --}}
-        @foreach($dynamicSidebarMenus as $dynMenu)
-        <div class="sb-divider"></div>
-        <div class="sb-section-label">{{ $dynMenu->name }}</div>
-        @foreach($dynMenu->items as $mItem)
         @php
-            $rawUrl  = $mItem->url ?? '';
-            $urlPath = parse_url($rawUrl, PHP_URL_PATH) ?? '';
-            if ($rawUrl && preg_match('#^/builder/[^/]+$#', $urlPath)) {
-                $rawUrl = rtrim($rawUrl, '/') . '/preview';
-            }
-            $mPath   = ltrim($urlPath !== '' ? $urlPath : '', '/');
-            $mActive = $rawUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+        $renderItem = function(array $item, int $projectCount) {
+            $active = request()->routeIs(explode('.', $item['route'])[0].'*');
+            $url    = route($item['route']);
+            $color  = $item['color'];
+            $label  = $item['label'];
+            $icon   = $item['icon'];
+            $hasBadge = isset($item['badge']) && $item['badge'] === 'projects' && $projectCount > 0;
+            $activeIco  = 'background:color-mix(in srgb,'.$color.' 15%,transparent);';
+            $activeStroke = $color;
+            $inactiveStroke = 'var(--text-3)';
+            return compact('active','url','color','label','icon','hasBadge','activeIco','activeStroke','inactiveStroke');
+        };
         @endphp
-        <a href="{{ $rawUrl ?: '#' }}" target="{{ $mItem->target ?: '_blank' }}"
-           class="sb-item{{ $mActive ? ' active' : '' }}">
-            <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
-                @if($mItem->icon)
-                <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
-                </svg>
-                @else
-                <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+
+        <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
+
+            {{-- ─── USER section (top) ─── --}}
+            <div style="flex-shrink:0;padding:6px 0 0;">
+                <div class="sb-section-label">USER</div>
+                @foreach($userItems as $item)
+                @php extract($renderItem($item, $projectCount)); @endphp
+                <a href="{{ $url }}"
+                   class="sb-item{{ $active ? ' active' : '' }}"
+                   aria-current="{{ $active ? 'page' : 'false' }}">
+                    <div class="sb-ico" style="{{ $active ? $activeIco : '' }}">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $activeStroke : $inactiveStroke }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $icon }}"/>
+                        </svg>
+                    </div>
+                    <span class="sb-label" style="{{ $active ? 'color:'.$color.';font-weight:600;' : '' }}">{{ $label }}</span>
+                    @if($hasBadge)
+                    <span class="sb-badge" style="{{ $active ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
+                    @endif
+                    <span class="sb-tooltip" aria-hidden="true">{{ $label }}</span>
+                </a>
+                @endforeach
+
+                {{-- Dynamic custom menus under USER --}}
+                @foreach($dynamicSidebarMenus as $dynMenu)
+                <div class="sb-divider"></div>
+                <div class="sb-section-label">{{ $dynMenu->name }}</div>
+                @foreach($dynMenu->items as $mItem)
+                @php
+                    $rawUrl  = $mItem->url ?? '';
+                    $urlPath = parse_url($rawUrl, PHP_URL_PATH) ?? '';
+                    if ($rawUrl && preg_match('#^/builder/[^/]+$#', $urlPath)) {
+                        $rawUrl = rtrim($rawUrl, '/') . '/preview';
+                    }
+                    $mPath   = ltrim($urlPath !== '' ? $urlPath : '', '/');
+                    $mActive = $rawUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+                @endphp
+                <a href="{{ $rawUrl ?: '#' }}" target="{{ $mItem->target ?: '_blank' }}"
+                   class="sb-item{{ $mActive ? ' active' : '' }}">
+                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                        @if($mItem->icon)
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
+                        </svg>
+                        @else
+                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                        @endif
+                    </div>
+                    <span class="sb-label">{{ $mItem->label }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
+                </a>
+                @endforeach
+                @endforeach
+            </div>
+
+            {{-- Flexible spacer pushes DEVELOPER section to the bottom --}}
+            <div style="flex:1;min-height:12px;"></div>
+
+            {{-- ─── DEVELOPER section (bottom) ─── --}}
+            <div style="flex-shrink:0;padding:0 0 6px;">
+                <div class="sb-divider"></div>
+                <div class="sb-section-label">DEVELOPER</div>
+                @foreach($devItems as $item)
+                @php extract($renderItem($item, $projectCount)); @endphp
+                <a href="{{ $url }}"
+                   class="sb-item{{ $active ? ' active' : '' }}"
+                   aria-current="{{ $active ? 'page' : 'false' }}">
+                    <div class="sb-ico" style="{{ $active ? $activeIco : '' }}">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $activeStroke : $inactiveStroke }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $icon }}"/>
+                        </svg>
+                    </div>
+                    <span class="sb-label" style="{{ $active ? 'color:'.$color.';font-weight:600;' : '' }}">{{ $label }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $label }}</span>
+                </a>
+                @endforeach
+
+                {{-- Admin item inside DEVELOPER section --}}
+                @if(Auth::user()->isAdmin())
+                <div class="sb-divider"></div>
+                @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
+                <a href="{{ route('marketplace.admin.panel') }}" class="sb-item{{ $adminActive ? ' active' : '' }}">
+                    <div class="sb-ico" style="{{ $adminActive ? 'background:#fef2f2;' : '' }}">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $adminActive ? '#ef4444' : 'var(--text-3)' }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <span class="sb-label" style="{{ $adminActive ? 'color:#ef4444;font-weight:600;' : '' }}">Admin Panel</span>
+                    <span class="sb-tooltip" aria-hidden="true">Admin Panel</span>
+                </a>
                 @endif
             </div>
-            <span class="sb-label">{{ $mItem->label }}</span>
-            @foreach($mItem->children as $child)
-            @php
-                $cRaw  = $child->url ?? '';
-                $cPath = parse_url($cRaw, PHP_URL_PATH) ?? '';
-                if ($cRaw && preg_match('#^/builder/[^/]+$#', $cPath)) { $cRaw = rtrim($cRaw, '/') . '/preview'; }
-                $cActive = $cRaw && (ltrim($cPath,'/') ? request()->is(ltrim($cPath,'/'), ltrim($cPath,'/').'/*') : false);
-            @endphp
-            @endforeach
-        </a>
-        @endforeach
-        @endforeach
 
         </nav>
 

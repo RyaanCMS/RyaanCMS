@@ -976,8 +976,16 @@
 
     <!-- ══════════════════════════════════════
          File Tree Panel — RIGHT (3rd column)
+         Visible in Code + Split mode; hidden in Preview mode
     ══════════════════════════════════════ -->
-    <div class="w-64 flex-shrink-0 bg-gray-900 border-l border-gray-800 flex flex-col">
+    <div x-show="viewMode !== 'preview'"
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 translate-x-4"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 translate-x-0"
+         x-transition:leave-end="opacity-0 translate-x-4"
+         class="w-64 flex-shrink-0 bg-gray-900 border-l border-gray-800 flex flex-col">
         <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Files</span>
             <div class="flex space-x-1">
