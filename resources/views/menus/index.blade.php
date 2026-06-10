@@ -198,14 +198,14 @@
          style="background:rgba(0,0,0,.45);"
          @click.self="showAddModal = false"
          x-transition:enter="transition duration-200" x-transition:leave="transition duration-150">
-        <div class="w-full max-w-md rounded-2xl overflow-hidden"
-             style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);"
+        <div class="w-full rounded-2xl flex flex-col"
+             style="max-width:520px;max-height:92vh;background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);"
              @click.stop
              x-transition:enter="transition duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
 
-            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
+            <div class="flex items-center justify-between px-6 py-4 flex-shrink-0" style="border-bottom:1px solid var(--border);">
                 <h3 class="font-bold text-base" style="color:var(--text-1)">New Menu</h3>
                 <button @click="showAddModal = false"
                         class="w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer"
@@ -217,67 +217,166 @@
                 </button>
             </div>
 
-            <form method="POST" action="{{ route('menus.store') }}" class="px-6 py-5 flex flex-col gap-4"
+            <form method="POST" action="{{ route('menus.store') }}" class="flex flex-col overflow-hidden"
                   x-data="addMenuForm()" @submit.prevent="$el.submit()">
                 @csrf
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">
-                        Menu Name <span style="color:#ef4444">*</span>
-                    </label>
-                    <input type="text" name="name" placeholder="e.g. Dashboard, My Apps"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
-                           required autofocus>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">URL</label>
-                    <input type="text" name="url" placeholder="e.g. /dashboard or https://example.com"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon <span style="font-weight:400;color:var(--text-3)">(SVG path data)</span></label>
-                    <input type="text" name="icon" placeholder="e.g. M3 12h18M3 6h18M3 18h18"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                </div>
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-bold" style="color:var(--text-2)">Category <span style="color:#ef4444">*</span></label>
-                        <button type="button" @click="showNewCat = !showNewCat"
-                                class="text-xs font-semibold border-none cursor-pointer"
-                                style="background:none;"
-                                :style="showNewCat ? 'color:#ef4444' : 'color:var(--brand)'"
-                                x-text="showNewCat ? '✕ Cancel' : '+ New Category'"></button>
+                <div class="overflow-y-auto px-6 py-5 flex flex-col gap-4" style="flex:1;">
+
+                    {{-- Name --}}
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Menu Name <span style="color:#ef4444">*</span></label>
+                        <input type="text" name="name" placeholder="e.g. Dashboard, My Apps"
+                               class="w-full rounded-xl text-sm outline-none box-border"
+                               style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
+                               required autofocus>
                     </div>
-                    <select name="category" x-ref="catSelect"
-                            class="w-full rounded-xl text-sm outline-none"
-                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
-                        @foreach($menuCategories as $cat)
-                        <option value="{{ $cat->slug }}">{{ $cat->display_name }}</option>
-                        @endforeach
-                    </select>
-                    <div x-show="showNewCat" x-cloak class="mt-2 p-3 rounded-xl flex flex-col gap-2"
-                         style="background:var(--hover-bg);border:1px solid var(--border);">
-                        <div class="flex gap-2">
-                            <input type="text" x-model="newCatName" placeholder="Category name"
-                                   class="flex-1 rounded-lg text-xs outline-none"
-                                   style="padding:7px 10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                                   onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                            <input type="color" x-model="newCatColor"
-                                   style="width:38px;height:33px;border-radius:7px;border:1px solid var(--border);cursor:pointer;padding:2px;">
+
+                    {{-- Icon picker --}}
+                    <div x-data="iconPicker('add')">
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon</label>
+                        <input type="hidden" name="icon" x-model="selected">
+                        <button type="button" @click="open = !open"
+                                class="w-full flex items-center gap-3 rounded-xl text-sm cursor-pointer"
+                                style="padding:8px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-2);">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                 style="background:var(--surface-raised);">
+                                <template x-if="selected">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="var(--brand)" style="width:16px;height:16px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="selected"/>
+                                    </svg>
+                                </template>
+                                <template x-if="!selected">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="var(--text-3)" style="width:16px;height:16px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </template>
+                            </div>
+                            <span x-text="selected ? iconName(selected) : 'Select icon…'" class="flex-1 text-left text-sm"></span>
+                            <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="open ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak class="mt-2 rounded-xl overflow-hidden" style="border:1.5px solid var(--border);background:var(--surface-base);">
+                            <div class="px-3 pt-3">
+                                <input x-model="q" placeholder="Search icons…" type="text"
+                                       class="w-full rounded-lg text-xs outline-none box-border"
+                                       style="padding:7px 10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                                       onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                            </div>
+                            <div class="p-2 overflow-y-auto" style="max-height:220px;">
+                                <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px;">
+                                    <template x-for="ic in filteredIcons" :key="ic.n">
+                                        <button type="button" @click="selected = ic.d; open = false"
+                                                :title="ic.n"
+                                                class="flex flex-col items-center justify-center rounded-lg cursor-pointer transition-all"
+                                                style="padding:6px 2px;border:none;"
+                                                :style="selected === ic.d ? 'background:var(--brand-light)' : 'background:transparent'"
+                                                onmouseover="if(this.style.background==='transparent')this.style.background='var(--hover-bg)'"
+                                                onmouseout="this.style.background=this.getAttribute('data-sel')==='1'?'var(--brand-light)':'transparent'"
+                                                :data-sel="selected === ic.d ? '1' : '0'">
+                                            <svg fill="none" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"
+                                                 :stroke="selected === ic.d ? 'var(--brand)' : 'var(--text-2)'">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="ic.d"/>
+                                            </svg>
+                                            <span style="font-size:8px;margin-top:2px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;" x-text="ic.n"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="filteredIcons.length === 0">
+                                        <p class="text-xs py-4 text-center" style="color:var(--text-3);grid-column:span 8">No icons found</p>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="px-3 pb-3 pt-1 flex justify-end" style="border-top:1px solid var(--border);">
+                                <button type="button" @click="selected='';open=false"
+                                        class="text-xs font-semibold border-none cursor-pointer"
+                                        style="background:none;color:var(--text-3);">Clear icon</button>
+                            </div>
                         </div>
-                        <button type="button" @click="saveNewCategory()" :disabled="savingCat || !newCatName.trim()"
-                                class="w-full py-1.5 rounded-lg text-xs font-bold text-white border-none cursor-pointer"
-                                style="background:var(--brand);" :style="(savingCat || !newCatName.trim()) ? 'opacity:.5' : ''"
-                                x-text="savingCat ? 'Saving…' : 'Add Category'"></button>
-                        <p x-show="catError" x-text="catError" class="text-xs m-0" style="color:#ef4444;" x-cloak></p>
                     </div>
+
+                    {{-- URL / Link type --}}
+                    <div x-data="urlPicker('add')">
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Link To</label>
+                        <input type="hidden" name="url" :value="resolvedUrl">
+
+                        {{-- Type tabs --}}
+                        <div class="flex rounded-xl overflow-hidden mb-2" style="border:1.5px solid var(--border);">
+                            <template x-for="t in types" :key="t.k">
+                                <button type="button" @click="type = t.k; sel = ''"
+                                        class="flex-1 py-1.5 text-xs font-semibold transition-all border-none cursor-pointer"
+                                        :style="type === t.k
+                                            ? 'background:var(--brand);color:#fff'
+                                            : 'background:var(--surface-raised);color:var(--text-2)'"
+                                        x-text="t.label"></button>
+                            </template>
+                        </div>
+
+                        {{-- Application / Plugin / Module dropdown --}}
+                        <template x-if="type !== 'custom'">
+                            <div>
+                                <template x-if="sourceList.length > 0">
+                                    <select x-model="sel" class="w-full rounded-xl text-sm outline-none"
+                                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
+                                        <option value="">— Select —</option>
+                                        <template x-for="s in sourceList" :key="s.url">
+                                            <option :value="s.url" x-text="s.label"></option>
+                                        </template>
+                                    </select>
+                                </template>
+                                <template x-if="sourceList.length === 0">
+                                    <p class="text-xs rounded-xl px-3 py-2.5" style="color:var(--text-3);background:var(--surface-raised);border:1.5px solid var(--border);">
+                                        No items available in this category.
+                                    </p>
+                                </template>
+                            </div>
+                        </template>
+
+                        {{-- Custom URL --}}
+                        <template x-if="type === 'custom'">
+                            <input x-model="sel" type="text" placeholder="e.g. /dashboard or https://example.com"
+                                   class="w-full rounded-xl text-sm outline-none box-border"
+                                   style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                                   onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                        </template>
+                    </div>
+
+                    {{-- Category --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold" style="color:var(--text-2)">Category <span style="color:#ef4444">*</span></label>
+                            <button type="button" @click="showNewCat = !showNewCat"
+                                    class="text-xs font-semibold border-none cursor-pointer"
+                                    style="background:none;"
+                                    :style="showNewCat ? 'color:#ef4444' : 'color:var(--brand)'"
+                                    x-text="showNewCat ? '✕ Cancel' : '+ New Category'"></button>
+                        </div>
+                        <select name="category" x-ref="catSelect" class="w-full rounded-xl text-sm outline-none"
+                                style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
+                            @foreach($menuCategories as $cat)
+                            <option value="{{ $cat->slug }}">{{ $cat->display_name }}</option>
+                            @endforeach
+                        </select>
+                        <div x-show="showNewCat" x-cloak class="mt-2 p-3 rounded-xl flex flex-col gap-2"
+                             style="background:var(--hover-bg);border:1px solid var(--border);">
+                            <div class="flex gap-2">
+                                <input type="text" x-model="newCatName" placeholder="Category name"
+                                       class="flex-1 rounded-lg text-xs outline-none"
+                                       style="padding:7px 10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                                       onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                                <input type="color" x-model="newCatColor"
+                                       style="width:38px;height:33px;border-radius:7px;border:1px solid var(--border);cursor:pointer;padding:2px;">
+                            </div>
+                            <button type="button" @click="saveNewCategory()" :disabled="savingCat || !newCatName.trim()"
+                                    class="w-full py-1.5 rounded-lg text-xs font-bold text-white border-none cursor-pointer"
+                                    style="background:var(--brand);" :style="(savingCat || !newCatName.trim()) ? 'opacity:.5' : ''"
+                                    x-text="savingCat ? 'Saving…' : 'Add Category'"></button>
+                            <p x-show="catError" x-text="catError" class="text-xs m-0" style="color:#ef4444;" x-cloak></p>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="flex justify-end gap-2 pt-1" style="border-top:1px solid var(--border);margin-top:4px;">
+                <div class="flex justify-end gap-2 px-6 py-4 flex-shrink-0" style="border-top:1px solid var(--border);">
                     <button type="button" @click="showAddModal = false"
                             class="px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer"
                             style="border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);">Cancel</button>
@@ -295,14 +394,14 @@
          style="background:rgba(0,0,0,.45);"
          @click.self="showEditModal = false"
          x-transition:enter="transition duration-200" x-transition:leave="transition duration-150">
-        <div class="w-full max-w-md rounded-2xl overflow-hidden"
-             style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);"
+        <div class="w-full rounded-2xl flex flex-col"
+             style="max-width:520px;max-height:92vh;background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);"
              @click.stop
              x-transition:enter="transition duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
 
-            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
+            <div class="flex items-center justify-between px-6 py-4 flex-shrink-0" style="border-bottom:1px solid var(--border);">
                 <div>
                     <h3 class="font-bold text-base" style="color:var(--text-1)" x-text="'Edit: ' + (editMenu?.name ?? '')"></h3>
                     <p class="text-xs mt-0.5" style="color:var(--text-3)" x-text="editMenu?.category ? catLabel(editMenu.category) : ''"></p>
@@ -318,52 +417,148 @@
             </div>
 
             <form x-ref="editForm" method="POST" :action="'/menus/' + (editMenu?.id ?? '')"
-                  class="px-6 py-5 flex flex-col gap-4">
+                  class="flex flex-col overflow-hidden">
                 @csrf @method('PUT')
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Menu Name</label>
-                    <input type="text" name="name" x-model="editMenu.name"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
-                           required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">URL</label>
-                    <input type="text" name="url" x-model="editMenu.url" placeholder="e.g. /dashboard or https://example.com"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon <span style="font-weight:400;color:var(--text-3)">(SVG path data)</span></label>
-                    <input type="text" name="icon" x-model="editMenu.icon" placeholder="e.g. M3 12h18M3 6h18M3 18h18"
-                           class="w-full rounded-xl text-sm outline-none box-border"
-                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Category</label>
-                    <select name="category" x-model="editMenu.category"
-                            class="w-full rounded-xl text-sm outline-none"
-                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
-                        @foreach($menuCategories as $cat)
-                        <option value="{{ $cat->slug }}">{{ $cat->display_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="hidden" name="is_active" :value="editMenu.is_active ? '1' : '0'">
-                    <div @click="editMenu.is_active = !editMenu.is_active"
-                         class="relative cursor-pointer"
-                         style="width:38px;height:21px;border-radius:99px;transition:background .15s;"
-                         :style="editMenu.is_active ? 'background:#22c55e' : 'background:#d1d5db'">
-                        <div style="position:absolute;top:2.5px;width:16px;height:16px;background:#fff;border-radius:99px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s;"
-                             :style="editMenu.is_active ? 'left:19px' : 'left:3px'"></div>
+                <div class="overflow-y-auto px-6 py-5 flex flex-col gap-4" style="flex:1;">
+
+                    {{-- Name --}}
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Menu Name</label>
+                        <input type="text" name="name" x-model="editMenu.name"
+                               class="w-full rounded-xl text-sm outline-none box-border"
+                               style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
+                               required>
                     </div>
-                    <span class="text-sm font-semibold" style="color:var(--text-2);" x-text="editMenu.is_active ? 'Active' : 'Inactive'"></span>
-                </label>
-                <div class="flex justify-end gap-2 pt-1" style="border-top:1px solid var(--border);margin-top:4px;">
+
+                    {{-- Icon picker (edit) --}}
+                    <div x-data="iconPicker('edit')" x-init="selected = editMenu.icon || ''">
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon</label>
+                        <input type="hidden" name="icon" x-model="selected" @change="editMenu.icon = selected">
+                        <button type="button" @click="open = !open"
+                                class="w-full flex items-center gap-3 rounded-xl text-sm cursor-pointer"
+                                style="padding:8px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-2);">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                 style="background:var(--surface-raised);">
+                                <template x-if="selected">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="var(--brand)" style="width:16px;height:16px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="selected"/>
+                                    </svg>
+                                </template>
+                                <template x-if="!selected">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="var(--text-3)" style="width:16px;height:16px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </template>
+                            </div>
+                            <span x-text="selected ? iconName(selected) : 'Select icon…'" class="flex-1 text-left text-sm"></span>
+                            <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="open ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-cloak class="mt-2 rounded-xl overflow-hidden" style="border:1.5px solid var(--border);background:var(--surface-base);">
+                            <div class="px-3 pt-3">
+                                <input x-model="q" placeholder="Search icons…" type="text"
+                                       class="w-full rounded-lg text-xs outline-none box-border"
+                                       style="padding:7px 10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                                       onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                            </div>
+                            <div class="p-2 overflow-y-auto" style="max-height:220px;">
+                                <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px;">
+                                    <template x-for="ic in filteredIcons" :key="ic.n">
+                                        <button type="button" @click="selected = ic.d; editMenu.icon = ic.d; open = false"
+                                                :title="ic.n"
+                                                class="flex flex-col items-center justify-center rounded-lg cursor-pointer transition-all"
+                                                style="padding:6px 2px;border:none;"
+                                                :style="selected === ic.d ? 'background:var(--brand-light)' : 'background:transparent'"
+                                                onmouseover="if(this.style.background==='transparent')this.style.background='var(--hover-bg)'"
+                                                onmouseout="this.style.background=this.getAttribute('data-sel')==='1'?'var(--brand-light)':'transparent'"
+                                                :data-sel="selected === ic.d ? '1' : '0'">
+                                            <svg fill="none" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"
+                                                 :stroke="selected === ic.d ? 'var(--brand)' : 'var(--text-2)'">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="ic.d"/>
+                                            </svg>
+                                            <span style="font-size:8px;margin-top:2px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;" x-text="ic.n"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div class="px-3 pb-3 pt-1 flex justify-end" style="border-top:1px solid var(--border);">
+                                <button type="button" @click="selected='';editMenu.icon='';open=false"
+                                        class="text-xs font-semibold border-none cursor-pointer"
+                                        style="background:none;color:var(--text-3);">Clear icon</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- URL / Link type (edit) --}}
+                    <div x-data="urlPicker('edit')" x-init="initFromUrl(editMenu.url)">
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Link To</label>
+                        <input type="hidden" name="url" :value="resolvedUrl" @change="editMenu.url = resolvedUrl">
+
+                        <div class="flex rounded-xl overflow-hidden mb-2" style="border:1.5px solid var(--border);">
+                            <template x-for="t in types" :key="t.k">
+                                <button type="button" @click="type = t.k; if(type!=='custom') sel=''"
+                                        class="flex-1 py-1.5 text-xs font-semibold transition-all border-none cursor-pointer"
+                                        :style="type === t.k
+                                            ? 'background:var(--brand);color:#fff'
+                                            : 'background:var(--surface-raised);color:var(--text-2)'"
+                                        x-text="t.label"></button>
+                            </template>
+                        </div>
+
+                        <template x-if="type !== 'custom'">
+                            <div>
+                                <template x-if="sourceList.length > 0">
+                                    <select x-model="sel" class="w-full rounded-xl text-sm outline-none"
+                                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
+                                        <option value="">— Select —</option>
+                                        <template x-for="s in sourceList" :key="s.url">
+                                            <option :value="s.url" x-text="s.label"></option>
+                                        </template>
+                                    </select>
+                                </template>
+                                <template x-if="sourceList.length === 0">
+                                    <p class="text-xs rounded-xl px-3 py-2.5" style="color:var(--text-3);background:var(--surface-raised);border:1.5px solid var(--border);">
+                                        No items available in this category.
+                                    </p>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="type === 'custom'">
+                            <input x-model="sel" type="text" placeholder="e.g. /dashboard or https://example.com"
+                                   class="w-full rounded-xl text-sm outline-none box-border"
+                                   style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                                   onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                        </template>
+                    </div>
+
+                    {{-- Category --}}
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Category</label>
+                        <select name="category" x-model="editMenu.category" class="w-full rounded-xl text-sm outline-none"
+                                style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);">
+                            @foreach($menuCategories as $cat)
+                            <option value="{{ $cat->slug }}">{{ $cat->display_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Status --}}
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="hidden" name="is_active" :value="editMenu.is_active ? '1' : '0'">
+                        <div @click="editMenu.is_active = !editMenu.is_active" class="relative cursor-pointer"
+                             style="width:38px;height:21px;border-radius:99px;transition:background .15s;"
+                             :style="editMenu.is_active ? 'background:#22c55e' : 'background:#d1d5db'">
+                            <div style="position:absolute;top:2.5px;width:16px;height:16px;background:#fff;border-radius:99px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s;"
+                                 :style="editMenu.is_active ? 'left:19px' : 'left:3px'"></div>
+                        </div>
+                        <span class="text-sm font-semibold" style="color:var(--text-2);" x-text="editMenu.is_active ? 'Active' : 'Inactive'"></span>
+                    </label>
+
+                </div>
+                <div class="flex justify-end gap-2 px-6 py-4 flex-shrink-0" style="border-top:1px solid var(--border);">
                     <button type="button" @click="showEditModal = false"
                             class="px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer"
                             style="border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);">Cancel</button>
