@@ -167,12 +167,17 @@
             }
             return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
         },
+        hslToHex(h,s,l) {
+            s/=100; l/=100; const a=s*Math.min(l,1-l);
+            const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0');};
+            return '#'+f(0)+f(8)+f(4);
+        },
         getShades(hex) {
             if(!hex||!/^#[0-9a-fA-F]{6}$/.test(hex)) return [];
             const [h,s]=this.hexToHsl(hex);
-            return [93,84,74,63,52,41,32,23,14].map(l=>`hsl(${h},${s}%,${l}%)`);
+            return [93,84,74,63,52,41,32,23,14].map(l=>this.hslToHex(h,s,l));
         },
-        pickColor(hex) { this.brandColor=hex; this.hexInput=hex.replace('#','').toUpperCase(); },
+        pickColor(hex) { this.brandColor=hex; this.hexInput=(/^#[0-9a-fA-F]{6}$/.test(hex)?hex.replace('#',''):'').toUpperCase(); },
         onHexInput(v) { const c=v.replace(/[^0-9a-fA-F]/g,'').slice(0,6); this.hexInput=c.toUpperCase(); if(c.length===6) this.brandColor='#'+c; },
         copyHex() { navigator.clipboard.writeText(this.brandColor).then(()=>{this.brandCopied=true;setTimeout(()=>this.brandCopied=false,1800);}); }
      }">
@@ -817,164 +822,263 @@
 
         </div>
 
-        {{-- â”€â”€â”€â”€ BRANDING â”€â”€â”€â”€ --}}
+        {{-- ──── BRANDING ──── --}}
         <div x-show="tab === 'branding'" class="st-panel">
-            <div class="scard">
-                <div class="scard-hd">
-                    <div class="scard-hd-icon" style="background:#ecfdf5;">
-                        <svg style="width:15px;height:15px;stroke:#10b981" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+
+            {{-- ── Brand Kit Live Preview ── --}}
+            <div class="bk-preview-wrap">
+                <div class="bk-preview-bar">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span class="bk-preview-dot" style="background:#ef4444;"></span>
+                        <span class="bk-preview-dot" style="background:#f59e0b;"></span>
+                        <span class="bk-preview-dot" style="background:#10b981;"></span>
+                        <span style="margin-left:8px;font-size:11px;font-weight:600;color:var(--text-3);">Brand Kit Preview</span>
                     </div>
-                    <div>
-                        <div style="font-size:13.5px;font-weight:700;color:#0f172a;">Brand Colors & Typography</div>
-                        <div style="font-size:11.5px;color:#94a3b8;margin-top:1px;">Customize your RyaanCMS dashboard appearance</div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+                        <span style="font-size:11px;color:var(--text-3);">Live</span>
                     </div>
                 </div>
-                <div class="scard-body">
-                    <form method="POST" action="{{ route('settings.branding') }}" style="display:flex;flex-direction:column;gap:20px;">
-                        @csrf
-
-                        <div>
-                            <label class="slabel">Primary Brand Color</label>
-                            <div style="display:flex;align-items:center;gap:12px;">
-                                <input type="color" name="primary_color" x-model="brandColor"
-                                       style="width:48px;height:48px;border-radius:12px;cursor:pointer;border:2px solid #e2e8f0;padding:3px;background:none;">
-                                <div style="flex:1;display:flex;align-items:center;gap:10px;border-radius:11px;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;">
-                                    <div style="width:20px;height:20px;border-radius:6px;flex-shrink:0;transition:background .2s;" :style="'background:' + brandColor"></div>
-                                    <input type="text" x-model="brandColor"
-                                           @input="if(/^#[0-9A-Fa-f]{6}$/.test($event.target.value)) brandColor=$event.target.value"
-                                           style="flex:1;background:transparent;border:none;outline:none;font-size:13px;font-weight:700;font-family:monospace;color:#0f172a;text-transform:uppercase;"
-                                           maxlength="7" placeholder="#6366f1">
-                                </div>
+                <div style="display:grid;grid-template-columns:160px 1fr;height:210px;" :style="'font-family:\'' + fontFamily + '\',sans-serif;'">
+                    {{-- Mock sidebar --}}
+                    <div style="display:flex;flex-direction:column;padding:14px 10px;gap:3px;border-right:1px solid rgba(0,0,0,.08);" :style="'background:' + brandColor">
+                        <div style="display:flex;align-items:center;gap:7px;padding:4px 6px;margin-bottom:8px;">
+                            <div style="width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <span style="font-size:12px;font-weight:800;color:#fff;">R</span>
                             </div>
-                            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
-                                @foreach([
-                                    ['color'=>'#6366f1','name'=>'Indigo'],['color'=>'#8b5cf6','name'=>'Violet'],
-                                    ['color'=>'#ec4899','name'=>'Pink'],  ['color'=>'#f97316','name'=>'Orange'],
-                                    ['color'=>'#10b981','name'=>'Emerald'],['color'=>'#3b82f6','name'=>'Blue'],
-                                    ['color'=>'#ef4444','name'=>'Red'],   ['color'=>'#eab308','name'=>'Yellow'],
-                                    ['color'=>'#14b8a6','name'=>'Teal'],  ['color'=>'#a855f7','name'=>'Purple'],
-                                ] as $preset)
-                                <button type="button" @click="brandColor = '{{ $preset['color'] }}'"
-                                        style="width:30px;height:30px;border-radius:9px;cursor:pointer;transition:all .15s;background:{{ $preset['color'] }};"
-                                        :style="brandColor === '{{ $preset['color'] }}' ? 'transform:scale(1.15);outline:2.5px solid {{ $preset['color'] }};outline-offset:2px;' : 'opacity:.8;border:2px solid transparent;'"
-                                        title="{{ $preset['name'] }}"></button>
-                                @endforeach
-                            </div>
+                            <span style="font-size:12px;font-weight:700;color:#fff;opacity:.92;">RyaanCMS</span>
                         </div>
-
-                        <div>
-                            <label class="slabel">Font Family</label>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                                @foreach([
-                                    ['name'=>'Poppins','default'=>true],['name'=>'Inter'],['name'=>'DM Sans'],
-                                    ['name'=>'Nunito'],['name'=>'Roboto'],['name'=>'Open Sans'],
-                                ] as $font)
-                                <label style="cursor:pointer;">
-                                    <input type="radio" name="font_family" value="{{ $font['name'] }}" x-model="fontFamily" style="display:none;">
-                                    <div style="border-radius:12px;padding:14px;text-align:center;transition:all .15s;"
-                                         :style="fontFamily === '{{ $font['name'] }}'
-                                            ? 'border:2px solid var(--brand);background:var(--brand-light,#eef2ff);box-shadow:0 0 0 3px var(--brand-ring,#c7d2fe40);'
-                                            : 'border:2px solid #e8ecf0;background:#fafbff;'">
-                                        <div style="font-size:20px;font-weight:700;margin-bottom:3px;"
-                                             :style="'font-family:{{ $font['name'] }},sans-serif;color:' + (fontFamily==='{{ $font['name'] }}' ? 'var(--brand)' : '#334155')">
-                                            Aa Bb
-                                        </div>
-                                        <div style="font-size:10.5px;font-weight:600;"
-                                             :style="fontFamily === '{{ $font['name'] }}' ? 'color:var(--brand);' : 'color:#94a3b8;'">
-                                            {{ $font['name'] }}{{ ($font['default'] ?? false) ? ' âœ“' : '' }}
-                                        </div>
-                                    </div>
-                                </label>
-                                @endforeach
-                            </div>
+                        <div class="bk-sidebar-item" style="background:rgba(255,255,255,.2);">
+                            <div style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,.7);flex-shrink:0;"></div>
+                            <span style="font-size:11px;color:#fff;font-weight:600;">Dashboard</span>
                         </div>
-
-                        <div style="border-radius:12px;padding:16px;background:#f8fafc;border:1px solid #e8ecf0;">
-                            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#cbd5e1;margin-bottom:12px;">Live Preview</div>
-                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-                                <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;flex-shrink:0;"
-                                     :style="'background:' + brandColor">A</div>
-                                <div>
-                                    <div style="font-size:13px;font-weight:700;color:#0f172a;" :style="'font-family:' + fontFamily + ',sans-serif;'">Dashboard Overview</div>
-                                    <div style="font-size:11.5px;color:#94a3b8;" :style="'font-family:' + fontFamily + ',sans-serif;'">Your workspace at a glance</div>
-                                </div>
-                            </div>
-                            <div style="display:flex;gap:8px;">
-                                <div style="padding:7px 16px;border-radius:9px;font-size:12px;font-weight:700;color:#fff;"
-                                     :style="'background:' + brandColor + ';font-family:' + fontFamily + ',sans-serif;'">Primary</div>
-                                <div style="padding:7px 16px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid;"
-                                     :style="'color:' + brandColor + ';border-color:' + brandColor + ';font-family:' + fontFamily + ',sans-serif;'">Outline</div>
-                            </div>
+                        @foreach(['Projects','AI Builder','Marketplace','Settings'] as $mi)
+                        <div class="bk-sidebar-item">
+                            <div style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,.28);flex-shrink:0;"></div>
+                            <span style="font-size:11px;color:rgba(255,255,255,.72);">{{ $mi }}</span>
                         </div>
-
-                        <div style="display:flex;justify-content:flex-end;">
-                            <button type="submit" class="sbtn-primary">
-                                Save Brand Settings
-                            </button>
+                        @endforeach
+                    </div>
+                    {{-- Mock content --}}
+                    <div style="padding:14px;background:#f8fafc;overflow:hidden;">
+                        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:2px;">Dashboard Overview</div>
+                        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px;">Your workspace at a glance</div>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;">
+                            @foreach(['12 Projects','48 Builds','1.2k API Calls'] as $stat)
+                            <div style="background:#fff;border-radius:9px;padding:8px 10px;border:1px solid #e2e8f0;">
+                                <div style="font-size:9px;color:#94a3b8;margin-bottom:2px;">{{ implode(' ', array_slice(explode(' ', $stat), 1)) }}</div>
+                                <div style="font-size:16px;font-weight:800;" :style="'color:' + brandColor">{{ explode(' ', $stat)[0] }}</div>
+                            </div>
+                            @endforeach
                         </div>
-                    </form>
+                        <div style="background:#fff;border-radius:9px;padding:9px 11px;border:1px solid #e2e8f0;display:flex;align-items:center;gap:9px;">
+                            <div style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" :style="'background:' + brandColor">
+                                <div style="width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,.8);"></div>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:11px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My Portfolio Website</div>
+                                <div style="font-size:10px;color:#94a3b8;">Updated 2 hours ago</div>
+                            </div>
+                            <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;" :style="'background:' + brandColor">Active</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            {{-- ── Colors & Typography ── --}}
+            <form method="POST" action="{{ route('settings.branding') }}" class="scard">
+                @csrf
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#f5f3ff;">
+                        <svg style="width:15px;height:15px;stroke:#7c3aed" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Brand Identity</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Colors, typography, and visual style</div>
+                    </div>
+                    <button type="submit" class="sbtn-primary" style="margin-left:auto;padding:7px 18px;font-size:12.5px;">
+                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Save
+                    </button>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:24px;">
+
+                    {{-- Color picker --}}
+                    <div>
+                        <label class="slabel">Primary Brand Color</label>
+                        <div style="display:flex;gap:16px;align-items:flex-start;">
+                            {{-- Big color swatch --}}
+                            <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                                <div style="position:relative;width:72px;height:72px;border-radius:16px;cursor:pointer;border:3px solid #fff;transition:box-shadow .15s;overflow:hidden;"
+                                     :style="'background:' + brandColor + ';box-shadow:0 0 0 2px ' + brandColor + '50,0 4px 14px rgba(0,0,0,.1);'"
+                                     @click="$refs.colorInput.click()">
+                                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:opacity .15s;" @mouseenter="$el.style.opacity='1'" @mouseleave="$el.style.opacity='0'">
+                                        <svg style="width:18px;height:18px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </div>
+                                    <input type="color" x-ref="colorInput" name="primary_color" x-model="brandColor"
+                                           style="position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%;">
+                                </div>
+                                <div style="font-size:10.5px;font-weight:700;font-family:monospace;letter-spacing:.04em;" :style="'color:' + brandColor" x-text="brandColor.toUpperCase()"></div>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+                                {{-- Hex input --}}
+                                <div style="display:flex;align-items:center;gap:8px;background:var(--hover-bg);border-radius:10px;padding:9px 12px;border:1.5px solid var(--border);">
+                                    <div style="width:16px;height:16px;border-radius:4px;flex-shrink:0;transition:background .2s;" :style="'background:' + brandColor"></div>
+                                    <span style="font-size:12px;color:var(--text-3);font-family:monospace;font-weight:700;">#</span>
+                                    <input class="bk-hex-input" :value="hexInput" @input="onHexInput($event.target.value)" maxlength="6" placeholder="6366F1">
+                                    <button type="button" @click="copyHex()"
+                                            style="font-size:11px;font-weight:600;cursor:pointer;background:none;border:none;padding:3px 8px;border-radius:7px;transition:all .15s;white-space:nowrap;"
+                                            :style="brandCopied ? 'color:#10b981;background:#f0fdf4;' : 'color:var(--text-3);'"
+                                            x-text="brandCopied ? 'Copied!' : 'Copy'"></button>
+                                </div>
+                                {{-- Color presets --}}
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                    @foreach([
+                                        ['color'=>'#6366f1','name'=>'Indigo'],  ['color'=>'#8b5cf6','name'=>'Violet'],
+                                        ['color'=>'#a855f7','name'=>'Purple'],  ['color'=>'#ec4899','name'=>'Pink'],
+                                        ['color'=>'#ef4444','name'=>'Red'],     ['color'=>'#f97316','name'=>'Orange'],
+                                        ['color'=>'#eab308','name'=>'Yellow'],  ['color'=>'#10b981','name'=>'Emerald'],
+                                        ['color'=>'#14b8a6','name'=>'Teal'],    ['color'=>'#3b82f6','name'=>'Blue'],
+                                        ['color'=>'#0ea5e9','name'=>'Sky'],     ['color'=>'#64748b','name'=>'Slate'],
+                                    ] as $p)
+                                    <button type="button" @click="pickColor('{{ $p['color'] }}')" title="{{ $p['name'] }}"
+                                            class="bk-color-swatch" style="background:{{ $p['color'] }};"
+                                            :class="brandColor === '{{ $p['color'] }}' ? 'selected' : ''"></button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        {{-- Tints & shades row --}}
+                        <div style="margin-top:14px;">
+                            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:7px;">Tints & Shades — click to apply</div>
+                            <div style="display:flex;gap:4px;align-items:stretch;height:24px;">
+                                <template x-for="(shade, i) in getShades(brandColor)" :key="i">
+                                    <div class="bk-shade" :style="'background:' + shade" @click="pickColor(shade)" :title="shade"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="height:1px;background:var(--border);"></div>
+
+                    {{-- Typeface --}}
+                    <div>
+                        <label class="slabel">Typeface</label>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                            @foreach([
+                                ['name'=>'Poppins',    'sample'=>'Geometric soft'],
+                                ['name'=>'Inter',      'sample'=>'Clean modern'],
+                                ['name'=>'DM Sans',    'sample'=>'Friendly round'],
+                                ['name'=>'Nunito',     'sample'=>'Rounded warm'],
+                                ['name'=>'Roboto',     'sample'=>'Neutral classic'],
+                                ['name'=>'Open Sans',  'sample'=>'Open legible'],
+                            ] as $font)
+                            <label style="cursor:pointer;display:block;">
+                                <input type="radio" name="font_family" value="{{ $font['name'] }}" x-model="fontFamily" style="display:none;">
+                                <div class="bk-font-card" :class="fontFamily === '{{ $font['name'] }}' ? 'selected' : ''">
+                                    <div style="font-size:22px;font-weight:700;margin-bottom:2px;line-height:1;transition:color .15s;"
+                                         :style="'font-family:\'{{ $font['name'] }}\',sans-serif;color:' + (fontFamily==='{{ $font['name'] }}' ? 'var(--brand)' : '#1e293b')">Aa</div>
+                                    <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px;transition:color .15s;"
+                                         :style="fontFamily==='{{ $font['name'] }}' ? 'color:var(--brand)' : 'color:#334155'">{{ $font['name'] }}</div>
+                                    <div style="font-size:10px;color:#94a3b8;">{{ $font['sample'] }}</div>
+                                </div>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            {{-- ── Logo & Favicon ── --}}
             <div class="scard">
                 <div class="scard-hd">
                     <div class="scard-hd-icon" style="background:#f0f9ff;">
                         <svg style="width:15px;height:15px;stroke:#0ea5e9" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <div>
-                        <div style="font-size:13.5px;font-weight:700;color:#0f172a;">Logo & Favicon</div>
-                        <div style="font-size:11.5px;color:#94a3b8;margin-top:1px;">Appears in the sidebar and browser tab</div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Logo & Favicon</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Used in the sidebar and browser tab</div>
                     </div>
                 </div>
                 <div class="scard-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        {{-- Logo upload --}}
                         <form method="POST" action="{{ route('settings.branding.upload') }}" enctype="multipart/form-data"
-                              x-data="{ preview: '{{ $savedLogo ? Storage::url($savedLogo) : '' }}' }">
+                              x-data="{ preview: '{{ $savedLogo ? Storage::url($savedLogo) : '' }}', dragging: false }">
                             @csrf
                             <input type="hidden" name="type" value="logo">
                             <label class="slabel">Site Logo</label>
-                            <div style="border:2px dashed #e2e8f0;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;"
+                            <div class="bk-upload-zone" :class="dragging ? 'bk-upload-drag' : ''"
                                  @click="$refs.logoInput.click()"
-                                 onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                 @dragover.prevent="dragging=true" @dragleave="dragging=false"
+                                 @drop.prevent="dragging=false; preview=URL.createObjectURL($event.dataTransfer.files[0]); $el.closest('form').submit()">
                                 <template x-if="preview">
-                                    <img :src="preview" style="width:64px;height:64px;object-fit:contain;margin:0 auto 10px;border-radius:10px;display:block;">
-                                </template>
-                                <template x-if="!preview">
-                                    <div style="width:48px;height:48px;border-radius:12px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-                                        <svg style="width:22px;height:22px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                        <div style="width:64px;height:64px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+                                            <img :src="preview" style="width:100%;height:100%;object-fit:contain;">
+                                        </div>
+                                        <div style="font-size:11.5px;font-weight:600;color:#10b981;display:flex;align-items:center;gap:4px;">
+                                            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Logo uploaded
+                                        </div>
+                                        <div style="font-size:10.5px;color:var(--text-3);">Click to replace</div>
                                     </div>
                                 </template>
-                                <div style="font-size:12.5px;font-weight:600;color:#475569;">Click to upload</div>
-                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">PNG, SVG, JPG Â· Max 2MB</div>
+                                <template x-if="!preview">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:var(--hover-bg);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+                                            <svg style="width:20px;height:20px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        </div>
+                                        <div style="font-size:12.5px;font-weight:600;color:var(--text-2);">Upload logo</div>
+                                        <div style="font-size:11px;color:var(--text-3);">PNG, SVG, JPG &middot; max 2MB</div>
+                                    </div>
+                                </template>
                             </div>
                             <input type="file" name="file" x-ref="logoInput" accept="image/*" style="display:none;"
                                    @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
-                            @if($savedLogo)<div style="margin-top:6px;font-size:11px;color:#16a34a;">âœ“ Logo uploaded</div>@endif
                         </form>
 
+                        {{-- Favicon upload --}}
                         <form method="POST" action="{{ route('settings.branding.upload') }}" enctype="multipart/form-data"
-                              x-data="{ preview: '{{ $savedFav ? Storage::url($savedFav) : '' }}' }">
+                              x-data="{ preview: '{{ $savedFav ? Storage::url($savedFav) : '' }}', dragging: false }">
                             @csrf
                             <input type="hidden" name="type" value="favicon">
                             <label class="slabel">Favicon</label>
-                            <div style="border:2px dashed #e2e8f0;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;"
+                            <div class="bk-upload-zone" :class="dragging ? 'bk-upload-drag' : ''"
                                  @click="$refs.favInput.click()"
-                                 onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                 @dragover.prevent="dragging=true" @dragleave="dragging=false"
+                                 @drop.prevent="dragging=false; preview=URL.createObjectURL($event.dataTransfer.files[0]); $el.closest('form').submit()">
                                 <template x-if="preview">
-                                    <img :src="preview" style="width:48px;height:48px;object-fit:contain;margin:0 auto 10px;border-radius:10px;display:block;">
-                                </template>
-                                <template x-if="!preview">
-                                    <div style="width:48px;height:48px;border-radius:12px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-                                        <svg style="width:22px;height:22px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+                                            <img :src="preview" style="width:100%;height:100%;object-fit:contain;">
+                                        </div>
+                                        <div style="font-size:11.5px;font-weight:600;color:#10b981;display:flex;align-items:center;gap:4px;">
+                                            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Favicon saved
+                                        </div>
+                                        <div style="font-size:10.5px;color:var(--text-3);">Click to replace</div>
                                     </div>
                                 </template>
-                                <div style="font-size:12.5px;font-weight:600;color:#475569;">Click to upload</div>
-                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">ICO, PNG, SVG Â· 32Ã—32px</div>
+                                <template x-if="!preview">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:var(--hover-bg);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+                                            <svg style="width:20px;height:20px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </div>
+                                        <div style="font-size:12.5px;font-weight:600;color:var(--text-2);">Upload favicon</div>
+                                        <div style="font-size:11px;color:var(--text-3);">ICO, PNG, SVG &middot; 32&times;32px</div>
+                                    </div>
+                                </template>
                             </div>
                             <input type="file" name="file" x-ref="favInput" accept="image/*,.ico" style="display:none;"
                                    @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
-                            @if($savedFav)<div style="margin-top:6px;font-size:11px;color:#16a34a;">âœ“ Favicon uploaded</div>@endif
                         </form>
+                    </div>
+
+                    {{-- Placement hint --}}
+                    <div style="margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--hover-bg);border:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+                        <svg style="width:15px;height:15px;stroke:#94a3b8;flex-shrink:0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div style="font-size:12px;color:var(--text-3);">The logo appears in the sidebar header. The favicon is shown in the browser tab.</div>
                     </div>
                 </div>
             </div>
@@ -1550,4 +1654,3 @@ function aiProviderTable(providerRows) {
 }
 </script>
 @endpush
-
