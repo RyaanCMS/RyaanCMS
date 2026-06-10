@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.19",
+    "latest": "1.1.20",
     "versions": [
         {
             "version": "1.0.0",
@@ -263,6 +263,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.18",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.20",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: world-class dashboard redesign — projects + settings\n\n- projects/index: live search, type/status filter, sort (recent/name/oldest), grid/list toggle with localStorage persistence, intelligent empty state with template chips\n- settings/index: 4 new tabs — Notifications (toggle prefs), Integrations (GitHub/Slack/Vercel placeholders), Team (invite placeholder), Danger Zone (reset workspace + delete account with confirmation phrase)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.20/ryaancms-v1.1.20-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.19",
             "critical": false,
             "file_count": null
         }
