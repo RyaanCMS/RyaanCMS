@@ -181,10 +181,10 @@ footer{padding:24px 20px;flex-direction:column;gap:16px;text-align:center}
     <h2 class="section-h2">My Work</h2>
     <div class="work-grid">
       @foreach([
-        ['🏦','#1a1d24','FinVault Banking App','Mobile banking redesign with biometric auth and AI spending insights','UI/UX','React Native','Fintech'],
-        ['🛒','#1d1a24','ShopSmart E-commerce','Full-stack e-commerce platform processing $2M+ in monthly transactions','Next.js','Laravel','E-commerce'],
-        ['🏥','#1a241d','MedFlow Healthcare','HIPAA-compliant telehealth platform connecting 50K+ patients to doctors','Vue.js','Node.js','Healthcare'],
-      ] as [$e,$bg,$title,$desc,...$tags])
+        ['🏦','#1a1d24','FinVault Banking App','Mobile banking redesign with biometric auth and AI spending insights',['UI/UX','React Native','Fintech']],
+        ['🛒','#1d1a24','ShopSmart E-commerce','Full-stack e-commerce platform processing $2M+ in monthly transactions',['Next.js','Laravel','E-commerce']],
+        ['🏥','#1a241d','MedFlow Healthcare','HIPAA-compliant telehealth platform connecting 50K+ patients to doctors',['Vue.js','Node.js','Healthcare']],
+      ] as [$e,$bg,$title,$desc,$tags])
       <div class="work-card">
         <div class="work-img" style="background:{{ $bg }}">{{ $e }}<div class="work-badge">Case Study</div></div>
         <div class="work-body">
