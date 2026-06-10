@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.20",
+    "latest": "1.1.21",
     "versions": [
         {
             "version": "1.0.0",
@@ -275,6 +275,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.19",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.21",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: professional cards — colorful shadow + line on hover only\n\n- Default state: clean neutral white cards, no gradient headers\n- Grid cards: border-left 3px + colored drop shadow on hover (per-type color via --c CSS var)\n- List rows: inset 3px left line + color wash background on hover\n- Dashboard project cards: left stripe + bottom accent line + color wash on hover\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.21/ryaancms-v1.1.21-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.20",
             "critical": false,
             "file_count": null
         }
