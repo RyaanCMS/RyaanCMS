@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MarketplaceInstallation;
 use App\Models\MarketplaceItem;
 use App\Models\MarketplacePurchase;
+use App\Models\Menu;
+use App\Models\MenuItem;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Services\Module\ModuleInstaller;
@@ -382,7 +384,7 @@ class MarketplaceController extends Controller
         }
 
         return redirect()->route('marketplace.upload-install')
-            ->with('success', "✅ \"{$manifest['name']}\" installed and activated on {$currentHost}.");
+            ->with('success', "Package \"{$manifest['name']}\" installed for {$project->name}. The same license can be used for other projects on {$currentHost}.");
     }
 
     // ── Activate an existing installation with a license key ─────────────────

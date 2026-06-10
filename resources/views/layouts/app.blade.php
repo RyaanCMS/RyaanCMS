@@ -6,6 +6,8 @@
     $logoPath    = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $faviconPath = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
     $fontSlug    = strtolower(str_replace(' ', '+', $fontFamily));
+    $showSidebar = (bool) \App\Models\Setting::get('system.show_dashboard_sidebar', true, $userId);
+    $showTopbar  = (bool) \App\Models\Setting::get('system.show_dashboard_menu',    true, $userId);
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="appLayout()">
 <head>
@@ -858,6 +860,7 @@
     <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
     <!-- ═══════ SIDEBAR ═══════ -->
+    @if($showSidebar)
     <aside class="app-sidebar"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
            @mouseenter="sidebarHovered=true"
@@ -1039,11 +1042,13 @@
             </div>
         </div>
     </aside>
+    @endif
 
     <!-- ═══════ MAIN AREA ═══════ -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden app-main-area">
 
         <!-- TOPBAR -->
+        @if($showTopbar)
         @php
             $userTopbarMenus = auth()->check()
                 ? \App\Models\Menu::where('user_id', auth()->id())
@@ -1144,6 +1149,7 @@
                 </a>
             </div>
         </header>
+        @endif
 
         {{-- Page Content --}}
         <main class="main-content flex-1 overflow-y-auto p-6 @yield('main-class', '')">

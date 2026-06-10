@@ -55,6 +55,15 @@ class SettingsController extends Controller
         return back()->with('success', 'Password updated successfully.');
     }
 
+    public function saveSystemConfig(Request $request)
+    {
+        $userId = Auth::id();
+        Setting::set('system.show_dashboard_menu',    $request->boolean('show_dashboard_menu')    ? '1' : '0', 'boolean', $userId);
+        Setting::set('system.show_dashboard_sidebar', $request->boolean('show_dashboard_sidebar') ? '1' : '0', 'boolean', $userId);
+
+        return response()->json(['success' => true]);
+    }
+
     // AI Provider methods
 
     public function saveAIProvider(Request $request)
