@@ -30,15 +30,8 @@
                         style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                         onfocus="this.style.borderColor='var(--brand)'"
                         onblur="this.style.borderColor='var(--border)'">
-                    @foreach([
-                        'admin_sidebar' => '🛠 Admin Menu (Sidebar)',
-                        'user_topbar'   => '👤 User Menu (Top Bar)',
-                        'header'        => 'Header Navigation',
-                        'footer'        => 'Footer Navigation',
-                        'sidebar'       => 'Sidebar Navigation (Legacy)',
-                        'custom'        => 'Custom Menu',
-                    ] as $val => $label)
-                    <option value="{{ $val }}" {{ old('category') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                    @foreach($menuCategories as $category)
+                    <option value="{{ $category->slug }}" {{ old('category') === $category->slug ? 'selected' : '' }}>{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                     @endforeach
                 </select>
                 @error('category')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror

@@ -26,6 +26,8 @@ return new class extends Migration
         });
 
         $defaults = [
+            ['name' => 'User Sidebar', 'slug' => 'user_sidebar', 'description' => 'Built-in user sidebar menus and submenus.', 'color' => '#6366f1', 'sort_order' => 5],
+            ['name' => 'Developer Sidebar', 'slug' => 'developer_sidebar', 'description' => 'Built-in developer sidebar menus and submenus.', 'color' => '#ec4899', 'sort_order' => 6],
             ['name' => 'Admin Menu', 'slug' => 'admin_sidebar', 'description' => 'Menus shown in the dashboard sidebar.', 'color' => '#7c3aed', 'sort_order' => 10],
             ['name' => 'User Menu', 'slug' => 'user_topbar', 'description' => 'Menus shown in the dashboard top bar.', 'color' => '#b45309', 'sort_order' => 20],
             ['name' => 'Header Navigation', 'slug' => 'header', 'description' => 'Header menus for public pages.', 'color' => '#1d4ed8', 'sort_order' => 30],

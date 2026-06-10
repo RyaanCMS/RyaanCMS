@@ -30,8 +30,8 @@
                             class="w-full rounded-xl px-3 py-2 text-sm outline-none"
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                        @foreach(['header'=>'Header','footer'=>'Footer','sidebar'=>'Sidebar','custom'=>'Custom'] as $v => $l)
-                        <option value="{{ $v }}" {{ $menu->category === $v ? 'selected' : '' }}>{{ $l }}</option>
+                        @foreach($menuCategories as $category)
+                        <option value="{{ $category->slug }}" {{ old('category', $menu->category) === $category->slug ? 'selected' : '' }}>{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                         @endforeach
                     </select>
                 </div>

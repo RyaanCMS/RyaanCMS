@@ -2,24 +2,6 @@
 @section('title', 'Menu Management')
 @section('header', 'Menu Management')
 
-@section('header-actions')
-<div class="flex items-center gap-2">
-    <a href="{{ route('menu-categories.index') }}"
-       class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-       style="color:var(--text-2);border:1px solid var(--border);">
-        Menu Categories
-    </a>
-    <button x-data @click="$dispatch('open-add-menu')"
-            class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
-            style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <span>New Menu</span>
-    </button>
-</div>
-@endsection
-
 @section('content')
 <div x-data="menuTable()" @open-add-menu.window="showAddModal = true" class="space-y-5">
 
@@ -29,6 +11,21 @@
             <div>
                 <h2 class="dt-title">Menus Table</h2>
                 <p class="dt-subtitle">Search, filter, and manage every navigation menu in one place.</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <a href="{{ route('menu-categories.index') }}"
+                   class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                   style="color:var(--text-2);border:1px solid var(--border);">
+                    Menu Categories
+                </a>
+                <button type="button" @click="showAddModal = true"
+                        class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+                        style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>New Menu</span>
+                </button>
             </div>
         </div>
 
@@ -295,20 +292,11 @@
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
-                        <optgroup label="── Menu Locations ──">
-                            <option value="admin_sidebar">🛠 Admin Menu (Sidebar)</option>
-                            <option value="user_topbar">👤 User Menu (Top Bar)</option>
-                        </optgroup>
-                        <optgroup label="── Other ──">
-                            <option value="header">Header Navigation</option>
-                            <option value="footer">Footer Navigation</option>
-                            <option value="sidebar">Sidebar Navigation (Legacy)</option>
-                            <option value="custom">Custom Menu</option>
-                        </optgroup>
+                        @foreach($menuCategories as $category)
+                        <option value="{{ $category->slug }}">{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
+                        @endforeach
                     </select>
-                    <p class="text-xs mt-1.5" style="color:var(--text-3);">
-                        Admin Menu → appears in the sidebar. &nbsp; User Menu → appears in the top bar.
-                    </p>
+                    <p class="text-xs mt-1.5" style="color:var(--text-3);">Manage dropdown options from Menu Categories.</p>
                 </div>
                 <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
                     <button type="button" @click="showAddModal = false"
@@ -382,16 +370,9 @@
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
-                        <optgroup label="── Menu Locations ──">
-                            <option value="admin_sidebar">🛠 Admin Menu (Sidebar)</option>
-                            <option value="user_topbar">👤 User Menu (Top Bar)</option>
-                        </optgroup>
-                        <optgroup label="── Other ──">
-                            <option value="header">Header Navigation</option>
-                            <option value="footer">Footer Navigation</option>
-                            <option value="sidebar">Sidebar Navigation (Legacy)</option>
-                            <option value="custom">Custom Menu</option>
-                        </optgroup>
+                        @foreach($menuCategories as $category)
+                        <option value="{{ $category->slug }}">{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>
@@ -455,24 +436,7 @@ function menuTable() {
         deleteTarget:  null,
 
         allMenus: @json($menus),
-
-        catMap: {
-            admin_sidebar: 'Admin Menu',
-            user_topbar:   'User Menu',
-            header:        'Header Nav',
-            footer:        'Footer Nav',
-            sidebar:       'Sidebar',
-            custom:        'Custom',
-        },
-
-        catPills: [
-            { val: 'admin_sidebar', label: '🛠 Admin',  activeBg: '--c:#7c3aed' },
-            { val: 'user_topbar',   label: '👤 Top Bar', activeBg: '--c:#b45309' },
-            { val: 'header',        label: 'Header',     activeBg: '--c:#1d4ed8' },
-            { val: 'footer',        label: 'Footer',     activeBg: '--c:#15803d' },
-            { val: 'sidebar',       label: 'Sidebar',    activeBg: '--c:#6d28d9' },
-            { val: 'custom',        label: 'Custom',     activeBg: '--c:#475569' },
-        ],
+        categories: @json($categoryOptions),
 
         init() {
             this.$watch('perPage', () => { this.page = 1; });
@@ -492,7 +456,7 @@ function menuTable() {
             const q = this.search.trim().toLowerCase();
             if (q) {
                 list = list.filter(m => {
-                    const label  = (this.catMap[m.category] || m.category).toLowerCase();
+                    const label  = this.catLabel(m.category).toLowerCase();
                     const status = m.is_active ? 'active' : 'inactive';
                     return (
                         m.name.toLowerCase().includes(q) ||
@@ -542,20 +506,26 @@ function menuTable() {
             this.deleteTarget = menu;
             this.$nextTick(() => this.$refs.deleteForm.submit());
         },
-
         catLabel(cat) {
-            return { admin_sidebar: '🛠 Admin Menu', user_topbar: '👤 User Menu', header: 'Header Nav', footer: 'Footer Nav', sidebar: 'Sidebar (Legacy)', custom: 'Custom' }[cat] || cat;
+            return this.categoryBySlug(cat)?.name || cat;
         },
 
         catStyle(cat) {
-            return {
-                admin_sidebar: 'background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe',
-                user_topbar:   'background:#fff7ed;color:#b45309;border:1px solid #fde68a',
-                header:        'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe',
-                footer:        'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
-                sidebar:       'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
-                custom:        'background:#f8fafc;color:#475569;border:1px solid #e2e8f0',
-            }[cat] || 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)';
+            const category = this.categoryBySlug(cat);
+            const color = category?.color || '#475569';
+            return 'background:' + color + '12;color:' + color + ';border:1px solid ' + color + '35';
+        },
+
+        categoryBySlug(slug) {
+            return this.categories.find(category => category.slug === slug);
+        },
+
+        get catPills() {
+            return this.categories.map(category => ({
+                val: category.slug,
+                label: category.name,
+                activeBg: 'background:' + category.color + ';border-color:' + category.color + ';color:#fff;'
+            }));
         },
 
         fmtDate(d) {

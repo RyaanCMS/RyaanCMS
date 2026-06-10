@@ -7,6 +7,7 @@ use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\MarketplaceInstallation;
 use App\Models\Project;
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,8 @@ class MenuController extends Controller
 {
     public function index()
     {
+        app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
+
         $menuCategories = $this->menuCategories();
         $categoryOptions = $this->categoryOptions($menuCategories);
         $menus = Menu::where('user_id', Auth::id())->withCount('allItems')->latest()->get();

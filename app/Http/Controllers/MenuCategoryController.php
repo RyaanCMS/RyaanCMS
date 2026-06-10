@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Menu;
 use App\Models\MenuCategory;
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class MenuCategoryController extends Controller
 {
     public function index()
     {
-        MenuCategory::ensureDefaultsForUser(Auth::id());
+        app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
 
         $categories = MenuCategory::where('user_id', Auth::id())
             ->orderBy('sort_order')
@@ -35,11 +37,14 @@ class MenuCategoryController extends Controller
     public function store(Request $request)
     {
         MenuCategory::ensureDefaultsForUser(Auth::id());
+        $request->merge([
+            'slug' => Str::slug($request->input('slug') ?: $request->input('name')),
+        ]);
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => [
-                'nullable',
+                'required',
                 'string',
                 'max:100',
                 'alpha_dash',
@@ -64,10 +69,16 @@ class MenuCategoryController extends Controller
     {
         $this->checkOwner($menuCategory);
 
+        if (!$menuCategory->is_system) {
+            $request->merge([
+                'slug' => Str::slug($request->input('slug') ?: $request->input('name')),
+            ]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => [
-                'nullable',
+                $menuCategory->is_system ? 'nullable' : 'required',
                 'string',
                 'max:100',
                 'alpha_dash',
