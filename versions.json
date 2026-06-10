@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.27",
+    "latest": "1.1.28",
     "versions": [
         {
             "version": "1.0.0",
@@ -359,6 +359,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.26",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.28",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: smart search toolbar for Menu Management\n\n- Smart text search: matches name, slug, category label, status word (active/inactive), item count\n- Category quick-filter pills with per-category counts\n- Active / Inactive / All status toggle buttons\n- Sort by Name A-Z/Z-A, Most Items, Newest, Oldest\n- Inline match highlighting (brand-colored <mark>) in name + slug columns\n- Clear button (×) inside search field + Escape key to reset\n- Result count updates live as filters change\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.28/ryaancms-v1.1.28-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.27",
             "critical": false,
             "file_count": null
         }
