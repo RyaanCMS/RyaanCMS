@@ -607,41 +607,13 @@
         }
         .sb-peek:hover svg { color: var(--brand); }
 
-        /* ── Desktop hover: hover anywhere on the icon column → full expand ── */
-        @media (min-width: 1024px) {
-            .app-sidebar:not(.sidebar-autohide):hover {
-                width: var(--sidebar-w-expanded) !important;
-                box-shadow: var(--shadow-xl) !important;
-            }
-            /* Reset USER section flex so items go back to normal height */
-            .app-sidebar:not(.sidebar-autohide):hover .sb-section-user {
-                flex: unset !important;
-                display: block !important;
-            }
-            /* All items expand to label mode */
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item {
-                justify-content: flex-start !important;
-                padding: 0 10px !important;
-                margin: 1px 6px !important;
-                height: 40px !important;
-                flex: unset !important;
-                border-radius: 10px !important;
-                background: transparent !important;
-            }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item:hover  { background: var(--surface-overlay) !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active  { background: var(--brand-light) !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active::before { left: -6px !important; top: 6px !important; bottom: 6px !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-divider       { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-label         { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-badge         { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-ico           { width: 34px !important; height: 34px !important; border-radius: 8px !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name     { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn    { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-tooltip       { opacity: 0 !important; pointer-events: none !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-my-apps       { display: block !important; }
+        /* ── Mid-spacer: absent when collapsed (icons fill the gap), grows when expanded ── */
+        .sb-mid-spacer {
+            flex: 0;
+            min-height: 0;
+            overflow: hidden;
         }
+        .sidebar-expanded .sb-mid-spacer { flex: 1; min-height: 12px; }
 
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
@@ -1093,8 +1065,8 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="if($el.classList.contains('sidebar-autohide')) { clearTimeout(window._sbLeave); sidebarHovered = true; }"
-           @mouseleave="window._sbLeave = setTimeout(() => { sidebarHovered = false; }, 150)">
+           @mouseenter="clearTimeout(window._sbLeave); sidebarHovered = true;"
+           @mouseleave="window._sbLeave = setTimeout(() => { if (!sidebarOpen) sidebarHovered = false; }, 180)">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
@@ -1165,7 +1137,7 @@
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
 
             {{-- ─── USER section (top) ─── --}}
-            <div class="sb-section-user" style="padding:6px 0 0;min-height:0;">
+            <div class="sb-section-user" style="padding:6px 0 0;">
                 <div class="sb-section-label">USER</div>
                 @foreach($userItems as $item)
                 @php extract($renderItem($item, $projectCount)); @endphp
@@ -1245,6 +1217,9 @@
                 @endforeach
                 @endforeach
             </div>
+
+            {{-- Spacer: hidden when collapsed (icons fill space), visible when expanded --}}
+            <div class="sb-mid-spacer"></div>
 
             {{-- ─── DEVELOPER section (bottom) ─── --}}
             <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;">
