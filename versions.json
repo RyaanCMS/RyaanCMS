@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.21",
+    "latest": "1.1.22",
     "versions": [
         {
             "version": "1.0.0",
@@ -287,6 +287,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.20",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.22",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: light colorful buttons across full system (all pages)\n\n- btn-new-project in topbar: light brand tint bg + brand text, hover solid\n- dashboard greeting CTA: same light colorful pattern\n- projects page: btn-card-action / proj-empty-btn light colorful; removed duplicate header-actions; added margin-top gap above card list\n- settings: sbtn-primary CSS rewritten to light colorful; all inline background overrides removed; AI provider save button retains dynamic success-green override only\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.22/ryaancms-v1.1.22-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.21",
             "critical": false,
             "file_count": null
         }
