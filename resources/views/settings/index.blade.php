@@ -1056,15 +1056,30 @@
                 <div class="scard-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                         {{-- Logo upload --}}
-                        <form method="POST" action="{{ route('settings.branding.upload') }}" enctype="multipart/form-data"
-                              x-data="{ preview: '{{ $savedLogo ? Storage::url($savedLogo) : '' }}', dragging: false }">
-                            @csrf
-                            <input type="hidden" name="type" value="logo">
+                        <form @submit.prevent x-data="{ preview: '{{ $savedLogo ? Storage::url($savedLogo) : '' }}', dragging: false, uploading: false,
+                            async upload(file) {
+                                if (!file) return;
+                                this.uploading = true;
+                                this.preview = URL.createObjectURL(file);
+                                const fd = new FormData();
+                                fd.append('_token', document.querySelector('meta[name=csrf-token]').content);
+                                fd.append('type', 'logo');
+                                fd.append('file', file);
+                                try {
+                                    const r = await fetch('{{ route('settings.branding.upload') }}', { method: 'POST', body: fd });
+                                    if (r.ok || r.status === 302) window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Logo uploaded.' } }));
+                                    else window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Upload failed.' } }));
+                                } catch(e) {
+                                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error.' } }));
+                                }
+                                this.uploading = false;
+                            }
+                        }">
                             <label class="slabel">Site Logo</label>
                             <div class="bk-upload-zone" :class="dragging ? 'bk-upload-drag' : ''"
                                  @click="$refs.logoInput.click()"
                                  @dragover.prevent="dragging=true" @dragleave="dragging=false"
-                                 @drop.prevent="dragging=false; preview=URL.createObjectURL($event.dataTransfer.files[0]); $el.closest('form').submit()">
+                                 @drop.prevent="dragging=false; upload($event.dataTransfer.files[0])">
                                 <template x-if="preview">
                                     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
                                         <div style="width:64px;height:64px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
@@ -1087,20 +1102,35 @@
                                     </div>
                                 </template>
                             </div>
-                            <input type="file" name="file" x-ref="logoInput" accept="image/*" style="display:none;"
-                                   @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
+                            <input type="file" x-ref="logoInput" accept="image/*" style="display:none;"
+                                   @change="upload($event.target.files[0])">
                         </form>
 
                         {{-- Favicon upload --}}
-                        <form method="POST" action="{{ route('settings.branding.upload') }}" enctype="multipart/form-data"
-                              x-data="{ preview: '{{ $savedFav ? Storage::url($savedFav) : '' }}', dragging: false }">
-                            @csrf
-                            <input type="hidden" name="type" value="favicon">
+                        <form @submit.prevent x-data="{ preview: '{{ $savedFav ? Storage::url($savedFav) : '' }}', dragging: false, uploading: false,
+                            async upload(file) {
+                                if (!file) return;
+                                this.uploading = true;
+                                this.preview = URL.createObjectURL(file);
+                                const fd = new FormData();
+                                fd.append('_token', document.querySelector('meta[name=csrf-token]').content);
+                                fd.append('type', 'favicon');
+                                fd.append('file', file);
+                                try {
+                                    const r = await fetch('{{ route('settings.branding.upload') }}', { method: 'POST', body: fd });
+                                    if (r.ok || r.status === 302) window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Favicon uploaded.' } }));
+                                    else window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Upload failed.' } }));
+                                } catch(e) {
+                                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error.' } }));
+                                }
+                                this.uploading = false;
+                            }
+                        }">
                             <label class="slabel">Favicon</label>
                             <div class="bk-upload-zone" :class="dragging ? 'bk-upload-drag' : ''"
                                  @click="$refs.favInput.click()"
                                  @dragover.prevent="dragging=true" @dragleave="dragging=false"
-                                 @drop.prevent="dragging=false; preview=URL.createObjectURL($event.dataTransfer.files[0]); $el.closest('form').submit()">
+                                 @drop.prevent="dragging=false; upload($event.dataTransfer.files[0])">
                                 <template x-if="preview">
                                     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
                                         <div style="width:48px;height:48px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
@@ -1123,8 +1153,8 @@
                                     </div>
                                 </template>
                             </div>
-                            <input type="file" name="file" x-ref="favInput" accept="image/*,.ico" style="display:none;"
-                                   @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
+                            <input type="file" x-ref="favInput" accept="image/*,.ico" style="display:none;"
+                                   @change="upload($event.target.files[0])">
                         </form>
                     </div>
 
