@@ -114,28 +114,29 @@
     flex-direction: column;
     transition: box-shadow .18s, border-color .18s, transform .18s;
     overflow: hidden;
+    aspect-ratio: 1;
 }
 .ms-card:hover    { box-shadow: 0 6px 24px rgba(0,0,0,.08); border-color: #c7d2fe; transform: translateY(-2px); }
 .ms-card-lg:hover { box-shadow: 0 8px 32px rgba(0,0,0,.1);  border-color: #c7d2fe; transform: translateY(-2px); }
 
 /* Card top accent stripe */
-.ms-card-stripe { height: 3px; width: 100%; }
+.ms-card-stripe { height: 3px; width: 100%; flex-shrink: 0; }
 
 /* Card body */
-.ms-card .ms-body   { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.ms-card-lg .ms-body{ padding: 18px 20px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.ms-card .ms-body   { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.ms-card-lg .ms-body{ padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 
 /* Icon sizes */
-.ms-card    .ms-ico { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.ms-card-lg .ms-ico { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.ms-card    .ms-ico { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.ms-card-lg .ms-ico { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
 
 /* Name */
-.ms-card    .ms-name { font-size: 13px;   font-weight: 700; color: #0f172a; }
-.ms-card-lg .ms-name { font-size: 14.5px; font-weight: 700; color: #0f172a; }
+.ms-card    .ms-name { font-size: 12.5px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-card-lg .ms-name { font-size: 13.5px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Description */
-.ms-card    .ms-desc { font-size: 11.5px; color: #64748b; line-height: 1.55; flex: 1; }
-.ms-card-lg .ms-desc { font-size: 12.5px; color: #64748b; line-height: 1.6;  flex: 1; }
+/* Description — 2-line clamp to fit square */
+.ms-card    .ms-desc { font-size: 11px; color: #64748b; line-height: 1.5; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ms-card-lg .ms-desc { font-size: 12px; color: #64748b; line-height: 1.5; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
 /* Tag row */
 .ms-tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -151,8 +152,8 @@
 .ms-badge-agent   { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; }
 
 /* Card footer */
-.ms-card    .ms-foot { padding: 0 16px 14px; margin-top: auto; }
-.ms-card-lg .ms-foot { padding: 0 20px 18px; margin-top: auto; }
+.ms-card    .ms-foot { padding: 0 14px 12px; flex-shrink: 0; }
+.ms-card-lg .ms-foot { padding: 0 16px 14px; flex-shrink: 0; }
 
 /* Action buttons */
 .ms-btn-install {
