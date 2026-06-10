@@ -85,9 +85,13 @@ class TemplateController extends Controller
 
         $exists = ProjectModule::where('project_id', $project->id)
             ->where('module_key', $key)
-            ->exists();
+            ->first();
 
         if ($exists) {
+            if ($this->isCoreCmsProject($project)) {
+                return $this->activate($request, $project, $key);
+            }
+
             return response()->json(['success' => false, 'message' => 'Already installed.']);
         }
 
@@ -96,6 +100,10 @@ class TemplateController extends Controller
             'module_key' => $key,
             'status'     => 'installed',
         ]);
+
+        if ($this->isCoreCmsProject($project)) {
+            return $this->activate($request, $project, $key);
+        }
 
         return response()->json([
             'success' => true,

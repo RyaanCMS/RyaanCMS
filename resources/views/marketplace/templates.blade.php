@@ -192,7 +192,7 @@
                                 onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
                                 onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'"
                                 x-on:click="install('{{ $key }}')">
-                            <span x-show="working !== '{{ $key }}'">⬇ Install</span>
+                            <span x-show="working !== '{{ $key }}'" x-text="String(selectedProject) === String(coreCmsProjectId) ? 'Install & Activate' : '⬇ Install'"></span>
                             <span x-show="working === '{{ $key }}'">Installing…</span>
                         </button>
                     </template>
@@ -260,7 +260,12 @@ function templateBrowser() {
         localStatus: {},
 
         init() {
-            // Auto-select first project if only one
+            this.$watch('selectedProject', (pid) => {
+                this.refreshStatus(pid);
+                this.feedback = '';
+                this.liveUrl  = '';
+            });
+
             if (this.coreCmsProjectId) {
                 this.selectedProject = String(this.coreCmsProjectId);
                 this.refreshStatus(this.selectedProject);
@@ -270,12 +275,6 @@ function templateBrowser() {
             @if($projects->count() === 1)
             this.selectedProject = '{{ $projects->first()->id }}';
             @endif
-
-            this.$watch('selectedProject', (pid) => {
-                this.refreshStatus(pid);
-                this.feedback = '';
-                this.liveUrl  = '';
-            });
         },
 
         refreshStatus(pid) {
@@ -317,9 +316,10 @@ function templateBrowser() {
                 const res  = await this._post(`/projects/${this.selectedProject}/templates/${key}/install`);
                 const data = await res.json();
                 if (data.success) {
-                    this.localStatus[key] = 'installed';
+                    this.localStatus[key] = data.status || 'installed';
                     this.feedback   = data.message;
                     this.feedbackOk = true;
+                    this.liveUrl    = data.url || '';
                 } else {
                     this.feedback   = data.message || 'Install failed.';
                     this.feedbackOk = false;
