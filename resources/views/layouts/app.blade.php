@@ -608,12 +608,65 @@
         .sb-peek:hover svg { color: var(--brand); }
 
         /* ── Mid-spacer: absent when collapsed (icons fill the gap), grows when expanded ── */
-        .sb-mid-spacer {
-            flex: 0;
-            min-height: 0;
-            overflow: hidden;
-        }
+        .sb-mid-spacer { flex: 0; min-height: 0; overflow: hidden; }
         .sidebar-expanded .sb-mid-spacer { flex: 1; min-height: 12px; }
+
+        /* ══════════════════════════════════════════════════════
+           DESKTOP HOVER EXPANSION
+           CSS :hover on the aside fires for the FULL sidebar
+           height (top → bottom, not just icon tiles).
+           Width + item layout: on any sidebar hover.
+           Labels: only when hovering that specific section.
+        ══════════════════════════════════════════════════════ */
+        @media (min-width: 1024px) {
+
+            /* Any part of sidebar hovered → width expands */
+            .app-sidebar:not(.sidebar-autohide):hover {
+                width: var(--sidebar-w-expanded) !important;
+                box-shadow: var(--shadow-xl) !important;
+            }
+
+            /* USER section: undo collapsed flex-fill so items return to 40px */
+            .app-sidebar:not(.sidebar-autohide):hover .sb-section-user {
+                flex: unset !important;
+                display: block !important;
+            }
+            /* Mid-spacer grows so DEV stays at bottom */
+            .app-sidebar:not(.sidebar-autohide):hover .sb-mid-spacer {
+                flex: 1 !important;
+                min-height: 12px !important;
+            }
+            /* All items switch to expanded layout (icon + hidden label) */
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item {
+                justify-content: flex-start !important;
+                padding: 0 10px !important;
+                margin: 1px 6px !important;
+                height: 40px !important;
+                flex: unset !important;
+                border-radius: 10px !important;
+                background: transparent !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item:hover  { background: var(--surface-overlay) !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active  { background: var(--brand-light) !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active::before { left: -6px !important; top: 6px !important; bottom: 6px !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-ico { width: 34px !important; height: 34px !important; border-radius: 8px !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name    { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn   { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-tooltip      { opacity: 0 !important; pointer-events: none !important; }
+
+            /* ─── USER section hovered → show USER labels only ─── */
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-label        { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-badge        { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-divider      { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-my-apps                       { display: block !important; }
+
+            /* ─── DEV section hovered → show DEV labels only ─── */
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-label         { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
+            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-divider       { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
+        }
 
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
@@ -1065,8 +1118,8 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="clearTimeout(window._sbLeave); sidebarHovered = true;"
-           @mouseleave="window._sbLeave = setTimeout(() => { if (!sidebarOpen) sidebarHovered = false; }, 180)">
+           @mouseenter="if($el.classList.contains('sidebar-autohide')){ clearTimeout(window._sbLeave); sidebarHovered=true; }"
+           @mouseleave="if($el.classList.contains('sidebar-autohide')){ window._sbLeave=setTimeout(()=>{ if(!sidebarOpen) sidebarHovered=false; },200); }">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
