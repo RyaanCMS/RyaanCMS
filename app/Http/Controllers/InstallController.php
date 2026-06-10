@@ -99,10 +99,12 @@ class InstallController extends Controller
         // Seed default sidebar menus so Developer section is populated on first login
         app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
 
-        // Set APP_NAME
+        // Set APP_NAME and baseline APP_VERSION (read from bundled versions.json)
+        $installedVersion = $this->getInstalledVersion();
         $this->setEnvValues([
-            'APP_NAME' => '"'.$request->app_name.'"',
-            'APP_URL'  => $request->app_url ?? config('app.url'),
+            'APP_NAME'    => '"'.$request->app_name.'"',
+            'APP_URL'     => $request->app_url ?? config('app.url'),
+            'APP_VERSION' => $installedVersion,
         ]);
 
         // Mark as installed
@@ -137,6 +139,16 @@ class InstallController extends Controller
             ['name' => 'bootstrap/cache/ Writable','ok' => is_writable(base_path('bootstrap/cache')), 'value' => is_writable(base_path('bootstrap/cache')) ? 'Writable' : 'Not Writable'],
             ['name' => '.env File Exists',         'ok' => file_exists(base_path('.env')),             'value' => file_exists(base_path('.env')) ? 'Found' : 'Missing'],
         ];
+    }
+
+    private function getInstalledVersion(): string
+    {
+        $versionsFile = base_path('versions.json');
+        if (file_exists($versionsFile)) {
+            $data = json_decode(file_get_contents($versionsFile), true);
+            return $data['latest'] ?? '1.0.0';
+        }
+        return '1.0.0';
     }
 
     private function setEnvValues(array $values): void

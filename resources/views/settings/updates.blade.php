@@ -112,10 +112,21 @@
                     <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">RyaanCMS Updates</div>
                     <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">One-click updates — sequential versioning applied automatically</div>
                 </div>
+                {{-- Current version badge always visible in header --}}
+                <div style="display:flex;align-items:center;gap:5px;margin-right:4px;">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:600;">Installed</span>
+                    <span class="vbadge vbadge-current" style="font-size:12px;">v{{ $currentVersion }}</span>
+                </div>
                 <button @click="checkUpdates()" :disabled="checking"
                         class="ubtn ubtn-ghost" style="font-size:12px;padding:7px 14px;">
                     <svg :class="checking ? 'spin' : ''" style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span x-text="checking ? 'Checking...' : 'Check Now'"></span>
+                </button>
+                {{-- Update All button in header — appears only when updates are available --}}
+                <button x-show="hasUpdates && !updating" @click="applyUpdate('latest')" :disabled="updating"
+                        class="ubtn ubtn-primary" style="font-size:12px;padding:7px 14px;">
+                    <svg style="width:13px;height:13px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span x-text="pendingUpdates.length > 1 ? 'Update All (' + pendingUpdates.length + ')' : 'Update to v' + latestVersion"></span>
                 </button>
             </div>
             <div class="ucard-body">
