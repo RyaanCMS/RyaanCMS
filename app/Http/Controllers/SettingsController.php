@@ -7,8 +7,10 @@ use App\Models\AIProviderKey;
 use App\Models\Setting;
 use App\Services\AI\AIManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
@@ -18,11 +20,135 @@ class SettingsController extends Controller
     public function index()
     {
         $user          = Auth::user();
-        $aiProviders   = $user->aiProviders()->get();
-        $allProviders  = config('ai.providers');
+        $providerQuery = $user->aiProviders();
+
+        if (Schema::hasTable('ai_provider_keys')) {
+            $providerQuery->with(['keys' => function ($query) {
+                $query->orderByDesc('is_primary')->orderBy('fail_count');
+            }]);
+        }
+
+        $aiProviders   = $providerQuery->get();
+        $allProviders  = config('ai.providers', []);
+        $providerRows  = $this->buildAIProviderRows($allProviders, $aiProviders);
         $userSettings  = $user->settings()->get()->groupBy('group');
 
-        return view('settings.index', compact('user', 'aiProviders', 'allProviders', 'userSettings'));
+        return view('settings.index', compact('user', 'aiProviders', 'allProviders', 'providerRows', 'userSettings'));
+    }
+
+    private function buildAIProviderRows(array $allProviders, Collection $aiProviders): Collection
+    {
+        $providerLinks = $this->providerLinks();
+        $categoryTitles = [
+            'text'  => 'Text Generation',
+            'voice' => 'Voice & Audio',
+            'local' => 'Local / Self-Hosted',
+        ];
+        $savedByProvider = $aiProviders->keyBy('provider');
+
+        return collect(array_keys($allProviders))
+            ->merge($savedByProvider->keys())
+            ->unique()
+            ->map(function (string $key) use ($allProviders, $savedByProvider, $providerLinks, $categoryTitles) {
+                /** @var AIProvider|null $saved */
+                $saved = $savedByProvider->get($key);
+                $provider = $allProviders[$key] ?? [];
+                $category = $provider['category'] ?? 'text';
+                $configuredModels = collect($provider['models'] ?? []);
+
+                if ($configuredModels->isEmpty() && $saved?->default_model) {
+                    $configuredModels = collect([$saved->default_model => $saved->default_model]);
+                }
+
+                $models = $configuredModels
+                    ->map(fn ($name, $modelKey) => ['key' => $modelKey, 'name' => $name])
+                    ->values();
+                $savedKeys = $this->formatProviderKeys($saved);
+                $hasCredential = $this->providerHasCredential($saved);
+                $keyCount = count($savedKeys) ?: ($hasCredential ? 1 : 0);
+
+                return [
+                    'provider'          => $key,
+                    'name'              => $saved?->name ?? ($provider['name'] ?? ucfirst(str_replace('_', ' ', $key))),
+                    'category'          => $category,
+                    'category_label'    => $categoryTitles[$category] ?? ucfirst($category),
+                    'configured'        => (bool) ($saved && $saved->is_active),
+                    'provider_id'       => $saved?->id,
+                    'api_url'           => $saved?->api_url ?? ($provider['api_url'] ?? ''),
+                    'default_model'     => $saved?->default_model ?? ($provider['default_model'] ?? ''),
+                    'is_default'        => (bool) ($saved?->is_default),
+                    'last_used_at'      => optional($saved?->last_used_at)->toISOString(),
+                    'updated_at'        => optional($saved?->updated_at)->toISOString(),
+                    'models'            => $models,
+                    'model_count'       => $models->count(),
+                    'requires_endpoint' => !empty($provider['requires_endpoint']) || $key === 'ollama' || (bool) ($saved?->api_url && empty($provider)),
+                    'api_url_label'     => $key === 'ollama' ? 'Ollama Host URL' : ($key === 'bedrock' ? 'AWS Region' : 'Endpoint URL'),
+                    'external_url'      => $providerLinks[$key]['url'] ?? null,
+                    'external_label'    => $providerLinks[$key]['label'] ?? null,
+                    'keys'              => $savedKeys,
+                    'key_count'         => $keyCount,
+                ];
+            })
+            ->values();
+    }
+
+    private function formatProviderKeys(?AIProvider $provider): array
+    {
+        if (!$provider || !$provider->relationLoaded('keys')) {
+            return [];
+        }
+
+        return $provider->keys
+            ->map(fn (AIProviderKey $key) => [
+                'id'           => $key->id,
+                'label'        => $key->label,
+                'is_primary'   => (bool) $key->is_primary,
+                'is_active'    => (bool) $key->is_active,
+                'fail_count'   => (int) $key->fail_count,
+                'last_used_at' => optional($key->last_used_at)->toISOString(),
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    private function providerHasCredential(?AIProvider $provider): bool
+    {
+        if (!$provider) {
+            return false;
+        }
+
+        if ($provider->relationLoaded('keys') && $provider->keys->contains(fn (AIProviderKey $key) => $key->is_active)) {
+            return true;
+        }
+
+        return $provider->getDecryptedApiKey() !== null;
+    }
+
+    private function providerLinks(): array
+    {
+        return [
+            'claude'      => ['url' => 'https://console.anthropic.com/settings/keys', 'label' => 'console.anthropic.com'],
+            'openai'      => ['url' => 'https://platform.openai.com/api-keys', 'label' => 'platform.openai.com'],
+            'gemini'      => ['url' => 'https://aistudio.google.com/app/apikey', 'label' => 'aistudio.google.com'],
+            'mistral'     => ['url' => 'https://console.mistral.ai/api-keys', 'label' => 'console.mistral.ai'],
+            'grok'        => ['url' => 'https://console.x.ai/', 'label' => 'console.x.ai'],
+            'deepseek'    => ['url' => 'https://platform.deepseek.com/api-keys', 'label' => 'platform.deepseek.com'],
+            'groq'        => ['url' => 'https://console.groq.com/keys', 'label' => 'console.groq.com'],
+            'cohere'      => ['url' => 'https://dashboard.cohere.com/api-keys', 'label' => 'dashboard.cohere.com'],
+            'perplexity'  => ['url' => 'https://www.perplexity.ai/settings/api', 'label' => 'perplexity.ai'],
+            'openrouter'  => ['url' => 'https://openrouter.ai/keys', 'label' => 'openrouter.ai'],
+            'together'    => ['url' => 'https://api.together.ai/settings/api-keys', 'label' => 'api.together.ai'],
+            'huggingface' => ['url' => 'https://huggingface.co/settings/tokens', 'label' => 'huggingface.co'],
+            'azure'       => ['url' => 'https://portal.azure.com/', 'label' => 'portal.azure.com'],
+            'bedrock'     => ['url' => 'https://aws.amazon.com/bedrock/', 'label' => 'aws.amazon.com/bedrock'],
+            'replicate'   => ['url' => 'https://replicate.com/account/api-tokens', 'label' => 'replicate.com'],
+            'fireworks'   => ['url' => 'https://fireworks.ai/account/api-keys', 'label' => 'fireworks.ai'],
+            'cerebras'    => ['url' => 'https://cloud.cerebras.ai/', 'label' => 'cloud.cerebras.ai'],
+            'ai21'        => ['url' => 'https://studio.ai21.com/account/api-key', 'label' => 'studio.ai21.com'],
+            'sambanova'   => ['url' => 'https://cloud.sambanova.ai/apis', 'label' => 'cloud.sambanova.ai'],
+            'elevenlabs'  => ['url' => 'https://elevenlabs.io/app/settings/api-keys', 'label' => 'elevenlabs.io'],
+            'ollama'      => ['url' => 'https://ollama.com/download', 'label' => 'ollama.com'],
+        ];
     }
 
     public function updateProfile(Request $request)
@@ -149,10 +275,11 @@ class SettingsController extends Controller
         $name           = $providerConfig['name'] ?? ucfirst($request->provider);
 
         // Check whether a key already exists for this provider
-        $existing       = AIProvider::where('user_id', Auth::id())
-                            ->where('provider', $request->provider)
-                            ->first();
-        $hasExistingKey = $existing && $existing->getDecryptedApiKey() !== null;
+        $existing = AIProvider::where('user_id', Auth::id())
+            ->where('provider', $request->provider)
+            ->when(Schema::hasTable('ai_provider_keys'), fn ($query) => $query->with('keys'))
+            ->first();
+        $hasExistingKey = $this->providerHasCredential($existing);
 
         // Reject the save if no key is supplied and none is stored yet
         if (!$request->filled('api_key') && !$hasExistingKey) {
@@ -178,20 +305,22 @@ class SettingsController extends Controller
             $provider->save();
 
             // Sync the new key into ai_provider_keys as the primary key
-            $primaryKey = $provider->keys()->where('is_primary', true)->first();
-            if ($primaryKey) {
-                $primaryKey->api_key = $request->api_key;
-                $primaryKey->fail_count = 0;
-                $primaryKey->last_failed_at = null;
-                $primaryKey->save();
-            } else {
-                $provider->keys()->create([
-                    'user_id'    => Auth::id(),
-                    'label'      => 'Primary Key',
-                    'api_key'    => $request->api_key,
-                    'is_primary' => true,
-                    'is_active'  => true,
-                ]);
+            if (Schema::hasTable('ai_provider_keys')) {
+                $primaryKey = $provider->keys()->where('is_primary', true)->first();
+                if ($primaryKey) {
+                    $primaryKey->api_key = $request->api_key;
+                    $primaryKey->fail_count = 0;
+                    $primaryKey->last_failed_at = null;
+                    $primaryKey->save();
+                } else {
+                    $provider->keys()->create([
+                        'user_id'    => Auth::id(),
+                        'label'      => 'Primary Key',
+                        'api_key'    => $request->api_key,
+                        'is_primary' => true,
+                        'is_active'  => true,
+                    ]);
+                }
             }
         }
 
@@ -201,11 +330,22 @@ class SettingsController extends Controller
             $provider->update(['is_default' => true]);
         }
 
+        if (Schema::hasTable('ai_provider_keys')) {
+            $provider->load(['keys' => function ($query) {
+                $query->orderByDesc('is_primary')->orderBy('fail_count');
+            }]);
+        }
+
+        $keys = $this->formatProviderKeys($provider);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success'     => true,
                 'message'     => $name . ' connected successfully!',
                 'provider_id' => $provider->id,
+                'updated_at'  => optional($provider->updated_at)->toISOString(),
+                'keys'        => $keys,
+                'key_count'   => count($keys) ?: ($this->providerHasCredential($provider) ? 1 : 0),
             ]);
         }
 

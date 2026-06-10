@@ -411,71 +411,7 @@
 
         {{-- â”€â”€â”€â”€ AI PROVIDERS â”€â”€â”€â”€ --}}
         <div x-show="tab === 'ai'" class="st-panel">
-            @php
-                $providerLinks = [
-                    'claude'      => ['url' => 'https://console.anthropic.com/settings/keys', 'label' => 'console.anthropic.com'],
-                    'openai'      => ['url' => 'https://platform.openai.com/api-keys', 'label' => 'platform.openai.com'],
-                    'gemini'      => ['url' => 'https://aistudio.google.com/app/apikey', 'label' => 'aistudio.google.com'],
-                    'mistral'     => ['url' => 'https://console.mistral.ai/api-keys', 'label' => 'console.mistral.ai'],
-                    'grok'        => ['url' => 'https://console.x.ai/', 'label' => 'console.x.ai'],
-                    'deepseek'    => ['url' => 'https://platform.deepseek.com/api-keys', 'label' => 'platform.deepseek.com'],
-                    'groq'        => ['url' => 'https://console.groq.com/keys', 'label' => 'console.groq.com'],
-                    'cohere'      => ['url' => 'https://dashboard.cohere.com/api-keys', 'label' => 'dashboard.cohere.com'],
-                    'perplexity'  => ['url' => 'https://www.perplexity.ai/settings/api', 'label' => 'perplexity.ai'],
-                    'openrouter'  => ['url' => 'https://openrouter.ai/keys', 'label' => 'openrouter.ai'],
-                    'together'    => ['url' => 'https://api.together.ai/settings/api-keys', 'label' => 'api.together.ai'],
-                    'huggingface' => ['url' => 'https://huggingface.co/settings/tokens', 'label' => 'huggingface.co'],
-                    'azure'       => ['url' => 'https://portal.azure.com/', 'label' => 'portal.azure.com'],
-                    'bedrock'     => ['url' => 'https://aws.amazon.com/bedrock/', 'label' => 'aws.amazon.com/bedrock'],
-                    'replicate'   => ['url' => 'https://replicate.com/account/api-tokens', 'label' => 'replicate.com'],
-                    'fireworks'   => ['url' => 'https://fireworks.ai/account/api-keys', 'label' => 'fireworks.ai'],
-                    'cerebras'    => ['url' => 'https://cloud.cerebras.ai/', 'label' => 'cloud.cerebras.ai'],
-                    'ai21'        => ['url' => 'https://studio.ai21.com/account/api-key', 'label' => 'studio.ai21.com'],
-                    'sambanova'   => ['url' => 'https://cloud.sambanova.ai/apis', 'label' => 'cloud.sambanova.ai'],
-                    'elevenlabs'  => ['url' => 'https://elevenlabs.io/app/settings/api-keys', 'label' => 'elevenlabs.io'],
-                    'ollama'      => ['url' => 'https://ollama.com/download', 'label' => 'ollama.com'],
-                ];
-                $categoryTitles = ['text' => 'Text Generation', 'voice' => 'Voice & Audio', 'local' => 'Local / Self-Hosted'];
-                $providerRows = collect($allProviders)->map(function ($provider, $key) use ($aiProviders, $providerLinks, $categoryTitles) {
-                    $saved  = $aiProviders->where('provider', $key)->first();
-                    $models = collect($provider['models'] ?? [])->map(fn($name, $modelKey) => ['key' => $modelKey, 'name' => $name])->values();
-
-                    $savedKeys = $saved ? $saved->keys()
-                        ->orderByDesc('is_primary')->orderBy('fail_count')->get()
-                        ->map(fn($k) => [
-                            'id'          => $k->id,
-                            'label'       => $k->label,
-                            'is_primary'  => (bool) $k->is_primary,
-                            'is_active'   => (bool) $k->is_active,
-                            'fail_count'  => $k->fail_count,
-                            'last_used_at' => optional($k->last_used_at)->toISOString(),
-                        ])->toArray() : [];
-
-                    return [
-                        'provider'          => $key,
-                        'name'              => $provider['name'] ?? ucfirst($key),
-                        'category'          => $provider['category'] ?? 'text',
-                        'category_label'    => $categoryTitles[$provider['category'] ?? 'text'] ?? ucfirst($provider['category'] ?? 'text'),
-                        'configured'        => (bool) ($saved && $saved->is_active),
-                        'provider_id'       => $saved?->id,
-                        'api_url'           => $saved?->api_url ?? ($provider['api_url'] ?? ''),
-                        'default_model'     => $saved?->default_model ?? ($provider['default_model'] ?? ''),
-                        'is_default'        => (bool) ($saved?->is_default),
-                        'last_used_at'      => optional($saved?->last_used_at)->toISOString(),
-                        'updated_at'        => optional($saved?->updated_at)->toISOString(),
-                        'models'            => $models,
-                        'model_count'       => $models->count(),
-                        'requires_endpoint' => !empty($provider['requires_endpoint']) || $key === 'ollama',
-                        'api_url_label'     => $key === 'ollama' ? 'Ollama Host URL' : ($key === 'bedrock' ? 'AWS Region' : 'Endpoint URL'),
-                        'external_url'      => $providerLinks[$key]['url'] ?? null,
-                        'external_label'    => $providerLinks[$key]['label'] ?? null,
-                        'keys'              => $savedKeys,
-                        'key_count'         => count($savedKeys),
-                    ];
-                })->values();
-            @endphp
-
-            <div class="dt-wrap" x-data="aiProviderTable(@json($providerRows))">
+            <div class="dt-wrap" x-data="aiProviderTable(@json($providerRows ?? []))">
                 <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="dt-search">
@@ -553,7 +489,7 @@
                         <tbody>
                             <template x-if="paginated.length === 0">
                                 <tr>
-                                    <td colspan="7" class="dt-empty">
+                                    <td colspan="8" class="dt-empty">
                                         <svg class="w-10 h-10 mb-3 mx-auto" style="color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
@@ -1589,7 +1525,9 @@ function aiProviderTable(providerRows) {
                         api_url: this.form.api_url,
                         default_model: this.form.default_model,
                         is_default: this.form.set_default || provider.is_default,
-                        updated_at: new Date().toISOString(),
+                        updated_at: data.updated_at || new Date().toISOString(),
+                        keys: data.keys || provider.keys || [],
+                        key_count: Number.isInteger(data.key_count) ? data.key_count : (data.keys || provider.keys || []).length,
                     };
                 });
 
