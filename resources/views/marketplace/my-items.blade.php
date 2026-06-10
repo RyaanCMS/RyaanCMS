@@ -4,8 +4,10 @@
 
 @section('header-actions')
 <button x-data x-on:click="$dispatch('open-submit-modal')"
-        class="flex items-center space-x-2 text-sm px-4 py-2 rounded-xl font-semibold text-white transition-all hover:-translate-y-px"
-        style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3);">
+        class="flex items-center space-x-2 text-sm px-4 py-2 rounded-xl font-semibold transition-all hover:-translate-y-px"
+        style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+        onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+        onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
     </svg>
@@ -15,8 +17,8 @@
 
 @push('head')
 <style>
-.mi-card { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; transition:border-color .15s; }
-.mi-card:hover { border-color:#c7d2fe; }
+.mi-card { background:var(--card-bg); border:1px solid var(--border); border-left:3px solid transparent; border-radius:16px; box-shadow:var(--shadow); transition:box-shadow .22s,transform .22s,border-color .18s; }
+.mi-card:hover { border-left-color:var(--brand); box-shadow:0 10px 36px color-mix(in srgb,var(--brand) 18%,transparent); transform:translateY(-2px); }
 .badge-pending  { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
 .badge-approved { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
 .badge-rejected { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
@@ -26,7 +28,7 @@
     background:var(--hover-bg); border:1px solid var(--border); color:var(--text-1);
     transition:border-color .15s;
 }
-.form-input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+.form-input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
 </style>
 @endpush
 
@@ -58,8 +60,12 @@
             Approved items appear in the marketplace for all users.
         </p>
         <button x-on:click="open = true"
-                class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-                style="background:#6366f1;">Submit Your First Item</button>
+                class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
+            Submit Your First Item
+        </button>
     </div>
     @else
 
@@ -69,7 +75,7 @@
 
             {{-- Icon --}}
             <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                 style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
+                 style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                 {{ $item->icon ?? '📦' }}
             </div>
 
@@ -111,7 +117,7 @@
                 @if($item->status === 'approved')
                 <a href="{{ route('marketplace.show', $item) }}"
                    class="text-[11px] font-semibold mt-1 inline-block"
-                   style="color:#6366f1;">View in Marketplace →</a>
+                   style="color:var(--brand);">View in Marketplace →</a>
                 @endif
             </div>
         </div>
@@ -122,8 +128,12 @@
 
     <div>
         <button x-on:click="open = true"
-                class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-                style="background:#6366f1;">+ Submit New Item</button>
+                class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
+            + Submit New Item
+        </button>
     </div>
     @endif
 
@@ -235,8 +245,10 @@
 
                 <div class="flex gap-3 pt-1">
                     <button type="submit"
-                            class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white"
-                            style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                            class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+                            style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                            onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                            onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
                         Submit for Review
                     </button>
                     <button type="button" x-on:click="open = false"

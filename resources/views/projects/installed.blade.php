@@ -10,8 +10,10 @@
         + Add Template
     </a>
     <a href="{{ route('marketplace.modules') }}"
-       class="flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-semibold text-white transition-all hover:-translate-y-px"
-       style="background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 12px rgba(99,102,241,.3);">
+       class="flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-semibold transition-all hover:-translate-y-px"
+       style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+       onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+       onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
         + Add Module
     </a>
 </div>
@@ -28,7 +30,7 @@
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
-                 style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
+                 style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                 📁
             </div>
             <div>
@@ -73,8 +75,10 @@
                class="px-5 py-2.5 rounded-xl text-sm font-semibold"
                style="background:var(--hover-bg); color:var(--text-2);">Browse Templates</a>
             <a href="{{ route('marketplace.modules') }}"
-               class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-               style="background:#6366f1;">Browse Modules</a>
+               class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+               style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+               onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+               onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">Browse Modules</a>
         </div>
     </div>
     @else
@@ -90,7 +94,7 @@
             <div class="px-5 py-3 flex items-center gap-2" style="border-bottom:1px solid var(--border); background:var(--hover-bg);">
                 <span class="text-xs font-bold tracking-widest uppercase" style="color:var(--text-3);">Templates</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                      style="background:#eef2ff; color:#6366f1;">{{ $templates->count() }}</span>
+                      style="background:color-mix(in srgb,var(--brand) 8%,#fff);color:var(--brand);">{{ $templates->count() }}</span>
             </div>
 
             @foreach($templates as $tpl)
@@ -105,7 +109,7 @@
 
                 {{-- Icon --}}
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                     {{ $meta['icon'] ?? '🎨' }}
                 </div>
 
@@ -114,7 +118,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <p class="text-sm font-bold" style="color:var(--text-1);">{{ $meta['name'] ?? $tpl->module_key }}</p>
                         <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                              style="background:#eef2ff; color:#6366f1; border:1px solid #c7d2fe;">Template</span>
+                              style="background:color-mix(in srgb,var(--brand) 8%,#fff);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 18%,transparent);">Template</span>
                         @if($tpl->status === 'active')
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold"
                               style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">● LIVE</span>
@@ -143,8 +147,10 @@
                     </button>
                     @else
                     <button x-on:click="activateTemplate('{{ $tpl->module_key }}')"
-                            class="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                            style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                            class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+                            style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                            onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                            onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
                         ⚡ Activate
                     </button>
                     @endif

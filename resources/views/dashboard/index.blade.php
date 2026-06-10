@@ -296,7 +296,7 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
         </div>
         <div class="db-kpi-val">{{ $stats['projects'] }}</div>
         <div class="db-kpi-label">Total Projects</div>
-        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, max(4, $stats['projects'] * 10)) }}%;background:#6366f1;"></div></div>
+        <div class="db-kpi-bar"><div class="db-kpi-bar-fill" style="width:{{ min(100, max(4, $stats['projects'] * 10)) }}%;background:var(--brand);"></div></div>
     </div>
 
     {{-- AI Messages --}}

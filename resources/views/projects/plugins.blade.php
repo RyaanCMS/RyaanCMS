@@ -22,8 +22,7 @@
 <style>
 :root {
     --card-bg:#fff;--border:#e8ecf0;--text-1:#0f172a;--text-2:#64748b;
-    --text-3:#94a3b8;--brand:#6366f1;--brand-ring:rgba(99,102,241,.25);
-    --hover-bg:#f8fafc;--shadow:0 1px 4px rgba(0,0,0,.06);
+    --text-3:#94a3b8;--hover-bg:#f8fafc;--shadow:0 1px 4px rgba(0,0,0,.06);
 }
 
 /* ── Filter tabs ── */

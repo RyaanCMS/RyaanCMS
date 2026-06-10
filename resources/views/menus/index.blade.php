@@ -24,9 +24,9 @@
             ['label' => 'Admin Menus', 'value' => $menus->whereIn('category', ['sidebar','admin_sidebar'])->count(),                  'color' => '#7c3aed'],
             ['label' => 'User Menus',  'value' => $menus->where('category', 'user_topbar')->count(),                                  'color' => '#f59e0b'],
         ] as $s)
-        <div class="rounded-2xl p-4 text-center" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);">
-            <p class="text-2xl font-black mb-1" style="color:{{ $s['color'] }}">{{ $s['value'] }}</p>
-            <p class="text-xs font-medium" style="color:var(--text-3)">{{ $s['label'] }}</p>
+        <div class="kpi-card" style="--c:{{ $s['color'] }};background:var(--card-bg);">
+            <div class="kpi-val">{{ $s['value'] }}</div>
+            <div class="kpi-label">{{ $s['label'] }}</div>
         </div>
         @endforeach
     </div>

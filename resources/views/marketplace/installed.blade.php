@@ -4,8 +4,10 @@
 
 @section('header-actions')
 <a href="{{ route('marketplace.upload-install') }}"
-   class="flex items-center space-x-2 text-sm px-4 py-2 rounded-xl font-semibold text-white transition-all hover:-translate-y-px"
-   style="background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 12px rgba(99,102,241,.3);">
+   class="flex items-center space-x-2 text-sm px-4 py-2 rounded-xl font-semibold transition-all hover:-translate-y-px"
+   style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+   onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+   onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
     </svg>
@@ -39,8 +41,12 @@
                class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                style="background:var(--hover-bg); color:var(--text-2);">Browse Marketplace</a>
             <a href="{{ route('marketplace.upload-install') }}"
-               class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-               style="background:#6366f1;">Upload Package</a>
+               class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+               style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+               onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+               onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
+            Upload Package
+        </a>
         </div>
     </div>
     @else
@@ -61,7 +67,7 @@
                  onmouseout="this.style.background=''">
 
                 <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                     {{ $inst->item?->icon ?? '🔌' }}
                 </div>
 
@@ -103,7 +109,7 @@
                         @if($inst->license_key)
                         <button onclick="navigator.clipboard.writeText('{{ $inst->license_key }}').then(()=>this.textContent='Copied!')"
                                 class="text-[10px] px-2 py-0.5 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                style="background:var(--hover-bg); color:#6366f1;">Copy</button>
+                                style="background:var(--hover-bg); color:var(--brand);">Copy</button>
                         @endif
                     </div>
                 </div>

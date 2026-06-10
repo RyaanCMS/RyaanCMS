@@ -62,7 +62,7 @@
                     class="mt-3 w-full flex items-center justify-center space-x-2 font-semibold text-sm py-2.5 rounded-lg transition-all"
                     :style="isRunning || prompt.trim().length < 10
                         ? 'background:#1e2536;color:#4a5568;cursor:not-allowed;'
-                        : 'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;cursor:pointer;box-shadow:0 0 20px rgba(99,102,241,0.3);'">
+                        : 'background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);cursor:pointer;border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);'">
                 <template x-if="!isRunning">
                     <span class="flex items-center space-x-2">
                         <span>🚀</span>
@@ -339,7 +339,7 @@
             <div x-show="isDone" class="flex items-center space-x-3">
                 <a :href="'{{ route('builder.show', $project) }}'"
                    class="flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
-                   style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;">
+                   style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);">
                     <span>🔧</span>
                     <span>Open in Builder</span>
                 </a>

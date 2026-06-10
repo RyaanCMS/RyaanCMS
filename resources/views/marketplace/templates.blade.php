@@ -164,9 +164,11 @@
                     </template>
 
                     <template x-if="selectedProject && getStatus('{{ $key }}') === null">
-                        <button class="flex-1 py-2 rounded-lg text-xs font-bold text-white"
+                        <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                                 :disabled="working === '{{ $key }}'"
-                                style="background:#6366f1;"
+                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'"
                                 x-on:click="install('{{ $key }}')">
                             <span x-show="working !== '{{ $key }}'">⬇ Install</span>
                             <span x-show="working === '{{ $key }}'">Installing…</span>
@@ -174,9 +176,11 @@
                     </template>
 
                     <template x-if="selectedProject && getStatus('{{ $key }}') === 'installed'">
-                        <button class="flex-1 py-2 rounded-lg text-xs font-bold text-white"
+                        <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                                 :disabled="working === '{{ $key }}'"
-                                style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"
+                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                                onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'"
                                 x-on:click="activate('{{ $key }}')">
                             <span x-show="working !== '{{ $key }}'">⚡ Activate</span>
                             <span x-show="working === '{{ $key }}'">Activating…</span>

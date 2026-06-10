@@ -46,9 +46,9 @@
     @endphp
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         @foreach($statCards as $card)
-        <div class="rounded-xl p-4 border" style="background:var(--card-bg);border-color:var(--border)">
-            <div class="text-2xl font-bold" style="color:{{ $card['color'] }}">{{ $card['value'] }}</div>
-            <div class="text-xs mt-0.5" style="color:var(--text-3)">{{ $card['label'] }}</div>
+        <div class="kpi-card" style="--c:{{ $card['color'] }};background:var(--card-bg);">
+            <div class="kpi-val">{{ $card['value'] }}</div>
+            <div class="kpi-label">{{ $card['label'] }}</div>
         </div>
         @endforeach
     </div>
@@ -78,8 +78,7 @@
             @endforeach
         </select>
 
-        <button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium text-white"
-                style="background:#7c3aed">Filter</button>
+        <button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium transition-all sys-btn">Filter</button>
         @if(request()->hasAny(['search','domain','entry_type']))
         <a href="{{ route('wisdom.index') }}" class="px-4 py-2 rounded-lg text-sm border"
            style="border-color:var(--border);color:var(--text-2)">Clear</a>
@@ -96,7 +95,7 @@
         </div>
     </div>
     @else
-    <div class="rounded-xl border overflow-hidden" style="border-color:var(--border)">
+    <div class="sys-card" style="overflow:hidden;border-radius:14px;">
         <table class="w-full text-sm">
             <thead>
                 <tr style="background:var(--card-sub);border-bottom:1px solid var(--border)">

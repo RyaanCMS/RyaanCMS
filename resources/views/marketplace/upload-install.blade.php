@@ -11,7 +11,7 @@
     </a>
     <a href="{{ route('marketplace.installed') }}"
        class="text-sm px-3 py-1.5 rounded-lg transition-colors"
-       style="color:#6366f1; background:#eef2ff;">
+       style="color:var(--brand); background:color-mix(in srgb,var(--brand) 8%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
         All Installed →
     </a>
 </div>
@@ -53,8 +53,8 @@
 
             <div class="px-6 py-4 flex items-center space-x-3" style="border-bottom:1px solid var(--border);">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-                     style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
-                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
+                    <svg class="w-5 h-5" style="color:var(--brand)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                 </div>
@@ -79,8 +79,8 @@
                            @change="fileName=$event.target.files[0]?.name">
                     <div x-show="!fileName" class="space-y-2">
                         <div class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center"
-                             style="background:linear-gradient(135deg,#eef2ff,#ede9fe);">
-                            <svg class="w-6 h-6" style="color:#6366f1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             style="background:color-mix(in srgb,var(--brand) 10%,#fff);">
+                            <svg class="w-6 h-6" style="color:var(--brand)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
                         </div>
@@ -130,8 +130,10 @@
                 </div>
 
                 <button type="submit"
-                        class="w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-px"
-                        style="background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 12px rgba(99,102,241,.3);">
+                        class="w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold text-sm transition-all hover:-translate-y-px"
+                        style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                        onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                        onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                     </svg>
@@ -192,13 +194,13 @@
          style="background:var(--card-bg); border:1px solid var(--border); box-shadow:var(--shadow);">
         <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
             <h3 class="font-bold text-sm" style="color:var(--text-1);">Recently Installed</h3>
-            <a href="{{ route('marketplace.installed') }}" class="text-xs" style="color:#6366f1;">View all →</a>
+            <a href="{{ route('marketplace.installed') }}" class="text-xs" style="color:var(--brand);">View all →</a>
         </div>
         <div class="divide-y" style="border-color:var(--border);">
             @foreach($installed->take(5) as $inst)
             <div class="flex items-center px-6 py-3 gap-4">
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe);">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);">
                     {{ $inst->item?->icon ?? '🔌' }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -254,8 +256,12 @@
                         class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                         style="background:var(--hover-bg); color:var(--text-2);">Cancel</button>
                 <button type="submit"
-                        class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
-                        style="background:#6366f1;">Activate</button>
+                        class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                        style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                        onmouseover="this.style.background='var(--brand)';this.style.color='#fff'"
+                        onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)'">
+                    Activate
+                </button>
             </div>
         </form>
     </div>

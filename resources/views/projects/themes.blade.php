@@ -22,8 +22,7 @@
 <style>
 :root {
     --card-bg: #fff; --border: #e8ecf0; --text-1: #0f172a; --text-2: #64748b;
-    --text-3: #94a3b8; --brand: #6366f1; --brand-ring: rgba(99,102,241,.25);
-    --hover-bg: #f8fafc; --shadow: 0 1px 4px rgba(0,0,0,.06);
+    --text-3: #94a3b8; --hover-bg: #f8fafc; --shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 
 /* ── Theme card grid ── */
@@ -38,15 +37,17 @@
 /* ── Individual theme card ── */
 .theme-card {
     border-radius: 14px;
-    border: 2px solid var(--border);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
     overflow: hidden;
     background: var(--card-bg);
-    transition: border-color .18s, box-shadow .18s, transform .18s;
+    box-shadow: var(--shadow);
+    transition: border-color .18s, box-shadow .22s, transform .22s;
     position: relative;
     cursor: default;
 }
-.theme-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.1); transform: translateY(-2px); }
-.theme-card.is-active { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); }
+.theme-card:hover { box-shadow: 0 10px 36px color-mix(in srgb,var(--brand) 18%,transparent); transform: translateY(-3px); border-left-color: var(--brand); }
+.theme-card.is-active { border-color: var(--brand); border-left-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); }
 
 /* ── Preview area ── */
 .theme-preview {
@@ -93,11 +94,12 @@
 .theme-actions { display: flex; gap: 8px; }
 .btn-activate {
     flex: 1; padding: 8px 0; border-radius: 9px; font-size: 12px; font-weight: 700;
-    color: #fff; border: none; cursor: pointer; transition: all .15s;
-    background: var(--brand); box-shadow: 0 2px 8px var(--brand-ring);
+    cursor: pointer; transition: all .15s;
+    background: color-mix(in srgb,var(--brand) 10%,#fff); color: var(--brand);
+    border: 1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);
 }
-.btn-activate:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.btn-activate:disabled { opacity:.6; cursor:not-allowed; transform:none; filter:none; }
+.btn-activate:hover { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 3px 10px var(--brand-ring); transform: translateY(-1px); }
+.btn-activate:disabled { opacity:.6; cursor:not-allowed; transform:none; }
 .btn-secondary {
     padding: 8px 14px; border-radius: 9px; font-size: 12px; font-weight: 600;
     color: var(--text-2); border: 1px solid var(--border); background: var(--hover-bg);

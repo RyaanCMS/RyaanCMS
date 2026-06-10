@@ -11,7 +11,7 @@
     <button @click="newProjectOpen = true"
        class="flex items-center space-x-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
        style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;"
-       onmouseover="this.style.background='#eef2ff';this.style.color='#6366f1';this.style.borderColor='#c7d2fe'"
+       onmouseover="this.style.background='color-mix(in srgb,var(--brand) 8%,#fff)';this.style.color='var(--brand)';this.style.borderColor='color-mix(in srgb,var(--brand) 20%,transparent)'"
        onmouseout="this.style.background='#f8fafc';this.style.color='#64748b';this.style.borderColor='#e2e8f0'">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -70,7 +70,7 @@
                         <input type="text" name="name" required placeholder="e.g. Hospital Management System"
                                class="w-full text-sm px-3.5 py-2.5 rounded-xl focus:outline-none transition-all"
                                style="border:2px solid #e2e8f0; color:#1e293b;"
-                               onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,.1)'"
+                               onfocus="this.style.borderColor='var(--brand)'; this.style.boxShadow='0 0 0 3px var(--brand-ring)'"
                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
                     </div>
 
@@ -80,7 +80,7 @@
                         <select name="type" required
                                 class="w-full text-sm px-3.5 py-2.5 rounded-xl focus:outline-none appearance-none"
                                 style="border:2px solid #e2e8f0; color:#1e293b; background:#fff;"
-                                onfocus="this.style.borderColor='#6366f1'"
+                                onfocus="this.style.borderColor='var(--brand)'"
                                 onblur="this.style.borderColor='#e2e8f0'">
                             @foreach(config('ryaan.project_types', []) as $key => $typeData)
                             <option value="{{ $key }}">{{ is_array($typeData) ? $typeData['label'] : $typeData }}</option>
@@ -94,7 +94,7 @@
                         <textarea name="description" rows="2" placeholder="Brief description (optional)"
                                   class="w-full text-sm px-3.5 py-2.5 rounded-xl resize-none focus:outline-none"
                                   style="border:2px solid #e2e8f0; color:#1e293b; font-family:inherit;"
-                                  onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,.1)'"
+                                  onfocus="this.style.borderColor='var(--brand)'; this.style.boxShadow='0 0 0 3px var(--brand-ring)'"
                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"></textarea>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
                     <button type="submit"
                             :disabled="creating"
                             class="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl text-white transition-all"
-                            :style="creating ? 'background:#e2e8f0;color:#94a3b8' : 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)'">
+                            :style="creating ? 'background:#e2e8f0;color:#94a3b8' : 'background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);'">
                         <svg x-show="!creating" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
@@ -314,7 +314,7 @@
                 </div>
                 <button @click="newConversation()"
                         class="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
-                        style="color:#6366f1; background:#eef2ff; border:1px solid #e0e7ff;"
+                        style="color:var(--brand); background:color-mix(in srgb,var(--brand) 8%,#fff); border:1px solid color-mix(in srgb,var(--brand) 18%,transparent);"
                         onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">
                     + New Chat
                 </button>
@@ -370,7 +370,7 @@
             <!-- Welcome state -->
             <div x-show="turns.length === 0" class="flex flex-col items-center justify-center h-full px-5 py-8 text-center">
                 <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                     style="background:linear-gradient(135deg,#6366f1,#9333ea); box-shadow:0 4px 16px rgba(99,102,241,.25)">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                     <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <h4 class="font-semibold text-sm mb-1" style="color:#111827;">AI Builder Ready</h4>
@@ -423,7 +423,7 @@
 
                                     <div x-show="turn.status === 'running'"
                                          class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin flex-shrink-0"
-                                         style="border-color:#6366f1; border-top-color:transparent;"></div>
+                                         style="border-color:var(--brand); border-top-color:transparent;"></div>
                                     <svg x-show="turn.status === 'completed'" class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#22c55e;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -465,16 +465,16 @@
                                             <span class="text-xs flex-1 leading-relaxed" style="color:#6b7280;" x-text="act.text"></span>
                                             <div x-show="act.status === 'running'"
                                                  class="w-2.5 h-2.5 rounded-full border border-t-transparent animate-spin flex-shrink-0"
-                                                 style="border-color:#6366f1; border-top-color:transparent;"></div>
+                                                 style="border-color:var(--brand); border-top-color:transparent;"></div>
                                             <svg x-show="act.status === 'done'" class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#22c55e;">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
                                     </template>
                                     <div x-show="turn.status === 'running'" class="flex items-center gap-1 px-3 py-2">
-                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#6366f1; animation-delay:0ms"></div>
-                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#6366f1; animation-delay:150ms"></div>
-                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#6366f1; animation-delay:300ms"></div>
+                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--brand); animation-delay:0ms"></div>
+                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--brand); animation-delay:150ms"></div>
+                                        <div class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--brand); animation-delay:300ms"></div>
                                     </div>
                                 </div>
 
@@ -502,14 +502,14 @@
                                      style="background:#fff; border-top:1px solid #e5e7eb;">
                                     <div class="flex items-start gap-2">
                                         <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                                             style="background:linear-gradient(135deg,#6366f1,#9333ea);">
+                                             style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                                             <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                             </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-1.5 mb-1">
-                                                <span class="text-xs font-semibold" style="color:#6366f1;">RyaanCMS</span>
+                                                <span class="text-xs font-semibold" style="color:var(--brand);">RyaanCMS</span>
                                             </div>
                                             <p class="text-xs leading-relaxed break-words whitespace-pre-wrap" style="color:#374151;" x-text="cleanResponse(turn.response)"></p>
                                         </div>
@@ -670,10 +670,10 @@
                        placeholder="Paste website URL (https://...)"
                        class="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
                        style="background:#f9fafb; border:1px solid #d1d5db; color:#111827;"
-                       onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                       onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='#d1d5db'">
                 <button @click="addUrl()"
                         class="px-3 py-2 text-white rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
-                        style="background:#6366f1;">Add URL</button>
+                        style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);">Add URL</button>
                 <button @click="showUrlInput=false; urlInput=''"
                         class="px-3 py-2 rounded-xl text-xs transition-colors"
                         style="background:#f3f4f6; color:#374151;">✕</button>
@@ -699,8 +699,8 @@
                     <div class="flex items-center gap-0.5">
                         <button @click="$refs.fileInput.click()" title="Attach file"
                                 class="p-2 rounded-xl transition-all"
-                                :style="attachments.length ? 'color:#6366f1; background:#eef2ff;' : 'color:#9ca3af;'"
-                                onmouseover="if(!this.__active) { this.style.color='#6366f1'; this.style.background='#f5f3ff'; }"
+                                :style="attachments.length ? 'color:var(--brand); background:color-mix(in srgb,var(--brand) 8%,#fff);' : 'color:#9ca3af;'"
+                                onmouseover="if(!this.__active) { this.style.color='var(--brand)'; this.style.background='color-mix(in srgb,var(--brand) 8%,#fff)'; }"
                                 onmouseout="if(!this.__active) { this.style.color='#9ca3af'; this.style.background=''; }">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
@@ -708,8 +708,8 @@
                         </button>
                         <button @click="showUrlInput=!showUrlInput" title="Read content from a website URL"
                                 class="p-2 rounded-xl transition-all"
-                                :style="urlPreview ? 'color:#6366f1; background:#eef2ff;' : 'color:#9ca3af;'"
-                                onmouseover="this.style.color='#6366f1'; this.style.background='#f5f3ff';"
+                                :style="urlPreview ? 'color:var(--brand); background:color-mix(in srgb,var(--brand) 8%,#fff);' : 'color:#9ca3af;'"
+                                onmouseover="this.style.color='var(--brand)'; this.style.background='color-mix(in srgb,var(--brand) 8%,#fff)';"
                                 onmouseout="this.style.color='#9ca3af'; this.style.background='';">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
@@ -719,7 +719,7 @@
                                 class="p-2 rounded-xl transition-all"
                                 :style="isRecording ? 'color:#ef4444; background:#fef2f2;' : 'color:#9ca3af;'"
                                 :class="isRecording ? 'animate-pulse' : ''"
-                                onmouseover="this.style.color='#6366f1'; this.style.background='#f5f3ff';"
+                                onmouseover="this.style.color='var(--brand)'; this.style.background='color-mix(in srgb,var(--brand) 8%,#fff)';"
                                 onmouseout="if(!this.__rec) { this.style.color='#9ca3af'; this.style.background=''; }">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
@@ -740,7 +740,7 @@
                         <button x-show="!isThinking" @click="sendMessage()"
                                 :disabled="!chatInput.trim() && !attachments.length && !urlPreview"
                                 class="text-white rounded-xl px-4 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                                style="background:linear-gradient(135deg,#6366f1,#7c3aed); box-shadow:0 2px 8px rgba(99,102,241,.3);">
+                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                             </svg>
@@ -1303,7 +1303,7 @@ function builderApp() {
   <p>This is a server-side Laravel application. The preview below shows your generated files. To run the full app, set it up in your local Laravel environment.</p>
   ${fs.length > 0 ? `<div class="files-label">Generated files</div><ul>${fileRows}</ul>` : ''}
   <div class="tip">💡 <b>Tip:</b> Ask the AI to also generate a <code>preview.html</code> — a standalone static version of your dashboard that renders instantly without a PHP server.</div>
-  <div class="powered"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Powered by RyaanCMS v1.0.0</div>
+  <div class="powered"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Powered by RyaanCMS v1.0.0</div>
 </div></body></html>`;
             this.renderPreview(html, 'overview.html');
         },
@@ -1412,7 +1412,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f9fafb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .card{background:#fff;border-radius:16px;border:1px solid #e5e7eb;padding:32px;max-width:500px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.06)}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:#eef2ff;color:#6366f1;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:20px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:color-mix(in srgb,var(--brand) 8%,#fff);color:var(--brand);border-radius:20px;font-size:12px;font-weight:600;margin-bottom:20px}
 h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:6px}
 .sub{font-size:14px;color:#6b7280;margin-bottom:24px}
 .section{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
@@ -1433,7 +1433,7 @@ ul{list-style:none}
     : `<div class="empty">No files yet — ask AI to generate your first feature</div>`}
   <div class="hint">💡 <strong>Try:</strong> "Create a complete hotel management system with dashboard, room booking, guest management, and invoicing"</div>
   <div class="attr">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
     Powered by RyaanCMS v1.0.0
   </div>
 </div>

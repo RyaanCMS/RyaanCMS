@@ -215,6 +215,44 @@
 @media (max-width: 1100px) { .ms-grid-lg { grid-template-columns: repeat(2,1fr); } .ms-grid { grid-template-columns: repeat(3,1fr); } }
 @media (max-width: 768px)  { .ms-grid-lg { grid-template-columns: repeat(1,1fr); } .ms-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 480px)  { .ms-grid { grid-template-columns: 1fr; } }
+
+/* ─── Override ms-card/ms-card-lg with sys-card pattern ─── */
+.ms-card, .ms-card-lg {
+    border-left: 3px solid transparent !important;
+    transition: box-shadow .22s ease, transform .22s ease, border-color .18s ease !important;
+}
+.ms-card:hover, .ms-card-lg:hover {
+    border-left-color: var(--c, var(--brand)) !important;
+    box-shadow: 0 10px 36px color-mix(in srgb, var(--c, var(--brand)) 20%, transparent),
+                0 2px 10px  color-mix(in srgb, var(--c, var(--brand)) 10%, transparent) !important;
+    transform: translateY(-3px) !important;
+    border-color: var(--border) !important;
+}
+/* Card icon: use brand-light bg */
+.ms-ico {
+    background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff) !important;
+    border: 1px solid color-mix(in srgb, var(--c, var(--brand)) 20%, transparent) !important;
+}
+/* Install buttons → light colorful */
+.ms-btn-install, .ms-btn-install-lg {
+    background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff) !important;
+    color: var(--c, var(--brand)) !important;
+    border: 1.5px solid color-mix(in srgb, var(--c, var(--brand)) 25%, transparent) !important;
+    box-shadow: none !important;
+}
+.ms-btn-install:hover, .ms-btn-install-lg:hover {
+    background: var(--c, var(--brand)) !important;
+    color: #fff !important;
+    border-color: var(--c, var(--brand)) !important;
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--c, var(--brand)) 30%, transparent) !important;
+    filter: none !important;
+}
+/* Tab active state */
+.ms-tab-active { border-left: 2px solid var(--brand) !important; color: var(--brand) !important; }
+/* Category pills active */
+.ms-cat-pill-active { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; }
+/* Stats strip */
+.ms-stats { background: var(--surface-raised) !important; border-radius: 14px !important; }
 </style>
 @endpush
 
@@ -324,7 +362,7 @@
             @foreach($modules as $key => $module)
             @if($module['popular'] ?? false)
             @php $color = $categoryColors[$module['category']] ?? '#6366f1'; @endphp
-            <div class="ms-card-lg">
+            <div class="ms-card-lg" style="--c:{{ $color }}">
                 <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $color }},{{ $color }}88);"></div>
                 <div class="ms-body">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
@@ -378,7 +416,7 @@
         <div class="ms-grid">
             @foreach($mods as $mod)
             @php $c = $categoryColors[$category] ?? '#6366f1'; @endphp
-            <div class="ms-card">
+            <div class="ms-card" style="--c:{{ $c }}">
                 <div class="ms-card-stripe" style="background:{{ $c }};opacity:.5;"></div>
                 <div class="ms-body">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
@@ -443,7 +481,7 @@
                 default   => '#10b981',
             };
         @endphp
-        <div class="ms-card-lg">
+        <div class="ms-card-lg" style="--c:{{ $agentColor }}">
             <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $agentColor }},{{ $agentColor }}66);"></div>
             <div class="ms-body">
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
@@ -466,7 +504,6 @@
             </div>
             <div class="ms-foot">
                 <button class="ms-btn-install-lg"
-                        style="background:linear-gradient(135deg,{{ $agentColor }},{{ $agentColor }}cc);"
                         @click="openInstallModal('agent:{{ $key }}', '{{ addslashes($agent['name']) }}')">
                     Activate Agent
                 </button>
@@ -491,7 +528,7 @@
         <div class="ms-grid-lg">
             @foreach($builtinTemplates as $tKey => $tpl)
             @php $tColor = $tpl['color'] ?? '#6366f1'; @endphp
-            <div class="ms-card-lg">
+            <div class="ms-card-lg" style="--c:{{ $tColor }}">
                 <div class="ms-card-stripe" style="background:linear-gradient(90deg,{{ $tColor }},{{ $tColor }}88);"></div>
                 <div class="ms-body">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
@@ -544,7 +581,7 @@
             @php
                 $ico = match($item->type) { 'module'=>'📦','theme'=>'🎨','agent'=>'🤖','template'=>'📄', default=>'🔌' };
             @endphp
-            <a href="{{ route('marketplace.show', $item) }}" class="ms-card-lg" style="text-decoration:none;color:inherit;">
+            <a href="{{ route('marketplace.show', $item) }}" class="ms-card-lg" style="--c:#6366f1;text-decoration:none;color:inherit;">
                 <div class="ms-card-stripe" style="background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div>
                 <div class="ms-body">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
@@ -584,7 +621,7 @@
     <div class="ms-grid">
         @forelse($items as $item)
         @php $ico = match($item->type) { 'module'=>'📦','theme'=>'🎨','agent'=>'🤖','template'=>'📄', default=>'🔌' }; @endphp
-        <a href="{{ route('marketplace.show', $item) }}" class="ms-card" style="text-decoration:none;color:inherit;">
+        <a href="{{ route('marketplace.show', $item) }}" class="ms-card" style="--c:#6366f1;text-decoration:none;color:inherit;">
             <div class="ms-card-stripe" style="background:#6366f1;opacity:.4;"></div>
             <div class="ms-body">
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
@@ -657,7 +694,7 @@
                                 <span x-text="item.icon"></span>
                                 <span style="font-size:12.5px;font-weight:500;color:#1e293b;" x-text="item.label"></span>
                             </div>
-                            <code style="font-size:10.5px;padding:2px 7px;border-radius:5px;background:#f1f5f9;color:#6366f1;font-family:monospace;" x-text="item.route"></code>
+                            <code style="font-size:10.5px;padding:2px 7px;border-radius:5px;background:color-mix(in srgb,var(--brand) 8%,#fff);color:var(--brand);font-family:monospace;" x-text="item.route"></code>
                         </div>
                     </template>
                 </div>

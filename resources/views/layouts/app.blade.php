@@ -156,6 +156,166 @@
         [x-cloak] { display: none !important; }
 
         /* ═══════════════════════════════════════════════════════════
+           GLOBAL CARD SYSTEM — used by every page
+           Set --c on the card element for per-card accent color.
+           Default falls back to var(--brand).
+        ═══════════════════════════════════════════════════════════ */
+
+        /* ── Base card ── */
+        .sys-card {
+            border-radius: 16px;
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: box-shadow .22s ease, transform .22s ease,
+                        border-color .18s ease, background .18s ease;
+            position: relative;
+        }
+        .sys-card:hover {
+            border-left-color: var(--c, var(--brand));
+            box-shadow: 0 10px 36px color-mix(in srgb, var(--c, var(--brand)) 20%, transparent),
+                        0 2px 10px  color-mix(in srgb, var(--c, var(--brand)) 10%, transparent);
+            transform: translateY(-3px);
+        }
+        /* clickable card = pointer */
+        a.sys-card, button.sys-card { cursor: pointer; text-decoration: none; color: inherit; }
+
+        /* ── Card sections ── */
+        .sys-card-hd {
+            padding: 14px 18px;
+            background: var(--surface-raised);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .sys-card-body {
+            padding: 16px 18px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .sys-card-foot {
+            padding: 0 18px 16px;
+        }
+
+        /* ── Icon badge ── */
+        .sys-ico {
+            width: 40px; height: 40px; border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+            background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+            border: 1px solid color-mix(in srgb, var(--c, var(--brand)) 20%, transparent);
+        }
+        .sys-ico-lg {
+            width: 48px; height: 48px; border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+            background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+            border: 1px solid color-mix(in srgb, var(--c, var(--brand)) 20%, transparent);
+        }
+
+        /* ── Action button (light → solid on hover) ── */
+        .sys-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 8px 16px; border-radius: 10px;
+            font-size: 12px; font-weight: 700;
+            background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+            color: var(--c, var(--brand));
+            border: 1.5px solid color-mix(in srgb, var(--c, var(--brand)) 25%, transparent);
+            cursor: pointer; transition: all .18s ease;
+            text-decoration: none; white-space: nowrap;
+        }
+        .sys-btn:hover {
+            background: var(--c, var(--brand));
+            color: #fff;
+            border-color: var(--c, var(--brand));
+            box-shadow: 0 3px 10px color-mix(in srgb, var(--c, var(--brand)) 30%, transparent);
+            transform: translateY(-1px);
+        }
+        .sys-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+        .sys-btn-sm { padding: 5px 12px; font-size: 11.5px; border-radius: 8px; }
+        .sys-btn-full { width: 100%; justify-content: center; padding: 9px; font-size: 13px; }
+
+        /* Success variant */
+        .sys-btn-success {
+            background: #f0fdf4; color: #15803d;
+            border: 1.5px solid #bbf7d0;
+        }
+        .sys-btn-success:hover { background: #15803d; color: #fff; border-color: #15803d; box-shadow: 0 3px 10px rgba(21,128,61,.25); }
+
+        /* ── Status badge ── */
+        .sys-badge {
+            display: inline-flex; align-items: center;
+            padding: 2px 8px; border-radius: 99px;
+            font-size: 10px; font-weight: 700;
+            background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+            color: var(--c, var(--brand));
+            border: 1px solid color-mix(in srgb, var(--c, var(--brand)) 20%, transparent);
+        }
+        .sys-badge-free    { --c: #16a34a; }
+        .sys-badge-pro     { --c: #7c3aed; }
+        .sys-badge-gray    { background: var(--surface-raised); color: var(--text-2); border-color: var(--border); }
+
+        /* ── KPI / stat card ── */
+        .kpi-card {
+            border-radius: 14px;
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--c, var(--brand));
+            box-shadow: var(--shadow);
+            padding: 16px 18px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .kpi-val   { font-size: 26px; font-weight: 800; color: var(--c, var(--brand)); letter-spacing: -.02em; line-height: 1; }
+        .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+
+        /* ── Grid layouts ── */
+        .sys-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .sys-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .sys-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        @media (max-width: 1100px) { .sys-grid-4 { grid-template-columns: repeat(3, 1fr); } .sys-grid-3 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px)  { .sys-grid-4 { grid-template-columns: repeat(2, 1fr); } .sys-grid-3 { grid-template-columns: 1fr; } .sys-grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 480px)  { .sys-grid-4 { grid-template-columns: 1fr; } }
+
+        /* ── Section header ── */
+        .sys-section-hd {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .sys-section-title { font-size: 13px; font-weight: 700; color: var(--text-1); }
+        .sys-section-hint  { font-size: 11.5px; color: var(--text-3); }
+
+        /* ── Category accent dot ── */
+        .sys-cat-dot {
+            width: 3px; height: 14px; border-radius: 99px;
+            background: var(--c, var(--brand));
+            display: inline-block; flex-shrink: 0;
+        }
+
+        /* ── Toolbar / search ── */
+        .sys-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 4px 0 2px; }
+        .sys-search {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--surface-base); border: 1.5px solid var(--border);
+            border-radius: 11px; padding: 0 12px;
+            flex: 1; min-width: 200px; max-width: 360px;
+            transition: border-color .13s, box-shadow .13s;
+        }
+        .sys-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); }
+        .sys-search svg  { color: var(--text-3); flex-shrink: 0; width: 15px; height: 15px; }
+        .sys-search input { border: none; outline: none; background: transparent; font-size: 13px; color: var(--text-1); padding: 9px 0; width: 100%; font-family: inherit; }
+
+        /* ── Tab pills ── */
+        .sys-tabs { display: flex; gap: 2px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px; padding: 4px; width: fit-content; }
+        .sys-tab  { padding: 7px 16px; border-radius: 9px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: transparent; color: var(--text-2); }
+        .sys-tab:hover:not(.sys-tab-on) { background: var(--surface-base); color: var(--text-1); }
+        .sys-tab-on { background: var(--surface-base) !important; color: var(--text-1) !important; box-shadow: 0 1px 4px rgba(0,0,0,.08); font-weight: 600; }
+
+        /* ── Cat pills (filter) ── */
+        .sys-pill { padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 500; text-decoration: none; transition: all .13s; border: 1px solid var(--border); color: var(--text-2); background: var(--surface-raised); }
+        .sys-pill:hover    { background: color-mix(in srgb, var(--brand) 10%, #fff); color: var(--brand); border-color: var(--brand-ring); }
+        .sys-pill-on       { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; box-shadow: 0 2px 8px var(--brand-ring); }
+
+        /* ═══════════════════════════════════════════════════════════
            SIDEBAR
         ═══════════════════════════════════════════════════════════ */
         .app-sidebar {

@@ -4,9 +4,9 @@
 
 @push('head')
 <style>
-.adm-card { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; }
+.adm-card { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
 .adm-tab { padding:7px 18px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:all .13s; color:var(--text-3); }
-.adm-tab.active { background:#eef2ff; color:#4f46e5; }
+.adm-tab.active { background:color-mix(in srgb,var(--brand) 10%,#fff); color:var(--brand); border:1px solid color-mix(in srgb,var(--brand) 20%,transparent); }
 .adm-tab:hover:not(.active) { background:var(--hover-bg); color:var(--text-1); }
 .badge-pending  { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
 .badge-approved { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
@@ -20,7 +20,7 @@
 .reject-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:60; display:flex; align-items:center; justify-content:center; padding:16px; }
 .reject-box { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:24px; width:100%; max-width:420px; box-shadow:0 20px 40px rgba(0,0,0,.2); }
 .form-input { width:100%; padding:9px 13px; border-radius:10px; font-size:13px; background:var(--hover-bg); border:1px solid var(--border); color:var(--text-1); }
-.form-input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+.form-input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
 </style>
 @endpush
 
@@ -29,17 +29,17 @@
 
     {{-- Header stats --}}
     <div class="grid grid-cols-3 gap-4">
-        <div class="adm-card p-5">
-            <p class="text-xs font-semibold mb-1" style="color:var(--text-3);">PENDING REVIEW</p>
-            <p class="text-3xl font-black" style="color:#d97706;">{{ $pendingCount }}</p>
+        <div class="kpi-card adm-card" style="--c:#d97706;">
+            <p class="kpi-label">PENDING REVIEW</p>
+            <p class="kpi-val">{{ $pendingCount }}</p>
         </div>
-        <div class="adm-card p-5">
-            <p class="text-xs font-semibold mb-1" style="color:var(--text-3);">SHOWING FILTER</p>
-            <p class="text-3xl font-black" style="color:#6366f1;">{{ ucfirst($filter) }}</p>
+        <div class="kpi-card adm-card" style="--c:var(--brand);">
+            <p class="kpi-label">SHOWING FILTER</p>
+            <p class="kpi-val" style="font-size:18px;">{{ ucfirst($filter) }}</p>
         </div>
-        <div class="adm-card p-5">
-            <p class="text-xs font-semibold mb-1" style="color:var(--text-3);">TOTAL ON PAGE</p>
-            <p class="text-3xl font-black" style="color:var(--text-1);">{{ $items->total() }}</p>
+        <div class="kpi-card adm-card" style="--c:#0ea5e9;">
+            <p class="kpi-label">TOTAL ON PAGE</p>
+            <p class="kpi-val">{{ $items->total() }}</p>
         </div>
     </div>
 
@@ -86,7 +86,7 @@
 
                 {{-- Icon --}}
                 <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mt-0.5"
-                     style="background:linear-gradient(135deg,#eef2ff,#ede9fe); border:1px solid #c7d2fe;">
+                     style="background:color-mix(in srgb,var(--brand) 10%,#fff);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                     {{ $item->icon ?? '📦' }}
                 </div>
 
@@ -119,7 +119,7 @@
                     {{-- Demo URL --}}
                     @if($item->demo_url_submission)
                     <a href="{{ $item->demo_url_submission }}" target="_blank" rel="noopener"
-                       class="text-xs mt-1 inline-block font-medium" style="color:#6366f1;">
+                       class="text-xs mt-1 inline-block font-medium" style="color:var(--brand);">
                         Demo URL →
                     </a>
                     @endif
@@ -174,7 +174,7 @@
             </div>
             <a href="{{ route('marketplace.templates') }}"
                class="text-xs font-semibold px-4 py-2 rounded-xl"
-               style="background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe;">
+               style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">
                Browse Templates →
             </a>
         </div>
@@ -210,7 +210,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <p class="font-bold text-sm" style="color:var(--text-1);">{{ $tpl['name'] }}</p>
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold"
-                              style="background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe;">Built-in</span>
+                              style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);">Built-in</span>
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold"
                               style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">Always Available</span>
                     </div>
