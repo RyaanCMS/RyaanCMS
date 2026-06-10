@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.31",
+    "latest": "1.1.32",
     "versions": [
         {
             "version": "1.0.0",
@@ -407,6 +407,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.30",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.32",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "fix: seed default sidebar menus on fresh install and registration\n\nInstallController, RegisterController, and DatabaseSeeder now call\nDefaultSidebarMenuImporter::ensureForUser() after user creation so the\nDeveloper menu section (AI Builder, AI Knowledge, Menus, Settings, etc.)\nis populated immediately on first login — no longer requires manually\nvisiting the Menus management page to trigger seeding.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.32/ryaancms-v1.1.32-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.31",
             "critical": false,
             "file_count": null
         }
