@@ -11,17 +11,17 @@ use Illuminate\Support\Str;
 
 class DefaultSidebarMenuImporter
 {
-    private const USER_MENU_CATEGORY = 'user_topbar';
-    private const DEVELOPER_MENU_CATEGORY = 'developer_menu';
+    private const USER_MENU_CATEGORY = 'user';
+    private const DEVELOPER_MENU_CATEGORY = 'developer';
 
     public function ensureForUser(User $user): void
     {
         MenuCategory::ensureDefaultsForUser($user->id);
 
-        $userMenu = $this->ensureMenu($user, 'User Menu', self::USER_MENU_CATEGORY, ['user_sidebar', 'sidebar']);
+        $userMenu = $this->ensureMenu($user, 'User Menu', self::USER_MENU_CATEGORY, ['user_topbar', 'user_sidebar', 'sidebar']);
         $this->seedUserSidebar($userMenu, $user);
 
-        $developerMenu = $this->ensureMenu($user, 'Developer Menu', self::DEVELOPER_MENU_CATEGORY, ['developer_sidebar']);
+        $developerMenu = $this->ensureMenu($user, 'Developer Menu', self::DEVELOPER_MENU_CATEGORY, ['developer_menu', 'developer_sidebar']);
         $this->seedDeveloperSidebar($developerMenu, $user);
     }
 
