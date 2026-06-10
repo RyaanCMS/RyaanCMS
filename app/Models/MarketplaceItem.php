@@ -48,6 +48,11 @@ class MarketplaceItem extends Model
         return $this->hasMany(MarketplaceInstallation::class);
     }
 
+    public function purchases()
+    {
+        return $this->hasMany(MarketplacePurchase::class);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('is_published', true)->where('status', 'approved');

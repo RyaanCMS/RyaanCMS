@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MarketplaceInstallation;
 use App\Models\MarketplaceItem;
+use App\Models\MarketplacePurchase;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Services\Module\ModuleInstaller;
@@ -246,21 +247,40 @@ class MarketplaceController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $installation = $project->marketplaceInstallations()->updateOrCreate(
-            ['marketplace_item_id' => $item->id],
+        $domain = $request->getHost();
+        $purchase = MarketplacePurchase::firstOrCreate(
             [
-                'user_id'     => Auth::id(),
-                'version'     => $item->version,
-                'status'      => 'installed',
-                'license_key' => (string) Str::uuid(),
-                'domain'      => $request->getHost(),
-                'activated_at'=> now(),
+                'user_id'             => Auth::id(),
+                'marketplace_item_id' => $item->id,
+                'domain'              => $domain,
+            ],
+            [
+                'license_key'  => (string) Str::uuid(),
+                'purchased_at' => now(),
             ]
         );
 
-        $item->increment('downloads');
+        $installation = $project->marketplaceInstallations()->updateOrCreate(
+            ['marketplace_item_id' => $item->id],
+            [
+                'user_id'                 => Auth::id(),
+                'marketplace_purchase_id' => $purchase->id,
+                'version'                 => $item->version,
+                'status'                  => 'installed',
+                'license_key'             => $purchase->license_key,
+                'domain'                  => $purchase->domain,
+                'activated_at'            => now(),
+            ]
+        );
 
-        return back()->with('success', "{$item->name} installed. License: {$installation->license_key}");
+        if ($installation->wasRecentlyCreated) {
+            $item->increment('downloads');
+        }
+
+        return back()->with(
+            'success',
+            "{$item->name} installed on {$project->name}. License {$purchase->license_key} can be reused for other projects on {$domain}."
+        );
     }
 
     // ── Upload & install a downloaded .zip package ──────────────────────────
@@ -269,7 +289,7 @@ class MarketplaceController extends Controller
     {
         $projects = Auth::user()->projects()->orderBy('name')->get();
         $installed = MarketplaceInstallation::where('user_id', Auth::id())
-            ->with(['item', 'project'])
+            ->with(['item', 'project', 'purchase'])
             ->latest()
             ->get();
 
@@ -311,37 +331,55 @@ class MarketplaceController extends Controller
         $licenseKey  = $manifest['license_key'];
         $currentHost = $request->getHost();
 
-        // Domain-locking check
-        $existing = MarketplaceInstallation::where('license_key', $licenseKey)->first();
-        if ($existing) {
-            if ($existing->domain && $existing->domain !== $currentHost) {
-                return back()->withErrors([
-                    'package' => "This license key is already activated on domain [{$existing->domain}]. "
-                               . "A package can only be used on one domain.",
-                ]);
-            }
-            $installation = $existing;
-        } else {
-            $installation = new MarketplaceInstallation();
-        }
-
         $storedPath = $file->store('packages', 'local');
         $item = MarketplaceItem::where('slug', $manifest['slug'] ?? '')->first();
 
-        $installation->fill([
-            'user_id'              => Auth::id(),
-            'project_id'           => $project->id,
-            'marketplace_item_id'  => $item?->id ?? 0,
-            'version'              => $manifest['version'] ?? '1.0.0',
-            'status'               => 'active',
-            'license_key'          => $licenseKey,
-            'domain'               => $currentHost,
-            'activated_at'         => now(),
-            'package_path'         => $storedPath,
-        ]);
-        $installation->save();
+        if (!$item) {
+            return back()->withErrors(['package' => 'Package item was not found in this marketplace.']);
+        }
 
-        if ($item) $item->increment('downloads');
+        $purchase = MarketplacePurchase::where('license_key', $licenseKey)->first();
+        if ($purchase) {
+            if ($purchase->domain !== $currentHost) {
+                return back()->withErrors([
+                    'package' => "This license key is already activated on domain [{$purchase->domain}]. "
+                               . "It can be reused for multiple projects only on that same domain.",
+                ]);
+            }
+
+            if ($purchase->user_id !== Auth::id() || $purchase->marketplace_item_id !== $item->id) {
+                return back()->withErrors(['package' => 'This license key does not belong to your account or package.']);
+            }
+        } else {
+            $purchase = MarketplacePurchase::create([
+                'user_id'             => Auth::id(),
+                'marketplace_item_id' => $item->id,
+                'license_key'         => $licenseKey,
+                'domain'              => $currentHost,
+                'purchased_at'        => now(),
+            ]);
+        }
+
+        $installation = MarketplaceInstallation::updateOrCreate(
+            [
+                'project_id'          => $project->id,
+                'marketplace_item_id' => $item->id,
+            ],
+            [
+                'user_id'                 => Auth::id(),
+                'marketplace_purchase_id' => $purchase->id,
+                'version'                 => $manifest['version'] ?? '1.0.0',
+                'status'                  => 'active',
+                'license_key'             => $purchase->license_key,
+                'domain'                  => $purchase->domain,
+                'activated_at'            => now(),
+                'package_path'            => $storedPath,
+            ]
+        );
+
+        if ($installation->wasRecentlyCreated) {
+            $item->increment('downloads');
+        }
 
         return redirect()->route('marketplace.upload-install')
             ->with('success', "✅ \"{$manifest['name']}\" installed and activated on {$currentHost}.");
@@ -355,15 +393,19 @@ class MarketplaceController extends Controller
 
         $request->validate(['license_key' => ['required', 'string']]);
 
-        if ($installation->license_key !== $request->license_key) {
+        $licenseKey = $installation->purchase?->license_key ?? $installation->license_key;
+
+        if ($licenseKey !== $request->license_key) {
             return back()->withErrors(['license_key' => 'Invalid license key.']);
         }
 
         $currentHost = $request->getHost();
 
-        if ($installation->domain && $installation->domain !== $currentHost) {
+        $licenseDomain = $installation->purchase?->domain ?? $installation->domain;
+
+        if ($licenseDomain && $licenseDomain !== $currentHost) {
             return back()->withErrors([
-                'license_key' => "This license is locked to [{$installation->domain}] and cannot be activated on [{$currentHost}].",
+                'license_key' => "This license is locked to [{$licenseDomain}] and cannot be activated on [{$currentHost}].",
             ]);
         }
 
@@ -381,7 +423,7 @@ class MarketplaceController extends Controller
     public function installed()
     {
         $installed = MarketplaceInstallation::where('user_id', Auth::id())
-            ->with(['item', 'project'])
+            ->with(['item', 'project', 'purchase'])
             ->latest()
             ->paginate(20);
 

@@ -109,6 +109,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/ai-providers',                 [SettingsController::class, 'saveAIProvider'])->name('ai-provider.save');
         Route::delete('/ai-providers/{aiProvider}',  [SettingsController::class, 'deleteAIProvider'])->name('ai-provider.delete');
         Route::post('/ai-providers/test',            [SettingsController::class, 'testAIProvider'])->name('ai-provider.test');
+        Route::post('/system-config',                [SettingsController::class, 'saveSystemConfig'])->name('system-config');
 
         // System Updates
         Route::get('/updates',              [UpdateController::class, 'index'])->name('updates');

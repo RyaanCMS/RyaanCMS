@@ -67,7 +67,8 @@
                 <div style="font-size:28px;font-weight:900;color:var(--text-1);letter-spacing:-.02em;margin-bottom:4px;">
                     {{ $item->price_formatted }}
                 </div>
-                <p style="font-size:12px;color:var(--text-3);margin-bottom:18px;">by {{ $item->developer->name ?? 'RyaanCMS' }}</p>
+                <p style="font-size:12px;color:var(--text-3);margin-bottom:8px;">by {{ $item->developer->name ?? 'RyaanCMS' }}</p>
+                <p style="font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:18px;">One purchase covers multiple project installs on this domain.</p>
 
                 <button onclick="document.getElementById('installModal').classList.remove('hidden')"
                         style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:11px;font-size:13.5px;font-weight:700;background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);cursor:pointer;transition:all .15s;margin-bottom:10px;"
@@ -113,7 +114,7 @@
      onclick="if(event.target===this) this.classList.add('hidden')">
     <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.18);">
         <h3 style="font-size:15px;font-weight:800;color:var(--text-1);margin-bottom:4px;">Install "{{ $item->name }}"</h3>
-        <p style="font-size:12px;color:var(--text-3);margin-bottom:20px;">Select a project to install into</p>
+        <p style="font-size:12px;color:var(--text-3);margin-bottom:20px;">Select a project. Existing purchases are reused on this domain.</p>
         <form method="POST" action="{{ route('marketplace.install', $item) }}">
             @csrf
             <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Project</label>

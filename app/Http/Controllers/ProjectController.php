@@ -214,7 +214,7 @@ class ProjectController extends Controller
         $templates     = $projectModules->filter(fn($m) => str_starts_with($m->module_key, 'template.'));
         $modules       = $projectModules->filter(fn($m) => !str_starts_with($m->module_key, 'template.'));
         $installations = MarketplaceInstallation::where('project_id', $project->id)
-            ->with('item')
+            ->with(['item', 'purchase'])
             ->latest()
             ->get();
 
@@ -256,7 +256,7 @@ class ProjectController extends Controller
 
         $allModules     = app(ModuleRegistry::class)->all();
         $installations  = MarketplaceInstallation::where('project_id', $project->id)
-            ->with('item')->latest()->get();
+            ->with(['item', 'purchase'])->latest()->get();
         $projectModules = ProjectModule::where('project_id', $project->id)
             ->where('module_key', 'not like', 'template.%')
             ->get()

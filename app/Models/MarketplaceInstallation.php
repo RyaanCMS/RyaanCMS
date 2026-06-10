@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MarketplaceInstallation extends Model
 {
     protected $fillable = [
-        'user_id', 'project_id', 'marketplace_item_id', 'version', 'status',
+        'user_id', 'project_id', 'marketplace_item_id', 'marketplace_purchase_id', 'version', 'status',
         'license_key', 'domain', 'activated_at', 'package_path',
     ];
 
@@ -23,5 +23,10 @@ class MarketplaceInstallation extends Model
     public function item()
     {
         return $this->belongsTo(MarketplaceItem::class, 'marketplace_item_id');
+    }
+
+    public function purchase()
+    {
+        return $this->belongsTo(MarketplacePurchase::class, 'marketplace_purchase_id');
     }
 }

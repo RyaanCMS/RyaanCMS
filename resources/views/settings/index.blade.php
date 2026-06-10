@@ -8,6 +8,8 @@
     $savedFont   = \App\Models\Setting::get('branding.font_family',   'Poppins', $userId);
     $savedLogo   = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $savedFav    = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
+    $showDashMenu    = \App\Models\Setting::get('system.show_dashboard_menu',    true, $userId);
+    $showDashSidebar = \App\Models\Setting::get('system.show_dashboard_sidebar', true, $userId);
 @endphp
 
 @push('head')
@@ -98,7 +100,22 @@
      x-data="{
         tab: '{{ session('_tab', 'profile') }}',
         brandColor: '{{ $savedColor }}',
-        fontFamily: '{{ $savedFont }}'
+        fontFamily: '{{ $savedFont }}',
+        sysShowMenu: {{ $showDashMenu ? 'true' : 'false' }},
+        sysShowSidebar: {{ $showDashSidebar ? 'true' : 'false' }},
+        sysSaving: false,
+        sysSaved: false,
+        async saveSystemConfig() {
+            this.sysSaving = true;
+            await fetch('{{ route('settings.system-config') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar })
+            });
+            this.sysSaving = false;
+            this.sysSaved = true;
+            setTimeout(() => this.sysSaved = false, 2500);
+        }
      }">
 
     {{-- ══ LEFT NAV ══ --}}
@@ -163,6 +180,14 @@
                 </div>
                 Updates
             </a>
+            <button @click="tab='system_config'" :class="tab==='system_config' ? 'active' : ''" class="st-nav-item">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                </div>
+                System Config
+            </button>
 
             <div class="st-nav-sep"></div>
             <div class="st-nav-label">More</div>
@@ -658,6 +683,81 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- ──── SYSTEM CONFIG ──── --}}
+        <div x-show="tab === 'system_config'" class="st-panel" x-cloak>
+
+            {{-- Success toast --}}
+            <div x-show="sysSaved" x-transition
+                 style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
+                <svg style="width:16px;height:16px;flex-shrink:0;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                System config saved.
+            </div>
+
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:color-mix(in srgb,var(--brand) 10%,#fff);">
+                        <svg style="width:15px;height:15px;stroke:var(--brand)" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:#0f172a;">Dashboard Layout</div>
+                        <div style="font-size:11.5px;color:#94a3b8;margin-top:1px;">Show or hide the sidebar and top menu bar</div>
+                    </div>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:0;">
+
+                    {{-- Sidebar toggle --}}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-size:13.5px;font-weight:600;color:#0f172a;">Dashboard Sidebar</div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Show the left navigation sidebar</div>
+                        </div>
+                        <button type="button" @click="sysShowSidebar = !sysShowSidebar; saveSystemConfig()"
+                                :aria-checked="sysShowSidebar" role="switch"
+                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
+                                :style="sysShowSidebar ? 'background:var(--brand)' : 'background:#d1d5db'">
+                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
+                                  :style="sysShowSidebar ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                        </button>
+                    </div>
+
+                    {{-- Menu toggle --}}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;">
+                        <div>
+                            <div style="font-size:13.5px;font-weight:600;color:#0f172a;">Dashboard Top Menu</div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Show the top navigation bar with breadcrumbs and actions</div>
+                        </div>
+                        <button type="button" @click="sysShowMenu = !sysShowMenu; saveSystemConfig()"
+                                :aria-checked="sysShowMenu" role="switch"
+                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
+                                :style="sysShowMenu ? 'background:var(--brand)' : 'background:#d1d5db'">
+                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
+                                  :style="sysShowMenu ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="scard" style="border-left:3px solid #f59e0b;">
+                <div class="scard-body" style="display:flex;align-items:flex-start;gap:12px;">
+                    <div style="width:32px;height:32px;border-radius:9px;background:#fffbeb;border:1px solid #fde68a;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg style="width:15px;height:15px;stroke:#d97706" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:#92400e;margin-bottom:3px;">Note</div>
+                        <div style="font-size:12.5px;color:#b45309;line-height:1.5;">
+                            Hiding the sidebar or top menu takes effect on the next page load. You can always restore them from this page.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         {{-- ──── NOTIFICATIONS ──── --}}

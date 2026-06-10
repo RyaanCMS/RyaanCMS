@@ -85,7 +85,8 @@
             <h2>4. Plugin Marketplace & License Keys</h2>
             <p>Plugins and applications distributed through the RyaanCMS marketplace are subject to individual license terms set by their respective developers. When you install a marketplace package:</p>
             <ul>
-                <li>A unique license key is issued per installation and is <strong>domain-locked</strong> — it may only be activated on a single domain</li>
+                <li>A unique license key is issued per marketplace item purchase and is <strong>domain-locked</strong> to a single domain</li>
+                <li>You may install the purchased marketplace item into multiple projects on that same domain</li>
                 <li>Attempting to activate a license key on a different domain than originally registered is a violation of these Terms</li>
                 <li>License keys may not be transferred, resold, or shared</li>
                 <li>Developer packages uploaded to the marketplace must comply with our content guidelines and must not contain malicious code</li>

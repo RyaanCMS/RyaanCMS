@@ -255,18 +255,26 @@
         .sys-badge-pro     { --c: #7c3aed; }
         .sys-badge-gray    { background: var(--surface-raised); color: var(--text-2); border-color: var(--border); }
 
-        /* ── KPI / stat card ── */
+        /* ── KPI / stat card — always square ── */
         .kpi-card {
             border-radius: 14px;
             background: var(--surface-base);
             border: 1px solid var(--border);
             border-left: 3px solid var(--c, var(--brand));
             box-shadow: var(--shadow);
-            padding: 16px 18px;
-            display: flex; flex-direction: column; gap: 4px;
+            padding: 18px;
+            aspect-ratio: 1;
+            display: flex; flex-direction: column; gap: 6px;
+            justify-content: center; align-items: center; text-align: center;
         }
         .kpi-val   { font-size: 26px; font-weight: 800; color: var(--c, var(--brand)); letter-spacing: -.02em; line-height: 1; }
         .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+
+        /* ── Square card variant ── */
+        .sys-card-sq {
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
 
         /* ── Grid layouts ── */
         .sys-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }

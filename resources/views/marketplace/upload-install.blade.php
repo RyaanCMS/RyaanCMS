@@ -121,10 +121,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                     <div>
-                        <p class="text-xs font-semibold" style="color:#c2410c;">Single-domain license</p>
+                        <p class="text-xs font-semibold" style="color:#c2410c;">Single-domain license, multiple projects</p>
                         <p class="text-xs mt-0.5" style="color:#9a3412;">
                             This package will be locked to <strong>{{ request()->getHost() }}</strong>.
-                            Using the same package on another domain is not permitted.
+                            You can reuse the same license for multiple projects on this domain.
                         </p>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                         ['step'=>'1','color'=>'#6366f1','title'=>'Browse Marketplace','desc'=>'Find a plugin or app you need.'],
                         ['step'=>'2','color'=>'#8b5cf6','title'=>'Download Package','desc'=>'Download the .zip file to your computer.'],
                         ['step'=>'3','color'=>'#a855f7','title'=>'Upload Here','desc'=>'Upload the .zip in this form and select your project.'],
-                        ['step'=>'4','color'=>'#ec4899','title'=>'Auto-Activated','desc'=>'License is tied to this domain automatically.'],
+                        ['step'=>'4','color'=>'#ec4899','title'=>'Auto-Activated','desc'=>'License is tied to this domain and can be reused across projects here.'],
                     ] as $s)
                     <div class="flex items-start space-x-3">
                         <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -171,9 +171,9 @@
                 <h3 class="font-bold text-sm mb-3" style="color:var(--text-1);">License Protection</h3>
                 <div class="space-y-2">
                     @foreach([
-                        ['icon'=>'M9 12l2 2 4-4','txt'=>'One license key per installation'],
-                        ['icon'=>'M9 12l2 2 4-4','txt'=>'Locked to single domain only'],
-                        ['icon'=>'M9 12l2 2 4-4','txt'=>'Cannot be used on multiple servers'],
+                        ['icon'=>'M9 12l2 2 4-4','txt'=>'One purchase per marketplace item'],
+                        ['icon'=>'M9 12l2 2 4-4','txt'=>'Use on multiple projects in this domain'],
+                        ['icon'=>'M9 12l2 2 4-4','txt'=>'Locked to a single domain license'],
                         ['icon'=>'M12 15v2m-6 4h12a2 2 0 002-2v-6','txt'=>'Redistribution is blocked automatically'],
                     ] as $li)
                     <div class="flex items-center space-x-2">

@@ -1331,6 +1331,16 @@ Tech Stack:  {$stack}
 
 {$wisdomBrief}
 
+═══════════════════════════════════════════════
+UI CARD DESIGN RULES (mandatory)
+═══════════════════════════════════════════════
+• KPI / stat cards MUST be square: use `aspect-ratio:1` + `display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;`
+• Feature / module cards: use `.sys-card` with `style="--c:<hex>"` for per-card hover color
+• Never use fixed `height` on cards — let `aspect-ratio:1` (stat) or natural content height (feature) drive sizing
+• Card accent: `border-left:3px solid var(--c,var(--brand))` on hover; shadow: `0 10px 36px color-mix(in srgb,var(--c,var(--brand)) 20%,transparent)`
+• Icon badge: `width:40px;height:40px;border-radius:11px;background:color-mix(in srgb,var(--c,var(--brand)) 10%,#fff)`
+• Action buttons: `background:color-mix(in srgb,var(--c,var(--brand)) 10%,#fff);color:var(--c,var(--brand))` → solid on hover
+
 When modifying existing files: read the file content provided in the user message,
 make only the requested changes, and return the complete updated file.
 Never skip unchanged sections with "..." or "// rest stays same".

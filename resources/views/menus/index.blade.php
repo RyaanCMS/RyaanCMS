@@ -16,21 +16,6 @@
 @section('content')
 <div x-data="menuTable()" @open-add-menu.window="showAddModal = true" class="space-y-5">
 
-    {{-- Stats bar --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        @foreach([
-            ['label' => 'Total Menus', 'value' => $menus->count(),                                                                   'color' => '#6366f1'],
-            ['label' => 'Active',      'value' => $menus->where('is_active', true)->count(),                                          'color' => '#10b981'],
-            ['label' => 'Admin Menus', 'value' => $menus->whereIn('category', ['sidebar','admin_sidebar'])->count(),                  'color' => '#7c3aed'],
-            ['label' => 'User Menus',  'value' => $menus->where('category', 'user_topbar')->count(),                                  'color' => '#f59e0b'],
-        ] as $s)
-        <div class="kpi-card" style="--c:{{ $s['color'] }};background:var(--card-bg);">
-            <div class="kpi-val">{{ $s['value'] }}</div>
-            <div class="kpi-label">{{ $s['label'] }}</div>
-        </div>
-        @endforeach
-    </div>
-
     {{-- Data table card --}}
     <div class="rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);">
 
