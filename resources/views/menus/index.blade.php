@@ -13,14 +13,26 @@
                 <h2 class="dt-title">Menu Management</h2>
                 <p class="dt-subtitle">Create and manage navigation menus, assign items, and control visibility.</p>
             </div>
-            <button type="button" @click="showAddModal = true"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white border-none cursor-pointer flex-shrink-0"
-                    style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
-                <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                New Menu
-            </button>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button type="button" @click="showCategoryModal = true"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border cursor-pointer"
+                        style="border-color:var(--border);background:var(--surface-raised);color:var(--text-2);"
+                        onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'"
+                        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)'">
+                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    New Category
+                </button>
+                <button type="button" @click="showAddModal = true"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white border-none cursor-pointer"
+                        style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Menu
+                </button>
+            </div>
         </div>
 
         {{-- Toolbar --}}
@@ -759,6 +771,82 @@
         @csrf @method('DELETE')
     </form>
 
+    {{-- ── New Category Modal ──────────────────────────────────────── --}}
+    <div x-show="showCategoryModal" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background:rgba(0,0,0,.45);"
+         @click.self="showCategoryModal = false"
+         x-transition:enter="transition duration-200" x-transition:leave="transition duration-150">
+        <div class="w-full rounded-2xl overflow-hidden"
+             style="max-width:460px;background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);"
+             @click.stop
+             x-transition:enter="transition duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+
+            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
+                <div>
+                    <h3 class="font-bold text-base" style="color:var(--text-1)">New Menu Category</h3>
+                    <p style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Add a reusable category for menus.</p>
+                </div>
+                <button @click="showCategoryModal = false" class="w-7 h-7 rounded-lg flex items-center justify-center border-none cursor-pointer" style="background:none;color:var(--text-3);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background=''">
+                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('menu-categories.store') }}" class="p-6" style="display:flex;flex-direction:column;gap:14px;">
+                @csrf
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Category Name <span style="color:#ef4444">*</span></label>
+                    <input type="text" name="name" placeholder="e.g. Blog Menu" required autofocus
+                           style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Slug</label>
+                    <input type="text" name="slug" placeholder="blog-menu"
+                           style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                    <p style="font-size:11px;color:var(--text-3);margin-top:4px;">Leave blank to auto-generate from name.</p>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Parent Category</label>
+                    <select name="parent_id" style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);font-size:13px;color:var(--text-1);outline:none;">
+                        <option value="">Top Level Category</option>
+                        @foreach($menuCategories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Color</label>
+                        <input type="color" name="color" value="#6366f1" style="width:100%;height:38px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);padding:2px 4px;cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Sort Order</label>
+                        <input type="number" name="sort_order" value="100" min="0" max="9999"
+                               style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;"
+                               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                    </div>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" checked style="width:15px;height:15px;border-radius:4px;accent-color:var(--brand);">
+                    <span style="font-size:13px;color:var(--text-2);">Active</span>
+                </label>
+                <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:8px;border-top:1px solid var(--border);margin-top:4px;">
+                    <button type="button" @click="showCategoryModal = false"
+                            style="padding:8px 18px;border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--border);background:none;color:var(--text-2);cursor:pointer;">Cancel</button>
+                    <button type="submit"
+                            style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:700;border:none;background:var(--brand);color:#fff;cursor:pointer;box-shadow:0 2px 8px var(--brand-ring);">
+                        Create Category
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -955,7 +1043,7 @@ function menuTable() {
     return {
         search: '', page: 1, perPage: 15, perPageOpts: [10, 15, 25, 50],
         statusFilter: 'all', sortBy: 'sort_order', categoryFilter: '',
-        showAddModal: false, showEditModal: false,
+        showAddModal: false, showEditModal: false, showCategoryModal: false,
         editMenu: { name: '', url: '', icon: '', category: '', is_active: true },
         deleteTarget: null, moving: false,
         allMenus: @json($menus),
