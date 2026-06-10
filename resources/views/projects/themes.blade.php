@@ -205,6 +205,10 @@
                         style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--hover-bg);color:var(--text-2);cursor:pointer;">
                     Deactivate
                 </button>
+                <a href="{{ route('builder.show', ['project' => $project, 'template' => $activeKey]) }}"
+                   style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;">
+                    AI Customize
+                </a>
                 <a href="{{ route('marketplace.template.download', $activeKey) }}"
                    style="display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--hover-bg);color:var(--text-2);text-decoration:none;">
                     ⬇ Download ZIP
@@ -260,6 +264,8 @@
                     </button>
                     <a href="{{ route('marketplace.template.download', $key) }}"
                        class="btn-secondary" title="Download ZIP">⬇</a>
+                    <a href="{{ route('builder.show', ['project' => $project, 'template' => $key]) }}"
+                       class="btn-secondary" title="Customize with AI">AI</a>
                     <button class="btn-danger" onclick="doRemove('{{ $key }}', this)" title="Remove">✕</button>
                 </div>
             </div>
@@ -303,6 +309,8 @@
                     <button class="btn-activate" onclick="doInstallActivate('{{ $key }}', '{{ addslashes($tpl['name']) }}', this)">
                         Install &amp; Activate
                     </button>
+                    <a href="{{ route('builder.show', ['project' => $project, 'template' => $key]) }}"
+                       class="btn-secondary" title="Customize with AI">AI</a>
                     <a href="{{ route('marketplace.template.download', $key) }}"
                        class="btn-secondary" title="Download ZIP">⬇</a>
                 </div>

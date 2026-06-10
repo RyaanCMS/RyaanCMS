@@ -10,11 +10,13 @@ use App\Services\AI\BlueprintService;
 use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\MetadataCrudGenerator;
+use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use ZipArchive;
 
@@ -23,6 +25,7 @@ class AIBuilderController extends Controller
     private const MAX_ATTACHED_TEXT_CHARS = 12000;
     private const MAX_IMAGE_BYTES_FOR_PROMPT = 4194304;
     private const MAX_PROJECT_FILE_CHARS = 1048576;
+    private const MAX_TEMPLATE_SOURCE_CHARS = 12000;
 
     public function __construct(
         protected AIManager        $aiManager,
@@ -30,9 +33,10 @@ class AIBuilderController extends Controller
         protected BlueprintService $blueprintService,
         protected MetadataCrudGenerator $crudGenerator,
         protected ComponentRegistry $componentRegistry,
+        protected TemplateRegistry $templateRegistry,
     ) {}
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
         $this->authorize('view', $project);
 
@@ -40,6 +44,10 @@ class AIBuilderController extends Controller
         $providers   = Auth::user()->aiProviders()->where('is_active', true)->get();
         $conversations = $project->conversations()->limit(20)->get();
         $aiProviders = config('ai.providers');
+        $templates   = $this->templateRegistry->all();
+        $selectedTemplateKey = $this->templateRegistry->get((string) $request->query('template'))
+            ? (string) $request->query('template')
+            : null;
 
         // Load or create active conversation
         $conversation = $project->conversations()->latest()->first()
@@ -54,7 +62,7 @@ class AIBuilderController extends Controller
 
         return view('builder.show', compact(
             'project', 'files', 'providers', 'conversations',
-            'conversation', 'messages', 'aiProviders'
+            'conversation', 'messages', 'aiProviders', 'templates', 'selectedTemplateKey'
         ));
     }
 
@@ -67,6 +75,7 @@ class AIBuilderController extends Controller
             'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
             'provider'        => ['nullable', 'string'],
             'model'           => ['nullable', 'string'],
+            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->templateRegistry->all()))],
             'url'             => ['nullable', 'url', 'max:500'],
             'files'           => ['nullable', 'array', 'max:10'],
             'files.*'         => ['nullable', 'file', 'max:10240'],
@@ -92,6 +101,11 @@ class AIBuilderController extends Controller
             if ($fetched) {
                 $contextParts[] = $fetched;
             }
+        }
+
+        $templateContext = $this->templatePromptContext($request->input('template_key'));
+        if ($templateContext) {
+            $contextParts[] = $templateContext;
         }
 
         $prompt = empty($contextParts)
@@ -126,6 +140,7 @@ class AIBuilderController extends Controller
                 conversation: $conversation,
                 provider:     $provider,
                 model:        $request->model,
+                visiblePrompt: $this->visiblePromptWithTemplate($userMessage, $request->input('template_key')),
             );
 
             return response()->json([
@@ -264,6 +279,77 @@ class AIBuilderController extends Controller
         }
     }
 
+    private function templatePromptContext(?string $templateKey): ?string
+    {
+        if (!$templateKey) {
+            return null;
+        }
+
+        $template = $this->templateRegistry->get($templateKey);
+        if (!$template) {
+            return null;
+        }
+
+        $source = $this->templateSource($template);
+        $tags = implode(', ', $template['tags'] ?? []);
+        $slug = str_replace('template.', '', $templateKey);
+
+        return <<<PROMPT
+RYAAN TEMPLATE CUSTOMIZATION CONTEXT
+Selected template key: {$templateKey}
+Template name: {$template['name']}
+Category: {$template['category']}
+Description: {$template['description']}
+Tags: {$tags}
+
+Instructions:
+- Use this template as the design and content base for the user's customization prompt.
+- Keep the original structure and quality unless the user asks for a larger redesign.
+- Always generate or update `preview.html` so the Builder preview shows the customized template immediately.
+- If a reusable Blade template is useful, save it as `resources/views/templates/custom-{$slug}.blade.php`.
+- Do not edit RyaanCMS platform files or the built-in template source directly.
+
+Current template source:
+```blade
+{$source}
+```
+PROMPT;
+    }
+
+    private function templateSource(array $template): string
+    {
+        $view = $template['view'] ?? '';
+        $path = resource_path('views/' . str_replace('.', '/', $view) . '.blade.php');
+
+        if (!is_file($path)) {
+            return '[Template source file not found.]';
+        }
+
+        $source = file_get_contents($path) ?: '';
+
+        if (preg_match("/@include\\(['\"]([^'\"]+)['\"]\\)/", $source, $match)) {
+            $includedPath = resource_path('views/' . str_replace('.', '/', $match[1]) . '.blade.php');
+            if (is_file($includedPath)) {
+                $included = file_get_contents($includedPath) ?: '';
+                $source .= "\n\n[Included view: {$match[1]}]\n" . $included;
+            }
+        }
+
+        return $this->limitPromptText($source, self::MAX_TEMPLATE_SOURCE_CHARS);
+    }
+
+    private function visiblePromptWithTemplate(string $message, ?string $templateKey): string
+    {
+        $template = $templateKey ? $this->templateRegistry->get($templateKey) : null;
+        if (!$template) {
+            return $message;
+        }
+
+        $request = trim($message) ?: 'Customize this template.';
+
+        return "Customize template: {$template['name']}\n\n{$request}";
+    }
+
     public function streamChat(Request $request, Project $project)
     {
         $this->authorize('update', $project);
@@ -273,6 +359,7 @@ class AIBuilderController extends Controller
             'conversation_id' => ['nullable', 'exists:ai_conversations,id'],
             'provider'        => ['nullable', 'string'],
             'model'           => ['nullable', 'string'],
+            'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->templateRegistry->all()))],
         ]);
 
         $provider = $request->input('provider', 'claude');
@@ -298,7 +385,14 @@ class AIBuilderController extends Controller
         // null inside response()->stream() on some session drivers.
         $user = Auth::user();
 
-        return response()->stream(function () use ($request, $project, $conversation, $provider, $user) {
+        $templateContext = $this->templatePromptContext($request->input('template_key'));
+        $userMessage = trim($request->message);
+        $prompt = $templateContext
+            ? $templateContext . "\n\n---\n\nUser request: " . $userMessage
+            : $userMessage;
+        $visiblePrompt = $this->visiblePromptWithTemplate($userMessage, $request->input('template_key'));
+
+        return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt) {
             $emit = function (array $event) {
                 echo 'data: ' . json_encode($event) . "\n\n";
                 if (ob_get_level() > 0) ob_flush();
@@ -307,13 +401,14 @@ class AIBuilderController extends Controller
 
             try {
                 $this->codeGenerator->streamGenerate(
-                    prompt:       $request->message,
+                    prompt:       $prompt,
                     project:      $project,
                     user:         $user,
                     conversation: $conversation,
                     onEvent:      $emit,
                     provider:     $provider,
                     model:        $request->model,
+                    visiblePrompt: $visiblePrompt,
                 );
             } catch (\Throwable $e) {
                 $emit(['type' => 'error', 'message' => $e->getMessage()]);

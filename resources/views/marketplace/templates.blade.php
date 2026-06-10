@@ -233,6 +233,13 @@
                         </button>
                     </template>
                     @endif
+
+                    <button x-show="selectedProject" x-cloak
+                            class="py-2 px-3 rounded-lg text-xs font-bold"
+                            style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;"
+                            x-on:click="customize('{{ $key }}')">
+                        AI Customize
+                    </button>
                 </div>
             </div>
         </div>
@@ -289,6 +296,16 @@ function templateBrowser() {
 
         getStatus(key) {
             return this.localStatus[key] ?? null;
+        },
+
+        customize(key) {
+            if (!this.selectedProject) {
+                this.feedback = 'Select a project before customizing a template.';
+                this.feedbackOk = false;
+                return;
+            }
+
+            window.location.href = `/builder/${this.selectedProject}?template=${encodeURIComponent(key)}`;
         },
 
         async activateMain(key) {

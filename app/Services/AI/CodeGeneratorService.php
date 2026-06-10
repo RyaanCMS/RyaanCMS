@@ -194,20 +194,23 @@ class CodeGeneratorService
         User $user,
         AIConversation $conversation,
         ?string $provider = null,
-        ?string $model = null
+        ?string $model = null,
+        ?string $visiblePrompt = null
     ): array {
         // $rawPrompt is stored in conversation (user sees this — no [Normalized intent] clutter).
         // $prompt is the AI-facing version with optional English intent suffix.
-        $rawPrompt  = $this->sanitizeUserPrompt($prompt);
-        $prompt     = $this->normalizer->enrichPrompt($rawPrompt);
+        $aiPromptRaw = $this->sanitizeUserPrompt($prompt);
+        $rawPrompt   = $this->sanitizeUserPrompt($visiblePrompt ?? $prompt);
+        $prompt      = $this->normalizer->enrichPrompt($aiPromptRaw);
         $isTiny     = $this->isTinyEdit($prompt);
+        $isTemplateCustomization = str_contains(strtolower($prompt), 'ryaan template customization context');
 
         // AIRouter: classify task and resolve model tier + token budget
         $route    = $this->aiRouter->route($prompt);
         $taskType = $route['task_type'];
 
         // Component Registry check: match standard UI components before touching AI
-        $componentKey = $this->componentRegistry->matchComponent($prompt);
+        $componentKey = $isTemplateCustomization ? null : $this->componentRegistry->matchComponent($prompt);
         if ($componentKey) {
             $component = $this->componentRegistry->get($componentKey);
             $saved     = $this->componentRegistry->tokensSaved($componentKey);
@@ -228,7 +231,9 @@ class CodeGeneratorService
         }
 
         // Wisdom routing: check if this task can bypass AI entirely
-        $wisdomRoute = $this->wisdomEngine->getAiRoutingDecision($taskType);
+        $wisdomRoute = $isTemplateCustomization
+            ? ['use_ai' => true, 'routing_step' => 7, 'reason' => 'Template customization requires AI.']
+            : $this->wisdomEngine->getAiRoutingDecision($taskType);
         if (!$wisdomRoute['use_ai']) {
             $this->autoTitleConversation($conversation, $rawPrompt);
             $conversation->addMessage('user', $rawPrompt);
@@ -626,6 +631,10 @@ TINY;
     private function isFullSystemRequest(string $prompt): bool
     {
         $lower = strtolower($prompt);
+
+        if (str_contains($lower, 'ryaan template customization context')) {
+            return false;
+        }
 
         $actionWords = [
             'create', 'build', 'make', 'generate', 'develop', 'implement',
@@ -1917,13 +1926,15 @@ HTML;
         AIConversation $conversation,
         callable $onEvent,
         ?string $provider = null,
-        ?string $model = null
+        ?string $model = null,
+        ?string $visiblePrompt = null
     ): void {
         try {
             // $rawPrompt stored in conversation (user-visible — clean, no [Normalized intent]).
             // $prompt is the AI-facing version with optional English intent hint.
-            $rawPrompt    = $this->sanitizeUserPrompt($prompt);
-            $prompt       = $this->normalizer->enrichPrompt($rawPrompt);
+            $aiPromptRaw  = $this->sanitizeUserPrompt($prompt);
+            $rawPrompt    = $this->sanitizeUserPrompt($visiblePrompt ?? $prompt);
+            $prompt       = $this->normalizer->enrichPrompt($aiPromptRaw);
             $isTiny       = $this->isTinyEdit($prompt);
             $aiProvider   = $this->aiManager->provider($provider, $user);
 

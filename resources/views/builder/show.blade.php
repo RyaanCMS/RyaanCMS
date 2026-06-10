@@ -663,6 +663,16 @@
                 </div>
             </div>
 
+            <div x-show="selectedTemplateKey" x-cloak class="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-xl"
+                 style="background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;">
+                <div class="min-w-0">
+                    <div class="text-xs font-bold truncate" x-text="'AI template context: ' + selectedTemplateName()"></div>
+                    <div class="text-xs opacity-80 truncate">Your prompt will customize this template.</div>
+                </div>
+                <button @click="selectedTemplateKey=''" class="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-lg"
+                        style="background:#fff;color:#4338ca;border:1px solid #c7d2fe;">Clear</button>
+            </div>
+
             <!-- URL input row -->
             <div x-show="showUrlInput" x-transition class="flex items-center gap-2 mb-2">
                 <input type="url" x-model="urlInput"
@@ -789,6 +799,15 @@
                                   x-text="todos.filter(t=>!t.done).length"
                                   style="position:absolute;top:2px;right:2px;min-width:14px;height:14px;padding:0 3px;border-radius:99px;background:var(--brand);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
                         </button>
+                        <select x-model="selectedTemplateKey"
+                                title="Use a template as AI context"
+                                class="text-xs rounded-xl px-2 py-1.5 outline-none"
+                                style="max-width:150px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-weight:600;">
+                            <option value="">Template</option>
+                            @foreach($templates as $key => $tpl)
+                            <option value="{{ $key }}">{{ $tpl['name'] }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="flex items-center gap-2">
                         <span x-show="isRecording && !isThinking" class="text-xs font-medium" style="color:#ef4444;">● REC</span>
@@ -1077,6 +1096,11 @@ $messageData = $messages->map(fn($m) => [
     $providerDefaultsMap = $activeProviders->mapWithKeys(function ($p) {
         return [$p->provider => config('ai.providers.' . $p->provider . '.default_model', '')];
     })->toArray();
+    $templateOptions = collect($templates)->map(fn($tpl, $key) => [
+        'key'      => $key,
+        'name'     => $tpl['name'],
+        'category' => $tpl['category'],
+    ])->values();
 @endphp
 @push('scripts')
 <script>
@@ -1104,6 +1128,8 @@ function builderApp() {
         urlInput: '',
         urlPreview: '',
         showUrlInput: false,
+        selectedTemplateKey: @json($selectedTemplateKey),
+        templateOptions: @json($templateOptions),
         isRecording: false,
         recognition: null,
         _streamAbortCtrl: null,
@@ -1113,10 +1139,25 @@ function builderApp() {
         providerDefaults: @json($providerDefaultsMap),
         conversationId: {{ $conversation->id }},
         projectId: {{ $project->id }},
+        projectName: @json($project->name),
         tokensUsed: {{ (int) $project->ai_tokens_used }},
         tokensSaved: 0,
         cacheHits: 0,
         csrfToken: document.querySelector('meta[name="csrf-token"]').content,
+
+        selectedTemplate() {
+            return this.templateOptions.find(t => t.key === this.selectedTemplateKey) || null;
+        },
+
+        selectedTemplateName() {
+            return this.selectedTemplate()?.name || 'Selected template';
+        },
+
+        defaultTemplatePrompt() {
+            const tpl = this.selectedTemplate();
+            if (!tpl) return '';
+            return `Customize the ${tpl.name} template for ${this.projectName}. Update the copy, layout, colors, imagery notes, sections, and calls to action to match this project. Generate a polished preview.html.`;
+        },
 
         init() {
             // Last-known-good preview snapshot — restored on any JS error in the iframe
@@ -1170,8 +1211,19 @@ function builderApp() {
 
             // Pre-fill chat from ?prompt= and optionally auto-send with ?autostart=1
             const _params = new URLSearchParams(window.location.search);
+            if (_params.has('template')) {
+                const key = _params.get('template');
+                if (this.templateOptions.some(t => t.key === key)) {
+                    this.selectedTemplateKey = key;
+                }
+            }
             if (_params.has('prompt')) {
-                this.chatInput = decodeURIComponent(_params.get('prompt'));
+                this.chatInput = _params.get('prompt') || '';
+            } else if (this.selectedTemplateKey) {
+                this.chatInput = this.defaultTemplatePrompt();
+            }
+
+            if (_params.has('prompt') || _params.has('template')) {
                 history.replaceState({}, '', window.location.pathname);
                 if (_params.get('autostart') === '1') {
                     this.$nextTick(() => setTimeout(() => this.sendMessage(), 800));
@@ -1820,6 +1872,7 @@ window.addEventListener('unhandledrejection', function(e) {
             const message  = text || this.chatInput.trim();
             const hasFiles = this.attachments.length > 0;
             const hasUrl   = !!this.urlPreview;
+            const hasTemplate = !!this.selectedTemplateKey;
             if ((!message && !hasFiles && !hasUrl) || this.isThinking) return;
 
             if (this.isRecording) { this.recognition?.stop(); this.isRecording = false; }
@@ -1830,6 +1883,7 @@ window.addEventListener('unhandledrejection', function(e) {
             const displayParts = [message];
             if (hasFiles) displayParts.push('📎 ' + this.attachments.map(a => a.icon + ' ' + a.name).join(', '));
             if (hasUrl)   displayParts.push('🌐 ' + this.urlPreview);
+            if (hasTemplate) displayParts.unshift('Template: ' + this.selectedTemplateName());
             const displayPrompt = displayParts.filter(Boolean).join('\n');
 
             try {
@@ -1898,6 +1952,7 @@ window.addEventListener('unhandledrejection', function(e) {
                         conversation_id: this.conversationId,
                         provider:        this.selectedProvider,
                         model:           this.selectedModel,
+                        template_key:    this.selectedTemplateKey || null,
                     }),
                     signal: this._streamAbortCtrl.signal,
                 });
@@ -2015,6 +2070,7 @@ window.addEventListener('unhandledrejection', function(e) {
             fd.append('conversation_id', this.conversationId);
             fd.append('provider', this.selectedProvider);
             fd.append('model', this.selectedModel);
+            if (this.selectedTemplateKey) fd.append('template_key', this.selectedTemplateKey);
             if (this.urlPreview) fd.append('url', this.urlPreview);
             this.attachments.forEach(att => fd.append('files[]', att.file, att.name));
 

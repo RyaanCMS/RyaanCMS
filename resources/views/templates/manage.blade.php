@@ -163,6 +163,10 @@ $activeKeyJson = json_encode($activeKey);
                     <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     Live Preview
                 </a>
+                <a href="{{ route('builder.show', ['project' => $siteProject, 'template' => $activeKey]) }}"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:9px;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:12.5px;font-weight:700;text-decoration:none;">
+                    AI Customize
+                </a>
                 @endif
                 <button type="button" @click="deactivate('{{ $activeKey }}')" :disabled="loading==='{{ $activeKey }}'"
                         style="padding:7px 16px;border-radius:9px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);cursor:pointer;"
@@ -210,6 +214,13 @@ $activeKeyJson = json_encode($activeKey);
                     </button>
                     @else
                     <span class="btn-tmpl" style="opacity:.5;cursor:default;pointer-events:none;">No site project</span>
+                    @endif
+                    @if($siteProject)
+                    <a href="{{ route('builder.show', ['project' => $siteProject, 'template' => $key]) }}"
+                       class="btn-tmpl"
+                       style="text-decoration:none;background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;">
+                        AI Customize
+                    </a>
                     @endif
                 </div>
             </div>
