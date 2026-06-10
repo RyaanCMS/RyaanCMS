@@ -1010,7 +1010,17 @@
 </template>
 
 {{-- ═══════════════ APP SHELL ═══════════════ --}}
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden"
+     @mousemove.window.passive="
+         if (window.innerWidth < 1024) return;
+         if (document.querySelector('.app-sidebar')?.classList.contains('sidebar-autohide')) return;
+         if ($event.clientX < 64) {
+             clearTimeout(window._sbL); window._sbL = null;
+             if (!sidebarHovered) sidebarHovered = true;
+         } else {
+             if (!window._sbL) window._sbL = setTimeout(() => { sidebarHovered = false; window._sbL = null; }, 220);
+         }
+     ">
 
     <!-- Mobile backdrop -->
     <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -1431,29 +1441,6 @@ function appLayout() {
             });
 
             this.$watch('sidebarOpen', v => localStorage.setItem('sb_open', v));
-
-            // ── Sidebar hover: mousemove on document checks clientX against sidebar width.
-            // This is immune to CSS hit-testing quirks inside overflow:hidden and
-            // immune to layout-reflow spurious mouseleave events.
-            // Only active on desktop (≥1024px) and only when sidebar is NOT auto-hide.
-            const isAutoHide = () => document.querySelector('.app-sidebar')?.classList.contains('sidebar-autohide') ?? false;
-            const sbW = 64; // matches --sidebar-w-collapsed
-            let leaveTimer = null;
-
-            document.addEventListener('mousemove', (e) => {
-                if (window.innerWidth < 1024 || isAutoHide()) return;
-                if (e.clientX < sbW) {
-                    if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
-                    if (!this.sidebarHovered) this.sidebarHovered = true;
-                } else {
-                    if (!leaveTimer) {
-                        leaveTimer = setTimeout(() => {
-                            this.sidebarHovered = false;
-                            leaveTimer = null;
-                        }, 220);
-                    }
-                }
-            }, { passive: true });
         },
 
         cmdItems() {

@@ -2123,10 +2123,14 @@ function teamManager() {
             }
         },
 
+        teamUrl(id) {
+            return '{{ route("settings.team.update", ["user" => "__ID__"]) }}'.replace('__ID__', id);
+        },
+
         async saveEdit() {
             this.editSaving = true;
             try {
-                const res = await fetch(`{{ url('settings/team') }}/${this.editTarget.id}`, {
+                const res = await fetch(this.teamUrl(this.editTarget.id), {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2136,63 +2140,91 @@ function teamManager() {
                     body: JSON.stringify(this.editForm),
                 });
                 const data = await res.json();
-                if (data.success) {
+                if (res.ok && data.success) {
                     this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...this.editForm } : m);
                     this.showEditModal = false;
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not save changes.' } }));
                 }
+            } catch(e) {
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error saving changes.' } }));
             } finally {
                 this.editSaving = false;
             }
         },
 
         async updateRole(m, role) {
-            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ role }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                m.role = role;
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            const prev = m.role;
+            m.role = role;
+            try {
+                const res = await fetch(this.teamUrl(m.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ role }),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    m.role = prev;
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not update role.' } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+                }
+            } catch(e) {
+                m.role = prev;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error updating role.' } }));
             }
         },
 
         async toggleStatus(m) {
-            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ is_active: !m.is_active }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                m.is_active = !m.is_active;
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            const prev = m.is_active;
+            m.is_active = !m.is_active;
+            try {
+                const res = await fetch(this.teamUrl(m.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ is_active: m.is_active }),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    m.is_active = prev;
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not update status.' } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+                }
+            } catch(e) {
+                m.is_active = prev;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error updating status.' } }));
             }
         },
 
         async removeMember(m) {
             if (!confirm(`Remove ${m.name} from the team? This cannot be undone.`)) return;
-            const res = await fetch(`{{ url('settings/team') }}/${m.id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.members = this.members.filter(x => x.id !== m.id);
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+            try {
+                const res = await fetch(this.teamUrl(m.id), {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    this.members = this.members.filter(x => x.id !== m.id);
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not remove member.' } }));
+                }
+            } catch(e) {
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error removing member.' } }));
             }
         },
     };
