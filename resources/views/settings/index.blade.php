@@ -1346,6 +1346,15 @@
             </div>
         </div>
         {{-- ---- TEAM ---- --}}
+        @if(auth()->user()->isAdmin())
+        @php
+            $teamMembersJson = \App\Models\User::where('id', '!=', auth()->id())
+                ->orderByDesc('is_active')->orderBy('name')
+                ->get(['id','name','email','username','role','avatar','is_active','created_at'])
+                ->map(fn($u) => array_merge($u->toArray(), ['avatar_url' => $u->avatar_url]));
+        @endphp
+        <script type="application/json" id="team-members-data">{!! json_encode($teamMembersJson) !!}</script>
+        @endif
         <div x-show="tab === 'team'" class="st-panel" x-cloak
              x-data="teamManager()">
 
@@ -1443,18 +1452,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-if="loading">
-                                <tr><td colspan="6" class="dt-empty">
-                                    <svg style="width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24">
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/>
-                                    </svg>
-                                    Loading team...
-                                </td></tr>
-                            </template>
-                            <template x-if="!loading && fetchError">
-                                <tr><td colspan="6" class="dt-empty" style="color:#ef4444" x-text="fetchError"></td></tr>
-                            </template>
-                            <template x-if="!loading && !fetchError && paginated.length === 0">
+                            <template x-if="paginated.length === 0">
                                 <tr><td colspan="6" class="dt-empty">
                                     <svg style="width:38px;height:38px;margin:0 auto 10px;color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -2141,16 +2139,19 @@ function aiProviderTable(providerRows) {
     };
 }
 
+function teamMembersPayload() {
+    try {
+        const src = document.getElementById('team-members-data');
+        return src ? JSON.parse(src.textContent || '[]') : [];
+    } catch (e) { return []; }
+}
+
 function teamManager() {
     return {
         ...dtMixin({ perPage: 10 }),
 
-        members:       [],
-        filtered:      [],
-        paginated:     [],
-        totalPages:    1,
-        pageRange:     [],
-        loading:       true,
+        members:       teamMembersPayload(),
+        loading:       false,
         fetchError:    '',
         showAddModal:  false,
         showEditModal: false,
@@ -2171,12 +2172,12 @@ function teamManager() {
             { val: 'user',      label: 'User',       color: 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' },
         ],
 
-        _recompute() {
+        get filtered() {
             let list = this.members;
             if (this.statusFilter === 'active')   list = list.filter(m => m.is_active);
             if (this.statusFilter === 'inactive') list = list.filter(m => !m.is_active);
             if (this.roleFilter) list = list.filter(m => m.role === this.roleFilter);
-            if ((this.search || '').trim()) {
+            if (this.search.trim()) {
                 const q = this.search.trim().toLowerCase();
                 list = list.filter(m =>
                     (m.name  || '').toLowerCase().includes(q) ||
@@ -2184,19 +2185,26 @@ function teamManager() {
                     (m.role  || '').toLowerCase().includes(q)
                 );
             }
-            list = [...list].sort((a, b) => {
+            return [...list].sort((a, b) => {
                 if (this.sortBy === 'name_asc')  return (a.name || '').localeCompare(b.name || '');
                 if (this.sortBy === 'name_desc') return (b.name || '').localeCompare(a.name || '');
                 if (this.sortBy === 'newest')    return new Date(b.created_at) - new Date(a.created_at);
                 if (this.sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
                 return 0;
             });
-            this.filtered   = list;
-            this.totalPages = Math.max(1, Math.ceil(list.length / this.perPage));
-            if (this.page > this.totalPages) this.page = this.totalPages;
-            const start     = (this.page - 1) * this.perPage;
-            this.paginated  = list.slice(start, start + this.perPage);
-            this.pageRange  = this.dtPageRange(this.totalPages, this.page);
+        },
+
+        get paginated() {
+            const start = (this.page - 1) * this.perPage;
+            return this.filtered.slice(start, start + this.perPage);
+        },
+
+        get totalPages() {
+            return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+        },
+
+        get pageRange() {
+            return this.dtPageRange(this.totalPages, this.page);
         },
 
         roleCount(val) {
@@ -2212,36 +2220,10 @@ function teamManager() {
         },
 
         highlight(text) {
-            return this.dtHighlight(text, this.search);
+            return this.dtHighlight(text, this.search.trim());
         },
 
-        async init() {
-            try {
-                const res = await fetch('{{ route("settings.team.index") }}', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    this.members = Array.isArray(data) ? data : [];
-                } else if (res.status === 403) {
-                    this.fetchError = 'Only admins can manage team members.';
-                } else {
-                    this.fetchError = 'Could not load team members (HTTP ' + res.status + ')';
-                }
-            } catch (e) {
-                this.fetchError = 'Network error loading team members.';
-            }
-            this.loading = false;
-            this._recompute();
-
-            this.$watch('members',      () => { this.page = 1; this._recompute(); });
-            this.$watch('search',       () => { this.page = 1; this._recompute(); });
-            this.$watch('statusFilter', () => { this.page = 1; this._recompute(); });
-            this.$watch('roleFilter',   () => { this.page = 1; this._recompute(); });
-            this.$watch('sortBy',       () => { this.page = 1; this._recompute(); });
-            this.$watch('page',         () => this._recompute());
-            this.$watch('perPage',      () => { this.page = 1; this._recompute(); });
-        },
+        init() {},
 
         fmtDate(d) {
             if (!d) return '-';
