@@ -393,12 +393,7 @@
             overflow: hidden;
             transition: opacity var(--dur-base) ease, padding var(--dur-base) ease, height var(--dur-base) ease;
         }
-        /* Collapsed: section labels zero height */
-        .app-sidebar:not(.sidebar-expanded) .sb-section-label {
-            padding: 0;
-            height: 0;
-        }
-        /* Section labels: always hidden by default, shown per-section */
+        /* Section labels: always hidden by default, shown per-section hover */
         .sb-section-label { padding: 0; height: 0; }
 
         /* Dividers: always hidden, shown per-section */
@@ -494,7 +489,6 @@
             transition: opacity var(--dur-base) ease;
             flex: 1;
         }
-        .sidebar-expanded .sb-label { opacity: 1; }
         .sb-item.active .sb-label { color: var(--brand); font-weight: 600; }
 
         .sb-badge {
@@ -506,7 +500,6 @@
             transition: opacity var(--dur-base) ease;
             flex-shrink: 0;
         }
-        .sidebar-expanded .sb-badge { opacity: 1; }
 
         /* Generic utility: hidden in collapsed, visible when expanded */
         .sb-show-expanded {
@@ -609,61 +602,24 @@
         .sidebar-expanded .sb-mid-spacer { flex: 1; min-height: 12px; }
 
         /* ══════════════════════════════════════════════════════
-           DESKTOP HOVER EXPANSION
-           CSS :hover on the aside fires for the FULL sidebar
-           height (top → bottom, not just icon tiles).
-           Width + item layout: on any sidebar hover.
-           Labels: only when hovering that specific section.
+           DESKTOP HOVER EXPANSION — Alpine-driven (document mousemove)
+           sidebar-user-hovered / sidebar-dev-hovered classes set by JS
         ══════════════════════════════════════════════════════ */
-        @media (min-width: 1024px) {
 
-            /* Any part of sidebar hovered → width expands */
-            .app-sidebar:not(.sidebar-autohide):hover {
-                width: var(--sidebar-w-expanded) !important;
-                box-shadow: var(--shadow-xl) !important;
-            }
+        /* Sidebar expanded (hover or pinned) → switch to expanded item layout */
+        .sidebar-expanded .sb-section-user { flex: unset; display: block; }
+        .sidebar-expanded .sb-mid-spacer   { flex: 1; min-height: 12px; }
 
-            /* USER section: undo collapsed flex-fill so items return to 40px */
-            .app-sidebar:not(.sidebar-autohide):hover .sb-section-user {
-                flex: unset !important;
-                display: block !important;
-            }
-            /* Mid-spacer grows so DEV stays at bottom */
-            .app-sidebar:not(.sidebar-autohide):hover .sb-mid-spacer {
-                flex: 1 !important;
-                min-height: 12px !important;
-            }
-            /* All items switch to expanded layout (icon + hidden label) */
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item {
-                justify-content: flex-start !important;
-                padding: 0 10px !important;
-                margin: 1px 6px !important;
-                height: 40px !important;
-                flex: unset !important;
-                border-radius: 10px !important;
-                background: transparent !important;
-            }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item:hover  { background: var(--surface-overlay) !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active  { background: var(--brand-light) !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active::before { left: -6px !important; top: 6px !important; bottom: 6px !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-ico { width: 34px !important; height: 34px !important; border-radius: 8px !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name    { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn   { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover .sb-tooltip      { opacity: 0 !important; pointer-events: none !important; }
+        /* ─── Per-section label visibility ─── */
+        .sidebar-user-hovered .sb-section-user .sb-label         { opacity: 1; }
+        .sidebar-user-hovered .sb-section-user .sb-badge         { opacity: 1; }
+        .sidebar-user-hovered .sb-section-user .sb-section-label { opacity: 1; padding: 14px 18px 5px; height: auto; }
+        .sidebar-user-hovered .sb-section-user .sb-divider       { margin: 6px 14px; height: 1px; overflow: visible; }
+        .sidebar-user-hovered .sb-my-apps                        { display: block; }
 
-            /* ─── USER section hovered → show USER labels only ─── */
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-label        { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-badge        { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-section-user .sb-divider      { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-user:hover) .sb-my-apps                       { display: block !important; }
-
-            /* ─── DEV section hovered → show DEV labels only ─── */
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-label         { opacity: 1 !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
-            .app-sidebar:not(.sidebar-autohide):hover:has(.sb-section-dev:hover) .sb-section-dev .sb-divider       { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
-        }
+        .sidebar-dev-hovered .sb-section-dev .sb-label           { opacity: 1; }
+        .sidebar-dev-hovered .sb-section-dev .sb-section-label   { opacity: 1; padding: 14px 18px 5px; height: auto; }
+        .sidebar-dev-hovered .sb-section-dev .sb-divider         { margin: 6px 14px; height: 1px; overflow: visible; }
 
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
@@ -883,12 +839,11 @@
             }
             .app-sidebar.sidebar-expanded { transform: translateX(0) !important; width: 260px !important; }
             .app-sidebar.sidebar-mobile-open { transform: translateX(0); }
-            .sidebar-expanded .sb-label,
-            .sidebar-mobile-open .sb-label { opacity: 1 !important; }
-            .sidebar-expanded .sb-section-label,
-            .sidebar-mobile-open .sb-section-label { opacity: 1 !important; }
-            .sidebar-expanded .sb-badge,
-            .sidebar-mobile-open .sb-badge { opacity: 1 !important; }
+            .sidebar-mobile-open .sb-label         { opacity: 1 !important; }
+            .sidebar-mobile-open .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
+            .sidebar-mobile-open .sb-badge         { opacity: 1 !important; }
+            .sidebar-mobile-open .sb-my-apps       { display: block !important; }
+            .sidebar-mobile-open .sb-divider       { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
             .btn-hamburger { display: flex !important; }
             .btn-new-project-label { display: none; }
             .main-content { padding: 12px !important; }
@@ -1114,9 +1069,12 @@
     </div>
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
-           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="if($el.classList.contains('sidebar-autohide')){ clearTimeout(window._sbLeave); sidebarHovered=true; }"
-           @mouseleave="if($el.classList.contains('sidebar-autohide')){ window._sbLeave=setTimeout(()=>{ if(!sidebarOpen) sidebarHovered=false; },200); }">
+           :class="{
+               'sidebar-expanded':     sidebarOpen || sidebarHovered,
+               'sidebar-mobile-open':  mobileSidebarOpen,
+               'sidebar-user-hovered': hoveredSection === 'user' || sidebarOpen || mobileSidebarOpen,
+               'sidebar-dev-hovered':  hoveredSection === 'dev'  || sidebarOpen || mobileSidebarOpen
+           }">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
@@ -1187,7 +1145,7 @@
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
 
             {{-- ─── USER section (top) ─── --}}
-            <div class="sb-section-user" style="padding:6px 0 0;">
+            <div class="sb-section-user" style="padding:6px 0 0;" @mouseenter="hoveredSection='user'">
                 <div class="sb-section-label">USER</div>
                 @foreach($userItems as $item)
                 @php extract($renderItem($item, $projectCount)); @endphp
@@ -1272,7 +1230,7 @@
             <div class="sb-mid-spacer"></div>
 
             {{-- ─── DEVELOPER section (bottom) ─── --}}
-            <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;">
+            <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;" @mouseenter="hoveredSection='dev'">
                 <div class="sb-divider"></div>
                 <div class="sb-section-label">DEVELOPER</div>
                 @foreach($devItems as $item)
@@ -1523,6 +1481,7 @@ function appLayout() {
     return {
         sidebarOpen:       false,
         sidebarHovered:    false,
+        hoveredSection:    null,
         mobileSidebarOpen: false,
         cmdOpen:           false,
         cmdQuery:          '',
@@ -1539,6 +1498,26 @@ function appLayout() {
                     e.preventDefault();
                     this.cmdOpen = !this.cmdOpen;
                     if (this.cmdOpen) this.$nextTick(() => this.$refs.cmdInput?.focus());
+                }
+            });
+
+            // Document-level mousemove — reliable full-height sidebar hover detection
+            // Works even in blank areas above/below icons where element events don't fire
+            document.addEventListener('mousemove', (e) => {
+                if (this.sidebarOpen) return;
+                const threshold = this.sidebarHovered ? 256 : 64;
+                if (e.clientX <= threshold) {
+                    clearTimeout(window._sbLeave);
+                    window._sbLeave = null;
+                    if (!this.sidebarHovered) this.sidebarHovered = true;
+                } else if (this.sidebarHovered) {
+                    if (!window._sbLeave) {
+                        window._sbLeave = setTimeout(() => {
+                            this.sidebarHovered = false;
+                            this.hoveredSection = null;
+                            window._sbLeave = null;
+                        }, 200);
+                    }
                 }
             });
 
