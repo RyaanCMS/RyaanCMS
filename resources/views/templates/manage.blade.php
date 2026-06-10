@@ -2,11 +2,28 @@
 @section('title', 'Templates')
 @section('header', 'Templates')
 
+@php
+// Precompute template data for JS — avoids Blade parsing issues with [] inside @json()
+$tmplData = [];
+foreach ($templates as $k => $t) {
+    $tmplData[] = [
+        'key'    => $k,
+        'name'   => $t['name'],
+        'desc'   => $t['description'],
+        'cat'    => $t['category'],
+        'tags'   => implode(' ', $t['tags'] ?? []),
+        'status' => $statusMap[$k] ?? 'available',
+    ];
+}
+$tmplDataJson  = json_encode($tmplData);
+$activeKeyJson = json_encode($activeKey);
+@endphp
+
 @push('head')
 <style>
 .tmpl-toolbar {
     display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    padding:14px 0 2px;
+    padding:14px 0 6px;
 }
 .tmpl-search {
     display:flex;align-items:center;gap:8px;
@@ -18,6 +35,13 @@
 .tmpl-search svg { color:var(--text-3);flex-shrink:0;width:15px;height:15px; }
 .tmpl-search input { border:none;outline:none;background:transparent;font-size:13px;color:var(--text-1);padding:9px 0;width:100%;font-family:inherit; }
 .tmpl-search input::placeholder { color:var(--text-3); }
+
+.tmpl-pill {
+    padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;
+    border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-3);
+    cursor:pointer;transition:all .13s;
+}
+.tmpl-pill.on { background:var(--brand);color:#fff;border-color:var(--brand); }
 
 .tmpl-grid {
     display:grid;
@@ -31,44 +55,35 @@
     border:1px solid var(--border);
     border-left:3px solid transparent;
     box-shadow:var(--shadow);
-    transition:box-shadow .22s,transform .22s,border-color .18s;
-    position:relative;
+    transition:box-shadow .22s,transform .22s,border-left-color .18s;
 }
 .tmpl-card:hover {
     border-left-color: var(--tc);
-    box-shadow: 0 10px 36px color-mix(in srgb, var(--tc) 22%, transparent),
-                0 2px 10px  color-mix(in srgb, var(--tc) 10%, transparent);
+    box-shadow: 0 10px 36px color-mix(in srgb,var(--tc) 22%,transparent),
+                0 2px 10px  color-mix(in srgb,var(--tc) 10%,transparent);
     transform: translateY(-3px);
 }
 .tmpl-card-header {
     height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-    position:relative;border-bottom:1px solid var(--border);
-    overflow:hidden;
+    position:relative;border-bottom:1px solid var(--border);overflow:hidden;
 }
 .tmpl-card-body { padding:14px 16px;display:flex;flex-direction:column;gap:10px; }
 .tmpl-card-name { font-size:13.5px;font-weight:700;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .tmpl-card-desc { font-size:11.5px;color:var(--text-3);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5; }
-.tmpl-card-actions { display:flex;gap:6px; }
-
 .btn-tmpl {
-    display:inline-flex;align-items:center;justify-content:center;gap:5px;
-    padding:7px 14px;border-radius:9px;
-    font-size:12px;font-weight:700;text-decoration:none;border:none;cursor:pointer;
-    background: color-mix(in srgb, var(--tc) 10%, #fff);
-    color: var(--tc);
-    border: 1.5px solid color-mix(in srgb, var(--tc) 25%, transparent);
-    transition: all .18s;flex:1;
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:7px 14px;border-radius:9px;font-size:12px;font-weight:700;
+    border:1.5px solid color-mix(in srgb,var(--tc) 25%,transparent);
+    background:color-mix(in srgb,var(--tc) 10%,#fff);
+    color:var(--tc);cursor:pointer;transition:all .18s;flex:1;
 }
 .btn-tmpl:hover:not(:disabled) {
-    background: var(--tc);
-    color: #fff;
-    border-color: var(--tc);
-    box-shadow: 0 3px 10px color-mix(in srgb, var(--tc) 30%, transparent);
-    transform: translateY(-1px);
+    background:var(--tc);color:#fff;border-color:var(--tc);
+    box-shadow:0 3px 10px color-mix(in srgb,var(--tc) 30%,transparent);
+    transform:translateY(-1px);
 }
 .btn-tmpl:disabled { opacity:.55;cursor:not-allowed; }
 
-/* Active template hero */
 .tmpl-hero {
     border-radius:18px;border:2px solid var(--brand);overflow:hidden;
     background:var(--surface-base);
@@ -76,12 +91,13 @@
     display:flex;margin-bottom:24px;
 }
 .tmpl-hero-thumb {
-    width:260px;min-height:160px;flex-shrink:0;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    width:240px;min-height:160px;flex-shrink:0;position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
 }
 .tmpl-hero-body { flex:1;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:12px; }
 @media(max-width:640px){
     .tmpl-hero { flex-direction:column; }
-    .tmpl-hero-thumb { width:100%;min-height:100px; }
+    .tmpl-hero-thumb { width:100%;min-height:90px; }
 }
 </style>
 @endpush
@@ -90,26 +106,15 @@
 <div x-data="templateManager()">
 
     {{-- ── Header ──────────────────────────────────────────────────────── --}}
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
-        <div>
-            <p style="font-size:13px;color:var(--text-3);margin:0;">
-                @if($siteProject)
-                    Site: <strong style="color:var(--text-2);">{{ $siteProject->name }}</strong>
-                    &nbsp;&middot;&nbsp;<a href="{{ route('home') }}" target="_blank" style="color:var(--brand);text-decoration:none;font-weight:600;">View Site →</a>
-                @else
-                    No public site project selected.
-                    <a href="{{ route('settings.index') }}" style="color:var(--brand);font-weight:600;text-decoration:none;">Configure in Settings →</a>
-                @endif
-            </p>
-        </div>
+    <p style="font-size:13px;color:var(--text-3);margin:0 0 2px;">
         @if($siteProject)
-        <a href="{{ route('home') }}" target="_blank"
-           style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);font-size:12.5px;font-weight:600;text-decoration:none;">
-            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-            Live Site
-        </a>
+            Site: <strong style="color:var(--text-2);">{{ $siteProject->name }}</strong>
+            &nbsp;&middot;&nbsp;<a href="{{ route('home') }}" target="_blank" style="color:var(--brand);text-decoration:none;font-weight:600;">View Site →</a>
+        @else
+            No public site configured.
+            <a href="{{ route('settings.index') }}" style="color:var(--brand);font-weight:600;text-decoration:none;">Configure in Settings →</a>
         @endif
-    </div>
+    </p>
 
     {{-- ── Toolbar ─────────────────────────────────────────────────────── --}}
     <div class="tmpl-toolbar">
@@ -121,22 +126,11 @@
             </button>
         </div>
 
-        {{-- Category pills --}}
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button @click="catFilter=''" type="button"
-                    style="padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .13s;"
-                    :style="catFilter==='' ? 'background:var(--brand);color:#fff;border-color:var(--brand);' : 'background:var(--surface-base);color:var(--text-3);border-color:var(--border);'">
-                All
-            </button>
-            @php $cats = array_unique(array_column($templates, 'category')); @endphp
-            @foreach($cats as $cat)
-            <button @click="catFilter = catFilter==='{{ $cat }}' ? '' : '{{ $cat }}'" type="button"
-                    style="padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .13s;"
-                    :style="catFilter==='{{ $cat }}' ? 'background:var(--brand);color:#fff;border-color:var(--brand);' : 'background:var(--surface-base);color:var(--text-3);border-color:var(--border);'">
-                {{ $cat }}
-            </button>
-            @endforeach
-        </div>
+        <button @click="catFilter=''" type="button" :class="catFilter==='' ? 'tmpl-pill on' : 'tmpl-pill'">All</button>
+        @foreach(array_unique(array_column($templates, 'category')) as $cat)
+        <button @click="catFilter = catFilter==='{{ $cat }}' ? '' : '{{ $cat }}'" type="button"
+                :class="catFilter==='{{ $cat }}' ? 'tmpl-pill on' : 'tmpl-pill'">{{ $cat }}</button>
+        @endforeach
 
         <span style="font-size:12px;color:var(--text-3);margin-left:auto;" x-text="visibleCount + ' template' + (visibleCount===1?'':'s')"></span>
     </div>
@@ -144,11 +138,11 @@
     {{-- ── Active template hero ────────────────────────────────────────── --}}
     @if($activeKey && isset($templates[$activeKey]))
     @php $a = $templates[$activeKey]; @endphp
-    <div class="tmpl-hero" style="--tc:{{ $a['color'] }}">
+    <div class="tmpl-hero">
         <div class="tmpl-hero-thumb" style="background:linear-gradient(135deg,{{ $a['color'] }}20,{{ $a['color'] }}06);">
             <div style="position:absolute;top:10px;left:10px;background:var(--brand);color:#fff;font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:99px;letter-spacing:.06em;">✓ ACTIVE</div>
-            <div style="width:56px;height:56px;border-radius:14px;background:{{ $a['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px {{ $a['color'] }}44;">
-                <span style="font-size:26px;line-height:1;">{{ $a['icon'] }}</span>
+            <div style="width:52px;height:52px;border-radius:14px;background:{{ $a['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px {{ $a['color'] }}44;">
+                <span style="font-size:24px;line-height:1;">{{ $a['icon'] }}</span>
             </div>
             <div style="font-size:11px;font-weight:700;color:{{ $a['color'] }};">{{ $a['category'] }}</div>
         </div>
@@ -184,15 +178,12 @@
         @foreach($templates as $key => $tpl)
         @php $status = $statusMap[$key] ?? 'available'; $isActive = $status === 'active'; @endphp
 
-        <div class="tmpl-card" style="--tc:{{ $tpl['color'] }}"
-             x-show="isVisible('{{ $key }}','{{ addslashes($tpl['name']) }}','{{ addslashes($tpl['description']) }}','{{ addslashes($tpl['category']) }}','{{ implode(',', $tpl['tags'] ?? []) }}')"
-             x-data="{}"
-             @x-count.window="$dispatch('count-visible')">
+        <div class="tmpl-card" style="--tc:{{ $tpl['color'] }}" x-show="isVisible('{{ $key }}')">
 
             {{-- Header --}}
             <div class="tmpl-card-header" style="background:linear-gradient(135deg,{{ $tpl['color'] }}18,{{ $tpl['color'] }}06);">
                 @if($isActive)
-                <div style="position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:.06em;">✓ ACTIVE</div>
+                <div style="position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;">✓ ACTIVE</div>
                 @elseif($status === 'installed')
                 <div style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Installed</div>
                 @endif
@@ -206,7 +197,7 @@
             <div class="tmpl-card-body">
                 <div class="tmpl-card-name">{{ $tpl['name'] }}</div>
                 <div class="tmpl-card-desc">{{ $tpl['description'] }}</div>
-                <div class="tmpl-card-actions">
+                <div style="display:flex;gap:6px;">
                     @if($isActive)
                     <button type="button" @click="deactivate('{{ $key }}')" :disabled="loading==='{{ $key }}'"
                             class="btn-tmpl"
@@ -246,74 +237,74 @@
 </div>
 
 <script>
-function templateManager() {
-    return {
-        search: '',
-        catFilter: '',
-        loading: null,
-        message: null,
-        messageOk: true,
-        visibleCount: {{ count($templates) - ($activeKey ? 0 : 0) }},
+(function () {
+    const TMPL_DATA  = {!! $tmplDataJson !!};
+    const ACTIVE_KEY = {!! $activeKeyJson !!};
 
-        isVisible(key, name, desc, cat, tags) {
-            const activeKey = '{{ $activeKey }}';
-            if (key === activeKey) return false; // hide active from grid (shown in hero)
-            if (this.catFilter && cat !== this.catFilter) return false;
-            const q = this.search.trim().toLowerCase();
-            if (!q) return true;
-            return [name, desc, cat, tags].some(v => v.toLowerCase().includes(q));
-        },
+    window.templateManager = function () {
+        return {
+            search:       '',
+            catFilter:    '',
+            loading:      null,
+            message:      null,
+            messageOk:    true,
+            visibleCount: 0,
 
-        countVisible() {
-            // recount after filter changes — count non-active visible
-            const activeKey = '{{ $activeKey }}';
-            const allKeys = @json(array_keys($templates));
-            const allData = @json(collect($templates)->map(fn($t, $k) => ['key'=>$k,'name'=>$t['name'],'desc'=>$t['description'],'cat'=>$t['category'],'tags'=>implode(',', $t['tags'] ?? [])])->values());
-            this.visibleCount = allData.filter(t =>
-                t.key !== activeKey && this.isVisible(t.key, t.name, t.desc, t.cat, t.tags)
-            ).length;
-        },
+            isVisible(key) {
+                if (key === ACTIVE_KEY) return false;
+                const d = TMPL_DATA.find(t => t.key === key);
+                if (!d) return false;
+                if (this.catFilter && d.cat !== this.catFilter) return false;
+                const q = this.search.trim().toLowerCase();
+                if (!q) return true;
+                return [d.name, d.desc, d.cat, d.tags].some(v => v.toLowerCase().includes(q));
+            },
 
-        async activate(key) {
-            this.loading = key;
-            this.message = null;
-            try {
-                const res  = await fetch(`/templates/${key}/activate-site`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
-                });
-                const json = await res.json().catch(() => ({}));
-                this.messageOk = !!json.success;
-                this.message   = json.message || (json.success ? 'Template activated!' : 'Activation failed.');
-                if (json.success) setTimeout(() => location.reload(), 1200);
-            } catch { this.message = 'Network error.'; this.messageOk = false; }
-            this.loading = null;
-            setTimeout(() => this.message = null, 4000);
-        },
+            recount() {
+                this.visibleCount = TMPL_DATA.filter(t => this.isVisible(t.key)).length;
+            },
 
-        async deactivate(key) {
-            this.loading = key;
-            this.message = null;
-            try {
-                const res  = await fetch(`/templates/${key}/deactivate-site`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
-                });
-                const json = await res.json().catch(() => ({}));
-                this.messageOk = !!json.success;
-                this.message   = json.message || (json.success ? 'Template deactivated.' : 'Deactivation failed.');
-                if (json.success) setTimeout(() => location.reload(), 1200);
-            } catch { this.message = 'Network error.'; this.messageOk = false; }
-            this.loading = null;
-            setTimeout(() => this.message = null, 4000);
-        },
+            async activate(key) {
+                this.loading = key;
+                this.message = null;
+                try {
+                    const r = await fetch('/templates/' + key + '/activate-site', {
+                        method:  'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                    });
+                    const j = await r.json().catch(() => ({}));
+                    this.messageOk = !!j.success;
+                    this.message   = j.message || (j.success ? 'Template activated!' : 'Activation failed.');
+                    if (j.success) setTimeout(() => location.reload(), 1200);
+                } catch { this.message = 'Network error.'; this.messageOk = false; }
+                this.loading = null;
+                setTimeout(() => this.message = null, 4000);
+            },
 
-        init() {
-            this.$watch('search', () => this.countVisible());
-            this.$watch('catFilter', () => this.countVisible());
-            this.countVisible();
-        },
+            async deactivate(key) {
+                this.loading = key;
+                this.message = null;
+                try {
+                    const r = await fetch('/templates/' + key + '/deactivate-site', {
+                        method:  'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                    });
+                    const j = await r.json().catch(() => ({}));
+                    this.messageOk = !!j.success;
+                    this.message   = j.message || (j.success ? 'Template deactivated.' : 'Deactivation failed.');
+                    if (j.success) setTimeout(() => location.reload(), 1200);
+                } catch { this.message = 'Network error.'; this.messageOk = false; }
+                this.loading = null;
+                setTimeout(() => this.message = null, 4000);
+            },
+
+            init() {
+                this.$watch('search',    () => this.recount());
+                this.$watch('catFilter', () => this.recount());
+                this.recount();
+            },
+        };
     };
-}
+})();
 </script>
 @endsection
