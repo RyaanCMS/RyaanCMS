@@ -1438,6 +1438,7 @@ function appLayout() {
         init() {
             localStorage.removeItem('theme');
             document.documentElement.classList.remove('dark');
+
             // ⌘K / Ctrl+K
             window.addEventListener('keydown', (e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -1446,7 +1447,31 @@ function appLayout() {
                     if (this.cmdOpen) this.$nextTick(() => this.$refs.cmdInput?.focus());
                 }
             });
+
             this.$watch('sidebarOpen', v => localStorage.setItem('sb_open', v));
+
+            // ── Sidebar hover: mousemove on document checks clientX against sidebar width.
+            // This is immune to CSS hit-testing quirks inside overflow:hidden and
+            // immune to layout-reflow spurious mouseleave events.
+            // Only active on desktop (≥1024px) and only when sidebar is NOT auto-hide.
+            const isAutoHide = () => document.querySelector('.app-sidebar')?.classList.contains('sidebar-autohide') ?? false;
+            const sbW = 64; // matches --sidebar-w-collapsed
+            let leaveTimer = null;
+
+            document.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 1024 || isAutoHide()) return;
+                if (e.clientX < sbW) {
+                    if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+                    if (!this.sidebarHovered) this.sidebarHovered = true;
+                } else {
+                    if (!leaveTimer) {
+                        leaveTimer = setTimeout(() => {
+                            this.sidebarHovered = false;
+                            leaveTimer = null;
+                        }, 220);
+                    }
+                }
+            }, { passive: true });
         },
 
         cmdItems() {
