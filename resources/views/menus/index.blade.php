@@ -69,7 +69,6 @@
                     <select x-model="sortBy" @change="page = 1">
                         <option value="name_asc">Name A → Z</option>
                         <option value="name_desc">Name Z → A</option>
-                        <option value="items_desc">Most Items</option>
                         <option value="category">Category</option>
                     </select>
                 </div>
@@ -100,7 +99,6 @@
                         <th class="dt-th">#</th>
                         <th class="dt-th">Name</th>
                         <th class="dt-th">Category</th>
-                        <th class="dt-th">Items</th>
                         <th class="dt-th">Status</th>
                         <th class="dt-th" style="text-align:right">Actions</th>
                     </tr>
@@ -108,7 +106,7 @@
                 <tbody>
                     <template x-if="paginated.length === 0">
                         <tr>
-                            <td colspan="6" class="dt-empty">
+                            <td colspan="5" class="dt-empty">
                                 <svg class="w-10 h-10 mb-3 mx-auto" style="color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"/>
                                 </svg>
@@ -128,9 +126,6 @@
                                       :style="catStyle(menu.category)" x-text="catLabel(menu.category)"></span>
                             </td>
                             <td class="dt-td">
-                                <span class="font-semibold" style="color:var(--text-2)" x-text="menu.all_items_count ?? 0"></span>
-                            </td>
-                            <td class="dt-td">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
                                       :style="menu.is_active
                                           ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
@@ -141,14 +136,6 @@
                             </td>
                             <td class="dt-td" style="text-align:right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button @click="openItems(menu)"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                                            style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">
-                                        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
-                                        </svg>
-                                        Items
-                                    </button>
                                     <button @click="openEdit(menu)"
                                             class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                             style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">

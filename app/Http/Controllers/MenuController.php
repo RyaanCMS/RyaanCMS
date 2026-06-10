@@ -22,7 +22,9 @@ class MenuController extends Controller
 
         $menuCategories = $this->menuCategories();
         $categoryOptions = $this->categoryOptions($menuCategories);
-        $menus = Menu::where('user_id', Auth::id())->withCount('allItems')->latest()->get();
+        $menus = Menu::where('user_id', Auth::id())
+            ->where('slug', 'not like', 'system-%')
+            ->latest()->get();
         return view('menus.index', compact('menus', 'menuCategories', 'categoryOptions'));
     }
 
