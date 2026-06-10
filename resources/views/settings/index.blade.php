@@ -1306,7 +1306,7 @@
             </div>
         </div>
 
-        {{-- â”€â”€â”€â”€ INTEGRATIONS â”€â”€â”€â”€ --}}
+        {{--         {{-- INTEGRATIONS --}}
         <div x-show="tab === 'integrations'" class="st-panel" x-cloak>
             <div class="scard">
                 <div class="scard-hd">
@@ -1318,28 +1318,33 @@
                         <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Connect external services to your workspace</div>
                     </div>
                 </div>
-                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:10px;">
                     @foreach([
-                        ['ico'=>'ðŸ™','label'=>'GitHub',    'desc'=>'Auto-push generated projects to GitHub repos',  'badge'=>'Soon','color'=>'#1e293b'],
-                        ['ico'=>'ðŸª','label'=>'Webhooks',  'desc'=>'Send build & deploy events to your endpoints',  'badge'=>'Soon','color'=>'#8b5cf6'],
-                        ['ico'=>'ðŸ’¬','label'=>'Slack',     'desc'=>'Get notified in Slack when builds complete',     'badge'=>'Soon','color'=>'#4a154b'],
-                        ['ico'=>'ðŸ“§','label'=>'SendGrid',  'desc'=>'Transactional email for deployed apps',          'badge'=>'Soon','color'=>'#1a82e2'],
-                        ['ico'=>'â˜ï¸','label'=>'AWS S3',    'desc'=>'Store project assets in your S3 bucket',         'badge'=>'Soon','color'=>'#f97316'],
-                        ['ico'=>'ðŸš€','label'=>'Vercel',    'desc'=>'One-click deploy generated apps to Vercel',      'badge'=>'Soon','color'=>'#000'],
+                        ['icon'=>'M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.742 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z','label'=>'GitHub','desc'=>'Auto-push generated projects to GitHub repositories','color'=>'#24292e','bg'=>'#f6f8fa','fill'=>true],
+                        ['icon'=>'M13 10V3L4 14h7v7l9-11h-7z','label'=>'Webhooks','desc'=>'Send real-time build and deploy events to your HTTP endpoints','color'=>'#7c3aed','bg'=>'#faf5ff','fill'=>false],
+                        ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z','label'=>'Slack','desc'=>'Get instant notifications in Slack when builds complete','color'=>'#4a154b','bg'=>'#fdf4ff','fill'=>false],
+                        ['icon'=>'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z','label'=>'SendGrid','desc'=>'Transactional email delivery for your deployed applications','color'=>'#1a82e2','bg'=>'#eff6ff','fill'=>false],
+                        ['icon'=>'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z','label'=>'AWS S3','desc'=>'Store and serve project assets from your S3 bucket','color'=>'#f97316','bg'=>'#fff7ed','fill'=>false],
+                        ['icon'=>'M5 3l14 9-14 9V3z','label'=>'Vercel','desc'=>'One-click deploy generated apps directly to Vercel','color'=>'#000000','bg'=>'#f8fafc','fill'=>true],
                     ] as $intg)
-                    <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-raised);">
-                        <div style="width:40px;height:40px;border-radius:11px;background:var(--surface-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">{{ $intg['ico'] }}</div>
+                    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--surface-raised);">
+                        <div style="width:40px;height:40px;border-radius:11px;background:{{ $intg['bg'] }};border:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg style="width:18px;height:18px;" fill="{{ $intg['fill'] ? $intg['color'] : 'none' }}" stroke="{{ $intg['color'] }}" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $intg['icon'] }}"/></svg>
+                        </div>
                         <div style="flex:1;min-width:0;">
                             <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ $intg['label'] }}</div>
                             <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">{{ $intg['desc'] }}</div>
                         </div>
-                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:var(--text-3);border:1px solid var(--border);white-space:nowrap;flex-shrink:0;">{{ $intg['badge'] }}</span>
+                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--brand) 8%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);white-space:nowrap;flex-shrink:0;">Coming Soon</span>
                     </div>
                     @endforeach
+                    <div style="margin-top:6px;padding:14px 16px;border-radius:12px;background:color-mix(in srgb,var(--brand) 5%,transparent);border:1px dashed color-mix(in srgb,var(--brand) 25%,transparent);text-align:center;">
+                        <div style="font-size:12.5px;font-weight:600;color:var(--brand);margin-bottom:3px;">More integrations coming in v1.1</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Contact support to request a specific integration</div>
+                    </div>
                 </div>
             </div>
         </div>
-
         {{-- ──── TEAM ──── --}}
         <div x-show=”tab === 'team'” class=”st-panel” x-cloak
              x-data=”teamManager()”>

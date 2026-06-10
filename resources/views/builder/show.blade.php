@@ -679,6 +679,57 @@
                         style="background:#f3f4f6; color:#374151;">✕</button>
             </div>
 
+            <!-- Todo Tracker Panel -->
+            <div x-show="showTodos && todos.length > 0" x-transition class="mb-2 rounded-xl overflow-hidden"
+                 style="border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);background:color-mix(in srgb,var(--brand) 4%,#fff);">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid color-mix(in srgb,var(--brand) 12%,transparent);">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <svg style="width:13px;height:13px;stroke:var(--brand)" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <span style="font-size:11.5px;font-weight:700;color:var(--brand);">Build Tasks</span>
+                        <span x-text="todos.filter(t=>t.done).length + '/' + todos.length"
+                              style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--brand);color:#fff;"></span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <button @click="todos = todos.map(t => ({...t, done: true}))"
+                                style="font-size:10px;font-weight:600;color:var(--text-3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;"
+                                title="Mark all done"
+                                onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-3)'">All done</button>
+                        <button @click="todos = []"
+                                style="font-size:10px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;"
+                                title="Clear all"
+                                onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-3)'">Clear</button>
+                    </div>
+                </div>
+                <div style="padding:6px 8px;display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto;">
+                    <template x-for="(todo, i) in todos" :key="i">
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;transition:background .1s;"
+                             onmouseover="this.style.background='rgba(0,0,0,.03)'" onmouseout="this.style.background=''">
+                            <button @click="todos[i].done = !todos[i].done"
+                                    style="width:16px;height:16px;border-radius:4px;border:1.5px solid;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:none;"
+                                    :style="todo.done ? 'border-color:var(--brand);background:var(--brand);' : 'border-color:#d1d5db;'">
+                                <svg x-show="todo.done" style="width:9px;height:9px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                            <span style="font-size:12px;flex:1;line-height:1.3;transition:all .15s;"
+                                  :style="todo.done ? 'color:var(--text-3);text-decoration:line-through;' : 'color:#1e293b;'"
+                                  x-text="todo.text"></span>
+                            <button @click="todos.splice(i, 1)"
+                                    style="font-size:11px;color:transparent;background:none;border:none;cursor:pointer;padding:2px;border-radius:4px;flex-shrink:0;"
+                                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='transparent'">✕</button>
+                        </div>
+                    </template>
+                    <!-- Add task inline -->
+                    <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;">
+                        <div style="width:16px;height:16px;border-radius:4px;border:1.5px dashed #d1d5db;flex-shrink:0;"></div>
+                        <input type="text" x-model="todoInput"
+                               @keydown.enter="if(todoInput.trim()){todos.push({text:todoInput.trim(),done:false});todoInput='';}"
+                               @keydown.escape="todoInput=''"
+                               placeholder="Add a task…"
+                               style="flex:1;border:none;outline:none;font-size:12px;background:transparent;color:#374151;"
+                               placeholder="Add a task…">
+                    </div>
+                </div>
+            </div>
+
             <!-- Main textarea box -->
             <div class="rounded-2xl overflow-hidden transition-all"
                  style="background:#fff; border:1.5px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,.06);"
@@ -1026,6 +1077,9 @@ function builderApp() {
         isThinking: false,
         saving: false,
         attachments: [],
+        todos: [],
+        showTodos: false,
+        todoInput: '',
         urlInput: '',
         urlPreview: '',
         showUrlInput: false,
