@@ -1349,46 +1349,90 @@
         <div x-show="tab === 'team'" class="st-panel" x-cloak
              x-data="teamManager()">
 
-            {{-- Header --}}
             <div class="dt-wrap">
+                {{-- Header --}}
                 <div class="dt-head">
                     <div>
                         <h2 class="dt-title">Team Members</h2>
-                        <p class="dt-subtitle">Manage who has access to this workspace and their roles.</p>
+                        <p class="dt-subtitle">Search, filter, and manage everyone who has access to this workspace.</p>
                     </div>
                     @if(auth()->user()->isAdmin())
                     <button @click="showAddModal = true"
-                            class="sbtn-primary" style="flex-shrink:0;">
-                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+                            style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);flex-shrink:0;">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
                         Add Member
                     </button>
                     @endif
                 </div>
 
-                {{-- Current user row --}}
-                <div style="padding:12px 18px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,transparent);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <img src="{{ auth()->user()->avatar_url }}"
-                             style="width:38px;height:38px;border-radius:10px;border:2px solid var(--brand-ring);flex-shrink:0;" alt="">
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:700;color:var(--text-1);">
-                                {{ auth()->user()->name }}
-                                <span style="font-size:10px;font-weight:500;color:var(--text-3);">(you)</span>
-                            </div>
-                            <div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ auth()->user()->email }}</div>
+                {{-- Toolbar --}}
+                <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="dt-search">
+                            <svg class="dt-search-ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input x-ref="searchInput" x-model="search" @input="page = 1"
+                                   @keydown.escape="search = ''; page = 1"
+                                   type="text" placeholder="Search name, email…" class="dt-search-input">
+                            <button x-show="search" @click="search = ''; page = 1; $refs.searchInput.focus()"
+                                    class="dt-clear" title="Clear" x-cloak>
+                                <svg style="width:9px;height:9px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
                         </div>
-                        <span style="font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">
-                            {{ ucfirst(auth()->user()->role) }}
+                        <div class="dt-per-page">
+                            <span>Show</span>
+                            <select x-model.number="perPage" @change="page = 1">
+                                <template x-for="n in perPageOpts" :key="n">
+                                    <option :value="n" x-text="n"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="flex rounded-xl overflow-hidden flex-shrink-0" style="border:1px solid var(--border);">
+                            <button @click="statusFilter = 'all'; page = 1" class="px-3 py-1.5 text-xs transition-all"
+                                    :style="statusFilter==='all' ? 'background:var(--brand);color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">All</button>
+                            <button @click="statusFilter = 'active'; page = 1" class="px-3 py-1.5 text-xs border-l transition-all" style="border-color:var(--border)"
+                                    :style="statusFilter==='active' ? 'background:#15803d;color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">Active</button>
+                            <button @click="statusFilter = 'inactive'; page = 1" class="px-3 py-1.5 text-xs border-l transition-all" style="border-color:var(--border)"
+                                    :style="statusFilter==='inactive' ? 'background:#64748b;color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">Inactive</button>
+                        </div>
+                        <div class="dt-per-page">
+                            <span>Sort</span>
+                            <select x-model="sortBy" @change="page = 1">
+                                <option value="name_asc">Name A → Z</option>
+                                <option value="name_desc">Name Z → A</option>
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                        </div>
+                        <span class="dt-count">
+                            <span x-text="filtered.length"></span>
+                            <span x-text="filtered.length === 1 ? ' member' : ' members'"></span>
                         </span>
-                        <span style="font-size:10px;font-weight:700;padding:3px 11px;border-radius:99px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">Active</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <template x-for="pill in rolePills" :key="pill.val">
+                            <button @click="roleFilter = roleFilter === pill.val ? '' : pill.val; page = 1"
+                                    class="sys-pill" :class="roleFilter === pill.val ? 'sys-pill-on' : ''"
+                                    :style="roleFilter === pill.val ? pill.color : ''">
+                                <span x-text="pill.label"></span>
+                                <span class="ml-1 opacity-70" x-text="'(' + roleCount(pill.val) + ')'"></span>
+                            </button>
+                        </template>
                     </div>
                 </div>
 
-                {{-- Team members table --}}
+                {{-- Table --}}
                 <div class="overflow-x-auto">
                     <table class="dt-table">
                         <thead>
                             <tr>
+                                <th class="dt-th">#</th>
                                 <th class="dt-th">Member</th>
                                 <th class="dt-th">Role</th>
                                 <th class="dt-th">Status</th>
@@ -1400,82 +1444,86 @@
                         </thead>
                         <tbody>
                             <template x-if="loading">
-                                <tr><td colspan="5" class="dt-empty">
-                                    <svg style="width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/></svg>
-                                    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                                <tr><td colspan="6" class="dt-empty">
+                                    <svg style="width:20px;height:20px;margin:0 auto 8px;color:var(--border);animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/>
+                                    </svg>
                                     Loading team...
                                 </td></tr>
                             </template>
                             <template x-if="!loading && fetchError">
-                                <tr><td colspan="5" class="dt-empty" style="color:#ef4444;" x-text="fetchError"></td></tr>
+                                <tr><td colspan="6" class="dt-empty" style="color:#ef4444" x-text="fetchError"></td></tr>
                             </template>
-                            <template x-if="!loading && !fetchError && members.length === 0">
-                                <tr><td colspan="5" class="dt-empty">
+                            <template x-if="!loading && !fetchError && paginated.length === 0">
+                                <tr><td colspan="6" class="dt-empty">
                                     <svg style="width:38px;height:38px;margin:0 auto 10px;color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    <p style="font-size:13px;font-weight:600;color:var(--text-1);">No other team members yet</p>
-                                    @if(auth()->user()->isAdmin())
-                                    <p style="font-size:12px;color:var(--text-3);margin-top:4px;">Click <strong>Add Member</strong> to invite someone to your workspace</p>
-                                    @endif
+                                    <p style="font-size:13px;font-weight:600;color:var(--text-1)">No members found</p>
+                                    <p style="font-size:12px;color:var(--text-3);margin-top:4px">Try a different search or filter</p>
                                 </td></tr>
                             </template>
-                            <template x-for="m in members" :key="m.id">
+                            <template x-for="(m, i) in paginated" :key="m.id">
                                 <tr class="dt-tr">
+                                    <td class="dt-td" style="color:var(--text-3);font-size:12px" x-text="(page - 1) * perPage + i + 1"></td>
                                     <td class="dt-td">
-                                        <div style="display:flex;align-items:center;gap:10px;">
-                                            <img :src="m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff'"
-                                                 style="width:34px;height:34px;border-radius:9px;flex-shrink:0;" alt="">
+                                        <div style="display:flex;align-items:center;gap:10px">
+                                            <img :src="m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff&size=64'"
+                                                 style="width:34px;height:34px;border-radius:9px;flex-shrink:0" alt="">
                                             <div>
-                                                <div style="font-size:13px;font-weight:600;color:var(--text-1);" x-text="m.name"></div>
-                                                <div style="font-size:11px;color:var(--text-3);" x-text="m.email"></div>
+                                                <div style="font-size:13px;font-weight:600;color:var(--text-1)" x-html="highlight(m.name)"></div>
+                                                <div style="font-size:11px;color:var(--text-3);margin-top:1px" x-html="highlight(m.email)"></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="dt-td">
                                         @if(auth()->user()->isAdmin())
                                         <select @change="updateRole(m, $event.target.value)"
-                                                style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;color:var(--text-1);outline:none;cursor:pointer;transition:border-color .13s;"
+                                                style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;font-weight:600;color:var(--text-1);outline:none;cursor:pointer"
                                                 :value="m.role">
                                             <option value="admin">Admin</option>
                                             <option value="developer">Developer</option>
                                             <option value="user">User</option>
                                         </select>
                                         @else
-                                        <span style="font-size:12px;color:var(--text-2);font-weight:600;" x-text="m.role.charAt(0).toUpperCase() + m.role.slice(1)"></span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                              :style="roleStyle(m.role)"
+                                              x-text="m.role.charAt(0).toUpperCase() + m.role.slice(1)"></span>
                                         @endif
                                     </td>
                                     <td class="dt-td">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
                                               :style="m.is_active
-                                                ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
-                                                : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'">
-                                            <span class="w-1.5 h-1.5 rounded-full" :class="m.is_active ? 'bg-green-500' : 'bg-red-400'"></span>
+                                                  ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
+                                                  : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'">
+                                            <span style="width:6px;height:6px;border-radius:50%;display:inline-block" :style="m.is_active ? 'background:#22c55e' : 'background:#94a3b8'"></span>
                                             <span x-text="m.is_active ? 'Active' : 'Inactive'"></span>
                                         </span>
                                     </td>
-                                    <td class="dt-td" style="color:var(--text-3);font-size:12px;" x-text="fmtDate(m.created_at)"></td>
+                                    <td class="dt-td" style="color:var(--text-3);font-size:12px" x-text="fmtDate(m.created_at)"></td>
                                     @if(auth()->user()->isAdmin())
                                     <td class="dt-td" style="text-align:right">
-                                        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                                        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px">
                                             <button @click="toggleStatus(m)"
                                                     :title="m.is_active ? 'Deactivate' : 'Activate'"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                                                    :style="m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca;' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;'">
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                    :style="m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                                                 </svg>
                                             </button>
-                                            <button @click="openEdit(m)"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                                                    style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">
+                                            <button @click="openEdit(m)" title="Edit"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                    style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe"
+                                                    onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </button>
-                                            <button @click="removeMember(m)"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                                                    style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;" title="Remove">
+                                            <button @click="removeMember(m)" title="Remove"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                    style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca"
+                                                    onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
@@ -1487,6 +1535,24 @@
                             </template>
                         </tbody>
                     </table>
+                </div>
+
+                {{-- Pagination --}}
+                <div class="dt-foot">
+                    <span class="dt-foot-info" x-text="dtInfo(filtered.length, page, perPage)"></span>
+                    <div class="dt-pages" x-show="totalPages > 1">
+                        <button class="dt-page-btn" @click="page = Math.max(1, page - 1)" :disabled="page === 1">‹</button>
+                        <template x-for="p in pageRange" :key="String(p) + '-' + page">
+                            <template x-if="p === '…'">
+                                <span class="dt-page-dot">…</span>
+                            </template>
+                            <template x-if="p !== '…'">
+                                <button class="dt-page-btn" :class="p === page ? 'dt-page-on' : ''"
+                                        @click="page = p" x-text="p"></button>
+                            </template>
+                        </template>
+                        <button class="dt-page-btn" @click="page = Math.min(totalPages, page + 1)" :disabled="page === totalPages">›</button>
+                    </div>
                 </div>
             </div>
 
@@ -1551,7 +1617,10 @@
             <div x-show="showEditModal && editTarget" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.45);" @click.self="showEditModal=false" x-cloak>
                 <div class="w-full max-w-md rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);" @click.stop>
                     <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
-                        <h3 class="font-bold text-base" style="color:var(--text-1)" x-text="'Edit - ' + (editTarget?.name || '')"></h3>
+                        <div>
+                            <h3 class="font-bold text-base" style="color:var(--text-1)">Edit Member</h3>
+                            <p class="text-xs mt-0.5" style="color:var(--text-3)" x-text="editTarget?.name"></p>
+                        </div>
                         <button @click="showEditModal=false" class="w-8 h-8 rounded-lg flex items-center justify-center" style="color:var(--text-3);">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -1560,11 +1629,6 @@
                         <div>
                             <label class="slabel">Full Name</label>
                             <input type="text" x-model="editForm.name"
-                                   class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);">
-                        </div>
-                        <div>
-                            <label class="slabel">Email Address</label>
-                            <input type="email" x-model="editForm.email"
                                    class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);">
                         </div>
                         <div>
@@ -1582,13 +1646,21 @@
                                    class="sfield" style="background:var(--input-bg);border:1.5px solid var(--border);color:var(--text-1);"
                                    placeholder="Leave blank to keep current password">
                         </div>
-                        <label style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px;border-radius:10px;background:var(--surface-raised);border:1px solid var(--border);">
-                            <span>
-                                <span style="display:block;font-size:12.5px;font-weight:700;color:var(--text-1);">Active account</span>
-                                <span style="display:block;font-size:11.5px;color:var(--text-3);margin-top:1px;">Inactive members cannot sign in.</span>
-                            </span>
-                            <input type="checkbox" x-model="editForm.is_active" style="width:18px;height:18px;">
-                        </label>
+                        <div>
+                            <label class="slabel">Status</label>
+                            <button type="button" @click="editForm.is_active = !editForm.is_active"
+                                    class="flex items-center gap-3 cursor-pointer select-none">
+                                <div class="relative rounded-full transition-colors"
+                                     style="width:40px;height:20px"
+                                     :style="editForm.is_active ? 'background:#22c55e' : 'background:#d1d5db'">
+                                    <div class="absolute top-0.5 bg-white rounded-full shadow transition-all"
+                                         style="width:16px;height:16px"
+                                         :style="editForm.is_active ? 'left:calc(100% - 18px)' : 'left:2px'"></div>
+                                </div>
+                                <span style="font-size:13px;color:var(--text-2)"
+                                      x-text="editForm.is_active ? 'Active — can sign in' : 'Inactive — blocked'"></span>
+                            </button>
+                        </div>
                         <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);">
                             <button type="button" @click="showEditModal=false" class="px-4 py-2 rounded-xl text-sm font-medium" style="color:var(--text-2);border:1px solid var(--border);">Cancel</button>
                             <button type="submit" :disabled="editSaving"
@@ -2071,8 +2143,11 @@ function aiProviderTable(providerRows) {
 
 function teamManager() {
     return {
+        ...dtMixin({ perPage: 10 }),
+
         members:       [],
         loading:       true,
+        fetchError:    '',
         showAddModal:  false,
         showEditModal: false,
         editTarget:    null,
@@ -2082,7 +2157,68 @@ function teamManager() {
         addForm:  { name: '', email: '', password: '', role: 'user' },
         editForm: { name: '', email: '', password: '', role: 'user', is_active: true },
 
-        fetchError: '',
+        statusFilter: 'all',
+        roleFilter:   '',
+        sortBy:       'name_asc',
+
+        rolePills: [
+            { val: 'admin',     label: 'Admin',     color: 'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff' },
+            { val: 'developer', label: 'Developer',  color: 'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe' },
+            { val: 'user',      label: 'User',       color: 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' },
+        ],
+
+        get filtered() {
+            let list = this.members;
+            if (this.statusFilter === 'active')   list = list.filter(m => m.is_active);
+            if (this.statusFilter === 'inactive') list = list.filter(m => !m.is_active);
+            if (this.roleFilter) list = list.filter(m => m.role === this.roleFilter);
+            if (this.search.trim()) {
+                const q = this.search.trim().toLowerCase();
+                list = list.filter(m =>
+                    (m.name  || '').toLowerCase().includes(q) ||
+                    (m.email || '').toLowerCase().includes(q) ||
+                    (m.role  || '').toLowerCase().includes(q)
+                );
+            }
+            list = [...list].sort((a, b) => {
+                if (this.sortBy === 'name_asc')  return (a.name || '').localeCompare(b.name || '');
+                if (this.sortBy === 'name_desc') return (b.name || '').localeCompare(a.name || '');
+                if (this.sortBy === 'newest')    return new Date(b.created_at) - new Date(a.created_at);
+                if (this.sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
+                return 0;
+            });
+            return list;
+        },
+
+        get paginated() {
+            const start = (this.page - 1) * this.perPage;
+            return this.filtered.slice(start, start + this.perPage);
+        },
+
+        get totalPages() {
+            return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+        },
+
+        get pageRange() {
+            return this.dtPageRange(this.totalPages, this.page);
+        },
+
+        roleCount(val) {
+            return this.members.filter(m => m.role === val).length;
+        },
+
+        roleStyle(role) {
+            return {
+                admin:     'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
+                developer: 'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe',
+                user:      'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
+            }[role] || 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)';
+        },
+
+        highlight(text) {
+            return this.dtHighlight(text, this.search);
+        },
+
         async init() {
             try {
                 const res = await fetch('{{ route("settings.team.index") }}', {
@@ -2152,7 +2288,6 @@ function teamManager() {
             try {
                 const payload = { ...this.editForm };
                 if (!payload.password) delete payload.password;
-
                 const res = await fetch(this.teamUrl(this.editTarget.id), {
                     method: 'PUT',
                     headers: {
@@ -2164,8 +2299,8 @@ function teamManager() {
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    const updatedMember = data.member || payload;
-                    this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...updatedMember } : m);
+                    const updated = data.member || payload;
+                    this.members = this.members.map(m => m.id === this.editTarget.id ? { ...m, ...updated } : m);
                     this.showEditModal = false;
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
                 } else {
@@ -2231,7 +2366,7 @@ function teamManager() {
         },
 
         async removeMember(m) {
-            if (!confirm(`Remove ${m.name} from the team? This cannot be undone.`)) return;
+            if (!confirm('Remove ' + m.name + ' from the team? This cannot be undone.')) return;
             try {
                 const res = await fetch(this.teamUrl(m.id), {
                     method: 'DELETE',
