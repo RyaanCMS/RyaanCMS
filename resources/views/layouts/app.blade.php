@@ -1110,7 +1110,7 @@
         {{-- Navigation --}}
         @php
             if (auth()->check()) {
-                app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
+                \App\Models\MenuCategory::ensureDefaultsForUser(auth()->id());
             }
             $projectCount = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
             $projectsUrl  = auth()->check() ? route('projects.index') : '';

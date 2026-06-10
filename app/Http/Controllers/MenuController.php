@@ -18,7 +18,9 @@ class MenuController extends Controller
 {
     public function index()
     {
-        app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
+        if (!Menu::where('user_id', Auth::id())->exists()) {
+            app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
+        }
         $menuCategories = $this->menuCategories();
         $categoryOptions = $this->categoryOptions($menuCategories);
         $menus = Menu::where('user_id', Auth::id())->latest()->get();
