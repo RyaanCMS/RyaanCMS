@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.32",
+    "latest": "1.1.33",
     "versions": [
         {
             "version": "1.0.0",
@@ -419,6 +419,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.31",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.33",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "fix: auto-seed developer menu on first page load; add default favicon to all layouts\n\nDeveloper menu fix:\n- app.blade.php: lazy-seed DefaultSidebarMenuImporter when either sidebar\n  section is empty — fixes existing installs that pre-date the install-wizard\n  seeding fix (menus now appear on first page load, not only after visiting\n  Menus management page)\n\nFavicon / logo fix:\n- public/favicon.svg: new default lightning-bolt favicon (indigo, no file upload needed)\n- app.blade.php, auth.blade.php, wizard.blade.php, welcome.blade.php:\n  all layouts now reference favicon.svg as fallback when no custom favicon\n  is configured — browser tab shows correct icon on fresh install\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.33/ryaancms-v1.1.33-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.32",
             "critical": false,
             "file_count": null
         }
