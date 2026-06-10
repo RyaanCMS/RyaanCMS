@@ -1303,7 +1303,7 @@ function builderApp() {
   <p>This is a server-side Laravel application. The preview below shows your generated files. To run the full app, set it up in your local Laravel environment.</p>
   ${fs.length > 0 ? `<div class="files-label">Generated files</div><ul>${fileRows}</ul>` : ''}
   <div class="tip">💡 <b>Tip:</b> Ask the AI to also generate a <code>preview.html</code> — a standalone static version of your dashboard that renders instantly without a PHP server.</div>
-  <div class="powered"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Powered by RyaanCMS v1.0.0</div>
+  <div class="powered"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Powered by RyaanCMS v{{ config('version.current', '1.0.0') }}</div>
 </div></body></html>`;
             this.renderPreview(html, 'overview.html');
         },
@@ -1434,7 +1434,7 @@ ul{list-style:none}
   <div class="hint">💡 <strong>Try:</strong> "Create a complete hotel management system with dashboard, room booking, guest management, and invoicing"</div>
   <div class="attr">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-    Powered by RyaanCMS v1.0.0
+    Powered by RyaanCMS v{{ config('version.current', '1.0.0') }}
   </div>
 </div>
 </body></html>`;

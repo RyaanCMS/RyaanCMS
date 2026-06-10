@@ -156,6 +156,8 @@
         tab: '{{ session('_tab', 'profile') }}',
         brandColor: '{{ $savedColor }}',
         fontFamily: '{{ $savedFont }}',
+        brandSaving: false,
+        brandSaved: false,
         sysShowMenu: {{ $showDashMenu ? 'true' : 'false' }},
         sysShowSidebar: {{ $showDashSidebar ? 'true' : 'false' }},
         sysAutoHideSidebar: {{ $sidebarAutoHide ? 'true' : 'false' }},
@@ -184,6 +186,26 @@
             this.sysSaving = false;
             this.sysSaved = true;
             setTimeout(() => this.sysSaved = false, 2500);
+        },
+        async saveBrandingAjax() {
+            this.brandSaving = true;
+            try {
+                const fd = new FormData();
+                fd.append('_token', document.querySelector('meta[name=csrf-token]').content);
+                fd.append('primary_color', this.brandColor);
+                fd.append('font_family', this.fontFamily);
+                const res = await fetch('{{ route('settings.branding') }}', { method: 'POST', body: fd });
+                if (res.ok || res.status === 302) {
+                    this.brandSaved = true;
+                    setTimeout(() => this.brandSaved = false, 2500);
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Branding saved successfully.' } }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Could not save branding.' } }));
+                }
+            } catch(e) {
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error saving branding.' } }));
+            }
+            this.brandSaving = false;
         },
         hexInput: '{{ ltrim($savedColor, '#') }}',
         brandCopied: false,
@@ -896,8 +918,7 @@
             </div>
 
             {{-- ── Colors & Typography ── --}}
-            <form method="POST" action="{{ route('settings.branding') }}" class="scard">
-                @csrf
+            <div class="scard">
                 <div class="scard-hd">
                     <div class="scard-hd-icon" style="background:#f5f3ff;">
                         <svg style="width:15px;height:15px;stroke:#7c3aed" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
@@ -915,9 +936,11 @@
                             Site Default
                         </button>
                         @endif
-                        <button type="submit" class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;">
-                            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Save
+                        <button type="button" @click="saveBrandingAjax()" :disabled="brandSaving" class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;">
+                            <template x-if="!brandSaved">
+                                <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                            <span x-text="brandSaving ? 'Saving…' : (brandSaved ? '✓ Saved' : 'Save')"></span>
                         </button>
                     </div>
                 </div>
@@ -930,13 +953,15 @@
                             {{-- Big color swatch --}}
                             <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
                                 <div style="position:relative;width:72px;height:72px;border-radius:16px;cursor:pointer;border:3px solid #fff;transition:box-shadow .15s;overflow:hidden;"
-                                     :style="'background:' + brandColor + ';box-shadow:0 0 0 2px ' + brandColor + '50,0 4px 14px rgba(0,0,0,.1);'"
-                                     @click="$refs.colorInput.click()">
-                                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:opacity .15s;" @mouseenter="$el.style.opacity='1'" @mouseleave="$el.style.opacity='0'">
+                                     :style="'background:' + brandColor + ';box-shadow:0 0 0 2px ' + brandColor + '40,0 4px 14px rgba(0,0,0,.1);'">
+                                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:opacity .15s;pointer-events:none;"
+                                         x-ref="colorOverlay"
+                                         @mouseover.self="$el.style.opacity='1'" @mouseout.self="$el.style.opacity='0'">
                                         <svg style="width:18px;height:18px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </div>
                                     <input type="color" x-ref="colorInput" name="primary_color" x-model="brandColor"
-                                           style="position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%;">
+                                           style="position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%;"
+                                           @mouseover="$refs.colorOverlay.style.opacity='1'" @mouseout="$refs.colorOverlay.style.opacity='0'">
                                 </div>
                                 <div style="font-size:10.5px;font-weight:700;font-family:monospace;letter-spacing:.04em;" :style="'color:' + brandColor" x-text="brandColor.toUpperCase()"></div>
                             </div>
@@ -1007,7 +1032,7 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
 
             {{-- ── Logo & Favicon ── --}}
             <div class="scard">
@@ -1317,7 +1342,7 @@
 
         {{-- ──── TEAM ──── --}}
         <div x-show=”tab === 'team'” class=”st-panel” x-cloak
-             x-data=”teamManager()” x-init=”init()”>
+             x-data=”teamManager()”>
 
             {{-- Header --}}
             <div class=”dt-wrap”>
@@ -1376,14 +1401,17 @@
                                     Loading team...
                                 </td></tr>
                             </template>
-                            <template x-if=”!loading && members.length === 0”>
+                            <template x-if=”!loading && fetchError”>
+                                <tr><td colspan=”5” class=”dt-empty” style=”color:#ef4444;” x-text=”fetchError”></td></tr>
+                            </template>
+                            <template x-if=”!loading && !fetchError && members.length === 0”>
                                 <tr><td colspan=”5” class=”dt-empty”>
-                                    <svg class=”w-10 h-10 mb-3 mx-auto” style=”color:var(--border)” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
+                                    <svg style=”width:38px;height:38px;margin:0 auto 10px;color:var(--border)” fill=”none” viewBox=”0 0 24 24” stroke=”currentColor”>
                                         <path stroke-linecap=”round” stroke-linejoin=”round” stroke-width=”1.5” d=”M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z”/>
                                     </svg>
-                                    <p class=”text-sm font-medium”>No other team members yet</p>
+                                    <p style=”font-size:13px;font-weight:600;color:var(--text-1);”>No other team members yet</p>
                                     @if(auth()->user()->isAdmin())
-                                    <p class=”text-xs mt-1”>Click “Add Member” to invite someone</p>
+                                    <p style=”font-size:12px;color:var(--text-3);margin-top:4px;”>Click <strong>Add Member</strong> to invite someone to your workspace</p>
                                     @endif
                                 </td></tr>
                             </template>
@@ -2031,13 +2059,21 @@ function teamManager() {
         addForm:  { name: '', email: '', password: '', role: 'user' },
         editForm: { name: '', role: 'user' },
 
+        fetchError: '',
         async init() {
             try {
                 const res = await fetch('{{ route("settings.team.index") }}', {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                 });
-                if (res.ok) this.members = await res.json();
-            } catch (e) { /* non-admin: silently skip */ }
+                if (res.ok) {
+                    const data = await res.json();
+                    this.members = Array.isArray(data) ? data : [];
+                } else if (res.status !== 403) {
+                    this.fetchError = 'Could not load team members (HTTP ' + res.status + ')';
+                }
+            } catch (e) {
+                this.fetchError = 'Network error loading team members.';
+            }
             this.loading = false;
         },
 
