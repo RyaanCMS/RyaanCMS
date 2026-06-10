@@ -413,8 +413,8 @@
         .sb-item {
             display: flex; align-items: center;
             padding: 0 10px;
-            margin: 1px 6px;
-            height: 40px;
+            margin: 0 6px;
+            height: 34px;
             border-radius: 10px;
             cursor: pointer;
             text-decoration: none;

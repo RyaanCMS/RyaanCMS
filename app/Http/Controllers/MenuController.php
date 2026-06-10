@@ -21,10 +21,36 @@ class MenuController extends Controller
         if (!Menu::where('user_id', Auth::id())->exists()) {
             app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
         }
-        $menuCategories = $this->menuCategories();
+        $menuCategories  = $this->menuCategories();
         $categoryOptions = $this->categoryOptions($menuCategories);
-        $menus = Menu::where('user_id', Auth::id())->latest()->get();
-        return view('menus.index', compact('menus', 'menuCategories', 'categoryOptions'));
+        $menus           = Menu::where('user_id', Auth::id())->latest()->get();
+
+        $urlSources = [
+            'applications' => Project::where('user_id', Auth::id())->orderBy('name')
+                ->get(['id','name','deployment_url'])->map(fn ($p) => [
+                    'label' => $p->name,
+                    'url'   => $p->deployment_url ?: route('projects.show', $p),
+                ])->values(),
+            'plugins' => MarketplaceInstallation::where('user_id', Auth::id())
+                ->where('status', 'active')->with('item:id,name,slug')->get()
+                ->map(fn ($i) => [
+                    'label' => $i->item?->name ?? 'App #'.$i->id,
+                    'url'   => url('/marketplace/'.$i->marketplace_item_id),
+                ])->values(),
+            'modules' => collect([
+                ['label' => 'Dashboard',       'url' => route('dashboard')],
+                ['label' => 'My Apps',         'url' => route('projects.index')],
+                ['label' => 'Marketplace',     'url' => route('marketplace.index')],
+                ['label' => 'Templates',       'url' => route('marketplace.templates')],
+                ['label' => 'Installed Apps',  'url' => route('marketplace.installed')],
+                ['label' => 'AI Knowledge',    'url' => route('wisdom.index')],
+                ['label' => 'Settings',        'url' => route('settings.index')],
+                ['label' => 'Menu Management', 'url' => route('menus.index')],
+                ['label' => 'Menu Categories', 'url' => route('menu-categories.index')],
+            ]),
+        ];
+
+        return view('menus.index', compact('menus', 'menuCategories', 'categoryOptions', 'urlSources'));
     }
 
     public function create()
