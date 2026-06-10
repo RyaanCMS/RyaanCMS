@@ -815,4 +815,8 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 
 </div>{{-- /layout --}}
 </div>{{-- /page --}}
+
+<div style="position:fixed;bottom:14px;right:18px;font-size:10.5px;font-weight:600;color:var(--text-3);background:var(--surface-raised);border:1px solid var(--border);padding:4px 12px;border-radius:99px;z-index:50;pointer-events:none;letter-spacing:.02em;">
+    Powered by RyaanCMS v{{ config('version.current', '1.1.30') }}
+</div>
 @endsection

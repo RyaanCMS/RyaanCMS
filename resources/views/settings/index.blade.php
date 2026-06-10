@@ -153,7 +153,7 @@
 
 @section('content')
 <div class="st-wrap"
-     :class="{ 'st-wrap-wide': tab === 'ai' || tab === 'team' }"
+     :class="{ 'st-wrap-wide': tab === 'ai' || tab === 'team' || tab === 'integrations' }"
      x-data="{
         tab: '{{ session('_tab', 'profile') }}',
         brandColor: '{{ $savedColor }}',

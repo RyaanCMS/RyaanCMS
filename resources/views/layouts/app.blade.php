@@ -485,8 +485,8 @@
             transition: background var(--dur-fast) ease;
         }
         .sb-ico svg { width: 18px; height: 18px; }
-        .sb-item:hover .sb-ico { background: color-mix(in srgb, var(--brand) 8%, transparent); }
-        .sb-item.active .sb-ico { background: color-mix(in srgb, var(--brand) 14%, transparent); }
+        .sb-item:hover .sb-ico { background: rgba(0,0,0,.04); }
+        .sb-item.active .sb-ico { /* color set inline per item */ }
 
         .sb-label {
             font-size: 13px; font-weight: 500;
@@ -496,7 +496,7 @@
             transition: opacity var(--dur-base) ease;
             flex: 1;
         }
-        .sb-item.active .sb-label { color: var(--brand); font-weight: 600; }
+        .sb-item.active .sb-label { /* color set inline per item */ font-weight: 600; }
 
         .sb-badge {
             font-size: 9px; font-weight: 800;
@@ -1132,30 +1132,34 @@
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
 
             {{-- ─── USER section (top) ─── --}}
+            @php
+            $sbColors = ['#6366f1','#f59e0b','#10b981','#3b82f6','#ec4899','#14b8a6','#f97316','#8b5cf6','#ef4444','#06b6d4'];
+            @endphp
             <div class="sb-section-user" style="padding:6px 0 0;" @mouseenter="hoveredSection='user'">
                 <div class="sb-section-label">USER</div>
-                @foreach($userSidebarMenus as $sMenu)
+                @foreach($userSidebarMenus as $sbIdx => $sMenu)
                 @php
                     $mUrl    = $sMenu->url ?? '';
                     $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
                     $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
                     $mIsProjects = $mUrl && rtrim($mUrl, '/') === rtrim($projectsUrl, '/');
+                    $sbC = $sbColors[$sbIdx % count($sbColors)];
                 @endphp
                 <a href="{{ $mUrl ?: '#' }}"
                    class="sb-item{{ $mActive ? ' active' : '' }}"
                    aria-current="{{ $mActive ? 'page' : 'false' }}">
-                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                    <div class="sb-ico" style="{{ $mActive ? 'background:'.$sbC.'22;' : '' }}">
                         @if($sMenu->icon)
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $sbC }}" style="{{ $mActive ? '' : 'opacity:.6' }}" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $sMenu->icon }}"/>
                         </svg>
                         @else
-                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $sbC }};opacity:{{ $mActive ? 1 : .55 }};display:block;"></span>
                         @endif
                     </div>
-                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $sMenu->name }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:'.$sbC.';font-weight:600;' : 'color:'.$sbC.';opacity:.75;' }}">{{ $sMenu->name }}</span>
                     @if($mIsProjects && $projectCount > 0)
-                    <span class="sb-badge" style="{{ $mActive ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
+                    <span class="sb-badge" style="{{ $mActive ? 'background:'.$sbC.';' : 'background:'.$sbC.'22;color:'.$sbC.';' }}">{{ $projectCount }}</span>
                     @endif
                     <span class="sb-tooltip" aria-hidden="true">{{ $sMenu->name }}</span>
                 </a>
@@ -1169,25 +1173,26 @@
             <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;" @mouseenter="hoveredSection='dev'">
                 <div class="sb-divider"></div>
                 <div class="sb-section-label">DEVELOPER</div>
-                @foreach($devSidebarMenus as $sMenu)
+                @foreach($devSidebarMenus as $sbIdx => $sMenu)
                 @php
                     $mUrl    = $sMenu->url ?? '';
                     $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
                     $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+                    $sbC = $sbColors[$sbIdx % count($sbColors)];
                 @endphp
                 <a href="{{ $mUrl ?: '#' }}"
                    class="sb-item{{ $mActive ? ' active' : '' }}"
                    aria-current="{{ $mActive ? 'page' : 'false' }}">
-                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                    <div class="sb-ico" style="{{ $mActive ? 'background:'.$sbC.'22;' : '' }}">
                         @if($sMenu->icon)
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $sbC }}" style="{{ $mActive ? '' : 'opacity:.6' }}" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $sMenu->icon }}"/>
                         </svg>
                         @else
-                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $sbC }};opacity:{{ $mActive ? 1 : .55 }};display:block;"></span>
                         @endif
                     </div>
-                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $sMenu->name }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:'.$sbC.';font-weight:600;' : 'color:'.$sbC.';opacity:.75;' }}">{{ $sMenu->name }}</span>
                     <span class="sb-tooltip" aria-hidden="true">{{ $sMenu->name }}</span>
                 </a>
                 @endforeach
