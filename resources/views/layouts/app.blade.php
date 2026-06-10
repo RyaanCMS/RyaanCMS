@@ -464,6 +464,19 @@
             background: transparent;
         }
 
+        /* ─── COLLAPSED: USER section fills remaining height so icons span top→bottom ─── */
+        .app-sidebar:not(.sidebar-expanded) .sb-section-user {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Direct .sb-item children (not sub-items) grow to fill the section */
+        .app-sidebar:not(.sidebar-expanded) .sb-section-user > .sb-item {
+            flex: 1;
+            height: auto;
+            min-height: 48px;
+        }
+
         /* ── Icon box (expanded / shared) ── */
         .sb-ico {
             width: 34px; height: 34px;
