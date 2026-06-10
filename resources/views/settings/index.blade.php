@@ -2255,7 +2255,7 @@ function teamManager() {
                     this.addError = errs.join(' ');
                     return;
                 }
-                this.members.unshift(data.member);
+                this.members = [data.member, ...this.members];
                 this.showAddModal = false;
                 this.addForm = { name: '', email: '', password: '', role: 'user' };
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
@@ -2302,7 +2302,7 @@ function teamManager() {
 
         async updateRole(m, role) {
             const prev = m.role;
-            m.role = role;
+            this.members = this.members.map(x => x.id === m.id ? { ...x, role } : x);
             try {
                 const res = await fetch(this.teamUrl(m.id), {
                     method: 'PUT',
@@ -2315,20 +2315,20 @@ function teamManager() {
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    m.role = prev;
+                    this.members = this.members.map(x => x.id === m.id ? { ...x, role: prev } : x);
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not update role.' } }));
                 } else {
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
                 }
             } catch(e) {
-                m.role = prev;
+                this.members = this.members.map(x => x.id === m.id ? { ...x, role: prev } : x);
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error updating role.' } }));
             }
         },
 
         async toggleStatus(m) {
-            const prev = m.is_active;
-            m.is_active = !m.is_active;
+            const newActive = !m.is_active;
+            this.members = this.members.map(x => x.id === m.id ? { ...x, is_active: newActive } : x);
             try {
                 const res = await fetch(this.teamUrl(m.id), {
                     method: 'PUT',
@@ -2337,17 +2337,17 @@ function teamManager() {
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify({ is_active: m.is_active }),
+                    body: JSON.stringify({ is_active: newActive }),
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    m.is_active = prev;
+                    this.members = this.members.map(x => x.id === m.id ? { ...x, is_active: !newActive } : x);
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: data.message || 'Could not update status.' } }));
                 } else {
                     window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
                 }
             } catch(e) {
-                m.is_active = prev;
+                this.members = this.members.map(x => x.id === m.id ? { ...x, is_active: !newActive } : x);
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error updating status.' } }));
             }
         },
