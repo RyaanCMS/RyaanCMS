@@ -345,7 +345,7 @@
         .dt-table { width:100%; border-collapse:collapse; }
         .dt-th { padding:8px 14px; text-align:left; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); background:var(--surface-raised); white-space:nowrap; }
         .dt-th:last-child { text-align:right; }
-        .dt-td { padding:9px 14px; font-size:12.5px; color:var(--text-1); border-top:1px solid var(--border); vertical-align:middle; }
+        .dt-td { padding:9px 14px; font-size:12.5px; color:var(--text-3); border-top:1px solid var(--border); vertical-align:middle; }
         .dt-tr { transition:background .1s; }
         .dt-tr:hover .dt-td { background:var(--hover-bg, var(--surface-raised)); }
         .dt-foot { padding:10px 14px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
@@ -374,7 +374,12 @@
             flex-direction: column;
             z-index: 30;
         }
-        .sidebar-expanded { width: var(--sidebar-w-expanded) !important; }
+
+        /* ── EXPANDED STATE: sidebar-expanded class OR CSS :hover (desktop non-autohide) ── */
+        .sidebar-expanded,
+        .app-sidebar:not(.sidebar-autohide):hover {
+            width: var(--sidebar-w-expanded) !important;
+        }
 
         .sb-section-label {
             font-size: 9.5px; font-weight: 800;
@@ -387,14 +392,18 @@
             overflow: hidden;
             transition: opacity var(--dur-base) ease, padding var(--dur-base) ease, height var(--dur-base) ease;
         }
-        /* In collapsed mode: section labels take up zero height to keep items contiguous */
-        .app-sidebar:not(.sidebar-expanded) .sb-section-label {
+        /* Collapsed: section labels zero height */
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-section-label,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-section-label {
             padding: 0;
             height: 0;
         }
-        .sidebar-expanded .sb-section-label { opacity: 1; }
-        /* Divider also hidden in collapsed mode */
-        .app-sidebar:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; }
+        .sidebar-expanded .sb-section-label,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-section-label { opacity: 1; }
+
+        /* Divider hidden in collapsed mode */
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-divider,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; }
 
         /* ── Sidebar nav items ── */
         .sb-item {
@@ -421,35 +430,38 @@
             border-radius: 0 3px 3px 0;
         }
 
-        /* ─── COLLAPSED MODE: items become full-width icon tiles ─── */
-        .app-sidebar:not(.sidebar-expanded) .sb-item {
+        /* ─── COLLAPSED MODE: full-width icon tiles ─── */
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item {
             justify-content: center;
             align-items: center;
             padding: 0;
-            margin: 0;          /* zero gaps → contiguous top-to-bottom */
-            height: 52px;       /* taller = easier to target */
+            margin: 0;
+            height: 52px;
             border-radius: 0;
             background: transparent;
         }
-        /* Hover & active highlight spans the full 64 px width */
-        .app-sidebar:not(.sidebar-expanded) .sb-item:hover {
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover {
             background: color-mix(in srgb, var(--brand) 7%, transparent);
         }
-        .app-sidebar:not(.sidebar-expanded) .sb-item.active {
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item.active,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item.active {
             background: color-mix(in srgb, var(--brand) 12%, transparent);
         }
-        /* Active bar on left */
-        .app-sidebar:not(.sidebar-expanded) .sb-item.active::before {
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item.active::before,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item.active::before {
             left: 0; top: 10px; bottom: 10px;
         }
-        /* Icon box — visible center square inside the full-width tile */
-        .app-sidebar:not(.sidebar-expanded) .sb-ico {
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-ico,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-ico {
             width: 40px; height: 40px;
             border-radius: 10px;
             background: transparent;
         }
-        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-ico {
-            background: transparent; /* let parent row handle highlight */
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover .sb-ico,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover .sb-ico {
+            background: transparent;
         }
 
         /* ── Icon box (expanded / shared) ── */
@@ -463,6 +475,7 @@
         .sb-ico svg { width: 18px; height: 18px; }
         .sb-item:hover .sb-ico { background: color-mix(in srgb, var(--brand) 8%, transparent); }
         .sb-item.active .sb-ico { background: color-mix(in srgb, var(--brand) 14%, transparent); }
+
         .sb-label {
             font-size: 13px; font-weight: 500;
             color: var(--text-2);
@@ -471,8 +484,10 @@
             transition: opacity var(--dur-base) ease;
             flex: 1;
         }
-        .sidebar-expanded .sb-label { opacity: 1; }
+        .sidebar-expanded .sb-label,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-label { opacity: 1; }
         .sb-item.active .sb-label { color: var(--brand); font-weight: 600; }
+
         .sb-badge {
             font-size: 9px; font-weight: 800;
             background: var(--brand); color: #fff;
@@ -482,9 +497,38 @@
             transition: opacity var(--dur-base) ease;
             flex-shrink: 0;
         }
-        .sidebar-expanded .sb-badge { opacity: 1; }
+        .sidebar-expanded .sb-badge,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-badge { opacity: 1; }
 
-        /* Sidebar tooltip on collapsed — appears next to the icon, full height */
+        /* Generic utility: hidden in collapsed, shown when sidebar is expanded/hovered */
+        .sb-show-expanded {
+            opacity: 0;
+            transition: opacity var(--dur-base) ease;
+        }
+        .sidebar-expanded .sb-show-expanded,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1; }
+
+        /* Logo name + toggle button — hidden in collapsed, shown expanded/hovered */
+        .sb-logo-name {
+            flex: 1; min-width: 0;
+            opacity: 0;
+            transition: opacity var(--dur-base) ease;
+        }
+        .sidebar-expanded .sb-logo-name,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name { opacity: 1; }
+        .sb-toggle-btn {
+            width: 26px; height: 26px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; background: none; cursor: pointer;
+            color: var(--text-3); flex-shrink: 0;
+            opacity: 0;
+            transition: opacity var(--dur-base) ease, background var(--dur-fast) ease;
+        }
+        .sb-toggle-btn:hover { background: var(--surface-overlay); }
+        .sidebar-expanded .sb-toggle-btn,
+        .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn { opacity: 1; }
+
+        /* Sidebar tooltip — only show in truly collapsed (not hover-expanded) */
         .sb-item .sb-tooltip {
             position: absolute; left: calc(var(--sidebar-w-collapsed) + 6px);
             background: #1e293b; color: #fff;
@@ -502,7 +546,8 @@
             border: 5px solid transparent;
             border-right-color: #1e293b;
         }
-        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-tooltip { opacity: 1; }
+        .app-sidebar:not(.sidebar-expanded):not(:hover) .sb-item:hover .sb-tooltip,
+        .sidebar-autohide:not(.sidebar-expanded) .sb-item:hover .sb-tooltip { opacity: 1; }
 
         /* Sidebar divider */
         .sb-divider {
@@ -998,8 +1043,8 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseover="sidebarHovered=true"
-           @mouseleave="sidebarHovered=false">
+           @mouseenter="clearTimeout(window._sbLeave); sidebarHovered=true"
+           @mouseleave="window._sbLeave=setTimeout(()=>{ sidebarHovered=false },120)">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
@@ -1013,13 +1058,11 @@
                 </svg>
             </div>
             @endif
-            <div style="flex:1;min-width:0;opacity:0;transition:opacity var(--dur-base) ease;" :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'">
+            <div class="sb-logo-name">
                 <div style="font-size:14px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ config('app.name') }}</div>
             </div>
             <button @click="sidebarOpen=!sidebarOpen"
-                    style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--text-3);flex-shrink:0;opacity:0;transition:opacity var(--dur-base),background var(--dur-fast);"
-                    :style="(sidebarOpen||sidebarHovered) ? 'opacity:1' : 'opacity:0'"
-                    onmouseover="this.style.background='var(--surface-overlay)'" onmouseout="this.style.background='none'"
+                    class="sb-toggle-btn"
                     aria-label="Toggle sidebar">
                 <svg style="width:14px;height:14px" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path x-show="sidebarOpen"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
@@ -1144,13 +1187,11 @@
                     :aria-expanded="open">
                 <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}"
                      style="width:30px;height:30px;border-radius:8px;flex-shrink:0;border:2px solid var(--border);">
-                <div style="flex:1;min-width:0;transition:opacity var(--dur-base);"
-                     :style="{ opacity: (sidebarOpen||sidebarHovered) ? 1 : 0 }">
+                <div class="sb-show-expanded" style="flex:1;min-width:0;">
                     <div style="font-size:12.5px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}</div>
                     <div style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email }}</div>
                 </div>
-                <svg style="width:12px;height:12px;color:var(--text-3);flex-shrink:0;transition:opacity var(--dur-base);"
-                     :style="{ opacity: (sidebarOpen||sidebarHovered) ? 1 : 0 }"
+                <svg class="sb-show-expanded" style="width:12px;height:12px;color:var(--text-3);flex-shrink:0;"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
