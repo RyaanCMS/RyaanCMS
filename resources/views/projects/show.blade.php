@@ -1,3 +1,9 @@
+@php
+    $userId     = auth()->check() ? auth()->id() : null;
+    $brandColor = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
+    $fontFamily = \App\Models\Setting::get('branding.font_family',   'Inter',   $userId);
+    $fontSlug   = strtolower(str_replace(' ', '+', $fontFamily));
+@endphp
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -5,9 +11,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $project->name }} — Launch</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family={{ $fontSlug }}:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { margin:0; font-family:'Inter',system-ui,sans-serif; }
+        :root {
+            --brand:       {{ $brandColor }};
+            --brand-dark:  color-mix(in srgb, {{ $brandColor }} 80%, #000);
+            --brand-light: color-mix(in srgb, {{ $brandColor }} 10%, #fff);
+            --brand-ring:  color-mix(in srgb, {{ $brandColor }} 25%, transparent);
+        }
+        body { margin:0; font-family:'{{ $fontFamily }}','Inter',system-ui,sans-serif; }
         .doc-backdrop {
             min-height: 100vh;
             background: linear-gradient(135deg, #0f0f14 0%, #1a1025 100%);
@@ -40,8 +54,8 @@
         .doc-icon {
             width: 48px; height: 48px;
             border-radius: 14px;
-            background: linear-gradient(135deg,#eef2ff,#ede9fe);
-            border: 1px solid #c7d2fe;
+            background: var(--brand-light);
+            border: 1px solid var(--brand-ring);
             display: flex; align-items: center; justify-content: center;
             font-size: 22px; flex-shrink: 0;
         }
@@ -60,7 +74,7 @@
             padding: 2px 8px; border-radius: 99px;
             font-size: 11px; font-weight: 600;
         }
-        .badge-purple { background:#eef2ff; color:#6366f1; border:1px solid #c7d2fe; }
+        .badge-purple { background:var(--brand-light); color:var(--brand); border:1px solid var(--brand-ring); }
         .badge-green  { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
         .badge-gray   { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
         .doc-close {
@@ -85,7 +99,7 @@
             transition: border-color .15s;
             font-family: inherit;
         }
-        .doc-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+        .doc-textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); }
         .doc-textarea::placeholder { color: #cbd5e1; }
         .chips-row {
             display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
@@ -97,7 +111,7 @@
             cursor: pointer; transition: all .15s;
         }
         .chip:hover, .chip.active {
-            background: #eef2ff; color: #6366f1; border-color: #c7d2fe;
+            background: var(--brand-light); color: var(--brand); border-color: var(--brand-ring);
         }
         .suggestions-row {
             display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
@@ -107,7 +121,7 @@
             border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b;
             cursor: pointer; transition: all .15s;
         }
-        .suggestion:hover { background:#eef2ff; color:#6366f1; border-color:#c7d2fe; }
+        .suggestion:hover { background:var(--brand-light); color:var(--brand); border-color:var(--brand-ring); }
         .doc-divider { height: 1px; background: #f1f5f9; margin: 20px 0 16px; }
         .doc-footer {
             padding: 16px 24px 20px;
@@ -122,18 +136,18 @@
         .btn-secondary {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
-            border: 1px solid #ddd6fe; background: #f5f3ff; color: #7c3aed;
+            border: 1.5px solid var(--brand-ring); background: var(--brand-light); color: var(--brand);
             cursor: pointer; text-decoration: none; transition: all .15s;
         }
-        .btn-secondary:hover { background: #ede9fe; }
+        .btn-secondary:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
         .btn-primary {
             display: inline-flex; align-items: center; gap: 7px;
             padding: 9px 22px; border-radius: 11px; font-size: 13px; font-weight: 700;
-            background: linear-gradient(135deg,#6366f1,#8b5cf6);
-            color: #fff; border: none; cursor: pointer; transition: all .15s;
-            box-shadow: 0 4px 12px rgba(99,102,241,.3);
+            background: color-mix(in srgb,var(--brand) 10%,#fff); color: var(--brand);
+            border: 1.5px solid color-mix(in srgb,var(--brand) 28%,transparent);
+            cursor: pointer; transition: all .15s;
         }
-        .btn-primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,.4); transform: translateY(-1px); }
+        .btn-primary:hover { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 14px var(--brand-ring); transform: translateY(-1px); }
         .btn-primary:disabled {
             background: #e2e8f0; color: #94a3b8;
             box-shadow: none; cursor: not-allowed; transform: none;

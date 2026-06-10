@@ -44,7 +44,7 @@
 
         <button type="submit"
                 class="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all hover:-translate-y-0.5 mt-2"
-                style="background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 6px 20px rgba(99,102,241,.3);">
+                style="background:var(--brand); box-shadow:0 6px 20px var(--brand-ring);">
             Sign In
         </button>
     </form>

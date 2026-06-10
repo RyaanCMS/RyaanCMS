@@ -1,3 +1,8 @@
+@php
+    $brandColor = \App\Models\Setting::get('branding.primary_color', '#6366f1');
+    $fontFamily = \App\Models\Setting::get('branding.font_family',   'Inter');
+    $fontSlug   = strtolower(str_replace(' ', '+', $fontFamily));
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -5,10 +10,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') — {{ config('app.name') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.bunny.net/css?family={{ $fontSlug }}:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        :root {
+            --brand:       {{ $brandColor }};
+            --brand-dark:  color-mix(in srgb, {{ $brandColor }} 80%, #000);
+            --brand-light: color-mix(in srgb, {{ $brandColor }} 10%, #fff);
+            --brand-ring:  color-mix(in srgb, {{ $brandColor }} 25%, transparent);
+        }
+        body { font-family: '{{ $fontFamily }}', 'Inter', system-ui, sans-serif; }
+    </style>
 </head>
-<body class="font-inter antialiased min-h-screen flex" style="background:#f8fafc;">
+<body class="antialiased min-h-screen flex" style="background:#f8fafc;">
 
     <!-- ── Left Panel ─────────────────────────────────────── -->
     <div class="hidden lg:flex lg:w-[52%] xl:w-[55%] relative flex-col justify-between p-12 overflow-hidden"
@@ -121,7 +135,7 @@
         <div class="lg:hidden mb-8 text-center">
             <a href="/" class="inline-flex items-center space-x-2.5">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                     style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                     style="background:var(--brand);">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -152,7 +166,7 @@
         <div class="mt-3 text-center">
             <a href="https://ryaancms.com" target="_blank" rel="noopener"
                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;letter-spacing:.02em;">
-                ⚡ Powered by <span style="color:#6366f1;font-weight:700;">RyaanCMS</span> <span style="opacity:.5;font-size:.65rem;">v{{ config('ryaan.version', '1.0.0') }}</span>
+                ⚡ Powered by <span style="color:var(--brand);font-weight:700;">RyaanCMS</span> <span style="opacity:.5;font-size:.65rem;">v{{ config('ryaan.version', '1.0.0') }}</span>
             </a>
         </div>
     </div>

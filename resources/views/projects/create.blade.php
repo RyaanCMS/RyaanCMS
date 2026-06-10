@@ -1,3 +1,9 @@
+@php
+    $userId     = auth()->check() ? auth()->id() : null;
+    $brandColor = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
+    $fontFamily = \App\Models\Setting::get('branding.font_family',   'Inter',   $userId);
+    $fontSlug   = strtolower(str_replace(' ', '+', $fontFamily));
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +11,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>New Project — RyaanCMS</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family={{ $fontSlug }}:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
+        :root {
+            --brand:       {{ $brandColor }};
+            --brand-dark:  color-mix(in srgb, {{ $brandColor }} 80%, #000);
+            --brand-light: color-mix(in srgb, {{ $brandColor }} 10%, #fff);
+            --brand-ring:  color-mix(in srgb, {{ $brandColor }} 25%, transparent);
+        }
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { margin: 0; font-family: '{{ $fontFamily }}', 'Inter', system-ui, sans-serif; }
         .backdrop {
             min-height: 100vh;
             background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 50%, #eef9f0 100%);
@@ -36,8 +50,8 @@
         }
         .hdr-icon {
             width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
-            background: linear-gradient(135deg,#eef2ff,#ede9fe);
-            border: 1px solid #c7d2fe;
+            background: var(--brand-light);
+            border: 1px solid var(--brand-ring);
             display: flex; align-items: center; justify-content: center; font-size: 20px;
         }
         .hdr-title { font-size: 16px; font-weight: 800; color: #1e293b; letter-spacing:-.01em; }
@@ -64,8 +78,8 @@
             background: #fff;
         }
         .text-input:focus, .sel-input:focus, .txt-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px var(--brand-ring);
         }
         .txt-input { resize: none; }
         .sel-input { appearance: none; cursor: pointer; }
@@ -79,11 +93,11 @@
             border: 2px solid #e2e8f0; background: #f8fafc;
             transition: all .15s; user-select: none;
         }
-        .type-chip:hover { border-color: #c7d2fe; background: #eef2ff; }
-        .type-chip.active { border-color: #6366f1; background: #eef2ff; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+        .type-chip:hover { border-color: var(--brand-ring); background: var(--brand-light); }
+        .type-chip.active { border-color: var(--brand); background: var(--brand-light); box-shadow: 0 0 0 3px var(--brand-ring); }
         .type-chip .chip-icon { font-size: 16px; flex-shrink: 0; }
         .type-chip .chip-text { font-size: 12.5px; font-weight: 600; color: #374151; }
-        .type-chip.active .chip-text { color: #4f46e5; }
+        .type-chip.active .chip-text { color: var(--brand); }
         /* Prompt textarea */
         .prompt-area {
             width: 100%; font-size: 13.5px; font-family: inherit; color: #1e293b;
@@ -92,7 +106,7 @@
             line-height: 1.65; transition: border-color .15s, box-shadow .15s;
             background: #fafbff;
         }
-        .prompt-area:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); background: #fff; }
+        .prompt-area:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-ring); background: #fff; }
         .prompt-area::placeholder { color: #c4c9d4; }
         /* Suggestions */
         .suggest-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -101,7 +115,7 @@
             border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b;
             cursor: pointer; transition: all .14s;
         }
-        .suggest-chip:hover { background: #eef2ff; color: #6366f1; border-color: #c7d2fe; }
+        .suggest-chip:hover { background: var(--brand-light); color: var(--brand); border-color: var(--brand-ring); }
         /* ── Footer ── */
         .card-footer {
             padding: 16px 24px 20px;
@@ -122,11 +136,11 @@
         .btn-create {
             display: inline-flex; align-items: center; gap: 7px;
             padding: 10px 22px; border-radius: 11px; font-size: 13.5px; font-weight: 700;
-            background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
-            border: none; cursor: pointer;
-            box-shadow: 0 4px 14px rgba(99,102,241,.35); transition: all .15s;
+            background: color-mix(in srgb,var(--brand) 10%,#fff); color: var(--brand);
+            border: 1.5px solid color-mix(in srgb,var(--brand) 28%,transparent);
+            cursor: pointer; transition: all .15s;
         }
-        .btn-create:hover { box-shadow: 0 6px 20px rgba(99,102,241,.45); transform: translateY(-1px); }
+        .btn-create:hover { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 14px var(--brand-ring); transform: translateY(-1px); }
         .btn-create:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
         .spin { animation: spin .7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
