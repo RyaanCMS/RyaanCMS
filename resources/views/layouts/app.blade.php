@@ -1010,17 +1010,7 @@
 </template>
 
 {{-- ═══════════════ APP SHELL ═══════════════ --}}
-<div class="flex h-screen overflow-hidden"
-     @mousemove.window.passive="
-         if (window.innerWidth < 1024) return;
-         if (document.querySelector('.app-sidebar')?.classList.contains('sidebar-autohide')) return;
-         if ($event.clientX < 64) {
-             clearTimeout(window._sbL); window._sbL = null;
-             if (!sidebarHovered) sidebarHovered = true;
-         } else {
-             if (!window._sbL) window._sbL = setTimeout(() => { sidebarHovered = false; window._sbL = null; }, 220);
-         }
-     ">
+<div class="flex h-screen overflow-hidden">
 
     <!-- Mobile backdrop -->
     <div class="mobile-backdrop" :class="{ active: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -1045,7 +1035,9 @@
     </div>
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
-           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }">
+           :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
+           @mouseenter="if(window.innerWidth >= 1024 && !$el.classList.contains('sidebar-autohide')) { clearTimeout(window._sbLeave); sidebarHovered = true; }"
+           @mouseleave="window._sbLeave = setTimeout(() => { sidebarHovered = false; }, 150)">
 
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
