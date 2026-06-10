@@ -662,6 +662,209 @@
             </div>
         </div>
 
+        {{-- ──── NOTIFICATIONS ──── --}}
+        <div x-show="tab === 'notifications'" class="st-panel" x-cloak>
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#fdf4ff;">
+                        <svg style="width:15px;height:15px;stroke:#8b5cf6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Notification Preferences</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Choose what you get notified about</div>
+                    </div>
+                </div>
+                <div class="scard-body" x-data="{ emailBuild: true, emailDeploy: true, emailUpdate: false, inappAll: true }">
+                    @foreach([
+                        ['key'=>'emailBuild',  'label'=>'AI Build completed',   'hint'=>'When a project generation finishes'],
+                        ['key'=>'emailDeploy', 'label'=>'Deployment completed',  'hint'=>'When a deployment succeeds or fails'],
+                        ['key'=>'emailUpdate', 'label'=>'System updates',        'hint'=>'When a new RyaanCMS version is available'],
+                        ['key'=>'inappAll',    'label'=>'In-app notifications',  'hint'=>'Activity feed in the notification panel'],
+                    ] as $n)
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ $n['label'] }}</div>
+                            <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">{{ $n['hint'] }}</div>
+                        </div>
+                        <button type="button" @click="{{ $n['key'] }} = !{{ $n['key'] }}"
+                                style="width:40px;height:22px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;position:relative;"
+                                :style="{{ $n['key'] }} ? 'background:var(--brand);' : 'background:#e2e8f0;'">
+                            <span style="position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;"
+                                  :style="{{ $n['key'] }} ? 'left:20px;' : 'left:2px;'"></span>
+                        </button>
+                    </div>
+                    @endforeach
+                    <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+                        <button class="sbtn-primary" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);" @click="window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Notification preferences saved.' } }))">
+                            Save Preferences
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ──── INTEGRATIONS ──── --}}
+        <div x-show="tab === 'integrations'" class="st-panel" x-cloak>
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#f0f9ff;">
+                        <svg style="width:15px;height:15px;stroke:#0ea5e9" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Integrations</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Connect external services to your workspace</div>
+                    </div>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    @foreach([
+                        ['ico'=>'🐙','label'=>'GitHub',    'desc'=>'Auto-push generated projects to GitHub repos',  'badge'=>'Soon','color'=>'#1e293b'],
+                        ['ico'=>'🪝','label'=>'Webhooks',  'desc'=>'Send build & deploy events to your endpoints',  'badge'=>'Soon','color'=>'#8b5cf6'],
+                        ['ico'=>'💬','label'=>'Slack',     'desc'=>'Get notified in Slack when builds complete',     'badge'=>'Soon','color'=>'#4a154b'],
+                        ['ico'=>'📧','label'=>'SendGrid',  'desc'=>'Transactional email for deployed apps',          'badge'=>'Soon','color'=>'#1a82e2'],
+                        ['ico'=>'☁️','label'=>'AWS S3',    'desc'=>'Store project assets in your S3 bucket',         'badge'=>'Soon','color'=>'#f97316'],
+                        ['ico'=>'🚀','label'=>'Vercel',    'desc'=>'One-click deploy generated apps to Vercel',      'badge'=>'Soon','color'=>'#000'],
+                    ] as $intg)
+                    <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-raised);">
+                        <div style="width:40px;height:40px;border-radius:11px;background:var(--surface-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">{{ $intg['ico'] }}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ $intg['label'] }}</div>
+                            <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">{{ $intg['desc'] }}</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:var(--text-3);border:1px solid var(--border);white-space:nowrap;flex-shrink:0;">{{ $intg['badge'] }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- ──── TEAM ──── --}}
+        <div x-show="tab === 'team'" class="st-panel" x-cloak>
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#ecfdf5;">
+                        <svg style="width:15px;height:15px;stroke:#10b981" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Team Members</div>
+                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Invite colleagues and manage access</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    {{-- Current user --}}
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:11px;background:var(--surface-raised);border:1px solid var(--border);margin-bottom:14px;">
+                        <img src="{{ auth()->user()->avatar_url }}" style="width:38px;height:38px;border-radius:10px;flex-shrink:0;" alt="">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ auth()->user()->name }} <span style="font-size:10px;color:var(--text-3);">(you)</span></div>
+                            <div style="font-size:11px;color:var(--text-3);">{{ auth()->user()->email }}</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--brand) 10%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);">{{ ucfirst(auth()->user()->role) }}</span>
+                    </div>
+                    {{-- Invite --}}
+                    <div style="border-radius:12px;padding:20px;border:2px dashed var(--border);text-align:center;">
+                        <div style="width:44px;height:44px;border-radius:12px;background:var(--surface-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                            <svg style="width:20px;height:20px;stroke:var(--text-3)" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        </div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:5px;">Invite Team Members</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Multi-user team support is coming soon. Stay tuned!</div>
+                        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 14px;border-radius:99px;background:var(--surface-overlay);color:var(--text-3);border:1px solid var(--border);">
+                            <svg style="width:11px;height:11px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ──── DANGER ZONE ──── --}}
+        <div x-show="tab === 'danger'" class="st-panel" x-cloak x-data="{ confirmReset: false, confirmDelete: false, resetPhrase: '', deletePhrase: '' }">
+            <div style="padding:12px 16px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12.5px;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <svg style="width:16px;height:16px;stroke:currentColor;flex-shrink:0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                These actions are permanent and cannot be undone. Proceed with extreme caution.
+            </div>
+
+            {{-- Reset workspace --}}
+            <div class="scard" style="border-color:#fecaca;">
+                <div class="scard-hd" style="background:#fef2f2;">
+                    <div class="scard-hd-icon" style="background:#fecaca;">
+                        <svg style="width:15px;height:15px;stroke:#dc2626" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:#991b1b;">Reset Workspace</div>
+                        <div style="font-size:11.5px;color:#b91c1c;margin-top:1px;">Delete all projects, menus, and generated files</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    <p style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">
+                        This will permanently delete all your <strong>projects</strong>, <strong>AI conversations</strong>, <strong>deployments</strong>, and <strong>custom menus</strong>. Your account, API keys, and branding settings will be preserved.
+                    </p>
+                    <div x-show="!confirmReset">
+                        <button type="button" @click="confirmReset=true"
+                                style="padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;color:#dc2626;border:1.5px solid #fecaca;background:#fff;cursor:pointer;transition:all .13s;"
+                                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
+                            Reset Workspace
+                        </button>
+                    </div>
+                    <div x-show="confirmReset" x-transition style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="font-size:12px;color:#991b1b;font-weight:600;">Type <code style="background:#fef2f2;padding:1px 5px;border-radius:4px;">RESET MY WORKSPACE</code> to confirm:</div>
+                        <input type="text" x-model="resetPhrase" placeholder="RESET MY WORKSPACE"
+                               style="padding:9px 13px;border-radius:10px;border:1.5px solid #fecaca;font-size:13px;outline:none;background:#fff;color:#991b1b;font-weight:600;font-family:monospace;">
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" @click="confirmReset=false;resetPhrase=''"
+                                    style="padding:8px 16px;border-radius:9px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;">Cancel</button>
+                            <button type="button"
+                                    :disabled="resetPhrase !== 'RESET MY WORKSPACE'"
+                                    style="padding:8px 18px;border-radius:9px;font-size:13px;font-weight:700;color:#fff;border:none;cursor:pointer;transition:all .13s;"
+                                    :style="resetPhrase==='RESET MY WORKSPACE' ? 'background:#dc2626;opacity:1;' : 'background:#f87171;opacity:.5;cursor:not-allowed;'"
+                                    @click="window.dispatchEvent(new CustomEvent('toast', {detail:{type:'info',message:'Reset workspace feature coming soon.'}}))">
+                                Confirm Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Delete account --}}
+            <div class="scard" style="border-color:#fecaca;">
+                <div class="scard-hd" style="background:#fef2f2;">
+                    <div class="scard-hd-icon" style="background:#fecaca;">
+                        <svg style="width:15px;height:15px;stroke:#dc2626" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:13.5px;font-weight:700;color:#991b1b;">Delete Account</div>
+                        <div style="font-size:11.5px;color:#b91c1c;margin-top:1px;">Permanently remove your account and all data</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    <p style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;line-height:1.6;">
+                        Your account, all projects, AI keys, settings, and generated files will be permanently deleted. <strong>This cannot be undone.</strong>
+                    </p>
+                    <div x-show="!confirmDelete">
+                        <button type="button" @click="confirmDelete=true"
+                                style="padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;background:#dc2626;border:none;cursor:pointer;transition:all .13s;box-shadow:0 2px 8px rgba(220,38,38,.25);"
+                                onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter=''">
+                            Delete My Account
+                        </button>
+                    </div>
+                    <div x-show="confirmDelete" x-transition style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="font-size:12px;color:#991b1b;font-weight:600;">Type <code style="background:#fef2f2;padding:1px 5px;border-radius:4px;">DELETE MY ACCOUNT</code> to confirm:</div>
+                        <input type="text" x-model="deletePhrase" placeholder="DELETE MY ACCOUNT"
+                               style="padding:9px 13px;border-radius:10px;border:1.5px solid #fecaca;font-size:13px;outline:none;background:#fff;color:#991b1b;font-weight:600;font-family:monospace;">
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" @click="confirmDelete=false;deletePhrase=''"
+                                    style="padding:8px 16px;border-radius:9px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;">Cancel</button>
+                            <button type="button"
+                                    :disabled="deletePhrase !== 'DELETE MY ACCOUNT'"
+                                    style="padding:8px 18px;border-radius:9px;font-size:13px;font-weight:700;color:#fff;border:none;cursor:pointer;transition:all .13s;"
+                                    :style="deletePhrase==='DELETE MY ACCOUNT' ? 'background:#dc2626;opacity:1;' : 'background:#f87171;opacity:.5;cursor:not-allowed;'"
+                                    @click="window.dispatchEvent(new CustomEvent('toast', {detail:{type:'info',message:'Account deletion feature coming soon.'}}))">
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>{{-- /content --}}
 </div>{{-- /st-wrap --}}
 @endsection
