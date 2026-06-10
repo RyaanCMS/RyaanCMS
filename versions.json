@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.22",
+    "latest": "1.1.23",
     "versions": [
         {
             "version": "1.0.0",
@@ -299,6 +299,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.21",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.23",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: wire brand color + font into all standalone pages\n\n- projects/create: add @php brand lookup, Bunny font link, :root CSS vars; replace all hardcoded #6366f1 with var(--brand)\n- projects/show: same treatment; btn-secondary and btn-primary now use light colorful pattern\n- layouts/auth: add @php brand + font lookup, :root vars, load user font; mobile logo and Powered-by accent use var(--brand)\n- auth/login + register: submit buttons use var(--brand) instead of hardcoded indigo gradient\n\nBrand color and font from Settings now apply to every authenticated and auth page.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.23/ryaancms-v1.1.23-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.22",
             "critical": false,
             "file_count": null
         }
