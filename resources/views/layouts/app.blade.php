@@ -398,17 +398,14 @@
             padding: 0;
             height: 0;
         }
-        .sidebar-expanded .sb-section-label { opacity: 1; }
+        /* Section labels: always hidden by default, shown per-section */
+        .sb-section-label { padding: 0; height: 0; }
 
-        /* Divider hidden in collapsed mode */
-        .app-sidebar:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; overflow: hidden; }
+        /* Dividers: always hidden, shown per-section */
+        .sb-divider { margin: 0; height: 0; overflow: hidden; }
 
-        /* My-Apps sub-items: only visible when sidebar is expanded */
+        /* My-Apps sub-items: hidden by default */
         .sb-my-apps { display: none; }
-        .sidebar-expanded .sb-my-apps { display: block; }
-        @media (min-width: 1024px) {
-            .app-sidebar:not(.sidebar-autohide):hover .sb-my-apps { display: block !important; }
-        }
         .sb-sub-item { height: 36px !important; }
 
         /* ── Sidebar nav items ── */
