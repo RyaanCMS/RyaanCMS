@@ -376,7 +376,7 @@
             z-index: 30;
         }
 
-        /* ── EXPANDED STATE: controlled by sidebarOpen or sidebarHovered Alpine state ── */
+        /* ── EXPANDED STATE: via Alpine class ── */
         .sidebar-expanded {
             width: var(--sidebar-w-expanded) !important;
             box-shadow: var(--shadow-xl) !important;
@@ -585,6 +585,54 @@
             transition: color .13s;
         }
         .sb-peek:hover svg { color: var(--brand); }
+
+        /* ── Desktop hover expansion (pure CSS — fires on full 64px strip, top to bottom) ── */
+        @media (min-width: 1024px) {
+            .app-sidebar:not(.sidebar-autohide):hover {
+                width: var(--sidebar-w-expanded) !important;
+                box-shadow: var(--shadow-xl) !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-section-label {
+                opacity: 1 !important;
+                padding: 14px 18px 5px !important;
+                height: auto !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-divider {
+                margin: 6px 14px !important;
+                height: 1px !important;
+                overflow: visible !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item {
+                justify-content: flex-start !important;
+                padding: 0 10px !important;
+                margin: 1px 6px !important;
+                height: 40px !important;
+                border-radius: 10px !important;
+                background: transparent !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item:hover {
+                background: var(--surface-overlay) !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active {
+                background: var(--brand-light) !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-item.active::before {
+                left: -6px !important;
+                top: 6px !important;
+                bottom: 6px !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-ico {
+                width: 34px !important;
+                height: 34px !important;
+                border-radius: 8px !important;
+            }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-label    { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-badge     { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-show-expanded { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-logo-name { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-toggle-btn { opacity: 1 !important; }
+            .app-sidebar:not(.sidebar-autohide):hover .sb-tooltip   { opacity: 0 !important; pointer-events: none !important; }
+        }
 
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
@@ -1411,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 function appLayout() {
     return {
-        sidebarOpen:       localStorage.getItem('sb_open') === 'true',
+        sidebarOpen:       false,
         sidebarHovered:    false,
         mobileSidebarOpen: false,
         cmdOpen:           false,
@@ -1432,7 +1480,6 @@ function appLayout() {
                 }
             });
 
-            this.$watch('sidebarOpen', v => localStorage.setItem('sb_open', v));
         },
 
         cmdItems() {
