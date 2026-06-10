@@ -166,6 +166,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{menu}',                       [MenuController::class, 'edit'])->name('edit');
         Route::put('/{menu}',                       [MenuController::class, 'update'])->name('update');
         Route::delete('/{menu}',                    [MenuController::class, 'destroy'])->name('destroy');
+        Route::get('/{menu}/items-data',            [MenuController::class, 'itemsData'])->name('items.data');
         Route::post('/{menu}/items',                [MenuController::class, 'storeItem'])->name('items.store');
         Route::put('/{menu}/items/{item}',          [MenuController::class, 'updateItem'])->name('items.update');
         Route::delete('/{menu}/items/{item}',       [MenuController::class, 'destroyItem'])->name('items.destroy');
