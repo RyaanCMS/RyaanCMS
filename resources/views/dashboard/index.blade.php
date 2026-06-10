@@ -120,12 +120,17 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
     background:var(--surface-base);padding:16px 18px;
     text-decoration:none;color:inherit;
     display:flex;flex-direction:column;gap:12px;
-    transition:background .15s;position:relative;
+    transition:background .2s ease, box-shadow .22s ease;
+    position:relative;
 }
-.db-proj-card:hover { background:var(--surface-raised); }
+.db-proj-card:hover {
+    background: color-mix(in srgb, var(--c, var(--brand)) 5%, var(--surface-base));
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--c, var(--brand)) 35%, transparent);
+}
 .db-proj-stripe {
     position:absolute;left:0;top:0;bottom:0;width:3px;
-    border-radius:2px 0 0 2px;opacity:0;transition:opacity .15s;
+    border-radius:2px 0 0 2px;opacity:0;
+    transition:opacity .2s ease;
 }
 .db-proj-card:hover .db-proj-stripe { opacity:1; }
 .db-proj-row1 { display:flex;align-items:center;justify-content:space-between;gap:8px; }
@@ -413,7 +418,7 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
             <div class="db-proj-grid">
                 @foreach($recentProjects as $proj)
                 @php $tc = $typeMap[$proj->type] ?? $typeMap['default']; @endphp
-                <a class="db-proj-card" href="{{ route('projects.show', $proj) }}">
+                <a class="db-proj-card" href="{{ route('projects.show', $proj) }}" style="--c:{{ $tc['from'] }};">
                     <div class="db-proj-stripe" style="background:{{ $tc['from'] }};"></div>
                     <div class="db-proj-row1">
                         <div class="db-proj-ico" style="background:{{ $tc['bg'] }};border:1px solid {{ $tc['bd'] }};">{{ $tc['emoji'] }}</div>

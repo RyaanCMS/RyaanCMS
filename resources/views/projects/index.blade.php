@@ -84,15 +84,23 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
 }
 .proj-card {
     border-radius:16px;overflow:hidden;
-    background:var(--surface-base);border:1px solid var(--border);
+    background:var(--surface-base);
+    border:1px solid var(--border);
+    border-left:3px solid transparent;
     box-shadow:var(--shadow);
-    transition:box-shadow .18s,transform .18s,border-color .18s;
+    transition:box-shadow .22s ease,transform .22s ease,border-color .18s ease,background .18s ease;
     cursor:pointer;
 }
-.proj-card:hover { box-shadow:var(--shadow-lg);transform:translateY(-2px); }
+.proj-card:hover {
+    border-left-color: var(--c, var(--brand));
+    box-shadow: 0 10px 36px color-mix(in srgb, var(--c, var(--brand)) 22%, transparent),
+                0 2px 10px  color-mix(in srgb, var(--c, var(--brand)) 10%, transparent);
+    transform: translateY(-3px);
+}
 .proj-card-header {
-    height:80px;display:flex;align-items:center;justify-content:center;
+    height:76px;display:flex;align-items:center;justify-content:center;
     position:relative;border-bottom:1px solid var(--border);
+    background:var(--surface-raised);
 }
 .proj-card-body { padding:16px 18px;display:flex;flex-direction:column;gap:10px; }
 .proj-card-name { font-size:14px;font-weight:700;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
@@ -105,9 +113,14 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
 .proj-list-row {
     display:flex;align-items:center;gap:14px;
     padding:13px 18px;background:var(--surface-base);
-    transition:background .12s;text-decoration:none;color:inherit;
+    box-shadow: inset 3px 0 0 transparent;
+    transition:background .18s ease, box-shadow .2s ease;
+    text-decoration:none;color:inherit;
 }
-.proj-list-row:hover { background:var(--surface-raised); }
+.proj-list-row:hover {
+    background: color-mix(in srgb, var(--c, var(--brand)) 4%, var(--surface-base));
+    box-shadow: inset 3px 0 0 var(--c, var(--brand));
+}
 .proj-list-ico { width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0; }
 .proj-list-name { font-size:13.5px;font-weight:700;color:var(--text-1);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .proj-list-badge { font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0; }
@@ -265,11 +278,11 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
              data-type="{{ $project->type }}"
              data-status="{{ $project->status }}"
              data-updated="{{ $project->updated_at->timestamp }}"
-             data-created="{{ $project->created_at->timestamp }}">
+             data-created="{{ $project->created_at->timestamp }}"
+             style="--c:{{ $tc['from'] }};">
 
             {{-- Header strip --}}
-            <div class="proj-card-header"
-                 style="background:linear-gradient(135deg,{{ $tc['from'] }}18,{{ $tc['to'] }}28);">
+            <div class="proj-card-header">
                 <span style="font-size:36px;select:none;" role="img" aria-label="{{ $tc['label'] }}">{{ $tc['emoji'] }}</span>
                 {{-- Status badge --}}
                 <div style="position:absolute;top:10px;right:10px;">
@@ -378,7 +391,8 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
              data-type="{{ $project->type }}"
              data-status="{{ $project->status }}"
              data-updated="{{ $project->updated_at->timestamp }}"
-             data-created="{{ $project->created_at->timestamp }}">
+             data-created="{{ $project->created_at->timestamp }}"
+             style="--c:{{ $tc['from'] }};">
             <div class="proj-list-ico" style="background:{{ $tc['bg'] }};border:1px solid {{ $tc['bd'] }};">{{ $tc['emoji'] }}</div>
             <div style="flex:1;min-width:0;">
                 <div class="proj-list-name">{{ $project->name }}</div>
