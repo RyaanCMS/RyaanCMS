@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.30",
+    "latest": "1.1.31",
     "versions": [
         {
             "version": "1.0.0",
@@ -395,6 +395,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.29",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.31",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "fix: remove unresolvable language field from ProjectFile saves; add is_global to all registry templates\n\n- CodeGeneratorService: drop 'language' key from both updateOrCreate() calls — no DB column, not fillable, accessor already computes it from extension\n- TemplateRegistry: add is_global => true to all 6 templates so activateMain() can accept them (was always returning 404)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.31/ryaancms-v1.1.31-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.30",
             "critical": false,
             "file_count": null
         }
