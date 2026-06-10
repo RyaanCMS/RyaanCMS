@@ -164,6 +164,29 @@ class MarketplaceController extends Controller
 
         $module = $this->moduleRegistry->get($key);
 
+        // Auto-manage sidebar menu items for this module
+        $moduleMenuItems = $module['menu_items'] ?? [];
+        if (!empty($moduleMenuItems)) {
+            if ($newStatus === 'active') {
+                $menu = Menu::firstOrCreate(
+                    ['user_id' => Auth::id(), 'category' => 'sidebar', 'slug' => 'auto-modules'],
+                    ['name' => 'Modules', 'is_active' => true]
+                );
+                foreach ($moduleMenuItems as $idx => $item) {
+                    $urlParts = array_filter(explode('.', $item['route']), fn($p) => $p !== 'index');
+                    $url      = '/' . implode('/', $urlParts);
+                    MenuItem::updateOrCreate(
+                        ['menu_id' => $menu->id, 'url' => $url],
+                        ['label' => $item['label'], 'icon' => null, 'target' => 'module:'.$key, 'order' => 100 + $idx, 'is_active' => true]
+                    );
+                }
+            } else {
+                MenuItem::whereHas('menu', fn($q) => $q->where('user_id', Auth::id()))
+                    ->where('target', 'module:'.$key)
+                    ->update(['is_active' => false]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'status'  => $newStatus,
@@ -198,6 +221,13 @@ class MarketplaceController extends Controller
 
         $newStatus = $installation->status === 'active' ? 'inactive' : 'active';
         $installation->update(['status' => $newStatus]);
+
+        // Auto-manage topbar menu item for this installation
+        if ($newStatus === 'active') {
+            $this->autoCreateInstallationMenu($installation);
+        } else {
+            MenuItem::where('installation_id', $installation->id)->update(['is_active' => false]);
+        }
 
         return response()->json([
             'success' => true,
@@ -383,6 +413,8 @@ class MarketplaceController extends Controller
             $item->increment('downloads');
         }
 
+        $this->autoCreateInstallationMenu($installation);
+
         return redirect()->route('marketplace.upload-install')
             ->with('success', "Package \"{$manifest['name']}\" installed for {$project->name}. The same license can be used for other projects on {$currentHost}.");
     }
@@ -417,7 +449,24 @@ class MarketplaceController extends Controller
             'status'       => 'active',
         ]);
 
+        $this->autoCreateInstallationMenu($installation);
+
         return back()->with('success', 'License activated successfully on '.$currentHost.'.');
+    }
+
+    // ── Auto-create a topbar menu item when an installation becomes active ─────
+
+    private function autoCreateInstallationMenu(MarketplaceInstallation $installation): void
+    {
+        $name = $installation->item->name ?? 'App';
+        $menu = Menu::firstOrCreate(
+            ['user_id' => Auth::id(), 'category' => 'user_topbar', 'slug' => 'installed-apps'],
+            ['name' => 'Installed Apps', 'is_active' => true]
+        );
+        MenuItem::updateOrCreate(
+            ['menu_id' => $menu->id, 'installation_id' => $installation->id],
+            ['label' => $name, 'url' => '#', 'icon' => null, 'target' => '_self', 'order' => $installation->id, 'is_active' => true]
+        );
     }
 
     // ── List all installed items for the current user ────────────────────────
