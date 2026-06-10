@@ -163,7 +163,7 @@
     <div class="section-hd">
         <span class="section-title">Active Theme</span>
         @if($project->domain ?? false)
-        <a href="{{ route('site.serve', $project) }}" target="_blank" class="btn-secondary" style="font-size:11px;">
+        <a href="{{ route('home') }}" target="_blank" class="btn-secondary" style="font-size:11px;">
             🌐 View Live Site
         </a>
         @endif
@@ -197,7 +197,7 @@
                 @endforeach
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <a href="{{ route('site.serve', $project) }}" target="_blank"
+                <a href="{{ route('home') }}" target="_blank"
                    style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
                     🌐 View Live
                 </a>

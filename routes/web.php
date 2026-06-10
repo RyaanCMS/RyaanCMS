@@ -29,26 +29,39 @@ Route::get('/install/complete',  [InstallController::class, 'complete'])->name('
 // Public site serving — active template for a project (no auth required)
 Route::get('/site/{project}', [TemplateController::class, 'serve'])->name('site.serve');
 
-// Welcome / Landing Page — serves public site template if configured
+// Welcome / Landing Page — serves the active public site template if configured
 Route::get('/', function () {
-    if (auth()->check()) return redirect()->route('dashboard');
-
-    // Serve active template if admin designated a public site project
+    $project = null;
     $projectId = \App\Models\Setting::get('system.public_site_project_id');
+
     if ($projectId) {
         $project = \App\Models\Project::find((int) $projectId);
-        if ($project) {
-            $active = \App\Models\ProjectModule::where('project_id', $project->id)
-                ->where('module_key', 'like', 'template.%')
-                ->where('status', 'active')
-                ->first();
-            if ($active) {
-                return app(\App\Http\Controllers\TemplateController::class)->serve($project);
-            }
+
+        $hasActiveTemplate = $project && \App\Models\ProjectModule::where('project_id', $project->id)
+            ->where('module_key', 'like', 'template.%')
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$hasActiveTemplate) {
+            $project = null;
         }
     }
 
-    return view('welcome');
+    if (!$project) {
+        $activeTemplate = \App\Models\ProjectModule::with('project')
+            ->where('module_key', 'like', 'template.%')
+            ->where('status', 'active')
+            ->latest('updated_at')
+            ->first();
+
+        $project = $activeTemplate?->project;
+    }
+
+    if ($project) {
+        return app(\App\Http\Controllers\TemplateController::class)->serve($project);
+    }
+
+    return view('templates.ryaancms');
 })->name('home');
 
 // Legal Pages

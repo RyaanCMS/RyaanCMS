@@ -82,7 +82,7 @@
     <div class="flex items-center justify-between">
         <div>
             <p class="text-sm font-semibold" style="color:var(--text-1);">{{ count($templates) }} built-in templates available</p>
-            <p class="text-xs mt-0.5" style="color:var(--text-3);">Install and activate a template to go live at <code style="background:var(--hover-bg);padding:1px 6px;border-radius:4px;">/site/{project-id}</code></p>
+            <p class="text-xs mt-0.5" style="color:var(--text-3);">Install and activate a template to publish it on your main domain.</p>
         </div>
         {{-- Project selector --}}
         <div class="flex items-center gap-3">
@@ -188,7 +188,7 @@
                     </template>
 
                     <template x-if="selectedProject && getStatus('{{ $key }}') === 'active'">
-                        <a :href="'/site/' + selectedProject" target="_blank" class="live-btn flex-1 justify-center py-2">
+                        <a href="{{ route('home') }}" target="_blank" class="live-btn flex-1 justify-center py-2">
                             🌐 View Live
                         </a>
                     </template>

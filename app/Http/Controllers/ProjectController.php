@@ -6,6 +6,7 @@ use App\Models\MarketplaceInstallation;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectModule;
+use App\Models\Setting;
 use App\Services\Module\ModuleRegistry;
 use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ use ZipArchive;
 
 class ProjectController extends Controller
 {
+    private const DEFAULT_TEMPLATE = 'template.ryaancms';
+
     public function index()
     {
         $projects = Auth::user()->projects()
@@ -62,6 +65,16 @@ class ProjectController extends Controller
             'content'    => "# {$project->name}\n\n" . ($project->description ?? '') . "\n\nBuilt with RyaanCMS AI Builder.",
             'size'       => 0,
         ]);
+
+        ProjectModule::create([
+            'project_id' => $project->id,
+            'module_key' => self::DEFAULT_TEMPLATE,
+            'status'     => 'active',
+        ]);
+
+        if (!Setting::get('system.public_site_project_id')) {
+            Setting::set('system.public_site_project_id', $project->id, 'integer');
+        }
 
         // If an initial prompt was given, go straight to builder with autostart
         if ($request->filled('initial_prompt')) {

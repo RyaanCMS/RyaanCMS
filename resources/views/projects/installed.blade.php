@@ -135,7 +135,7 @@
                 {{-- Actions --}}
                 <div class="flex items-center gap-2 flex-shrink-0">
                     @if($tpl->status === 'active')
-                    <a href="{{ route('site.serve', $project) }}" target="_blank"
+                    <a href="{{ route('home') }}" target="_blank"
                        class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
                        style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">
                         🌐 View Live

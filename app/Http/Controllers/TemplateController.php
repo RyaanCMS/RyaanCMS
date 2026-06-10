@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\ProjectModule;
+use App\Models\Setting;
 use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TemplateController extends Controller
 {
+    private const DEFAULT_TEMPLATE = 'template.ryaancms';
+
     public function __construct(private TemplateRegistry $registry) {}
 
     // ── Public: serve active template ─────────────────────────────────────────
@@ -102,12 +105,13 @@ class TemplateController extends Controller
             ->update(['status' => 'installed']);
 
         $pm->update(['status' => 'active']);
+        $this->publishProjectOnRootDomain($project);
 
         return response()->json([
             'success' => true,
             'status'  => 'active',
-            'message' => "🎉 {$template['name']} is now live!",
-            'url'     => route('site.serve', $project),
+            'message' => "{$template['name']} is now live on your domain.",
+            'url'     => route('home'),
         ]);
     }
 
@@ -120,6 +124,8 @@ class TemplateController extends Controller
             ->where('module_key', $key)
             ->update(['status' => 'installed']);
 
+        $this->refreshRootDomainProject($project);
+
         return response()->json(['success' => true, 'status' => 'installed', 'message' => 'Template deactivated.']);
     }
 
@@ -131,6 +137,8 @@ class TemplateController extends Controller
         ProjectModule::where('project_id', $project->id)
             ->where('module_key', $key)
             ->delete();
+
+        $this->refreshRootDomainProject($project);
 
         $template = $this->registry->get($key);
         return response()->json([
@@ -182,12 +190,57 @@ class TemplateController extends Controller
             . "1. Go to **Marketplace → Templates** in your RyaanCMS dashboard\n"
             . "2. Select your project from the dropdown\n"
             . "3. Click **Install**, then **Activate** to go live\n\n"
-            . "## Live Preview\n\nAfter activation your site is available at `/site/{project-id}`\n\n"
+            . "## Live Preview\n\nAfter activation your site is available on your RyaanCMS root domain. `/site/{project-id}` remains available as a direct preview URL.\n\n"
             . "---\n*Powered by [RyaanCMS](https://github.com/RyaanCMS)*\n"
         );
 
         $zip->close();
 
         return response()->download($tmpPath, $zipName)->deleteFileAfterSend(true);
+    }
+
+    private function publishProjectOnRootDomain(Project $project): void
+    {
+        Setting::set('system.public_site_project_id', $project->id, 'integer');
+    }
+
+    private function refreshRootDomainProject(Project $changedProject): void
+    {
+        $currentProjectId = (int) Setting::get('system.public_site_project_id', 0);
+
+        if ($currentProjectId !== $changedProject->id) {
+            return;
+        }
+
+        $stillActive = ProjectModule::where('project_id', $changedProject->id)
+            ->where('module_key', 'like', 'template.%')
+            ->where('status', 'active')
+            ->exists();
+
+        if ($stillActive) {
+            return;
+        }
+
+        $nextActive = ProjectModule::where('module_key', 'like', 'template.%')
+            ->where('status', 'active')
+            ->latest('updated_at')
+            ->first();
+
+        if ($nextActive) {
+            Setting::set('system.public_site_project_id', $nextActive->project_id, 'integer');
+            return;
+        }
+
+        $this->activateDefaultTemplateFor($changedProject);
+    }
+
+    private function activateDefaultTemplateFor(Project $project): void
+    {
+        ProjectModule::updateOrCreate(
+            ['project_id' => $project->id, 'module_key' => self::DEFAULT_TEMPLATE],
+            ['status' => 'active']
+        );
+
+        Setting::set('system.public_site_project_id', $project->id, 'integer');
     }
 }
