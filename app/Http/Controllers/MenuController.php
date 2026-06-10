@@ -37,8 +37,11 @@ class MenuController extends Controller
         $this->menuCategories();
 
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:100'],
-            'category' => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
+            'name'       => ['required', 'string', 'max:100'],
+            'category'   => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
+            'url'        => ['nullable', 'string', 'max:500'],
+            'icon'       => ['nullable', 'string', 'max:500'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $data['user_id'] = Auth::id();
@@ -125,9 +128,12 @@ class MenuController extends Controller
         $this->menuCategories();
 
         $data = $request->validate([
-            'name'      => ['required', 'string', 'max:100'],
-            'category'  => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
-            'is_active' => ['boolean'],
+            'name'       => ['required', 'string', 'max:100'],
+            'category'   => ['required', Rule::exists('menu_categories', 'slug')->where('user_id', Auth::id())],
+            'url'        => ['nullable', 'string', 'max:500'],
+            'icon'       => ['nullable', 'string', 'max:500'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active'  => ['boolean'],
         ]);
         $menu->update($data);
         return back()->with('success', 'Menu updated.');

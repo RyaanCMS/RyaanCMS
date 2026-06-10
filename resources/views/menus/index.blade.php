@@ -220,11 +220,25 @@
                     <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">
                         Menu Name <span style="color:#ef4444">*</span>
                     </label>
-                    <input type="text" name="name" placeholder="e.g. Main Navigation, Footer Links"
+                    <input type="text" name="name" placeholder="e.g. Dashboard, My Apps"
                            class="w-full rounded-xl text-sm outline-none box-border"
                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
                            onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
                            required autofocus>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">URL</label>
+                    <input type="text" name="url" placeholder="e.g. /dashboard or https://example.com"
+                           class="w-full rounded-xl text-sm outline-none box-border"
+                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon <span style="font-weight:400;color:var(--text-3)">(SVG path data)</span></label>
+                    <input type="text" name="icon" placeholder="e.g. M3 12h18M3 6h18M3 18h18"
+                           class="w-full rounded-xl text-sm outline-none box-border"
+                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
@@ -309,6 +323,20 @@
                            style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
                            onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'"
                            required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">URL</label>
+                    <input type="text" name="url" x-model="editMenu.url" placeholder="e.g. /dashboard or https://example.com"
+                           class="w-full rounded-xl text-sm outline-none box-border"
+                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Icon <span style="font-weight:400;color:var(--text-3)">(SVG path data)</span></label>
+                    <input type="text" name="icon" x-model="editMenu.icon" placeholder="e.g. M3 12h18M3 6h18M3 18h18"
+                           class="w-full rounded-xl text-sm outline-none box-border"
+                           style="padding:9px 12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text-1);"
+                           onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div>
                     <label class="block text-xs font-bold mb-1.5" style="color:var(--text-2)">Category</label>
@@ -564,7 +592,7 @@ function menuTable() {
         search: '', page: 1, perPage: 15, perPageOpts: [10, 15, 25, 50],
         statusFilter: 'all', sortBy: 'name_asc', categoryFilter: '',
         showAddModal: false, showEditModal: false,
-        editMenu: { name: '', category: '', is_active: true },
+        editMenu: { name: '', url: '', icon: '', category: '', is_active: true },
         deleteTarget: null,
         allMenus: @json($menus),
         categories: @json($categoryOptions),

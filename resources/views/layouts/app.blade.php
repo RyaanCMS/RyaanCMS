@@ -1110,28 +1110,23 @@
         {{-- Navigation --}}
         @php
             if (auth()->check()) {
-                app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
+                \App\Models\MenuCategory::ensureDefaultsForUser(auth()->id());
             }
-            $projectCount    = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
-            $sidebarProjects = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->latest()->take(5)->get(['id','name']) : collect();
+            $projectCount = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
+            $projectsUrl  = auth()->check() ? route('projects.index') : '';
 
-            $loadSidebarItems = function (string $category) {
+            $loadSidebarMenus = function (string $category) {
                 if (!auth()->check()) return collect();
-                return \App\Models\MenuItem::whereHas('menu', fn ($q) =>
-                        $q->where('user_id', auth()->id())
-                          ->where('category', $category)
-                          ->where('is_active', true)
-                    )
-                    ->whereNull('parent_id')
+                return \App\Models\Menu::where('user_id', auth()->id())
+                    ->where('category', $category)
                     ->where('is_active', true)
-                    ->orderBy('order')
-                    ->orderBy('label')
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
                     ->get();
             };
 
-            $userSidebarItems = $loadSidebarItems('user');
-            $devSidebarItems  = $loadSidebarItems('developer');
-            $projectsUrl      = auth()->check() ? route('projects.index') : '';
+            $userSidebarMenus = $loadSidebarMenus('user');
+            $devSidebarMenus  = $loadSidebarMenus('developer');
         @endphp
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
@@ -1139,61 +1134,32 @@
             {{-- ─── USER section (top) ─── --}}
             <div class="sb-section-user" style="padding:6px 0 0;" @mouseenter="hoveredSection='user'">
                 <div class="sb-section-label">USER</div>
-                @foreach($userSidebarItems as $mItem)
+                @foreach($userSidebarMenus as $sMenu)
                 @php
-                    $mUrl    = $mItem->url ?? '';
+                    $mUrl    = $sMenu->url ?? '';
                     $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
                     $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
                     $mIsProjects = $mUrl && rtrim($mUrl, '/') === rtrim($projectsUrl, '/');
                 @endphp
-                <a href="{{ $mUrl ?: '#' }}" target="{{ $mItem->target === '_blank' ? '_blank' : '_self' }}"
+                <a href="{{ $mUrl ?: '#' }}"
                    class="sb-item{{ $mActive ? ' active' : '' }}"
                    aria-current="{{ $mActive ? 'page' : 'false' }}">
                     <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
-                        @if($mItem->icon)
+                        @if($sMenu->icon)
                         <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $sMenu->icon }}"/>
                         </svg>
                         @else
                         <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
                         @endif
                     </div>
-                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $mItem->label }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $sMenu->name }}</span>
                     @if($mIsProjects && $projectCount > 0)
                     <span class="sb-badge" style="{{ $mActive ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
                     @endif
-                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $sMenu->name }}</span>
                 </a>
                 @endforeach
-
-                {{-- My Apps sub-items: recent projects --}}
-                @if($sidebarProjects->isNotEmpty())
-                <div class="sb-my-apps">
-                    @foreach($sidebarProjects as $proj)
-                    @php $pActive = request()->is('builder/'.$proj->id.'*') || request()->is('pipeline/'.$proj->id.'*'); @endphp
-                    <a href="{{ route('builder.show', $proj) }}"
-                       class="sb-item sb-sub-item{{ $pActive ? ' active' : '' }}">
-                        <div class="sb-ico" style="width:26px!important;height:26px!important;border-radius:6px!important;flex-shrink:0;margin-left:8px;{{ $pActive ? 'background:color-mix(in srgb,var(--brand) 15%,transparent);' : '' }}">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="{{ $pActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true" style="width:13px!important;height:13px!important;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <span class="sb-label" style="font-size:12px!important;{{ $pActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ \Illuminate\Support\Str::limit($proj->name, 20) }}</span>
-                        <span class="sb-tooltip" aria-hidden="true">{{ $proj->name }}</span>
-                    </a>
-                    @endforeach
-                    @if($projectCount > 5)
-                    <a href="{{ route('projects.index') }}" class="sb-item sb-sub-item">
-                        <div class="sb-ico" style="width:26px!important;height:26px!important;border-radius:6px!important;flex-shrink:0;margin-left:8px;">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="var(--text-3)" aria-hidden="true" style="width:13px!important;height:13px!important;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
-                        </div>
-                        <span class="sb-label" style="font-size:11.5px!important;color:var(--text-3)!important;">+{{ $projectCount - 5 }} more</span>
-                    </a>
-                    @endif
-                </div>
-                @endif
             </div>
 
             {{-- Spacer: hidden when collapsed (icons fill space), visible when expanded --}}
@@ -1203,26 +1169,26 @@
             <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;" @mouseenter="hoveredSection='dev'">
                 <div class="sb-divider"></div>
                 <div class="sb-section-label">DEVELOPER</div>
-                @foreach($devSidebarItems as $mItem)
+                @foreach($devSidebarMenus as $sMenu)
                 @php
-                    $mUrl    = $mItem->url ?? '';
+                    $mUrl    = $sMenu->url ?? '';
                     $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
                     $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
                 @endphp
-                <a href="{{ $mUrl ?: '#' }}" target="{{ $mItem->target === '_blank' ? '_blank' : '_self' }}"
+                <a href="{{ $mUrl ?: '#' }}"
                    class="sb-item{{ $mActive ? ' active' : '' }}"
                    aria-current="{{ $mActive ? 'page' : 'false' }}">
                     <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
-                        @if($mItem->icon)
+                        @if($sMenu->icon)
                         <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $sMenu->icon }}"/>
                         </svg>
                         @else
                         <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
                         @endif
                     </div>
-                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $mItem->label }}</span>
-                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $sMenu->name }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $sMenu->name }}</span>
                 </a>
                 @endforeach
 

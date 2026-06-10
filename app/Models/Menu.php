@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Menu extends Model
 {
-    protected $fillable = ['user_id', 'name', 'slug', 'category', 'is_active'];
+    protected $fillable = ['user_id', 'name', 'slug', 'category', 'url', 'icon', 'sort_order', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 
