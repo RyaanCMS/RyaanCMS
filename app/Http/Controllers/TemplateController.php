@@ -41,6 +41,7 @@ class TemplateController extends Controller
     {
         $templates = $this->registry->all();
         $projects  = Auth::user()->projects()->select('id', 'name')->orderBy('name')->get();
+        $mainTemplateKey = Setting::get('system.public_site_template_key', self::DEFAULT_TEMPLATE);
 
         // Map: module_key => [project_id => status]
         $installedMap = ProjectModule::whereIn('project_id', $projects->pluck('id'))
@@ -49,7 +50,25 @@ class TemplateController extends Controller
             ->groupBy('module_key')
             ->map(fn($rows) => $rows->keyBy('project_id')->map(fn($r) => $r->status));
 
-        return view('marketplace.templates', compact('templates', 'projects', 'installedMap'));
+        return view('marketplace.templates', compact('templates', 'projects', 'installedMap', 'mainTemplateKey'));
+    }
+
+    public function activateMain(Request $request, string $key)
+    {
+        $template = $this->registry->get($key);
+        if (!$template || !($template['is_global'] ?? false)) {
+            return response()->json(['success' => false, 'message' => 'Main website template not found.'], 404);
+        }
+
+        Setting::set('system.public_site_template_key', $key);
+        $this->clearPublicSiteProject();
+
+        return response()->json([
+            'success' => true,
+            'status' => 'active',
+            'message' => "{$template['name']} is now active on your main website.",
+            'url' => route('home'),
+        ]);
     }
 
     // ── Auth: install a template for a project ────────────────────────────────
@@ -105,6 +124,7 @@ class TemplateController extends Controller
             ->update(['status' => 'installed']);
 
         $pm->update(['status' => 'active']);
+        $this->clearMainWebsiteTemplate();
         $this->publishProjectOnRootDomain($project);
 
         return response()->json([
@@ -228,19 +248,32 @@ class TemplateController extends Controller
 
         if ($nextActive) {
             Setting::set('system.public_site_project_id', $nextActive->project_id, 'integer');
+            $this->clearMainWebsiteTemplate();
             return;
         }
 
-        $this->activateDefaultTemplateFor($changedProject);
+        $this->activateDefaultMainWebsiteTemplate();
     }
 
-    private function activateDefaultTemplateFor(Project $project): void
+    private function activateDefaultMainWebsiteTemplate(): void
     {
-        ProjectModule::updateOrCreate(
-            ['project_id' => $project->id, 'module_key' => self::DEFAULT_TEMPLATE],
-            ['status' => 'active']
-        );
+        Setting::set('system.public_site_template_key', self::DEFAULT_TEMPLATE);
+        $this->clearPublicSiteProject();
+    }
 
-        Setting::set('system.public_site_project_id', $project->id, 'integer');
+    private function clearMainWebsiteTemplate(): void
+    {
+        Setting::whereNull('user_id')
+            ->where('group', 'system')
+            ->where('key', 'public_site_template_key')
+            ->delete();
+    }
+
+    private function clearPublicSiteProject(): void
+    {
+        Setting::whereNull('user_id')
+            ->where('group', 'system')
+            ->where('key', 'public_site_project_id')
+            ->delete();
     }
 }

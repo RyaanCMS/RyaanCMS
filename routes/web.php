@@ -31,6 +31,15 @@ Route::get('/site/{project}', [TemplateController::class, 'serve'])->name('site.
 
 // Welcome / Landing Page — serves the active public site template if configured
 Route::get('/', function () {
+    $mainTemplateKey = \App\Models\Setting::get('system.public_site_template_key');
+    if ($mainTemplateKey) {
+        $template = app(\App\Services\Template\TemplateRegistry::class)->get($mainTemplateKey);
+
+        if ($template && ($template['is_global'] ?? false) && view()->exists($template['view'])) {
+            return view($template['view'], compact('template'));
+        }
+    }
+
     $project = null;
     $projectId = \App\Models\Setting::get('system.public_site_project_id');
 
@@ -212,6 +221,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/agents',                              [MarketplaceController::class, 'agents'])->name('agents');
         // Templates browser + ZIP download
         Route::get('/templates',                           [TemplateController::class, 'browse'])->name('templates');
+        Route::post('/templates/{key}/activate-main',       [TemplateController::class, 'activateMain'])->name('template.activate-main');
         Route::get('/templates/{key}/download',            [TemplateController::class, 'download'])->name('template.download');
         // Admin approval panel (admin role only — enforced inside controller)
         Route::get('/admin/panel',                         [MarketplaceController::class, 'adminPanel'])->name('admin.panel');

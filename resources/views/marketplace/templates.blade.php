@@ -82,7 +82,7 @@
     <div class="flex items-center justify-between">
         <div>
             <p class="text-sm font-semibold" style="color:var(--text-1);">{{ count($templates) }} built-in templates available</p>
-            <p class="text-xs mt-0.5" style="color:var(--text-3);">Install and activate a template to publish it on your main domain.</p>
+            <p class="text-xs mt-0.5" style="color:var(--text-3);">RyaanCMS is the main website template. Other templates publish from a selected project.</p>
         </div>
         {{-- Project selector --}}
         <div class="flex items-center gap-3">
@@ -131,6 +131,11 @@
                 <template x-if="getStatus('{{ $key }}') === 'active'">
                     <div class="tpl-active-badge">● LIVE</div>
                 </template>
+                @if($tpl['is_global'] ?? false)
+                <template x-if="mainTemplateKey === '{{ $key }}'">
+                    <div class="tpl-active-badge">● MAIN SITE</div>
+                </template>
+                @endif
                 <template x-if="getStatus('{{ $key }}') === 'installed'">
                     <div class="tpl-badge-pending">Installed</div>
                 </template>
@@ -155,6 +160,23 @@
 
                 {{-- Buttons --}}
                 <div class="flex gap-2">
+                    @if($tpl['is_global'] ?? false)
+                    <template x-if="mainTemplateKey !== '{{ $key }}'">
+                        <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
+                                :disabled="working === '{{ $key }}'"
+                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);"
+                                x-on:click="activateMain('{{ $key }}')">
+                            <span x-show="working !== '{{ $key }}'">Activate Main Website</span>
+                            <span x-show="working === '{{ $key }}'">Activating…</span>
+                        </button>
+                    </template>
+
+                    <template x-if="mainTemplateKey === '{{ $key }}'">
+                        <a href="{{ route('home') }}" target="_blank" class="live-btn flex-1 justify-center py-2">
+                            🌐 View Main Site
+                        </a>
+                    </template>
+                    @else
                     <template x-if="!selectedProject">
                         <button class="flex-1 py-2 rounded-lg text-xs font-semibold"
                                 style="background:var(--hover-bg);color:var(--text-3);"
@@ -210,6 +232,7 @@
                             ✕
                         </button>
                     </template>
+                    @endif
                 </div>
             </div>
         </div>
@@ -231,6 +254,7 @@ function templateBrowser() {
         feedback: '',
         feedbackOk: true,
         liveUrl: '',
+        mainTemplateKey: @json($mainTemplateKey),
         // local state: key => status for selected project
         localStatus: {},
 
@@ -259,6 +283,24 @@ function templateBrowser() {
 
         getStatus(key) {
             return this.localStatus[key] ?? null;
+        },
+
+        async activateMain(key) {
+            this.working = key;
+            try {
+                const res = await this._post(`/marketplace/templates/${key}/activate-main`);
+                const data = await res.json();
+                this.feedback = data.message || (data.success ? 'Main website template activated.' : 'Activation failed.');
+                this.feedbackOk = data.success;
+                if (data.success) {
+                    this.mainTemplateKey = key;
+                    this.liveUrl = data.url || '{{ route('home') }}';
+                }
+            } catch {
+                this.feedback = 'Network error.';
+                this.feedbackOk = false;
+            }
+            this.working = null;
         },
 
         async install(key) {
