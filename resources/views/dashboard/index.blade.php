@@ -145,11 +145,20 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 .db-proj-files { font-size:10px;color:var(--text-3); }
 .db-proj-cta  {
     display:inline-flex;align-items:center;gap:4px;
-    font-size:10.5px;font-weight:700;color:#fff;
+    font-size:10.5px;font-weight:700;
     padding:5px 12px;border-radius:7px;text-decoration:none;
-    transition:opacity .13s,transform .13s;
+    background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+    color: var(--c, var(--brand));
+    border: 1.5px solid color-mix(in srgb, var(--c, var(--brand)) 25%, transparent);
+    transition: all .18s ease;
 }
-.db-proj-cta:hover { opacity:.88;transform:translateY(-1px); }
+.db-proj-cta:hover {
+    background: var(--c, var(--brand));
+    color: #fff;
+    border-color: var(--c, var(--brand));
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--c, var(--brand)) 28%, transparent);
+    transform:translateY(-1px);
+}
 .db-new-card {
     background:var(--surface-base);padding:28px 18px;
     text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -170,8 +179,21 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 .db-empty-ico { width:56px;height:56px;border-radius:14px;background:color-mix(in srgb,var(--brand) 10%,transparent);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);display:flex;align-items:center;justify-content:center;margin-bottom:16px; }
 .db-empty h3 { font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:6px; }
 .db-empty p  { font-size:12px;color:var(--text-3);margin-bottom:20px;max-width:240px;line-height:1.7; }
-.db-empty-btn { display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:11px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;background:var(--brand);box-shadow:0 3px 12px var(--brand-ring);transition:all .15s; }
-.db-empty-btn:hover { filter:brightness(1.06);transform:translateY(-1px); }
+.db-empty-btn {
+    display:inline-flex;align-items:center;gap:6px;padding:10px 22px;
+    border-radius:11px;font-size:13px;font-weight:700;text-decoration:none;
+    background: color-mix(in srgb, var(--brand) 10%, #fff);
+    color: var(--brand);
+    border: 1.5px solid color-mix(in srgb, var(--brand) 28%, transparent);
+    transition:all .18s ease;
+}
+.db-empty-btn:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    box-shadow: 0 4px 14px var(--brand-ring);
+    transform:translateY(-1px);
+}
 
 /* ── Activity feed ── */
 .db-feed-row { display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);transition:background .12s; }
@@ -243,7 +265,9 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
         </a>
         @endif
         <a href="{{ route('projects.create') }}"
-           style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:99px;font-size:12px;font-weight:700;background:var(--brand);color:#fff;text-decoration:none;box-shadow:0 2px 8px var(--brand-ring);">
+           style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:99px;font-size:12px;font-weight:700;text-decoration:none;background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 28%,transparent);transition:all .18s ease;"
+           onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.style.boxShadow='0 4px 14px var(--brand-ring)'"
+           onmouseout="this.style.background='color-mix(in srgb,var(--brand) 10%,#fff)';this.style.color='var(--brand)';this.style.boxShadow='none'">
             <svg style="width:11px;height:11px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             New Project
         </a>

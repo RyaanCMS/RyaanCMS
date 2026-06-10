@@ -2,17 +2,6 @@
 @section('title', 'Projects')
 @section('header', 'My Projects')
 
-@section('header-actions')
-<a href="{{ route('projects.create') }}"
-   style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;text-decoration:none;background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);transition:all .15s;"
-   onmouseover="this.style.filter='brightness(1.06)';this.style.transform='translateY(-1px)'"
-   onmouseout="this.style.filter='';this.style.transform=''">
-    <svg style="width:14px;height:14px;stroke:currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-    </svg>
-    New Project
-</a>
-@endsection
 
 @php
 $typeMap = [
@@ -108,6 +97,39 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
 .proj-card-meta { display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--text-3); }
 .proj-card-actions { display:flex;gap:6px; }
 
+/* ── Gap between toolbar and cards ── */
+.proj-grid, .proj-list { margin-top:12px; }
+
+/* ── Light colorful action button (inherits --c from card) ── */
+.btn-card-action {
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:8px 14px;border-radius:10px;
+    font-size:12px;font-weight:700;text-decoration:none;
+    background: color-mix(in srgb, var(--c, var(--brand)) 10%, #fff);
+    color: var(--c, var(--brand));
+    border: 1.5px solid color-mix(in srgb, var(--c, var(--brand)) 25%, transparent);
+    transition: all .18s ease;
+    flex: 1;
+}
+.btn-card-action:hover {
+    background: var(--c, var(--brand));
+    color: #fff;
+    border-color: var(--c, var(--brand));
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--c, var(--brand)) 30%, transparent);
+    transform: translateY(-1px);
+}
+.btn-card-action svg { width:12px;height:12px;stroke:currentColor;flex-shrink:0; }
+
+/* ── Light ext link button ── */
+.btn-ext-link {
+    width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    border:1.5px solid var(--border);border-radius:10px;
+    color:var(--text-3);text-decoration:none;transition:all .15s;
+}
+.btn-ext-link:hover {
+    background:var(--surface-raised);color:var(--text-1);border-color:var(--border-strong);
+}
+
 /* ─── List view ─── */
 .proj-list { display:flex;flex-direction:column;gap:1px;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow); }
 .proj-list-row {
@@ -133,12 +155,20 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
 .proj-empty p  { font-size:13px;color:var(--text-3);margin-bottom:22px;max-width:360px;line-height:1.7; }
 .proj-empty-btn {
     display:inline-flex;align-items:center;gap:7px;
-    padding:10px 24px;border-radius:12px;font-size:13.5px;
-    font-weight:700;color:#fff;text-decoration:none;
-    background:var(--brand);box-shadow:0 3px 14px var(--brand-ring);
-    transition:all .15s;
+    padding:10px 24px;border-radius:12px;font-size:13.5px;font-weight:700;
+    text-decoration:none;
+    background: color-mix(in srgb, var(--brand) 10%, #fff);
+    color: var(--brand);
+    border: 1.5px solid color-mix(in srgb, var(--brand) 28%, transparent);
+    transition:all .18s ease;
 }
-.proj-empty-btn:hover { filter:brightness(1.06);transform:translateY(-1px); }
+.proj-empty-btn:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    box-shadow: 0 4px 16px var(--brand-ring);
+    transform:translateY(-1px);
+}
 
 /* Template chips in empty state */
 .tpl-grid { display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px; }
@@ -186,7 +216,9 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
             @endforeach
         </div>
         <a href="{{ route('projects.create') }}" class="proj-empty-btn">
-            <svg style="width:15px;height:15px;stroke:currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <svg style="width:15px;height:15px;stroke:currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
             Create First Project
         </a>
     </div>
@@ -362,18 +394,13 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
                 </div>
 
                 <div class="proj-card-actions">
-                    <a href="{{ route('builder.show', $project) }}"
-                       style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:10px;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;background:linear-gradient(135deg,{{ $tc['from'] }},{{ $tc['to'] }});box-shadow:0 2px 8px {{ $tc['from'] }}44;transition:all .13s;"
-                       onmouseover="this.style.filter='brightness(1.06)';this.style.transform='translateY(-1px)'" onmouseout="this.style.filter='';this.style.transform=''">
-                        <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    <a href="{{ route('builder.show', $project) }}" class="btn-card-action">
+                        <svg fill="none" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                         Open Builder
                     </a>
                     @if($project->deployment_url)
-                    <a href="{{ $project->deployment_url }}" target="_blank" rel="noopener"
-                       style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);border-radius:10px;color:var(--text-2);text-decoration:none;transition:all .13s;"
-                       onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background=''"
-                       title="Open live site">
-                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <a href="{{ $project->deployment_url }}" target="_blank" rel="noopener" class="btn-ext-link" title="Open live site">
+                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     </a>
                     @endif
                 </div>
@@ -408,14 +435,11 @@ $allTypes = $projects->pluck('type')->unique()->filter()->values()->toArray();
             @endif
             <div class="proj-list-meta">{{ $project->updated_at->diffForHumans() }}</div>
             <div style="display:flex;gap:5px;flex-shrink:0;">
-                <a href="{{ route('builder.show', $project) }}"
-                   style="padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:700;color:#fff;text-decoration:none;background:linear-gradient(135deg,{{ $tc['from'] }},{{ $tc['to'] }});white-space:nowrap;">
+                <a href="{{ route('builder.show', $project) }}" class="btn-card-action" style="flex:none;padding:5px 14px;">
                     Builder
                 </a>
-                <a href="{{ route('projects.show', $project) }}"
-                   style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);color:var(--text-2);text-decoration:none;display:flex;align-items:center;transition:background .12s;"
-                   onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background=''">
-                    <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <a href="{{ route('projects.show', $project) }}" class="btn-ext-link" style="width:32px;height:32px;">
+                    <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 </a>
             </div>
         </div>

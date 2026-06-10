@@ -308,17 +308,20 @@
             display: inline-flex; align-items: center; gap: 6px;
             padding: 7px 16px; border-radius: 10px;
             font-size: 13px; font-weight: 600;
-            background: var(--brand);
-            color: #fff !important;
-            box-shadow: 0 2px 8px var(--brand-ring);
+            background: color-mix(in srgb, var(--brand) 10%, #fff);
+            color: var(--brand) !important;
+            border: 1.5px solid color-mix(in srgb, var(--brand) 28%, transparent);
+            box-shadow: none;
             transition: all var(--dur-base) ease;
-            text-decoration: none; border: none; cursor: pointer;
+            text-decoration: none; cursor: pointer;
             flex-shrink: 0;
         }
         .btn-new-project:hover {
-            filter: brightness(1.06);
-            transform: translateY(-1px);
+            background: var(--brand);
+            color: #fff !important;
+            border-color: var(--brand);
             box-shadow: 0 4px 14px var(--brand-ring);
+            transform: translateY(-1px);
         }
         .btn-new-project svg { width: 14px; height: 14px; }
 

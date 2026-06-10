@@ -15,8 +15,8 @@
 .sfield{width:100%;font-size:13.5px;font-family:inherit;padding:9px 13px;border-radius:10px;outline:none;transition:border-color .15s,box-shadow .15s;}
 .sfield:focus{border-color:var(--brand)!important;box-shadow:0 0 0 3px var(--brand-ring);}
 .slabel{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;}
-.sbtn-primary{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;border:none;cursor:pointer;transition:all .15s;}
-.sbtn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.sbtn-primary{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:10px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 28%,transparent);cursor:pointer;transition:all .15s;}
+.sbtn-primary:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 4px 14px var(--brand-ring);transform:translateY(-1px);}
 .sbtn-secondary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
 
 /* ─── Settings layout ─── */
@@ -261,7 +261,7 @@
                             @error('email')<p style="margin-top:4px;font-size:11.5px;color:#dc2626;">{{ $message }}</p>@enderror
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
-                            <button type="submit" class="sbtn-primary" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                            <button type="submit" class="sbtn-primary">
                                 Save Profile
                             </button>
                         </div>
@@ -311,7 +311,7 @@
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
-                            <button type="submit" class="sbtn-primary" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                            <button type="submit" class="sbtn-primary">
                                 Update Password
                             </button>
                         </div>
@@ -468,9 +468,7 @@
                                     <button @click="doSave('{{ $key }}')" :disabled="saving"
                                             class="sbtn-primary"
                                             style="font-size:12px;padding:7px 16px;"
-                                            :style="saveResult?.success
-                                                ? 'background:#16a34a;box-shadow:none;'
-                                                : 'background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);'">
+                                            :style="saveResult?.success ? 'background:#16a34a;color:#fff;border-color:#16a34a;box-shadow:none;' : ''">
                                         <svg x-show="saving" style="width:12px;height:12px;flex-shrink:0;" class="animate-spin" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -590,7 +588,7 @@
                         </div>
 
                         <div style="display:flex;justify-content:flex-end;">
-                            <button type="submit" class="sbtn-primary" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                            <button type="submit" class="sbtn-primary">
                                 Save Brand Settings
                             </button>
                         </div>
@@ -695,7 +693,7 @@
                     </div>
                     @endforeach
                     <div style="margin-top:14px;display:flex;justify-content:flex-end;">
-                        <button class="sbtn-primary" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);" @click="window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Notification preferences saved.' } }))">
+                        <button class="sbtn-primary" @click="window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Notification preferences saved.' } }))">
                             Save Preferences
                         </button>
                     </div>
