@@ -46,7 +46,7 @@ class MenuController extends Controller
 
         $menu = Menu::create($data);
 
-        return redirect()->route('menus.edit', $menu)->with('success', 'Menu created successfully.');
+        return redirect()->route('menus.index')->with('success', 'Menu created.');
     }
 
     public function edit(Menu $menu)
@@ -140,30 +140,35 @@ class MenuController extends Controller
         return redirect()->route('menus.index')->with('success', 'Menu deleted.');
     }
 
+    public function itemsData(Menu $menu): \Illuminate\Http\JsonResponse
+    {
+        $this->checkOwner($menu);
+        return response()->json([
+            'success' => true,
+            'menu'    => ['id' => $menu->id, 'name' => $menu->name],
+            'items'   => $this->getItemsArray($menu),
+        ]);
+    }
+
     public function storeItem(Request $request, Menu $menu)
     {
         $this->checkOwner($menu);
         $data = $request->validate([
-            'label'           => ['required', 'string', 'max:100'],
-            'url'             => ['nullable', 'string', 'max:500'],
-            'icon'            => ['nullable', 'string', 'max:100'],
-            'target'          => ['nullable', 'in:_self,_blank'],
-            'parent_id'       => ['nullable', 'exists:menu_items,id'],
-            'installation_id' => ['nullable', 'exists:marketplace_installations,id'],
+            'label'     => ['required', 'string', 'max:100'],
+            'url'       => ['nullable', 'string', 'max:500'],
+            'target'    => ['nullable', 'in:_self,_blank'],
+            'parent_id' => ['nullable', 'exists:menu_items,id'],
         ]);
         $this->checkParentBelongsToMenu($menu, $data['parent_id'] ?? null);
 
         $data['menu_id'] = $menu->id;
         $data['order']   = MenuItem::where('menu_id', $menu->id)->max('order') + 1;
 
-        if (!empty($data['installation_id'])) {
-            $install = MarketplaceInstallation::find($data['installation_id']);
-            if ($install && empty($data['url'])) {
-                $data['url'] = '/marketplace/' . $install->marketplace_item_id;
-            }
-        }
-
         MenuItem::create($data);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'items' => $this->getItemsArray($menu)]);
+        }
         return back()->with('success', 'Menu item added.');
     }
 
@@ -173,33 +178,51 @@ class MenuController extends Controller
         $this->checkItemBelongsToMenu($menu, $item);
 
         $data = $request->validate([
-            'label'           => ['required', 'string', 'max:100'],
-            'url'             => ['nullable', 'string', 'max:500'],
-            'icon'            => ['nullable', 'string', 'max:100'],
-            'target'          => ['nullable', 'in:_self,_blank'],
-            'parent_id'       => ['nullable', 'exists:menu_items,id'],
-            'installation_id' => ['nullable', 'exists:marketplace_installations,id'],
-            'is_active'       => ['boolean'],
+            'label'     => ['required', 'string', 'max:100'],
+            'url'       => ['nullable', 'string', 'max:500'],
+            'target'    => ['nullable', 'in:_self,_blank'],
+            'parent_id' => ['nullable', 'exists:menu_items,id'],
+            'is_active' => ['boolean'],
         ]);
         $this->checkParentBelongsToMenu($menu, $data['parent_id'] ?? null, $item);
 
-        if (!empty($data['installation_id'])) {
-            $install = MarketplaceInstallation::find($data['installation_id']);
-            if ($install && empty($data['url'])) {
-                $data['url'] = '/marketplace/' . $install->marketplace_item_id;
-            }
-        }
-
         $item->update($data);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'items' => $this->getItemsArray($menu)]);
+        }
         return back()->with('success', 'Menu item updated.');
     }
 
-    public function destroyItem(Menu $menu, MenuItem $item)
+    public function destroyItem(Request $request, Menu $menu, MenuItem $item)
     {
         $this->checkOwner($menu);
         $this->checkItemBelongsToMenu($menu, $item);
         $item->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'items' => $this->getItemsArray($menu)]);
+        }
         return back()->with('success', 'Menu item deleted.');
+    }
+
+    private function getItemsArray(Menu $menu): array
+    {
+        return $menu->allItems()
+            ->with('parent:id,label')
+            ->orderBy('order')
+            ->orderBy('label')
+            ->get()
+            ->map(fn($i) => [
+                'id'           => $i->id,
+                'label'        => $i->label,
+                'url'          => $i->url ?? '',
+                'target'       => $i->target ?? '_self',
+                'parent_id'    => $i->parent_id,
+                'parent_label' => $i->parent?->label,
+                'is_active'    => (bool) $i->is_active,
+            ])
+            ->toArray();
     }
 
     public function reorderItems(Request $request, Menu $menu)
