@@ -46,6 +46,29 @@ $smartTips = collect([
     $stats['projects_week'] > 0 ? $stats['projects_week'].' new project'.($stats['projects_week'] === 1 ? '' : 's').' started this week.' : null,
 ])->filter()->take(3)->values();
 
+$focusLabel = !$aiProviderReady
+    ? 'Setup AI foundation'
+    : ($stats['projects'] === 0
+        ? 'Start first product'
+        : ($stats['deployments_total'] > 0 && $stats['deploy_rate'] < 70
+            ? 'Stabilize delivery'
+            : ($stats['modules_installed'] === 0 ? 'Add module coverage' : 'Ship next feature')));
+$riskLabel = !$aiProviderReady
+    ? 'Provider missing'
+    : ($stats['deployments_total'] > 0 && $stats['deploy_rate'] < 70 ? 'Deploy risk' : 'Low risk');
+$velocityLabel = $stats['projects_week'] > 0
+    ? $stats['projects_week'].' started this week'
+    : ($stats['ai_week'] > 0 ? $stats['ai_week'].' AI sessions this week' : 'Needs activity');
+$tokenPlan = $stats['modules_installed'] > 0
+    ? $stats['modules_installed'].' installed modules'
+    : 'Use 0-token modules first';
+$smartBrief = [
+    ['label' => 'Focus', 'value' => $focusLabel, 'color' => '#6366f1'],
+    ['label' => 'Risk', 'value' => $riskLabel, 'color' => $riskLabel === 'Low risk' ? '#10b981' : '#f59e0b'],
+    ['label' => 'Velocity', 'value' => $velocityLabel, 'color' => '#0ea5e9'],
+    ['label' => 'Token Plan', 'value' => $tokenPlan, 'color' => '#8b5cf6'],
+];
+
 $typeMap = [
     'laravel'    => ['emoji'=>'⚡','from'=>'#f97316','to'=>'#ef4444','bg'=>'#fff7ed','bd'=>'#fed7aa','txt'=>'#c2410c','label'=>'Laravel'],
     'react'      => ['emoji'=>'⚛️','from'=>'#06b6d4','to'=>'#3b82f6','bg'=>'#ecfeff','bd'=>'#a5f3fc','txt'=>'#0e7490','label'=>'React'],
@@ -127,6 +150,21 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 .db-tip-list { display:flex;flex-direction:column;gap:8px;margin-top:14px; }
 .db-tip { display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:var(--text-2);line-height:1.45; }
 .db-tip-dot { width:6px;height:6px;border-radius:99px;background:var(--brand);margin-top:5px;flex-shrink:0;opacity:.75; }
+.db-brief-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px; }
+.db-brief-item {
+    min-width:0;padding:10px 11px;border-radius:12px;
+    background:color-mix(in srgb,var(--brief-c) 7%,var(--surface-base));
+    border:1px solid color-mix(in srgb,var(--brief-c) 18%,var(--border));
+}
+.db-brief-label { font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3); }
+.db-brief-value { margin-top:4px;font-size:11.5px;font-weight:750;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.db-priority-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px; }
+.db-priority-mini {
+    padding:9px 10px;border-radius:11px;background:var(--surface-raised);
+    border:1px solid var(--border);min-width:0;
+}
+.db-priority-mini span { display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3); }
+.db-priority-mini strong { display:block;margin-top:4px;font-size:11.5px;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .db-next-link {
     display:inline-flex;align-items:center;justify-content:center;gap:7px;
     padding:9px 16px;border-radius:11px;text-decoration:none;
@@ -310,6 +348,7 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
     .db-greet { flex-direction:column;align-items:flex-start;gap:12px;padding:16px; }
     .db-smart-main { align-items:flex-start;flex-direction:column; }
     .db-signal-row { grid-template-columns:1fr; }
+    .db-brief-grid { grid-template-columns:repeat(2,1fr); }
     .db-signal { border-right:none;border-bottom:1px solid var(--border); }
     .db-signal:last-child { border-bottom:none; }
 }
@@ -374,6 +413,14 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
                     @endforeach
                 </div>
                 @endif
+                <div class="db-brief-grid">
+                    @foreach($smartBrief as $brief)
+                    <div class="db-brief-item" style="--brief-c:{{ $brief['color'] }};">
+                        <div class="db-brief-label">{{ $brief['label'] }}</div>
+                        <div class="db-brief-value">{{ $brief['value'] }}</div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
             <div class="db-score" style="--score:{{ $readinessScore }};">
                 <div class="db-score-val">{{ $readinessScore }}%</div>
@@ -398,6 +445,16 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
                 <div class="db-smart-kicker">Priority</div>
                 <div class="db-smart-title">{{ $nextAction['label'] }}</div>
                 <div class="db-smart-hint">{{ $nextAction['hint'] }}</div>
+                <div class="db-priority-grid">
+                    <div class="db-priority-mini">
+                        <span>Now</span>
+                        <strong>{{ $focusLabel }}</strong>
+                    </div>
+                    <div class="db-priority-mini">
+                        <span>Watch</span>
+                        <strong>{{ $riskLabel }}</strong>
+                    </div>
+                </div>
             </div>
             <a href="{{ $nextAction['href'] }}" class="db-next-link">
                 Continue

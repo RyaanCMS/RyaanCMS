@@ -261,24 +261,29 @@
 /* Final card tone pass: lighter, cleaner text hierarchy */
 .ms-card .ms-name,
 .ms-card-lg .ms-name {
-    color:#64748b !important;
-    font-weight:650 !important;
+    color:#7c8a9b !important;
+    font-weight:620 !important;
     letter-spacing:0 !important;
 }
 .ms-card .ms-desc,
 .ms-card-lg .ms-desc {
-    color:#a0aec0 !important;
+    color:#a8b4c3 !important;
     font-weight:400 !important;
 }
 .ms-card .ms-tag,
 .ms-card-lg .ms-tag {
-    background:#fbfdff !important;
-    color:#9aa8b8 !important;
-    border-color:#edf2f7 !important;
+    background:#fcfdff !important;
+    color:#a3afbf !important;
+    border-color:#eef3f8 !important;
+    font-weight:580 !important;
 }
 .ms-card:hover .ms-name,
 .ms-card-lg:hover .ms-name {
-    color:#475569 !important;
+    color:#5f6f82 !important;
+}
+.ms-card:hover .ms-desc,
+.ms-card-lg:hover .ms-desc {
+    color:#94a3b8 !important;
 }
 </style>
 @endpush

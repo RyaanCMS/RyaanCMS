@@ -482,8 +482,8 @@
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            width: 9px;
-            height: 28px;
+            width: 7px;
+            height: 24px;
             background: var(--surface-base);
             border: 1px solid var(--border);
             border-left: 2px solid var(--brand);
@@ -497,7 +497,7 @@
             transition: width .18s ease, background .13s;
         }
         .sb-peek:hover {
-            width: 14px;
+            width: 12px;
             background: var(--brand-light);
         }
         .sb-peek svg {
@@ -938,8 +938,7 @@
     <!-- ═══════ SIDEBAR ═══════ -->
     @if($showSidebar)
 
-    {{-- Peek arrow: only renders in auto-hide mode, visible when sidebar is fully collapsed --}}
-    @if($sidebarAutoHide)
+    {{-- Peek arrow: small centered hover target, visible when sidebar is collapsed --}}
     <div class="sb-peek"
          x-show="!(sidebarOpen || sidebarHovered || mobileSidebarOpen)"
          x-cloak
@@ -949,11 +948,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
         </svg>
     </div>
-    @endif
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="if (!{{ $sidebarAutoHide ? 'true' : 'false' }} || sidebarOpen || sidebarHovered || mobileSidebarOpen) sidebarHovered=true"
+           @mouseenter="if (sidebarOpen || sidebarHovered || mobileSidebarOpen) sidebarHovered=true"
            @mouseleave="sidebarHovered=false">
 
         {{-- Logo --}}
