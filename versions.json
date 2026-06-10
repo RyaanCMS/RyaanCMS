@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.28",
+    "latest": "1.1.29",
     "versions": [
         {
             "version": "1.0.0",
@@ -371,6 +371,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.27",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.29",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: global datatable system (.dt-* CSS + dtMixin JS) + menu manager refactor\n\n- Add .dt-* CSS class system to layouts/app.blade.php (wrap, toolbar, search, per-page, table, footer, pagination, highlight mark)\n- Add dtMixin() global JS helper to layouts/app.blade.php (dtSearch, dtPageRange, dtInfo, dtHighlight)\n- Refactor menus/index.blade.php to use .dt-wrap/.dt-toolbar/.dt-search/.dt-table/.dt-foot system\n- Fix search icon color (now uses .dt-search-ico with var(--text-2) instead of faint var(--text-3))\n- Add 10/20/50/100 per-page selector to menu manager toolbar\n- Spread dtMixin into menuTable() — removes duplicate pagination/highlight logic\n- Update CodeGeneratorService buildSystemPrompt with mandatory datatable generation rules\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.29/ryaancms-v1.1.29-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.28",
             "critical": false,
             "file_count": null
         }
