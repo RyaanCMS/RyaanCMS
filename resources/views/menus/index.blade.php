@@ -13,11 +13,6 @@
                 <p class="dt-subtitle">Search, filter, and manage every navigation menu in one place.</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap justify-end">
-                <a href="{{ route('menu-categories.index') }}"
-                   class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                   style="color:var(--text-2);border:1px solid var(--border);">
-                    Menu Categories
-                </a>
                 <button type="button" @click="showAddModal = true"
                         class="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
                         style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
@@ -103,18 +98,6 @@
                 </span>
             </div>
 
-            {{-- Row 2: category pills --}}
-            <div class="flex flex-wrap gap-1.5">
-                <template x-for="pill in catPills" :key="pill.val">
-                    <button @click="catFilter = catFilter === pill.val ? '' : pill.val; page = 1"
-                            class="sys-pill"
-                            :class="catFilter === pill.val ? 'sys-pill-on' : ''"
-                            :style="catFilter === pill.val ? pill.activeBg : ''">
-                        <span x-text="pill.label"></span>
-                        <span class="ml-1 opacity-70" x-text="'(' + catCount(pill.val) + ')'"></span>
-                    </button>
-                </template>
-            </div>
         </div>
 
         {{-- Table --}}
@@ -274,7 +257,8 @@
                 </button>
             </div>
             {{-- Form --}}
-            <form method="POST" action="{{ route('menus.store') }}" class="p-6 space-y-4">
+            <form method="POST" action="{{ route('menus.store') }}" class="p-6 space-y-4"
+                  x-data="addMenuForm()" @submit.prevent="submitAddMenu($el)">
                 @csrf
                 <div>
                     <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Menu Name <span style="color:#ef4444">*</span></label>
@@ -286,8 +270,15 @@
                            required autofocus>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Category <span style="color:#ef4444">*</span></label>
-                    <select name="category"
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-semibold" style="color:var(--text-2)">Category <span style="color:#ef4444">*</span></label>
+                        <button type="button" @click="showNewCat = !showNewCat"
+                                class="text-xs font-semibold transition-colors"
+                                :style="showNewCat ? 'color:#ef4444' : 'color:var(--brand)'">
+                            <span x-text="showNewCat ? '✕ Cancel' : '+ New Category'"></span>
+                        </button>
+                    </div>
+                    <select name="category" x-ref="catSelect"
                             class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
                             style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
                             onfocus="this.style.borderColor='var(--brand)'"
@@ -296,7 +287,29 @@
                         <option value="{{ $category->slug }}">{{ $category->display_name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                         @endforeach
                     </select>
-                    <p class="text-xs mt-1.5" style="color:var(--text-3);">Manage dropdown options from Menu Categories.</p>
+
+                    {{-- Inline new category form --}}
+                    <div x-show="showNewCat" x-cloak
+                         class="rounded-xl p-3 space-y-2 mt-2"
+                         style="background:var(--hover-bg);border:1px solid var(--border);">
+                        <p class="text-xs font-semibold" style="color:var(--text-3);">New Category</p>
+                        <div class="flex gap-2">
+                            <input type="text" x-model="newCatName" placeholder="Category name"
+                                   class="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                                   style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
+                                   onfocus="this.style.borderColor='var(--brand)'"
+                                   onblur="this.style.borderColor='var(--border)'">
+                            <input type="color" x-model="newCatColor" title="Color"
+                                   style="width:40px;height:36px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;">
+                        </div>
+                        <button type="button" @click="saveNewCategory()"
+                                :disabled="savingCat || !newCatName.trim()"
+                                class="w-full py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                                style="background:var(--brand);"
+                                x-text="savingCat ? 'Saving…' : 'Add Category'">
+                        </button>
+                        <p x-show="catError" x-text="catError" class="text-xs" style="color:#ef4444;" x-cloak></p>
+                    </div>
                 </div>
                 <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
                     <button type="button" @click="showAddModal = false"
@@ -422,6 +435,52 @@
 
 @push('scripts')
 <script>
+function addMenuForm() {
+    return {
+        showNewCat: false,
+        newCatName: '',
+        newCatColor: '#6366f1',
+        savingCat: false,
+        catError: '',
+
+        async saveNewCategory() {
+            if (!this.newCatName.trim()) return;
+            this.savingCat = true;
+            this.catError  = '';
+            try {
+                const res  = await fetch('/menu-categories/quick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ name: this.newCatName.trim(), color: this.newCatColor }),
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!json.success) {
+                    this.catError = json.message || 'Could not save category.';
+                } else {
+                    // Append option + select it
+                    const sel = this.$refs.catSelect;
+                    const opt = new Option(json.category.label, json.category.slug, true, true);
+                    sel.add(opt);
+                    sel.value = json.category.slug;
+                    // Reset
+                    this.newCatName  = '';
+                    this.newCatColor = '#6366f1';
+                    this.showNewCat  = false;
+                }
+            } catch { this.catError = 'Network error.'; }
+            this.savingCat = false;
+        },
+
+        submitAddMenu(form) {
+            form.submit();
+        },
+    };
+}
+
 function menuTable() {
     return {
         ...dtMixin({ perPage: 10 }),

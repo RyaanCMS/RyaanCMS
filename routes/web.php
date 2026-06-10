@@ -153,6 +153,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('menu-categories')->name('menu-categories.')->group(function () {
         Route::get('/',                         [MenuCategoryController::class, 'index'])->name('index');
         Route::post('/',                        [MenuCategoryController::class, 'store'])->name('store');
+        Route::post('/quick',                   [MenuCategoryController::class, 'quickStore'])->name('quick');
         Route::put('/{menuCategory}',           [MenuCategoryController::class, 'update'])->name('update');
         Route::delete('/{menuCategory}',        [MenuCategoryController::class, 'destroy'])->name('destroy');
     });

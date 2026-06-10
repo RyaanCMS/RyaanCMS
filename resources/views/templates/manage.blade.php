@@ -1,197 +1,284 @@
 @extends('layouts.app')
 @section('title', 'Templates')
+@section('header', 'Templates')
+
+@push('head')
+<style>
+.tmpl-toolbar {
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:14px 0 2px;
+}
+.tmpl-search {
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface-base);border:1.5px solid var(--border);
+    border-radius:11px;padding:0 12px;flex:1;min-width:200px;max-width:380px;
+    transition:border-color .13s,box-shadow .13s;
+}
+.tmpl-search:focus-within { border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-ring); }
+.tmpl-search svg { color:var(--text-3);flex-shrink:0;width:15px;height:15px; }
+.tmpl-search input { border:none;outline:none;background:transparent;font-size:13px;color:var(--text-1);padding:9px 0;width:100%;font-family:inherit; }
+.tmpl-search input::placeholder { color:var(--text-3); }
+
+.tmpl-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:14px;
+    margin-top:14px;
+}
+.tmpl-card {
+    border-radius:16px;overflow:hidden;
+    background:var(--surface-base);
+    border:1px solid var(--border);
+    border-left:3px solid transparent;
+    box-shadow:var(--shadow);
+    transition:box-shadow .22s,transform .22s,border-color .18s;
+    position:relative;
+}
+.tmpl-card:hover {
+    border-left-color: var(--tc);
+    box-shadow: 0 10px 36px color-mix(in srgb, var(--tc) 22%, transparent),
+                0 2px 10px  color-mix(in srgb, var(--tc) 10%, transparent);
+    transform: translateY(-3px);
+}
+.tmpl-card-header {
+    height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    position:relative;border-bottom:1px solid var(--border);
+    overflow:hidden;
+}
+.tmpl-card-body { padding:14px 16px;display:flex;flex-direction:column;gap:10px; }
+.tmpl-card-name { font-size:13.5px;font-weight:700;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.tmpl-card-desc { font-size:11.5px;color:var(--text-3);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5; }
+.tmpl-card-actions { display:flex;gap:6px; }
+
+.btn-tmpl {
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    padding:7px 14px;border-radius:9px;
+    font-size:12px;font-weight:700;text-decoration:none;border:none;cursor:pointer;
+    background: color-mix(in srgb, var(--tc) 10%, #fff);
+    color: var(--tc);
+    border: 1.5px solid color-mix(in srgb, var(--tc) 25%, transparent);
+    transition: all .18s;flex:1;
+}
+.btn-tmpl:hover:not(:disabled) {
+    background: var(--tc);
+    color: #fff;
+    border-color: var(--tc);
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--tc) 30%, transparent);
+    transform: translateY(-1px);
+}
+.btn-tmpl:disabled { opacity:.55;cursor:not-allowed; }
+
+/* Active template hero */
+.tmpl-hero {
+    border-radius:18px;border:2px solid var(--brand);overflow:hidden;
+    background:var(--surface-base);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 8%,transparent),var(--shadow-lg);
+    display:flex;margin-bottom:24px;
+}
+.tmpl-hero-thumb {
+    width:260px;min-height:160px;flex-shrink:0;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+}
+.tmpl-hero-body { flex:1;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:12px; }
+@media(max-width:640px){
+    .tmpl-hero { flex-direction:column; }
+    .tmpl-hero-thumb { width:100%;min-height:100px; }
+}
+</style>
+@endpush
 
 @section('content')
-<div style="max-width:1200px;margin:0 auto;padding:28px 24px;" x-data="templateManager()">
+<div x-data="templateManager()">
 
-    {{-- Header --}}
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    {{-- ── Header ──────────────────────────────────────────────────────── --}}
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
         <div>
-            <h1 style="font-size:22px;font-weight:800;color:var(--text-1);margin:0 0 4px;">Templates</h1>
-            <p style="font-size:13.5px;color:var(--text-3);margin:0;">
+            <p style="font-size:13px;color:var(--text-3);margin:0;">
                 @if($siteProject)
-                    Managing templates for <strong style="color:var(--text-2);">{{ $siteProject->name }}</strong>
-                    &nbsp;&middot;&nbsp;<a href="{{ route('home') }}" target="_blank" style="color:var(--brand);text-decoration:none;font-weight:600;">View Site &rarr;</a>
+                    Site: <strong style="color:var(--text-2);">{{ $siteProject->name }}</strong>
+                    &nbsp;&middot;&nbsp;<a href="{{ route('home') }}" target="_blank" style="color:var(--brand);text-decoration:none;font-weight:600;">View Site →</a>
                 @else
-                    Choose a project to manage as your public site
+                    No public site project selected.
+                    <a href="{{ route('settings.index') }}" style="color:var(--brand);font-weight:600;text-decoration:none;">Configure in Settings →</a>
                 @endif
             </p>
         </div>
-        @if(!$siteProject)
-        <a href="{{ route('settings.index') }}#system_config"
-           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;background:var(--brand);color:#fff;font-size:13px;font-weight:600;text-decoration:none;">
-            <svg style="width:14px;height:14px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Configure Public Site
+        @if($siteProject)
+        <a href="{{ route('home') }}" target="_blank"
+           style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);font-size:12.5px;font-weight:600;text-decoration:none;">
+            <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            Live Site
         </a>
         @endif
     </div>
 
-    {{-- No site project banner --}}
-    @if(!$siteProject)
-    <div style="padding:20px 24px;border-radius:14px;background:color-mix(in srgb,var(--brand) 6%,transparent);border:1.5px dashed color-mix(in srgb,var(--brand) 30%,transparent);margin-bottom:28px;display:flex;align-items:center;gap:14px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:color-mix(in srgb,var(--brand) 12%,transparent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg style="width:20px;height:20px;stroke:var(--brand)" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    {{-- ── Toolbar ─────────────────────────────────────────────────────── --}}
+    <div class="tmpl-toolbar">
+        <div class="tmpl-search">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input x-model="search" @input="catFilter=''" type="text" placeholder="Search templates…">
+            <button x-show="search" @click="search=''" style="color:var(--text-3);background:none;border:none;cursor:pointer;line-height:1;" x-cloak>
+                <svg style="width:10px;height:10px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <div>
-            <div style="font-size:13.5px;font-weight:700;color:var(--text-1);margin-bottom:2px;">No public site project set</div>
-            <div style="font-size:12.5px;color:var(--text-3);">Go to <strong>Settings &rarr; System Config</strong> and select a project under &ldquo;Public Site Project&rdquo;. After that, templates activated here will serve at your root domain.</div>
-        </div>
-    </div>
-    @endif
 
-    {{-- Active Template (hero card) --}}
+        {{-- Category pills --}}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button @click="catFilter=''" type="button"
+                    style="padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .13s;"
+                    :style="catFilter==='' ? 'background:var(--brand);color:#fff;border-color:var(--brand);' : 'background:var(--surface-base);color:var(--text-3);border-color:var(--border);'">
+                All
+            </button>
+            @php $cats = array_unique(array_column($templates, 'category')); @endphp
+            @foreach($cats as $cat)
+            <button @click="catFilter = catFilter==='{{ $cat }}' ? '' : '{{ $cat }}'" type="button"
+                    style="padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .13s;"
+                    :style="catFilter==='{{ $cat }}' ? 'background:var(--brand);color:#fff;border-color:var(--brand);' : 'background:var(--surface-base);color:var(--text-3);border-color:var(--border);'">
+                {{ $cat }}
+            </button>
+            @endforeach
+        </div>
+
+        <span style="font-size:12px;color:var(--text-3);margin-left:auto;" x-text="visibleCount + ' template' + (visibleCount===1?'':'s')"></span>
+    </div>
+
+    {{-- ── Active template hero ────────────────────────────────────────── --}}
     @if($activeKey && isset($templates[$activeKey]))
-    @php $activeTpl = $templates[$activeKey]; @endphp
-    <div style="margin-bottom:32px;">
-        <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px;">Active Template</div>
-        <div style="border-radius:18px;border:2.5px solid var(--brand);overflow:hidden;background:var(--card-bg);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 10%,transparent),var(--shadow-lg);display:flex;gap:0;">
-            {{-- Preview area --}}
-            <div style="width:340px;min-height:200px;flex-shrink:0;position:relative;overflow:hidden;background:linear-gradient(135deg,{{ $activeTpl['color'] }}22,{{ $activeTpl['color'] }}08);">
-                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
-                    <div style="width:64px;height:64px;border-radius:16px;background:{{ $activeTpl['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px {{ $activeTpl['color'] }}44;">
-                        <span style="font-size:28px;line-height:1;">{{ $activeTpl['icon'] }}</span>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:16px;font-weight:800;color:{{ $activeTpl['color'] }};">{{ $activeTpl['name'] }}</div>
-                        <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">{{ $activeTpl['category'] }}</div>
-                    </div>
-                </div>
-                <div style="position:absolute;top:12px;left:12px;background:var(--brand);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:.04em;">
-                    &#10003; ACTIVE
-                </div>
+    @php $a = $templates[$activeKey]; @endphp
+    <div class="tmpl-hero" style="--tc:{{ $a['color'] }}">
+        <div class="tmpl-hero-thumb" style="background:linear-gradient(135deg,{{ $a['color'] }}20,{{ $a['color'] }}06);">
+            <div style="position:absolute;top:10px;left:10px;background:var(--brand);color:#fff;font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:99px;letter-spacing:.06em;">✓ ACTIVE</div>
+            <div style="width:56px;height:56px;border-radius:14px;background:{{ $a['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px {{ $a['color'] }}44;">
+                <span style="font-size:26px;line-height:1;">{{ $a['icon'] }}</span>
             </div>
-            {{-- Info area --}}
-            <div style="flex:1;padding:28px 28px;display:flex;flex-direction:column;justify-content:center;gap:14px;">
-                <div>
-                    <h2 style="font-size:20px;font-weight:800;color:var(--text-1);margin:0 0 6px;">{{ $activeTpl['name'] }}</h2>
-                    <p style="font-size:13px;color:var(--text-3);margin:0;line-height:1.5;">{{ $activeTpl['description'] }}</p>
-                </div>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                    @foreach($activeTpl['tags'] ?? [] as $tag)
-                    <span style="font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--hover-bg);color:var(--text-3);border:1px solid var(--border);">{{ $tag }}</span>
-                    @endforeach
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;padding-top:4px;">
-                    @if($siteProject)
-                    <a href="{{ route('site.serve', $siteProject) }}" target="_blank"
-                       style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;background:var(--brand);color:#fff;font-size:13px;font-weight:600;text-decoration:none;">
-                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        Live Preview
-                    </a>
-                    @endif
-                    <button type="button"
-                            @click="deactivate('{{ $activeKey }}')"
-                            :disabled="loading === '{{ $activeKey }}'"
-                            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;"
-                            x-text="loading === '{{ $activeKey }}' ? 'Deactivating...' : 'Deactivate'">
-                    </button>
-                </div>
+            <div style="font-size:11px;font-weight:700;color:{{ $a['color'] }};">{{ $a['category'] }}</div>
+        </div>
+        <div class="tmpl-hero-body">
+            <div>
+                <h2 style="font-size:18px;font-weight:800;color:var(--text-1);margin:0 0 4px;">{{ $a['name'] }}</h2>
+                <p style="font-size:12.5px;color:var(--text-3);margin:0;line-height:1.5;">{{ $a['description'] }}</p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                @foreach($a['tags'] ?? [] as $tag)
+                <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--hover-bg);color:var(--text-3);border:1px solid var(--border);">{{ $tag }}</span>
+                @endforeach
+            </div>
+            <div style="display:flex;gap:8px;padding-top:4px;">
+                @if($siteProject)
+                <a href="{{ route('site.serve', $siteProject) }}" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:9px;background:var(--brand);color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;">
+                    <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    Live Preview
+                </a>
+                @endif
+                <button type="button" @click="deactivate('{{ $activeKey }}')" :disabled="loading==='{{ $activeKey }}'"
+                        style="padding:7px 16px;border-radius:9px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-base);color:var(--text-2);cursor:pointer;"
+                        x-text="loading==='{{ $activeKey }}' ? 'Deactivating…' : 'Deactivate'">
+                </button>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- All templates grid --}}
-    <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:14px;">
-        {{ $activeKey ? 'All Templates' : 'Available Templates' }}
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+    {{-- ── Templates grid ──────────────────────────────────────────────── --}}
+    <div class="tmpl-grid">
         @foreach($templates as $key => $tpl)
-        @php
-            $status = $statusMap[$key] ?? 'available';
-            $isActive = $status === 'active';
-        @endphp
-        @if($isActive) @continue @endif
+        @php $status = $statusMap[$key] ?? 'available'; $isActive = $status === 'active'; @endphp
 
-        <div style="border-radius:16px;border:1.5px solid var(--border);background:var(--card-bg);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .2s,border-color .2s;position:relative;"
-             @mouseenter="$el.style.boxShadow='var(--shadow-lg)';$el.style.borderColor='color-mix(in srgb,var(--brand) 30%,var(--border))'"
-             @mouseleave="$el.style.boxShadow='var(--shadow)';$el.style.borderColor='var(--border)'">
+        <div class="tmpl-card" style="--tc:{{ $tpl['color'] }}"
+             x-show="isVisible('{{ $key }}','{{ addslashes($tpl['name']) }}','{{ addslashes($tpl['description']) }}','{{ addslashes($tpl['category']) }}','{{ implode(',', $tpl['tags'] ?? []) }}')"
+             x-data="{}"
+             @x-count.window="$dispatch('count-visible')">
 
-            {{-- Preview thumbnail --}}
-            <div style="height:160px;position:relative;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,{{ $tpl['color'] }}18,{{ $tpl['color'] }}06);">
-                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
-                    <div style="width:52px;height:52px;border-radius:14px;background:{{ $tpl['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px {{ $tpl['color'] }}44;">
-                        <span style="font-size:24px;line-height:1;">{{ $tpl['icon'] }}</span>
-                    </div>
-                    <div style="font-size:11.5px;font-weight:700;color:{{ $tpl['color'] }};">{{ $tpl['category'] }}</div>
+            {{-- Header --}}
+            <div class="tmpl-card-header" style="background:linear-gradient(135deg,{{ $tpl['color'] }}18,{{ $tpl['color'] }}06);">
+                @if($isActive)
+                <div style="position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:.06em;">✓ ACTIVE</div>
+                @elseif($status === 'installed')
+                <div style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Installed</div>
+                @endif
+                <div style="width:48px;height:48px;border-radius:13px;background:{{ $tpl['color'] }};display:flex;align-items:center;justify-content:center;box-shadow:0 5px 16px {{ $tpl['color'] }}44;">
+                    <span style="font-size:22px;line-height:1;">{{ $tpl['icon'] }}</span>
                 </div>
-                {{-- Hover overlay with action buttons --}}
-                <div class="tmpl-hover-overlay"
-                     style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .18s;">
-                    @if($siteProject)
-                    <button type="button"
-                            @click.stop="activate('{{ $key }}')"
-                            :disabled="loading === '{{ $key }}'"
-                            style="padding:8px 24px;border-radius:10px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;width:160px;"
-                            x-text="loading==='{{ $key }}' ? 'Activating...' : 'Activate'">
-                    </button>
-                    <a href="{{ route('site.serve', $siteProject) }}" target="_blank"
-                       style="padding:7px 24px;border-radius:10px;background:rgba(255,255,255,.15);backdrop-filter:blur(4px);color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.3);width:160px;text-align:center;box-sizing:border-box;">
-                        Live Preview
-                    </a>
-                    @endif
-                </div>
+                <div style="font-size:10.5px;font-weight:700;color:{{ $tpl['color'] }};">{{ $tpl['category'] }}</div>
             </div>
 
-            {{-- Card footer --}}
-            <div style="padding:14px 16px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                    <div style="font-size:14px;font-weight:700;color:var(--text-1);">{{ $tpl['name'] }}</div>
-                    @if($status === 'installed')
-                    <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;flex-shrink:0;">Installed</span>
-                    @endif
-                </div>
-                <p style="font-size:11.5px;color:var(--text-3);margin:0 0 12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $tpl['description'] }}</p>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    @if($siteProject)
-                    <button type="button"
-                            @click="activate('{{ $key }}')"
-                            :disabled="loading === '{{ $key }}'"
-                            style="flex:1;padding:7px 14px;border-radius:9px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s;"
-                            :style="loading==='{{ $key }}' ? 'background:var(--hover-bg);color:var(--text-3);' : 'background:var(--brand);color:#fff;'"
-                            x-text="loading==='{{ $key }}' ? 'Activating...' : '{{ $status === 'installed' ? 'Activate' : 'Install & Activate' }}'">
+            {{-- Body --}}
+            <div class="tmpl-card-body">
+                <div class="tmpl-card-name">{{ $tpl['name'] }}</div>
+                <div class="tmpl-card-desc">{{ $tpl['description'] }}</div>
+                <div class="tmpl-card-actions">
+                    @if($isActive)
+                    <button type="button" @click="deactivate('{{ $key }}')" :disabled="loading==='{{ $key }}'"
+                            class="btn-tmpl"
+                            x-text="loading==='{{ $key }}' ? 'Deactivating…' : 'Deactivate'">
+                    </button>
+                    @elseif($siteProject)
+                    <button type="button" @click="activate('{{ $key }}')" :disabled="loading==='{{ $key }}'"
+                            class="btn-tmpl"
+                            x-text="loading==='{{ $key }}' ? 'Activating…' : '{{ $status === 'installed' ? 'Activate' : 'Install & Activate' }}'">
                     </button>
                     @else
-                    <span style="flex:1;padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;background:var(--hover-bg);color:var(--text-3);text-align:center;cursor:default;">No site project</span>
+                    <span class="btn-tmpl" style="opacity:.5;cursor:default;pointer-events:none;">No site project</span>
                     @endif
-                    <a href="{{ route('marketplace.templates') }}" title="Details"
-                       style="padding:7px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface-raised);color:var(--text-3);text-decoration:none;display:flex;align-items:center;justify-content:center;">
-                        <svg style="width:13px;height:13px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </a>
                 </div>
             </div>
         </div>
         @endforeach
     </div>
 
-    {{-- Toast feedback --}}
+    {{-- Empty state --}}
+    <div x-show="visibleCount === 0" x-cloak
+         style="text-align:center;padding:60px 20px;color:var(--text-3);">
+        <svg style="width:40px;height:40px;margin:0 auto 12px;stroke:currentColor;opacity:.4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p style="font-size:14px;font-weight:600;margin:0 0 4px;">No templates found</p>
+        <p style="font-size:12.5px;margin:0;">Try a different search or category</p>
+    </div>
+
+    {{-- Toast --}}
     <template x-if="message">
-        <div x-transition:enter="transition duration-200" x-transition:leave="transition duration-150"
-             :style="messageOk ? 'background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;' : 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b;'"
-             style="position:fixed;bottom:24px;right:24px;padding:14px 20px;border-radius:14px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;max-width:360px;"
-             x-text="message">
+        <div :style="messageOk ? 'background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;' : 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b;'"
+             style="position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;max-width:340px;"
+             x-text="message"
+             x-transition:enter="transition duration-200"
+             x-transition:leave="transition duration-150">
         </div>
     </template>
 </div>
 
-<style>
-.tmpl-hover-overlay { pointer-events: none; }
-div:hover > .tmpl-hover-overlay { opacity: 1 !important; pointer-events: auto !important; }
-</style>
-
 <script>
 function templateManager() {
     return {
+        search: '',
+        catFilter: '',
         loading: null,
         message: null,
         messageOk: true,
+        visibleCount: {{ count($templates) - ($activeKey ? 0 : 0) }},
+
+        isVisible(key, name, desc, cat, tags) {
+            const activeKey = '{{ $activeKey }}';
+            if (key === activeKey) return false; // hide active from grid (shown in hero)
+            if (this.catFilter && cat !== this.catFilter) return false;
+            const q = this.search.trim().toLowerCase();
+            if (!q) return true;
+            return [name, desc, cat, tags].some(v => v.toLowerCase().includes(q));
+        },
+
+        countVisible() {
+            // recount after filter changes — count non-active visible
+            const activeKey = '{{ $activeKey }}';
+            const allKeys = @json(array_keys($templates));
+            const allData = @json(collect($templates)->map(fn($t, $k) => ['key'=>$k,'name'=>$t['name'],'desc'=>$t['description'],'cat'=>$t['category'],'tags'=>implode(',', $t['tags'] ?? [])])->values());
+            this.visibleCount = allData.filter(t =>
+                t.key !== activeKey && this.isVisible(t.key, t.name, t.desc, t.cat, t.tags)
+            ).length;
+        },
 
         async activate(key) {
             this.loading = key;
             this.message = null;
             try {
-                const res = await fetch(`/templates/${key}/activate-site`, {
+                const res  = await fetch(`/templates/${key}/activate-site`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
                 });
@@ -199,10 +286,7 @@ function templateManager() {
                 this.messageOk = !!json.success;
                 this.message   = json.message || (json.success ? 'Template activated!' : 'Activation failed.');
                 if (json.success) setTimeout(() => location.reload(), 1200);
-            } catch {
-                this.message   = 'Network error.';
-                this.messageOk = false;
-            }
+            } catch { this.message = 'Network error.'; this.messageOk = false; }
             this.loading = null;
             setTimeout(() => this.message = null, 4000);
         },
@@ -211,7 +295,7 @@ function templateManager() {
             this.loading = key;
             this.message = null;
             try {
-                const res = await fetch(`/templates/${key}/deactivate-site`, {
+                const res  = await fetch(`/templates/${key}/deactivate-site`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
                 });
@@ -219,12 +303,15 @@ function templateManager() {
                 this.messageOk = !!json.success;
                 this.message   = json.message || (json.success ? 'Template deactivated.' : 'Deactivation failed.');
                 if (json.success) setTimeout(() => location.reload(), 1200);
-            } catch {
-                this.message   = 'Network error.';
-                this.messageOk = false;
-            }
+            } catch { this.message = 'Network error.'; this.messageOk = false; }
             this.loading = null;
             setTimeout(() => this.message = null, 4000);
+        },
+
+        init() {
+            this.$watch('search', () => this.countVisible());
+            this.$watch('catFilter', () => this.countVisible());
+            this.countVisible();
         },
     };
 }

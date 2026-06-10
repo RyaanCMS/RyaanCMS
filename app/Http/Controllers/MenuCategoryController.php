@@ -37,6 +37,42 @@ class MenuCategoryController extends Controller
         return view('menu_categories.index', compact('categories'));
     }
 
+    // Lightweight AJAX endpoint — create a category and return the new option for the dropdown
+    public function quickStore(Request $request): \Illuminate\Http\JsonResponse
+    {
+        MenuCategory::ensureDefaultsForUser(Auth::id());
+
+        $data = $request->validate([
+            'name'  => ['required', 'string', 'max:100'],
+            'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
+
+        $slug = \Illuminate\Support\Str::slug($data['name']);
+        $base = $slug ?: 'category';
+        $i    = 0;
+        while (MenuCategory::where('user_id', Auth::id())->where('slug', $slug)->exists()) {
+            $slug = $base . '-' . (++$i);
+        }
+
+        $category = MenuCategory::create([
+            'user_id'   => Auth::id(),
+            'name'      => $data['name'],
+            'slug'      => $slug,
+            'color'     => $data['color'] ?? '#6366f1',
+            'is_active' => true,
+            'is_system' => false,
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'category' => [
+                'slug'  => $category->slug,
+                'label' => $category->name,
+                'color' => $category->color,
+            ],
+        ]);
+    }
+
     public function store(Request $request)
     {
         MenuCategory::ensureDefaultsForUser(Auth::id());
