@@ -150,6 +150,13 @@ class MenuCategoryController extends Controller
         return back()->with('success', 'Menu category updated.');
     }
 
+    public function toggle(MenuCategory $menuCategory): \Illuminate\Http\JsonResponse
+    {
+        $this->checkOwner($menuCategory);
+        $menuCategory->update(['is_active' => !$menuCategory->is_active]);
+        return response()->json(['success' => true, 'is_active' => $menuCategory->is_active]);
+    }
+
     public function destroy(MenuCategory $menuCategory)
     {
         $this->checkOwner($menuCategory);

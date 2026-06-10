@@ -159,6 +159,14 @@
                             <td class="dt-td" style="color:var(--text-3)" x-text="fmtDate(category.created_at)"></td>
                             <td class="dt-td" style="text-align:right">
                                 <div class="flex items-center justify-end gap-2">
+                                    <button @click="toggleActive(category)"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                            :style="category.is_active ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border);'"
+                                            :title="category.is_active ? 'Deactivate' : 'Activate'">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="category.is_active ? 'M5 13l4 4L19 7' : 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'"/>
+                                        </svg>
+                                    </button>
                                     <button @click="openEdit(category)"
                                             class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                             style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;"
@@ -459,6 +467,17 @@ function menuCategoryTable() {
 
         highlight(text) {
             return this.dtHighlight(text, this.search.trim());
+        },
+
+        async toggleActive(category) {
+            try {
+                const r = await fetch('/menu-categories/' + category.id + '/toggle', {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                });
+                const j = await r.json();
+                if (j.success) { const c = this.allCategories.find(x => x.id === category.id); if (c) c.is_active = j.is_active; }
+            } catch {}
         },
 
         openEdit(category) {

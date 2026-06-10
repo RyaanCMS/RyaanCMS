@@ -166,6 +166,13 @@ class MenuController extends Controller
         return back()->with('success', 'Menu updated.');
     }
 
+    public function toggle(Menu $menu): \Illuminate\Http\JsonResponse
+    {
+        $this->checkOwner($menu);
+        $menu->update(['is_active' => !$menu->is_active]);
+        return response()->json(['success' => true, 'is_active' => $menu->is_active]);
+    }
+
     public function destroy(Menu $menu)
     {
         $this->checkOwner($menu);

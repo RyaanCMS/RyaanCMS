@@ -168,7 +168,7 @@
         sysSaving: false,
         sysSaved: false,
         init() {
-            const valid = ['profile','ai','branding','updates','system_config','notifications','integrations','team','danger'];
+            const valid = ['profile','ai','branding','system_config','notifications','integrations','team','danger'];
             const resolveTab = h => ({ 'ai-providers': 'ai', 'ai_provider': 'ai', 'ai-provider': 'ai' }[h] || h);
             const hash = resolveTab(window.location.hash.replace('#', ''));
             if (hash && valid.includes(hash)) this.tab = hash;
@@ -291,14 +291,14 @@
             <div class="st-nav-sep"></div>
             <div class="st-nav-label">System</div>
 
-            <button @click="tab='updates'" :class="tab==='updates' ? 'active' : ''" class="st-nav-item">
+            <a href="{{ route('settings.updates') }}" class="st-nav-item">
                 <div class="st-nav-ico">
-                    <svg style="width:14px;height:14px;" :style="tab==='updates' ? 'stroke:#fff' : 'stroke:#94a3b8'" fill="none" viewBox="0 0 24 24">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                 </div>
                 Updates
-            </button>
+            </a>
             <button @click="tab='system_config'" :class="tab==='system_config' ? 'active' : ''" class="st-nav-item">
                 <div class="st-nav-ico">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
@@ -963,17 +963,18 @@
                         <div style="display:flex;gap:16px;align-items:flex-start;">
                             {{-- Big color swatch --}}
                             <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
-                                <div style="position:relative;width:72px;height:72px;border-radius:16px;cursor:pointer;border:3px solid #fff;transition:box-shadow .15s;overflow:hidden;"
-                                     :style="'background:' + brandColor + ';box-shadow:0 0 0 2px ' + brandColor + '40,0 4px 14px rgba(0,0,0,.1);'">
-                                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:opacity .15s;pointer-events:none;"
-                                         x-ref="colorOverlay"
-                                         @mouseover.self="$el.style.opacity='1'" @mouseout.self="$el.style.opacity='0'">
+                                <div style="position:relative;width:72px;height:72px;border-radius:16px;cursor:pointer;border:3px solid #fff;transition:box-shadow .15s;"
+                                     :style="'background:' + brandColor + ';box-shadow:0 0 0 2px ' + brandColor + '40,0 4px 14px rgba(0,0,0,.1);'"
+                                     @click="$refs.colorInput.click()"
+                                     @mouseenter="$refs.colorOverlay.style.opacity='1'"
+                                     @mouseleave="$refs.colorOverlay.style.opacity='0'">
+                                    <div style="position:absolute;inset:0;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:opacity .15s;pointer-events:none;"
+                                         x-ref="colorOverlay">
                                         <svg style="width:18px;height:18px;stroke:#fff" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </div>
-                                    <input type="color" x-ref="colorInput" name="primary_color" x-model="brandColor"
-                                           style="position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%;"
-                                           @mouseover="$refs.colorOverlay.style.opacity='1'" @mouseout="$refs.colorOverlay.style.opacity='0'">
                                 </div>
+                                <input type="color" x-ref="colorInput" name="primary_color" x-model="brandColor"
+                                       style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
                                 <div style="font-size:10.5px;font-weight:700;font-family:monospace;letter-spacing:.04em;" :style="'color:' + brandColor" x-text="brandColor.toUpperCase()"></div>
                             </div>
                             <div style="flex:1;display:flex;flex-direction:column;gap:12px;">

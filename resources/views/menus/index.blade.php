@@ -153,6 +153,14 @@
                                             </svg>
                                         </button>
                                     </div>
+                                    <button @click="toggleActive(menu)"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                            :style="menu.is_active ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border);'"
+                                            :title="menu.is_active ? 'Deactivate' : 'Activate'">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="menu.is_active ? 'M5 13l4 4L19 7' : 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'"/>
+                                        </svg>
+                                    </button>
                                     <button @click="openEdit(menu)"
                                             class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                             style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">
@@ -1011,6 +1019,17 @@ function menuTable() {
             if (total === 0) return 'No menus';
             const from = (page-1)*perPage+1, to = Math.min(page*perPage, total);
             return `Showing ${from}–${to} of ${total} menu${total===1?'':'s'}`;
+        },
+
+        async toggleActive(menu) {
+            try {
+                const r = await fetch('/menus/' + menu.id + '/toggle', {
+                    method: 'PATCH',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                });
+                const j = await r.json();
+                if (j.success) { const m = this.allMenus.find(x => x.id === menu.id); if (m) m.is_active = j.is_active; }
+            } catch {}
         },
 
         openEdit(m) { this.editMenu = {...m}; this.showEditModal = true; },

@@ -155,6 +155,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/',                        [MenuCategoryController::class, 'store'])->name('store');
         Route::post('/quick',                   [MenuCategoryController::class, 'quickStore'])->name('quick');
         Route::put('/{menuCategory}',           [MenuCategoryController::class, 'update'])->name('update');
+        Route::patch('/{menuCategory}/toggle',  [MenuCategoryController::class, 'toggle'])->name('toggle');
         Route::delete('/{menuCategory}',        [MenuCategoryController::class, 'destroy'])->name('destroy');
     });
 
@@ -165,6 +166,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/',                            [MenuController::class, 'store'])->name('store');
         Route::get('/{menu}',                       [MenuController::class, 'edit'])->name('edit');
         Route::put('/{menu}',                       [MenuController::class, 'update'])->name('update');
+        Route::patch('/{menu}/toggle',              [MenuController::class, 'toggle'])->name('toggle');
         Route::delete('/{menu}',                    [MenuController::class, 'destroy'])->name('destroy');
         Route::get('/{menu}/items-data',            [MenuController::class, 'itemsData'])->name('items.data');
         Route::post('/{menu}/items',                [MenuController::class, 'storeItem'])->name('items.store');

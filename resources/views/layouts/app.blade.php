@@ -345,7 +345,7 @@
         .dt-table { width:100%; border-collapse:collapse; }
         .dt-th { padding:8px 14px; text-align:left; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); background:var(--surface-raised); white-space:nowrap; }
         .dt-th:last-child { text-align:right; }
-        .dt-td { padding:9px 14px; font-size:12.5px; color:var(--text-3); border-top:1px solid var(--border); vertical-align:middle; }
+        .dt-td { padding:6px 12px; font-size:12.5px; color:var(--text-3); border-top:1px solid var(--border); vertical-align:middle; }
         .dt-tr { transition:background .1s; }
         .dt-tr:hover .dt-td { background:var(--hover-bg, var(--surface-raised)); }
         .dt-foot { padding:10px 14px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
@@ -1192,20 +1192,6 @@
                 </a>
                 @endforeach
 
-                {{-- Admin item inside DEVELOPER section --}}
-                @if(Auth::user()->isAdmin())
-                <div class="sb-divider"></div>
-                @php $adminActive = request()->routeIs('marketplace.admin*'); @endphp
-                <a href="{{ route('marketplace.admin.panel') }}" class="sb-item{{ $adminActive ? ' active' : '' }}">
-                    <div class="sb-ico" style="{{ $adminActive ? 'background:#fef2f2;' : '' }}">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $adminActive ? '#ef4444' : 'var(--text-3)' }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                    <span class="sb-label" style="{{ $adminActive ? 'color:#ef4444;font-weight:600;' : '' }}">Admin Panel</span>
-                    <span class="sb-tooltip" aria-hidden="true">Admin Panel</span>
-                </a>
-                @endif
             </div>
 
         </nav>
