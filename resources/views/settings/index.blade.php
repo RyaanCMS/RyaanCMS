@@ -2146,6 +2146,10 @@ function teamManager() {
         ...dtMixin({ perPage: 10 }),
 
         members:       [],
+        filtered:      [],
+        paginated:     [],
+        totalPages:    1,
+        pageRange:     [],
         loading:       true,
         fetchError:    '',
         showAddModal:  false,
@@ -2167,12 +2171,12 @@ function teamManager() {
             { val: 'user',      label: 'User',       color: 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' },
         ],
 
-        get filtered() {
+        _recompute() {
             let list = this.members;
             if (this.statusFilter === 'active')   list = list.filter(m => m.is_active);
             if (this.statusFilter === 'inactive') list = list.filter(m => !m.is_active);
             if (this.roleFilter) list = list.filter(m => m.role === this.roleFilter);
-            if (this.search.trim()) {
+            if ((this.search || '').trim()) {
                 const q = this.search.trim().toLowerCase();
                 list = list.filter(m =>
                     (m.name  || '').toLowerCase().includes(q) ||
@@ -2187,20 +2191,12 @@ function teamManager() {
                 if (this.sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
                 return 0;
             });
-            return list;
-        },
-
-        get paginated() {
-            const start = (this.page - 1) * this.perPage;
-            return this.filtered.slice(start, start + this.perPage);
-        },
-
-        get totalPages() {
-            return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
-        },
-
-        get pageRange() {
-            return this.dtPageRange(this.totalPages, this.page);
+            this.filtered   = list;
+            this.totalPages = Math.max(1, Math.ceil(list.length / this.perPage));
+            if (this.page > this.totalPages) this.page = this.totalPages;
+            const start     = (this.page - 1) * this.perPage;
+            this.paginated  = list.slice(start, start + this.perPage);
+            this.pageRange  = this.dtPageRange(this.totalPages, this.page);
         },
 
         roleCount(val) {
@@ -2236,6 +2232,15 @@ function teamManager() {
                 this.fetchError = 'Network error loading team members.';
             }
             this.loading = false;
+            this._recompute();
+
+            this.$watch('members',      () => { this.page = 1; this._recompute(); });
+            this.$watch('search',       () => { this.page = 1; this._recompute(); });
+            this.$watch('statusFilter', () => { this.page = 1; this._recompute(); });
+            this.$watch('roleFilter',   () => { this.page = 1; this._recompute(); });
+            this.$watch('sortBy',       () => { this.page = 1; this._recompute(); });
+            this.$watch('page',         () => this._recompute());
+            this.$watch('perPage',      () => { this.page = 1; this._recompute(); });
         },
 
         fmtDate(d) {
