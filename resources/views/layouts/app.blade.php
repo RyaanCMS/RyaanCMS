@@ -1126,8 +1126,8 @@
             $userSidebarMenus = $loadSidebarMenus('user');
             $devSidebarMenus  = $loadSidebarMenus('developer');
 
-            // Lazy-seed developer menus on first load for any user not yet seeded
-            if (auth()->check() && $devSidebarMenus->isEmpty()) {
+            // Sync developer menus if missing or outdated (fewer than 9 = stale from old version)
+            if (auth()->check() && $devSidebarMenus->count() < 9) {
                 app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
                 $userSidebarMenus = $loadSidebarMenus('user');
                 $devSidebarMenus  = $loadSidebarMenus('developer');
