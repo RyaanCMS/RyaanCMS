@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class TemplateController extends Controller
 {
     private const DEFAULT_TEMPLATE = 'template.ryaancms';
+    private const CORE_CMS_PROJECT_SLUG = 'core-cms';
 
     public function __construct(private TemplateRegistry $registry) {}
 
@@ -40,8 +41,9 @@ class TemplateController extends Controller
     public function browse(Request $request)
     {
         $templates = $this->registry->all();
-        $projects  = Auth::user()->projects()->select('id', 'name')->orderBy('name')->get();
+        $projects  = Auth::user()->projects()->select('id', 'name', 'slug')->orderBy('name')->get();
         $mainTemplateKey = Setting::get('system.public_site_template_key', self::DEFAULT_TEMPLATE);
+        $coreCmsProjectId = $projects->firstWhere('slug', self::CORE_CMS_PROJECT_SLUG)?->id;
 
         // Map: module_key => [project_id => status]
         $installedMap = ProjectModule::whereIn('project_id', $projects->pluck('id'))
@@ -50,7 +52,7 @@ class TemplateController extends Controller
             ->groupBy('module_key')
             ->map(fn($rows) => $rows->keyBy('project_id')->map(fn($r) => $r->status));
 
-        return view('marketplace.templates', compact('templates', 'projects', 'installedMap', 'mainTemplateKey'));
+        return view('marketplace.templates', compact('templates', 'projects', 'installedMap', 'mainTemplateKey', 'coreCmsProjectId'));
     }
 
     public function activateMain(Request $request, string $key)
@@ -124,14 +126,20 @@ class TemplateController extends Controller
             ->update(['status' => 'installed']);
 
         $pm->update(['status' => 'active']);
-        $this->clearMainWebsiteTemplate();
-        $this->publishProjectOnRootDomain($project);
+        $isCoreCms = $this->isCoreCmsProject($project);
+
+        if ($isCoreCms) {
+            $this->clearMainWebsiteTemplate();
+            $this->publishProjectOnRootDomain($project);
+        }
 
         return response()->json([
             'success' => true,
             'status'  => 'active',
-            'message' => "{$template['name']} is now live on your domain.",
-            'url'     => route('home'),
+            'message' => $isCoreCms
+                ? "{$template['name']} is now live on the main CMS website."
+                : "{$template['name']} is active for {$project->name}.",
+            'url'     => $isCoreCms ? route('home') : route('site.serve', $project),
         ]);
     }
 
@@ -241,18 +249,13 @@ class TemplateController extends Controller
             return;
         }
 
-        $nextActive = ProjectModule::where('module_key', 'like', 'template.%')
-            ->where('status', 'active')
-            ->latest('updated_at')
-            ->first();
-
-        if ($nextActive) {
-            Setting::set('system.public_site_project_id', $nextActive->project_id, 'integer');
-            $this->clearMainWebsiteTemplate();
-            return;
-        }
-
         $this->activateDefaultMainWebsiteTemplate();
+    }
+
+    private function isCoreCmsProject(Project $project): bool
+    {
+        return $project->slug === self::CORE_CMS_PROJECT_SLUG
+            || (bool) data_get($project->settings, 'is_core_cms', false);
     }
 
     private function activateDefaultMainWebsiteTemplate(): void

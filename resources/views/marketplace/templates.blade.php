@@ -82,7 +82,7 @@
     <div class="flex items-center justify-between">
         <div>
             <p class="text-sm font-semibold" style="color:var(--text-1);">{{ count($templates) }} built-in templates available</p>
-            <p class="text-xs mt-0.5" style="color:var(--text-3);">RyaanCMS is the main website template. Other templates publish from a selected project.</p>
+            <p class="text-xs mt-0.5" style="color:var(--text-3);">Select Core CMS to publish any template on the main website.</p>
         </div>
         {{-- Project selector --}}
         <div class="flex items-center gap-3">
@@ -255,11 +255,18 @@ function templateBrowser() {
         feedbackOk: true,
         liveUrl: '',
         mainTemplateKey: @json($mainTemplateKey),
+        coreCmsProjectId: @json($coreCmsProjectId),
         // local state: key => status for selected project
         localStatus: {},
 
         init() {
             // Auto-select first project if only one
+            if (this.coreCmsProjectId) {
+                this.selectedProject = String(this.coreCmsProjectId);
+                this.refreshStatus(this.selectedProject);
+                return;
+            }
+
             @if($projects->count() === 1)
             this.selectedProject = '{{ $projects->first()->id }}';
             @endif

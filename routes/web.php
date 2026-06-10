@@ -60,6 +60,7 @@ Route::get('/', function () {
         $activeTemplate = \App\Models\ProjectModule::with('project')
             ->where('module_key', 'like', 'template.%')
             ->where('status', 'active')
+            ->whereHas('project', fn ($query) => $query->where('slug', 'core-cms'))
             ->latest('updated_at')
             ->first();
 
