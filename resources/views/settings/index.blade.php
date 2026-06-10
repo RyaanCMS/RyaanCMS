@@ -163,6 +163,43 @@
                 </div>
                 Updates
             </a>
+
+            <div class="st-nav-sep"></div>
+            <div class="st-nav-label">More</div>
+
+            <button @click="tab='notifications'" :class="tab==='notifications' ? 'active' : ''" class="st-nav-item">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                Notifications
+            </button>
+            <button @click="tab='integrations'" :class="tab==='integrations' ? 'active' : ''" class="st-nav-item">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                Integrations
+            </button>
+            <button @click="tab='team'" :class="tab==='team' ? 'active' : ''" class="st-nav-item">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                Team
+            </button>
+            <button @click="tab='danger'" :class="tab==='danger' ? 'active' : ''" class="st-nav-item"
+                    :style="tab==='danger' ? 'color:#ef4444;background:#fef2f2;border-left-color:#ef4444;' : ''">
+                <div class="st-nav-ico" :style="tab==='danger' ? 'background:#fecaca;' : ''">
+                    <svg style="width:14px;height:14px;" :style="tab==='danger' ? 'stroke:#ef4444' : 'stroke:#94a3b8'" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                Danger Zone
+            </button>
         </div>
     </nav>
 
