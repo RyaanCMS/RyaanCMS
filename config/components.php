@@ -53,6 +53,11 @@ BLADE,
         'preview'     => 'Table with search bar, column headers, rows, pagination',
         'template'    => <<<'BLADE'
 <div x-data="{ search: '', sortCol: '', sortDir: 'asc' }" class="rounded-xl border overflow-hidden" style="border-color:var(--border-1)">
+    {{-- Table heading --}}
+    <div class="px-4 py-3 border-b" style="border-color:var(--border-1);background:var(--card-bg)">
+        <h2 class="text-sm font-bold" style="color:var(--text-1)">Data Table</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-3)">Search, sort, and review records.</p>
+    </div>
     {{-- Toolbar --}}
     <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color:var(--border-1);background:var(--card-bg)">
         <input x-model="search" type="search" placeholder="Search…"

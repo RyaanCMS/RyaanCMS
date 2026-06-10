@@ -200,6 +200,13 @@
 
 {{-- ── Plugin table ──────────────────────────────────────────────────────── --}}
 <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);">
+    <div style="padding:16px 18px 14px;border-bottom:1px solid var(--border);background:var(--card-bg);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+        <div>
+            <h2 style="margin:0;font-size:15px;line-height:1.35;font-weight:800;color:var(--text-1);">Installed Plugins Table</h2>
+            <p style="margin:3px 0 0;font-size:12px;line-height:1.5;color:var(--text-3);">Manage built-in modules and marketplace packages installed on this project.</p>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:var(--text-3);white-space:nowrap;">{{ $totalCount }} total</span>
+    </div>
 
     @if($allInstalled->isEmpty())
     <div class="plug-empty">

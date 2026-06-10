@@ -310,6 +310,10 @@ PHP;
 
     {{-- Table card --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h2 class="text-sm font-bold text-gray-900">{$plurTitle} Table</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Search, review, and manage {$plurTitle} records.</p>
+        </div>
 
         {{-- Search bar --}}
         <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">

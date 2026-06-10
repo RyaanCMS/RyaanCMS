@@ -18,6 +18,12 @@
 
     {{-- Data table card --}}
     <div class="dt-wrap">
+        <div class="dt-head">
+            <div>
+                <h2 class="dt-title">Menus Table</h2>
+                <p class="dt-subtitle">Search, filter, and manage every navigation menu in one place.</p>
+            </div>
+        </div>
 
         {{-- Toolbar --}}
         <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">

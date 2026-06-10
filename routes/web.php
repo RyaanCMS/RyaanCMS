@@ -76,26 +76,26 @@ Route::middleware('auth')->group(function () {
 
     // AI Builder
     Route::prefix('builder')->name('builder.')->group(function () {
+        Route::get('/domain-packs',                       [AIBuilderController::class, 'domainPacks'])->name('domain_packs')->middleware('throttle:60,1');
+        Route::get('/components',                         [AIBuilderController::class, 'components'])->name('components')->middleware('throttle:60,1');
         Route::get('/{project}',                          [AIBuilderController::class, 'show'])->name('show');
         // AI API calls — throttled to 20 requests/minute per user to prevent credit abuse
         Route::post('/{project}/chat',                    [AIBuilderController::class, 'chat'])->name('chat')->middleware('throttle:20,1');
         Route::post('/{project}/stream',                  [AIBuilderController::class, 'streamChat'])->name('stream')->middleware('throttle:20,1');
         Route::get('/{project}/files/{file}',             [AIBuilderController::class, 'getFile'])->name('file.get');
-        Route::put('/{project}/files/{file}',             [AIBuilderController::class, 'saveFile'])->name('file.save');
-        Route::post('/{project}/files',                   [AIBuilderController::class, 'createFile'])->name('file.create');
-        Route::delete('/{project}/files/{file}',          [AIBuilderController::class, 'deleteFile'])->name('file.delete');
-        Route::post('/{project}/conversations',           [AIBuilderController::class, 'newConversation'])->name('conversation.new');
+        Route::put('/{project}/files/{file}',             [AIBuilderController::class, 'saveFile'])->name('file.save')->middleware('throttle:90,1');
+        Route::post('/{project}/files',                   [AIBuilderController::class, 'createFile'])->name('file.create')->middleware('throttle:60,1');
+        Route::delete('/{project}/files/{file}',          [AIBuilderController::class, 'deleteFile'])->name('file.delete')->middleware('throttle:60,1');
+        Route::post('/{project}/conversations',           [AIBuilderController::class, 'newConversation'])->name('conversation.new')->middleware('throttle:30,1');
         Route::get('/{project}/preview',                  [AIBuilderController::class, 'previewHtml'])->name('preview');
         // Blueprint-Driven Development endpoints (near-zero AI cost)
         Route::post('/{project}/discover',                [AIBuilderController::class, 'discover'])->name('discover')->middleware('throttle:10,1');
         Route::get('/{project}/blueprint',                [AIBuilderController::class, 'getBlueprint'])->name('blueprint.get');
-        Route::post('/{project}/generate-crud',           [AIBuilderController::class, 'generateCrud'])->name('crud.generate');
-        Route::get('/domain-packs',                       [AIBuilderController::class, 'domainPacks'])->name('domain_packs');
+        Route::post('/{project}/generate-crud',           [AIBuilderController::class, 'generateCrud'])->name('crud.generate')->middleware('throttle:20,1');
         // Component Registry (zero AI cost)
-        Route::get('/components',                         [AIBuilderController::class, 'components'])->name('components');
-        Route::post('/{project}/components/{key}/insert', [AIBuilderController::class, 'insertComponent'])->name('component.insert');
+        Route::post('/{project}/components/{key}/insert', [AIBuilderController::class, 'insertComponent'])->name('component.insert')->middleware('throttle:40,1');
         // Smart Questions Engine
-        Route::get('/{project}/smart-questions',          [AIBuilderController::class, 'smartQuestions'])->name('smart_questions');
+        Route::get('/{project}/smart-questions',          [AIBuilderController::class, 'smartQuestions'])->name('smart_questions')->middleware('throttle:60,1');
     });
 
     // Settings

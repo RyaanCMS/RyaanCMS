@@ -433,6 +433,12 @@
         <div x-show="tab === 'ai'" class="st-panel">
             <script type="application/json" id="ai-provider-rows">@json($providerRows ?? [])</script>
             <div class="dt-wrap" x-data="aiProviderTable()">
+                <div class="dt-head">
+                    <div>
+                        <h2 class="dt-title">AI Providers Table</h2>
+                        <p class="dt-subtitle">Configure providers, manage multiple API keys, and review failover readiness.</p>
+                    </div>
+                </div>
                 <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="dt-search">

@@ -96,6 +96,10 @@
     </div>
     @else
     <div class="sys-card" style="overflow:hidden;border-radius:14px;">
+        <div style="padding:16px 18px 14px;border-bottom:1px solid var(--border);background:var(--card-bg);">
+            <h2 style="margin:0;font-size:15px;line-height:1.35;font-weight:800;color:var(--text-1);">Wisdom Entries Table</h2>
+            <p style="margin:3px 0 0;font-size:12px;line-height:1.5;color:var(--text-3);">Review lessons, decisions, and rule candidates captured from project builds.</p>
+        </div>
         <table class="w-full text-sm">
             <thead>
                 <tr style="background:var(--card-sub);border-bottom:1px solid var(--border)">

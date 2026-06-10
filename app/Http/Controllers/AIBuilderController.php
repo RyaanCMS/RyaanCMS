@@ -12,12 +12,18 @@ use App\Services\AI\ComponentRegistry;
 use App\Services\AI\MetadataCrudGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 use ZipArchive;
 
 class AIBuilderController extends Controller
 {
+    private const MAX_ATTACHED_TEXT_CHARS = 12000;
+    private const MAX_IMAGE_BYTES_FOR_PROMPT = 4194304;
+    private const MAX_PROJECT_FILE_CHARS = 1048576;
+
     public function __construct(
         protected AIManager        $aiManager,
         protected CodeGeneratorService $codeGenerator,
@@ -100,6 +106,7 @@ class AIBuilderController extends Controller
         if ($request->conversation_id) {
             $conversation = AIConversation::where('id', $request->conversation_id)
                 ->where('user_id', Auth::id())
+                ->where('project_id', $project->id)
                 ->firstOrFail();
             $conversation->update(['provider' => $provider, 'model' => $request->model ?? $conversation->model]);
         } else {
@@ -145,9 +152,14 @@ class AIBuilderController extends Controller
         $ext  = strtolower($file->getClientOriginalExtension());
         $mime = $file->getMimeType() ?? '';
         $path = $file->getRealPath();
+        $size = $file->getSize() ?? 0;
 
         // Images — encode as base64 data URI so vision-capable models can see them
         if (str_starts_with($mime, 'image/')) {
+            if ($size > self::MAX_IMAGE_BYTES_FOR_PROMPT) {
+                return "[IMAGE: {$name}]\nImage omitted because it is larger than 4 MB. Please upload a smaller image or describe the key details.";
+            }
+
             $b64 = base64_encode(file_get_contents($path));
             return "[IMAGE: {$name}]\ndata:{$mime};base64,{$b64}";
         }
@@ -158,6 +170,7 @@ class AIBuilderController extends Controller
                      'sh','bat','env','ini','conf','log','svg'];
         if (in_array($ext, $textExts) || str_starts_with($mime, 'text/')) {
             $content = file_get_contents($path);
+            $content = $this->limitPromptText($content, self::MAX_ATTACHED_TEXT_CHARS);
             return "[FILE: {$name}]\n```{$ext}\n{$content}\n```";
         }
 
@@ -198,8 +211,23 @@ class AIBuilderController extends Controller
         return "[ATTACHED FILE: {$name} ({$mime}) — binary content, describe its purpose in your request]";
     }
 
+    private function limitPromptText(string $content, int $maxChars): string
+    {
+        if (mb_strlen($content) <= $maxChars) {
+            return $content;
+        }
+
+        return mb_substr($content, 0, $maxChars)
+            . "\n\n[Content truncated for speed and security. Upload a smaller file or ask about a specific section if needed.]";
+    }
+
     private function fetchUrlContent(string $url): string
     {
+        $scheme = strtolower(parse_url($url, PHP_URL_SCHEME) ?: '');
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return "[URL: {$url}]\nAccess denied - only HTTP and HTTPS URLs are allowed.";
+        }
+
         // SSRF protection: block internal/private network addresses
         $host = parse_url($url, PHP_URL_HOST);
         if ($host) {
@@ -252,6 +280,7 @@ class AIBuilderController extends Controller
         $conversation = $request->conversation_id
             ? AIConversation::where('id', $request->conversation_id)
                             ->where('user_id', Auth::id())
+                            ->where('project_id', $project->id)
                             ->firstOrFail()
             : AIConversation::create([
                 'user_id'    => Auth::id(),
@@ -300,6 +329,7 @@ class AIBuilderController extends Controller
     public function getFile(Project $project, ProjectFile $file)
     {
         $this->authorize('view', $project);
+        $this->ensureFileBelongsToProject($project, $file);
 
         return response()->json([
             'id'       => $file->id,
@@ -313,8 +343,9 @@ class AIBuilderController extends Controller
     public function saveFile(Request $request, Project $project, ProjectFile $file)
     {
         $this->authorize('update', $project);
+        $this->ensureFileBelongsToProject($project, $file);
 
-        $request->validate(['content' => ['required', 'string']]);
+        $request->validate(['content' => ['required', 'string', 'max:' . self::MAX_PROJECT_FILE_CHARS]]);
 
         $file->update([
             'content' => $request->content,
@@ -329,13 +360,19 @@ class AIBuilderController extends Controller
         $this->authorize('update', $project);
 
         $request->validate([
-            'path' => ['required', 'string'],
+            'path' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:file,directory'],
         ]);
 
-        $path      = ltrim($request->path, '/');
+        $path      = $this->normalizeProjectPath($request->path);
         $name      = basename($path);
         $extension = $request->type === 'file' ? pathinfo($name, PATHINFO_EXTENSION) : null;
+
+        if ($project->files()->where('path', $path)->exists()) {
+            throw ValidationException::withMessages([
+                'path' => 'A project file already exists at this path.',
+            ]);
+        }
 
         $file = ProjectFile::create([
             'project_id' => $project->id,
@@ -353,10 +390,36 @@ class AIBuilderController extends Controller
     public function deleteFile(Project $project, ProjectFile $file)
     {
         $this->authorize('update', $project);
+        $this->ensureFileBelongsToProject($project, $file);
 
         $file->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    private function ensureFileBelongsToProject(Project $project, ProjectFile $file): void
+    {
+        abort_unless((int) $file->project_id === (int) $project->id, 404);
+    }
+
+    private function normalizeProjectPath(string $path): string
+    {
+        $path = trim(str_replace('\\', '/', $path));
+        $path = ltrim($path, '/');
+
+        if (
+            $path === ''
+            || preg_match('/^[A-Za-z]:/', $path)
+            || str_contains($path, "\0")
+            || preg_match('/[\x00-\x1F]/', $path)
+            || preg_match('#(^|/)\.\.(/|$)#', $path)
+        ) {
+            throw ValidationException::withMessages([
+                'path' => 'Enter a safe relative project path.',
+            ]);
+        }
+
+        return $path;
     }
 
     public function previewHtml(Project $project)
@@ -490,6 +553,12 @@ HTML;
             'entity'        => ['required', 'array'],
             'entity.name'   => ['required', 'string', 'regex:/^[A-Za-z][A-Za-z0-9]*$/'],
             'entity.fields' => ['required', 'array', 'min:1'],
+            'entity.fields.*.name' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/'],
+            'entity.fields.*.label' => ['nullable', 'string', 'max:80'],
+            'entity.fields.*.type' => ['nullable', 'string', 'in:string,text,integer,decimal,boolean,date,datetime,json,enum,foreignId,email'],
+            'entity.fields.*.required' => ['nullable', 'boolean'],
+            'entity.fields.*.options' => ['nullable', 'array', 'max:20'],
+            'entity.fields.*.options.*' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9 _-]+$/'],
         ]);
 
         try {
@@ -530,9 +599,11 @@ HTML;
      */
     public function domainPacks()
     {
+        $packs = Cache::remember('builder:domain-packs', 600, fn() => config('domain_packs', []));
+
         return response()->json([
             'success' => true,
-            'packs'   => config('domain_packs', []),
+            'packs'   => $packs,
         ]);
     }
 
@@ -544,10 +615,24 @@ HTML;
     {
         $search   = $request->input('search', '');
         $category = $request->input('category', '');
+        $cacheKey = 'builder:components:' . md5($category . '|' . $search);
 
-        $components = $search
-            ? $this->componentRegistry->search($search)
-            : $this->componentRegistry->all($category);
+        $components = Cache::remember($cacheKey, 300, function () use ($search, $category) {
+            return $search
+                ? $this->componentRegistry->search($search)
+                : $this->componentRegistry->all($category);
+        });
+
+        $categories = Cache::remember(
+            'builder:component-categories',
+            600,
+            fn() => $this->componentRegistry->categories()
+        );
+        $totalTokensSaved = Cache::remember(
+            'builder:component-total-tokens-saved',
+            600,
+            fn() => $this->componentRegistry->totalTokensSaved()
+        );
 
         return response()->json([
             'success'       => true,
@@ -563,8 +648,8 @@ HTML;
                     'template'     => $c['template'],
                 ];
             }, array_keys($components), array_values($components)),
-            'categories'    => $this->componentRegistry->categories(),
-            'total_tokens_saved' => $this->componentRegistry->totalTokensSaved(),
+            'categories'    => $categories,
+            'total_tokens_saved' => $totalTokensSaved,
         ]);
     }
 

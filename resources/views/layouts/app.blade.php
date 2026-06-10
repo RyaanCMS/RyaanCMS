@@ -328,6 +328,9 @@
 
         /* ── DataTable system ── */
         .dt-wrap { border-radius:16px; overflow:hidden; background:var(--surface-base); border:1px solid var(--border); box-shadow:var(--shadow); }
+        .dt-head { padding:16px 18px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:14px; background:var(--surface-base); }
+        .dt-title { margin:0; font-size:15px; line-height:1.35; font-weight:800; color:var(--text-1); }
+        .dt-subtitle { margin:3px 0 0; font-size:12px; line-height:1.5; color:var(--text-3); }
         .dt-toolbar { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
         .dt-search { position:relative; flex:1; min-width:200px; }
         .dt-search-ico { position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-2); pointer-events:none; }

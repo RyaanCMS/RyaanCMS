@@ -1348,6 +1348,12 @@ ALL data tables MUST use the global `.dt-*` class system and `dtMixin()` helper 
 
 HTML structure:
   <div class="dt-wrap">
+    <div class="dt-head">
+      <div>
+        <h2 class="dt-title">Records Table</h2>
+        <p class="dt-subtitle">Search, filter, and manage records.</p>
+      </div>
+    </div>
     <div class="dt-toolbar">
       <div class="dt-search">
         <svg class="dt-search-ico">…search icon…</svg>
@@ -1415,6 +1421,7 @@ Alpine JS data function — spread dtMixin first, then override:
   }
 
 • Use `dtHighlight(row.field, search)` (returns HTML with `<mark class="dt-mark">`) inside `x-html` directives
+• Every data table MUST have a visible heading block above the toolbar using `.dt-head`, `.dt-title`, and `.dt-subtitle`
 • Default perPage is 10; perPageOpts is [10,20,50,100] — always expose the selector
 • Always use `dtInfo(filtered.length, page, perPage)` for the footer "Showing X–Y of Z" text
 • Never build custom pagination or search from scratch when dtMixin is available
