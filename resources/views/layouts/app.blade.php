@@ -383,54 +383,81 @@
             padding: 14px 18px 5px;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity var(--dur-base) ease;
+            height: auto;
+            overflow: hidden;
+            transition: opacity var(--dur-base) ease, padding var(--dur-base) ease, height var(--dur-base) ease;
+        }
+        /* In collapsed mode: section labels take up zero height to keep items contiguous */
+        .app-sidebar:not(.sidebar-expanded) .sb-section-label {
+            padding: 0;
+            height: 0;
         }
         .sidebar-expanded .sb-section-label { opacity: 1; }
+        /* Divider also hidden in collapsed mode */
+        .app-sidebar:not(.sidebar-expanded) .sb-divider { margin: 0; height: 0; }
 
+        /* ── Sidebar nav items ── */
         .sb-item {
             display: flex; align-items: center;
-            padding: 0 8px;
-            margin: 1px 4px;
-            height: 42px;
-            border-radius: 11px;
+            padding: 0 10px;
+            margin: 1px 6px;
+            height: 40px;
+            border-radius: 10px;
             cursor: pointer;
             text-decoration: none;
             transition: background var(--dur-fast) ease;
             position: relative;
             white-space: nowrap;
-            overflow: hidden;
+            overflow: visible;
         }
         .sb-item:hover { background: var(--surface-overlay); }
-        .sb-item.active {
-            background: var(--brand-light);
-        }
+        .sb-item.active { background: var(--brand-light); }
         .sb-item.active::before {
             content: '';
             position: absolute;
-            left: -4px; top: 7px; bottom: 7px;
+            left: -6px; top: 6px; bottom: 6px;
             width: 3px;
             background: var(--brand);
             border-radius: 0 3px 3px 0;
         }
-        /* In collapsed mode: icon fills the full item width as a centered block */
+
+        /* ─── COLLAPSED MODE: items become full-width icon tiles ─── */
         .app-sidebar:not(.sidebar-expanded) .sb-item {
             justify-content: center;
+            align-items: center;
             padding: 0;
-            margin: 0;
+            margin: 0;          /* zero gaps → contiguous top-to-bottom */
+            height: 52px;       /* taller = easier to target */
             border-radius: 0;
-            height: 48px;
+            background: transparent;
         }
-        /* Collapsed: icon fills the full item so entire row is the click target */
-        .app-sidebar:not(.sidebar-expanded) .sb-item .sb-ico {
-            width: calc(var(--sidebar-w-collapsed) - 16px);
-            height: 40px;
+        /* Hover & active highlight spans the full 64 px width */
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover {
+            background: color-mix(in srgb, var(--brand) 7%, transparent);
+        }
+        .app-sidebar:not(.sidebar-expanded) .sb-item.active {
+            background: color-mix(in srgb, var(--brand) 12%, transparent);
+        }
+        /* Active bar on left */
+        .app-sidebar:not(.sidebar-expanded) .sb-item.active::before {
+            left: 0; top: 10px; bottom: 10px;
+        }
+        /* Icon box — visible center square inside the full-width tile */
+        .app-sidebar:not(.sidebar-expanded) .sb-ico {
+            width: 40px; height: 40px;
             border-radius: 10px;
+            background: transparent;
         }
+        .app-sidebar:not(.sidebar-expanded) .sb-item:hover .sb-ico {
+            background: transparent; /* let parent row handle highlight */
+        }
+
+        /* ── Icon box (expanded / shared) ── */
         .sb-ico {
-            width: 36px; height: 36px;
+            width: 34px; height: 34px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            border-radius: 9px;
+            border-radius: 8px;
             transition: background var(--dur-fast) ease;
         }
         .sb-ico svg { width: 18px; height: 18px; }
@@ -971,7 +998,7 @@
 
     <aside class="app-sidebar {{ $sidebarAutoHide ? 'sidebar-autohide' : '' }}"
            :class="{ 'sidebar-expanded': sidebarOpen || sidebarHovered, 'sidebar-mobile-open': mobileSidebarOpen }"
-           @mouseenter="sidebarHovered=true"
+           @mouseover="sidebarHovered=true"
            @mouseleave="sidebarHovered=false">
 
         {{-- Logo --}}
