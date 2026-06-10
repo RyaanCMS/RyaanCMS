@@ -9,6 +9,7 @@ class MenuCategory extends Model
 {
     protected $fillable = [
         'user_id',
+        'parent_id',
         'name',
         'slug',
         'description',
@@ -19,9 +20,14 @@ class MenuCategory extends Model
     ];
 
     protected $casts = [
+        'parent_id' => 'integer',
         'is_active' => 'boolean',
         'is_system' => 'boolean',
         'sort_order' => 'integer',
+    ];
+
+    protected $appends = [
+        'display_name',
     ];
 
     public const DEFAULTS = [
@@ -63,5 +69,20 @@ class MenuCategory extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->parent ? "{$this->parent->name} / {$this->name}" : $this->name;
     }
 }

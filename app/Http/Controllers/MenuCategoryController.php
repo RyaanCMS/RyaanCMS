@@ -17,6 +17,7 @@ class MenuCategoryController extends Controller
         app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
 
         $categories = MenuCategory::where('user_id', Auth::id())
+            ->with('parent:id,user_id,parent_id,name,slug,color')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -28,6 +29,8 @@ class MenuCategoryController extends Controller
 
         $categories = $categories->map(function (MenuCategory $category) use ($menuCounts) {
             $category->menus_count = (int) ($menuCounts[$category->slug] ?? 0);
+            $category->parent_name = $category->parent?->name;
+            $category->parent_slug = $category->parent?->slug;
             return $category;
         });
 
@@ -51,6 +54,7 @@ class MenuCategoryController extends Controller
                 Rule::unique('menu_categories', 'slug')->where('user_id', Auth::id()),
             ],
             'description' => ['nullable', 'string', 'max:255'],
+            'parent_id' => $this->parentRules(),
             'color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_active' => ['nullable', 'boolean'],
@@ -87,6 +91,7 @@ class MenuCategoryController extends Controller
                     ->ignore($menuCategory->id),
             ],
             'description' => ['nullable', 'string', 'max:255'],
+            'parent_id' => $this->parentRules($menuCategory),
             'color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_active' => ['nullable', 'boolean'],
@@ -133,5 +138,49 @@ class MenuCategoryController extends Controller
     private function checkOwner(MenuCategory $menuCategory): void
     {
         abort_if($menuCategory->user_id !== Auth::id(), 403);
+    }
+
+    private function parentRules(?MenuCategory $menuCategory = null): array
+    {
+        return [
+            'nullable',
+            'integer',
+            Rule::exists('menu_categories', 'id')->where('user_id', Auth::id()),
+            function (string $attribute, mixed $value, \Closure $fail) use ($menuCategory) {
+                if (!$value || !$menuCategory) {
+                    return;
+                }
+
+                if ((int) $value === $menuCategory->id) {
+                    $fail('A menu category cannot be its own parent.');
+                    return;
+                }
+
+                if ($this->wouldCreateParentLoop($menuCategory, (int) $value)) {
+                    $fail('Select a top-level or sibling category as the parent.');
+                }
+            },
+        ];
+    }
+
+    private function wouldCreateParentLoop(MenuCategory $menuCategory, int $parentId): bool
+    {
+        $next = MenuCategory::where('user_id', Auth::id())->find($parentId);
+        $seen = [];
+
+        while ($next) {
+            if ($next->id === $menuCategory->id) {
+                return true;
+            }
+
+            if (!$next->parent_id || in_array($next->parent_id, $seen, true)) {
+                return false;
+            }
+
+            $seen[] = $next->id;
+            $next = MenuCategory::where('user_id', Auth::id())->find($next->parent_id);
+        }
+
+        return false;
     }
 }

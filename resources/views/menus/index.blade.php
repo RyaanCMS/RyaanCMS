@@ -293,7 +293,7 @@
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
                         @foreach($menuCategories as $category)
-                        <option value="{{ $category->slug }}">{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
+                        <option value="{{ $category->slug }}">{{ $category->display_name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                         @endforeach
                     </select>
                     <p class="text-xs mt-1.5" style="color:var(--text-3);">Manage dropdown options from Menu Categories.</p>
@@ -371,7 +371,7 @@
                             onfocus="this.style.borderColor='var(--brand)'"
                             onblur="this.style.borderColor='var(--border)'">
                         @foreach($menuCategories as $category)
-                        <option value="{{ $category->slug }}">{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
+                        <option value="{{ $category->slug }}">{{ $category->display_name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -507,7 +507,7 @@ function menuTable() {
             this.$nextTick(() => this.$refs.deleteForm.submit());
         },
         catLabel(cat) {
-            return this.categoryBySlug(cat)?.name || cat;
+            return this.categoryBySlug(cat)?.label || cat;
         },
 
         catStyle(cat) {
@@ -523,7 +523,7 @@ function menuTable() {
         get catPills() {
             return this.categories.map(category => ({
                 val: category.slug,
-                label: category.name,
+                label: category.label,
                 activeBg: 'background:' + category.color + ';border-color:' + category.color + ';color:#fff;'
             }));
         },

@@ -222,6 +222,7 @@ class MenuController extends Controller
         MenuCategory::ensureDefaultsForUser(Auth::id());
 
         return MenuCategory::where('user_id', Auth::id())
+            ->with('parent:id,user_id,parent_id,name,slug')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -233,6 +234,9 @@ class MenuController extends Controller
             ->map(fn (MenuCategory $category) => [
                 'slug' => $category->slug,
                 'name' => $category->name,
+                'label' => $category->display_name,
+                'parent_id' => $category->parent_id,
+                'parent_name' => $category->parent?->name,
                 'description' => $category->description,
                 'color' => $category->color,
                 'is_active' => $category->is_active,

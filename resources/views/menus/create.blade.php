@@ -31,7 +31,7 @@
                         onfocus="this.style.borderColor='var(--brand)'"
                         onblur="this.style.borderColor='var(--border)'">
                     @foreach($menuCategories as $category)
-                    <option value="{{ $category->slug }}" {{ old('category') === $category->slug ? 'selected' : '' }}>{{ $category->name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
+                    <option value="{{ $category->slug }}" {{ old('category') === $category->slug ? 'selected' : '' }}>{{ $category->display_name }}{{ $category->is_active ? '' : ' (Inactive)' }}</option>
                     @endforeach
                 </select>
                 @error('category')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror

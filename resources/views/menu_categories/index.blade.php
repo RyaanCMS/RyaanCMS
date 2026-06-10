@@ -134,6 +134,10 @@
                                             <span x-show="category.is_system" class="sys-badge sys-badge-gray" x-cloak>System</span>
                                         </div>
                                         <p class="text-[11px] mt-0.5" style="color:var(--text-3)" x-text="category.description || 'No description'"></p>
+                                        <p x-show="category.parent_name" class="text-[11px] mt-0.5" style="color:var(--text-3)" x-cloak>
+                                            Parent:
+                                            <span x-text="category.parent_name"></span>
+                                        </p>
                                     </div>
                                 </div>
                             </td>
@@ -236,6 +240,20 @@
                     <p class="text-xs mt-1.5" style="color:var(--text-3);">Leave blank to generate from the name.</p>
                 </div>
                 <div>
+                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Menu Category</label>
+                    <select name="parent_id"
+                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                            style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);">
+                        <option value="">Top Level Category</option>
+                        @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('parent_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->display_name }}{{ $category->is_active ? '' : ' (Inactive)' }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('parent_id')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
                     <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Description</label>
                     <input type="text" name="description" placeholder="Where this category is used"
                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
@@ -314,6 +332,17 @@
                     <p class="text-xs mt-1.5" style="color:var(--text-3);" x-text="editCategory.is_system ? 'System slugs are locked because they control menu placement.' : 'Changing the slug will update menus in this category.'"></p>
                 </div>
                 <div>
+                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Menu Category</label>
+                    <select name="parent_id" x-model="editCategory.parent_id"
+                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                            style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);">
+                        <option value="">Top Level Category</option>
+                        <template x-for="category in parentOptions" :key="category.id">
+                            <option :value="category.id" x-text="category.display_name + (category.is_active ? '' : ' (Inactive)')"></option>
+                        </template>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)">Description</label>
                     <input type="text" name="description" x-model="editCategory.description"
                            class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
@@ -377,7 +406,7 @@ function menuCategoryTable() {
         page: 1,
         showAddModal: false,
         showEditModal: false,
-        editCategory: { name: '', slug: '', description: '', color: '#475569', sort_order: 100, is_active: true, is_system: false },
+        editCategory: { name: '', slug: '', description: '', parent_id: '', color: '#475569', sort_order: 100, is_active: true, is_system: false },
         deleteTarget: null,
         allCategories: @json($categories),
 
@@ -392,6 +421,7 @@ function menuCategoryTable() {
                 list = list.filter(c => (
                     c.name.toLowerCase().includes(q) ||
                     c.slug.toLowerCase().includes(q) ||
+                    (c.parent_name || '').toLowerCase().includes(q) ||
                     (c.description || '').toLowerCase().includes(q)
                 ));
             }
@@ -419,13 +449,36 @@ function menuCategoryTable() {
             return this.dtPageRange(this.totalPages, this.page).map(p => typeof p === 'number' ? p : '...');
         },
 
+        get parentOptions() {
+            const currentId = Number(this.editCategory?.id || 0);
+            return this.allCategories.filter(category => {
+                if (!currentId) return true;
+                return Number(category.id) !== currentId && !this.isDescendantOf(category, currentId);
+            });
+        },
+
         highlight(text) {
             return this.dtHighlight(text, this.search.trim());
         },
 
         openEdit(category) {
-            this.editCategory = { ...category };
+            this.editCategory = { ...category, parent_id: category.parent_id || '' };
             this.showEditModal = true;
+        },
+
+        isDescendantOf(category, parentId) {
+            const seen = new Set();
+            let current = category;
+
+            while (current?.parent_id) {
+                if (Number(current.parent_id) === Number(parentId)) return true;
+                if (seen.has(current.parent_id)) return false;
+
+                seen.add(current.parent_id);
+                current = this.allCategories.find(item => Number(item.id) === Number(current.parent_id));
+            }
+
+            return false;
         },
 
         doDelete(category) {
