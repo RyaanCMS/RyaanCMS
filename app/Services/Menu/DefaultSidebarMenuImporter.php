@@ -11,27 +11,64 @@ use Illuminate\Support\Str;
 
 class DefaultSidebarMenuImporter
 {
+    private const USER_MENU_CATEGORY = 'user_topbar';
+    private const DEVELOPER_MENU_CATEGORY = 'developer_menu';
+
     public function ensureForUser(User $user): void
     {
         MenuCategory::ensureDefaultsForUser($user->id);
 
-        $userMenu = $this->ensureMenu($user, 'User Sidebar', 'user_sidebar');
+        $userMenu = $this->ensureMenu($user, 'User Menu', self::USER_MENU_CATEGORY, ['user_sidebar', 'sidebar']);
         $this->seedUserSidebar($userMenu, $user);
 
-        $developerMenu = $this->ensureMenu($user, 'Developer Sidebar', 'developer_sidebar');
+        $developerMenu = $this->ensureMenu($user, 'Developer Menu', self::DEVELOPER_MENU_CATEGORY, ['developer_sidebar']);
         $this->seedDeveloperSidebar($developerMenu, $user);
     }
 
-    private function ensureMenu(User $user, string $name, string $category): Menu
+    private function ensureMenu(User $user, string $name, string $category, array $legacyCategories = []): Menu
     {
-        return Menu::firstOrCreate(
-            ['user_id' => $user->id, 'slug' => "system-{$category}-{$user->id}"],
-            [
-                'name' => $name,
-                'category' => $category,
-                'is_active' => true,
-            ]
-        );
+        $slug = "system-{$category}-{$user->id}";
+        $legacySlugs = collect($legacyCategories)
+            ->map(fn (string $legacyCategory) => "system-{$legacyCategory}-{$user->id}")
+            ->all();
+
+        $menu = Menu::where('user_id', $user->id)
+            ->whereIn('slug', [$slug, ...$legacySlugs])
+            ->orderByRaw('CASE WHEN slug = ? THEN 0 ELSE 1 END', [$slug])
+            ->first();
+
+        if (!$menu) {
+            $menu = Menu::where('user_id', $user->id)
+                ->whereIn('category', $legacyCategories)
+                ->where('name', 'like', '%Sidebar%')
+                ->first();
+        }
+
+        if ($menu) {
+            $menu->name = $name;
+            $menu->category = $category;
+            $menu->is_active = true;
+
+            $slugTaken = Menu::where('slug', $slug)
+                ->where('id', '<>', $menu->id)
+                ->exists();
+
+            if (!$slugTaken) {
+                $menu->slug = $slug;
+            }
+
+            $menu->save();
+
+            return $menu;
+        }
+
+        return Menu::create([
+            'user_id' => $user->id,
+            'slug' => $slug,
+            'name' => $name,
+            'category' => $category,
+            'is_active' => true,
+        ]);
     }
 
     private function seedUserSidebar(Menu $menu, User $user): void

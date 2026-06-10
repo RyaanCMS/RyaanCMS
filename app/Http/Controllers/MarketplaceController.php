@@ -169,7 +169,7 @@ class MarketplaceController extends Controller
         if (!empty($moduleMenuItems)) {
             if ($newStatus === 'active') {
                 $menu = Menu::firstOrCreate(
-                    ['user_id' => Auth::id(), 'category' => 'sidebar', 'slug' => 'auto-modules'],
+                    ['user_id' => Auth::id(), 'category' => 'user_topbar', 'slug' => 'auto-modules'],
                     ['name' => 'Modules', 'is_active' => true]
                 );
                 foreach ($moduleMenuItems as $idx => $item) {
