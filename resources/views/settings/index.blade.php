@@ -100,6 +100,24 @@
 .sys-toggle-disabled{opacity:.4;cursor:not-allowed;}
 .sys-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;transform:translateX(0);}
 .sys-toggle-thumb-on{transform:translateX(20px);}
+
+/* ─── Branding panel ─── */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
+.bk-preview-wrap{border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
+.bk-preview-bar{padding:11px 16px;background:var(--hover-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.bk-preview-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.bk-sidebar-item{padding:6px 10px;display:flex;align-items:center;gap:6px;border-radius:7px;transition:background .1s;}
+.bk-color-swatch{width:36px;height:36px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;}
+.bk-color-swatch:hover{transform:scale(1.1);}
+.bk-color-swatch.selected{outline:3px solid var(--brand);outline-offset:2px;transform:scale(1.12);}
+.bk-shade{flex:1;height:22px;border-radius:6px;cursor:pointer;transition:transform .12s;}
+.bk-shade:hover{transform:scaleY(1.2);}
+.bk-font-card{border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .15s;border:2px solid #e8ecf0;background:#fafbff;}
+.bk-font-card:hover{border-color:color-mix(in srgb,var(--brand) 40%,#e8ecf0);}
+.bk-font-card.selected{border-color:var(--brand);background:var(--brand-light,#eef2ff);box-shadow:0 0 0 3px var(--brand-ring,#c7d2fe40);}
+.bk-upload-zone{border:2px dashed #e2e8f0;border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:#fafbff;}
+.bk-upload-zone:hover{border-color:var(--brand);background:var(--brand-light,#eef2ff);}
+.bk-hex-input{flex:1;border:none;background:transparent;font-size:13px;font-family:monospace;font-weight:700;color:var(--text-1);outline:none;text-transform:uppercase;min-width:0;}
 </style>
 @endpush
 
@@ -123,6 +141,7 @@
                 const h = window.location.hash.replace('#', '');
                 if (h && valid.includes(h)) this.tab = h;
             });
+            this.$watch('brandColor', v => { if(/^#[0-9a-fA-F]{6}$/.test(v)) this.hexInput=v.replace('#','').toUpperCase(); });
         },
         async saveSystemConfig() {
             this.sysSaving = true;
@@ -134,7 +153,28 @@
             this.sysSaving = false;
             this.sysSaved = true;
             setTimeout(() => this.sysSaved = false, 2500);
-        }
+        },
+        hexInput: '{{ ltrim($savedColor, '#') }}',
+        brandCopied: false,
+        hexToHsl(hex) {
+            const r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+            const max=Math.max(r,g,b), min=Math.min(r,g,b); let h,s,l=(max+min)/2;
+            if(max===min){h=s=0;} else {
+                const d=max-min; s=l>.5?d/(2-max-min):d/(max+min);
+                if(max===r) h=((g-b)/d+(g<b?6:0))/6;
+                else if(max===g) h=((b-r)/d+2)/6;
+                else h=((r-g)/d+4)/6;
+            }
+            return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+        },
+        getShades(hex) {
+            if(!hex||!/^#[0-9a-fA-F]{6}$/.test(hex)) return [];
+            const [h,s]=this.hexToHsl(hex);
+            return [93,84,74,63,52,41,32,23,14].map(l=>`hsl(${h},${s}%,${l}%)`);
+        },
+        pickColor(hex) { this.brandColor=hex; this.hexInput=hex.replace('#','').toUpperCase(); },
+        onHexInput(v) { const c=v.replace(/[^0-9a-fA-F]/g,'').slice(0,6); this.hexInput=c.toUpperCase(); if(c.length===6) this.brandColor='#'+c; },
+        copyHex() { navigator.clipboard.writeText(this.brandColor).then(()=>{this.brandCopied=true;setTimeout(()=>this.brandCopied=false,1800);}); }
      }">
 
     {{-- â•â• LEFT NAV â•â• --}}
