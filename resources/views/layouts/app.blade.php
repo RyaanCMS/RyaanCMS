@@ -17,9 +17,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
 
-    @if($faviconPath)
-    <link rel="icon" href="{{ Storage::url($faviconPath) }}">
-    @endif
+    <link rel="icon" type="image/svg+xml" href="{{ $faviconPath ? Storage::url($faviconPath) : asset('favicon.svg') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family={{ $fontSlug }}:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
@@ -1127,6 +1125,14 @@
 
             $userSidebarMenus = $loadSidebarMenus('user');
             $devSidebarMenus  = $loadSidebarMenus('developer');
+
+            // Lazy-seed default menus for any user whose menus were never initialised
+            // (covers fresh installs and registrations before this seeding was added)
+            if (auth()->check() && ($userSidebarMenus->isEmpty() || $devSidebarMenus->isEmpty())) {
+                app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
+                $userSidebarMenus = $loadSidebarMenus('user');
+                $devSidebarMenus  = $loadSidebarMenus('developer');
+            }
         @endphp
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">

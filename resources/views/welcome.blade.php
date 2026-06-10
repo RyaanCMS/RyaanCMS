@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="RyaanCMS — The World's First AI Business Operating System Builder. 21 Knowledge Bases, 10 AI Agents, Blueprint Assembly. Build smarter. Ship faster.">
     <title>RyaanCMS — AI Business Operating System Builder</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800,900&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
