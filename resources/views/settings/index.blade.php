@@ -5,6 +5,14 @@
 @php
     $userId      = auth()->id();
     $savedColor  = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
+    // Update tab data (fast — no HTTP)
+    $currentVersion = config('version.current', '1.0.0');
+    $updateServerInfo = [
+        'php'      => PHP_VERSION,
+        'laravel'  => app()->version(),
+        'zip'      => class_exists('ZipArchive'),
+        'writable' => is_writable(storage_path()),
+    ];
     $savedFont   = \App\Models\Setting::get('branding.font_family',   'Poppins', $userId);
     $savedLogo   = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $savedFav    = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
@@ -15,6 +23,7 @@
 
 @push('head')
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
 .sfield{width:100%;font-size:13.5px;font-family:inherit;padding:9px 13px;border-radius:10px;outline:none;transition:border-color .15s,box-shadow .15s;}
 .sfield:focus{border-color:var(--brand)!important;box-shadow:0 0 0 3px var(--brand-ring);}
 .slabel{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;}
@@ -102,7 +111,6 @@
 .sys-toggle-thumb-on{transform:translateX(20px);}
 
 /* ─── Branding panel ─── */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Nunito:wght@400;600;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
 .bk-preview-wrap{border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
 .bk-preview-bar{padding:11px 16px;background:var(--hover-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .bk-preview-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
@@ -117,6 +125,7 @@
 .bk-font-card.selected{border-color:var(--brand);background:var(--brand-light,#eef2ff);box-shadow:0 0 0 3px var(--brand-ring,#c7d2fe40);}
 .bk-upload-zone{border:2px dashed #e2e8f0;border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:#fafbff;}
 .bk-upload-zone:hover{border-color:var(--brand);background:var(--brand-light,#eef2ff);}
+.bk-upload-drag{border-color:var(--brand)!important;background:var(--brand-light,#eef2ff)!important;box-shadow:0 0 0 3px var(--brand-ring);transform:scale(1.01);}
 .bk-hex-input{flex:1;border:none;background:transparent;font-size:13px;font-family:monospace;font-weight:700;color:var(--text-1);outline:none;text-transform:uppercase;min-width:0;}
 </style>
 @endpush
@@ -133,7 +142,7 @@
         sysSaving: false,
         sysSaved: false,
         init() {
-            const valid = ['profile','ai','branding','system_config','notifications','integrations','team','danger'];
+            const valid = ['profile','ai','branding','updates','system_config','notifications','integrations','team','danger'];
             const hash = window.location.hash.replace('#', '');
             if (hash && valid.includes(hash)) this.tab = hash;
             this.$watch('tab', t => history.replaceState(null, '', '#' + t));
@@ -227,14 +236,14 @@
             <div class="st-nav-sep"></div>
             <div class="st-nav-label">System</div>
 
-            <a href="{{ route('settings.updates') }}" class="st-nav-item" style="text-decoration:none;">
+            <button @click="tab='updates'" :class="tab==='updates' ? 'active' : ''" class="st-nav-item">
                 <div class="st-nav-ico">
-                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                    <svg style="width:14px;height:14px;" :style="tab==='updates' ? 'stroke:#fff' : 'stroke:#94a3b8'" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                 </div>
                 Updates
-            </a>
+            </button>
             <button @click="tab='system_config'" :class="tab==='system_config' ? 'active' : ''" class="st-nav-item">
                 <div class="st-nav-ico">
                     <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
