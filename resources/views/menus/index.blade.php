@@ -19,22 +19,91 @@
     {{-- Data table card --}}
     <div class="rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);">
 
-        {{-- Toolbar --}}
-        <div class="flex items-center justify-between gap-4 px-5 py-4" style="border-bottom:1px solid var(--border);">
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input x-model="search" @input="page = 1"
-                       type="text" placeholder="Search by name, category, slug…"
-                       class="pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all"
-                       style="background:var(--card-sub);border:1px solid var(--border);color:var(--text-1);width:280px;"
-                       onfocus="this.style.borderColor='var(--brand)'"
-                       onblur="this.style.borderColor='var(--border)'">
+        {{-- Smart Toolbar --}}
+        <div class="px-5 pt-4 pb-3" style="border-bottom:1px solid var(--border);">
+            {{-- Row 1: search + status + sort + count --}}
+            <div class="flex items-center gap-3 flex-wrap">
+
+                {{-- Search box --}}
+                <div class="relative flex-1 min-w-[220px]">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input x-ref="searchInput"
+                           x-model="search" @input="page = 1"
+                           @keydown.escape="search = ''; page = 1"
+                           type="text"
+                           placeholder="Search name, slug, category, status…"
+                           class="w-full pl-9 pr-8 py-2 rounded-xl text-sm outline-none transition-all"
+                           style="background:var(--card-sub);border:1px solid var(--border);color:var(--text-1);"
+                           onfocus="this.style.borderColor='var(--brand)';this.style.boxShadow='0 0 0 3px var(--brand-ring)'"
+                           onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                    {{-- Clear button --}}
+                    <button x-show="search" @click="search = ''; page = 1; $refs.searchInput.focus()"
+                            class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition-colors"
+                            style="background:var(--border);color:var(--text-3);"
+                            onmouseover="this.style.background='var(--text-3)';this.style.color='#fff'"
+                            onmouseout="this.style.background='var(--border)';this.style.color='var(--text-3)'"
+                            title="Clear (Esc)">
+                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Status filter --}}
+                <div class="flex rounded-xl overflow-hidden" style="border:1px solid var(--border);flex-shrink:0;">
+                    <button @click="statusFilter = 'all'; page = 1"
+                            class="px-3 py-1.5 text-xs font-600 transition-all"
+                            :style="statusFilter === 'all'
+                                ? 'background:var(--brand);color:#fff;font-weight:700'
+                                : 'background:var(--card-sub);color:var(--text-2)'">All</button>
+                    <button @click="statusFilter = 'active'; page = 1"
+                            class="px-3 py-1.5 text-xs transition-all border-l"
+                            style="border-color:var(--border);"
+                            :style="statusFilter === 'active'
+                                ? 'background:#15803d;color:#fff;font-weight:700'
+                                : 'background:var(--card-sub);color:var(--text-2)'">Active</button>
+                    <button @click="statusFilter = 'inactive'; page = 1"
+                            class="px-3 py-1.5 text-xs transition-all border-l"
+                            style="border-color:var(--border);"
+                            :style="statusFilter === 'inactive'
+                                ? 'background:#64748b;color:#fff;font-weight:700'
+                                : 'background:var(--card-sub);color:var(--text-2)'">Inactive</button>
+                </div>
+
+                {{-- Sort --}}
+                <select x-model="sortBy" @change="page = 1"
+                        class="px-3 py-1.5 rounded-xl text-xs outline-none flex-shrink-0"
+                        style="background:var(--card-sub);border:1px solid var(--border);color:var(--text-2);"
+                        onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+                    <option value="name_asc">Name A → Z</option>
+                    <option value="name_desc">Name Z → A</option>
+                    <option value="items_desc">Most Items</option>
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                </select>
+
+                {{-- Result count --}}
+                <p class="text-xs flex-shrink-0 ml-auto" style="color:var(--text-3)">
+                    <span x-text="filtered.length"></span>
+                    <span x-text="filtered.length === 1 ? ' menu' : ' menus'"></span>
+                </p>
             </div>
-            <p class="text-xs flex-shrink-0" style="color:var(--text-3)">
-                <span x-text="filtered.length"></span> result<span x-show="filtered.length !== 1">s</span>
-            </p>
+
+            {{-- Row 2: category pills --}}
+            <div class="flex flex-wrap gap-1.5 mt-3">
+                <template x-for="pill in catPills" :key="pill.val">
+                    <button @click="catFilter = catFilter === pill.val ? '' : pill.val; page = 1"
+                            class="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
+                            :style="catFilter === pill.val
+                                ? pill.activeStyle
+                                : 'background:var(--card-sub);color:var(--text-3);border:1px solid var(--border)'">
+                        <span x-text="pill.label"></span>
+                        <span class="ml-1 opacity-70" x-text="'(' + catCount(pill.val) + ')'"></span>
+                    </button>
+                </template>
+            </div>
         </div>
 
         {{-- Table --}}
@@ -74,8 +143,8 @@
                                 x-text="(page - 1) * perPage + i + 1"></td>
                             {{-- Name + Slug --}}
                             <td class="px-5 py-3.5">
-                                <p class="font-semibold text-sm" style="color:var(--text-1)" x-text="menu.name"></p>
-                                <p class="text-[11px] font-mono mt-0.5" style="color:var(--text-3)" x-text="menu.slug"></p>
+                                <p class="font-semibold text-sm" style="color:var(--text-1)" x-html="highlight(menu.name)"></p>
+                                <p class="text-[11px] font-mono mt-0.5" style="color:var(--text-3)" x-html="highlight(menu.slug)"></p>
                             </td>
                             {{-- Category badge --}}
                             <td class="px-5 py-3.5">
@@ -379,6 +448,9 @@
 function menuTable() {
     return {
         search:        '',
+        statusFilter:  'all',
+        catFilter:     '',
+        sortBy:        'name_asc',
         page:          1,
         perPage:       20,
         showAddModal:  false,
@@ -388,14 +460,66 @@ function menuTable() {
 
         allMenus: @json($menus),
 
+        // Category label map (also used for smart keyword matching)
+        catMap: {
+            admin_sidebar: 'Admin Menu',
+            user_topbar:   'User Menu',
+            header:        'Header Nav',
+            footer:        'Footer Nav',
+            sidebar:       'Sidebar',
+            custom:        'Custom',
+        },
+
+        catPills: [
+            { val: 'admin_sidebar', label: '🛠 Admin',  activeStyle: 'background:#7c3aed;color:#fff;border:1px solid #7c3aed' },
+            { val: 'user_topbar',   label: '👤 Top Bar', activeStyle: 'background:#b45309;color:#fff;border:1px solid #b45309' },
+            { val: 'header',        label: 'Header',     activeStyle: 'background:#1d4ed8;color:#fff;border:1px solid #1d4ed8' },
+            { val: 'footer',        label: 'Footer',     activeStyle: 'background:#15803d;color:#fff;border:1px solid #15803d' },
+            { val: 'sidebar',       label: 'Sidebar',    activeStyle: 'background:#6d28d9;color:#fff;border:1px solid #6d28d9' },
+            { val: 'custom',        label: 'Custom',     activeStyle: 'background:#475569;color:#fff;border:1px solid #475569' },
+        ],
+
+        catCount(val) {
+            return this.allMenus.filter(m => m.category === val).length;
+        },
+
         get filtered() {
+            let list = this.allMenus;
+
+            // Status filter
+            if (this.statusFilter === 'active')   list = list.filter(m => m.is_active);
+            if (this.statusFilter === 'inactive') list = list.filter(m => !m.is_active);
+
+            // Category pill filter
+            if (this.catFilter) list = list.filter(m => m.category === this.catFilter);
+
+            // Smart text search
             const q = this.search.trim().toLowerCase();
-            if (!q) return this.allMenus;
-            return this.allMenus.filter(m =>
-                m.name.toLowerCase().includes(q) ||
-                m.category.toLowerCase().includes(q) ||
-                (m.slug || '').toLowerCase().includes(q)
-            );
+            if (q) {
+                list = list.filter(m => {
+                    const label  = (this.catMap[m.category] || m.category).toLowerCase();
+                    const status = m.is_active ? 'active' : 'inactive';
+                    const items  = String(m.all_items_count || 0);
+                    return (
+                        m.name.toLowerCase().includes(q) ||
+                        (m.slug || '').toLowerCase().includes(q) ||
+                        label.includes(q) ||
+                        m.category.toLowerCase().includes(q) ||
+                        status.includes(q) ||
+                        items === q
+                    );
+                });
+            }
+
+            // Sort
+            list = [...list];
+            if (this.sortBy === 'name_asc')    list.sort((a, b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_desc')   list.sort((a, b) => b.name.localeCompare(a.name));
+            if (this.sortBy === 'items_desc')  list.sort((a, b) => (b.all_items_count || 0) - (a.all_items_count || 0));
+            if (this.sortBy === 'newest')      list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            if (this.sortBy === 'oldest')      list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            return list;
         },
 
         get paginated() {
@@ -421,6 +545,19 @@ function menuTable() {
             return pages;
         },
 
+        // Highlight matched query text in a string
+        highlight(text) {
+            if (!text) return '—';
+            const q = this.search.trim();
+            if (!q) return this.esc(text);
+            const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            return this.esc(text).replace(re, '<mark style="background:color-mix(in srgb,var(--brand) 18%,#fff);color:var(--brand);border-radius:2px;padding:0 1px;">$1</mark>');
+        },
+
+        esc(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        },
+
         openEdit(menu) {
             this.editMenu = { ...menu };
             this.showEditModal = true;
@@ -433,14 +570,7 @@ function menuTable() {
         },
 
         catLabel(cat) {
-            return {
-                admin_sidebar: '🛠 Admin Menu',
-                user_topbar:   '👤 User Menu',
-                header:        'Header Nav',
-                footer:        'Footer Nav',
-                sidebar:       'Sidebar (Legacy)',
-                custom:        'Custom',
-            }[cat] || cat;
+            return { admin_sidebar: '🛠 Admin Menu', user_topbar: '👤 User Menu', header: 'Header Nav', footer: 'Footer Nav', sidebar: 'Sidebar (Legacy)', custom: 'Custom' }[cat] || cat;
         },
 
         catStyle(cat) {
