@@ -1132,7 +1132,8 @@
                 ['route'=>'menus.index',       'label'=>'Menus',        'color'=>'#ec4899', 'icon'=>'M4 6h16M4 12h16M4 18h7'],
                 ['route'=>'settings.index',    'label'=>'Settings',     'color'=>'#f97316', 'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
             ];
-            $projectCount = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
+            $projectCount    = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
+            $sidebarProjects = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->latest()->take(5)->get(['id','name']) : collect();
             $dynamicSidebarMenus = auth()->check()
                 ? \App\Models\Menu::where('user_id', auth()->id())
                       ->whereIn('category', ['sidebar', 'admin_sidebar'])
@@ -1181,6 +1182,35 @@
                     <span class="sb-tooltip" aria-hidden="true">{{ $label }}</span>
                 </a>
                 @endforeach
+
+                {{-- My Apps sub-items: recent projects (visible when sidebar expanded) --}}
+                @if($sidebarProjects->isNotEmpty())
+                <div class="sb-my-apps">
+                    @foreach($sidebarProjects as $proj)
+                    @php $pActive = request()->is('builder/'.$proj->id.'*') || request()->is('pipeline/'.$proj->id.'*'); @endphp
+                    <a href="{{ route('builder.show', $proj) }}"
+                       class="sb-item sb-sub-item{{ $pActive ? ' active' : '' }}">
+                        <div class="sb-ico" style="width:26px!important;height:26px!important;border-radius:6px!important;flex-shrink:0;margin-left:8px;{{ $pActive ? 'background:color-mix(in srgb,var(--brand) 15%,transparent);' : '' }}">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="{{ $pActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true" style="width:13px!important;height:13px!important;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <span class="sb-label" style="font-size:12px!important;{{ $pActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ \Illuminate\Support\Str::limit($proj->name, 20) }}</span>
+                        <span class="sb-tooltip" aria-hidden="true">{{ $proj->name }}</span>
+                    </a>
+                    @endforeach
+                    @if($projectCount > 5)
+                    <a href="{{ route('projects.index') }}" class="sb-item sb-sub-item">
+                        <div class="sb-ico" style="width:26px!important;height:26px!important;border-radius:6px!important;flex-shrink:0;margin-left:8px;">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="var(--text-3)" aria-hidden="true" style="width:13px!important;height:13px!important;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                        <span class="sb-label" style="font-size:11.5px!important;color:var(--text-3)!important;">+{{ $projectCount - 5 }} more</span>
+                    </a>
+                    @endif
+                </div>
+                @endif
 
                 {{-- Dynamic custom menus under USER --}}
                 @foreach($dynamicSidebarMenus as $dynMenu)
