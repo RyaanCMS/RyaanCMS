@@ -382,19 +382,25 @@
             box-shadow: var(--shadow-xl) !important;
         }
 
+        /* Section category labels — always visible; collapsed = small centered, expanded = normal */
         .sb-section-label {
-            font-size: 9.5px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: .1em;
+            font-size: 8px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .12em;
             color: var(--text-3);
-            padding: 14px 18px 5px;
+            padding: 12px 4px 8px;
+            text-align: center;
             white-space: nowrap;
-            opacity: 0;
+            opacity: 1;
             height: auto;
             overflow: hidden;
-            transition: opacity var(--dur-base) ease, padding var(--dur-base) ease, height var(--dur-base) ease;
+            transition: padding var(--dur-base) ease;
         }
-        /* Section labels: always hidden by default, shown per-section hover */
-        .sb-section-label { padding: 0; height: 0; }
+        .sidebar-expanded .sb-section-label {
+            font-size: 9.5px;
+            letter-spacing: .1em;
+            padding: 14px 18px 5px;
+            text-align: left;
+        }
 
         /* Dividers: always hidden, shown per-section */
         .sb-divider { margin: 0; height: 0; overflow: hidden; }
@@ -456,18 +462,19 @@
             background: transparent;
         }
 
-        /* ─── COLLAPSED: USER section fills remaining height so icons span top→bottom ─── */
+        /* ─── COLLAPSED: USER section fills remaining height → large hover target ─── */
         .app-sidebar:not(.sidebar-expanded) .sb-section-user {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
-        /* Direct .sb-item children (not sub-items) grow to fill the section */
-        .app-sidebar:not(.sidebar-expanded) .sb-section-user > .sb-item {
-            flex: 1;
-            height: auto;
-            min-height: 48px;
-        }
+
+        /* Items hidden by default; shown only when that section is hovered */
+        .sb-section-user .sb-item,
+        .sb-section-dev  .sb-item { display: none; }
+
+        .sidebar-user-hovered .sb-section-user .sb-item { display: flex; }
+        .sidebar-dev-hovered  .sb-section-dev  .sb-item { display: flex; }
 
         /* ── Icon box (expanded / shared) ── */
         .sb-ico {
@@ -610,16 +617,14 @@
         .sidebar-expanded .sb-section-user { flex: unset; display: block; }
         .sidebar-expanded .sb-mid-spacer   { flex: 1; min-height: 12px; }
 
-        /* ─── Per-section label visibility ─── */
-        .sidebar-user-hovered .sb-section-user .sb-label         { opacity: 1; }
-        .sidebar-user-hovered .sb-section-user .sb-badge         { opacity: 1; }
-        .sidebar-user-hovered .sb-section-user .sb-section-label { opacity: 1; padding: 14px 18px 5px; height: auto; }
-        .sidebar-user-hovered .sb-section-user .sb-divider       { margin: 6px 14px; height: 1px; overflow: visible; }
-        .sidebar-user-hovered .sb-my-apps                        { display: block; }
+        /* ─── Per-section: item labels/badges/dividers visible when section is hovered ─── */
+        .sidebar-user-hovered .sb-section-user .sb-label   { opacity: 1; }
+        .sidebar-user-hovered .sb-section-user .sb-badge   { opacity: 1; }
+        .sidebar-user-hovered .sb-section-user .sb-divider { margin: 6px 14px; height: 1px; overflow: visible; }
+        .sidebar-user-hovered .sb-my-apps                  { display: block; }
 
-        .sidebar-dev-hovered .sb-section-dev .sb-label           { opacity: 1; }
-        .sidebar-dev-hovered .sb-section-dev .sb-section-label   { opacity: 1; padding: 14px 18px 5px; height: auto; }
-        .sidebar-dev-hovered .sb-section-dev .sb-divider         { margin: 6px 14px; height: 1px; overflow: visible; }
+        .sidebar-dev-hovered .sb-section-dev .sb-label     { opacity: 1; }
+        .sidebar-dev-hovered .sb-section-dev .sb-divider   { margin: 6px 14px; height: 1px; overflow: visible; }
 
         /* ═══════════════════════════════════════════════════════════
            TOPBAR
@@ -840,10 +845,11 @@
             .app-sidebar.sidebar-expanded { transform: translateX(0) !important; width: 260px !important; }
             .app-sidebar.sidebar-mobile-open { transform: translateX(0); }
             .sidebar-mobile-open .sb-label         { opacity: 1 !important; }
-            .sidebar-mobile-open .sb-section-label { opacity: 1 !important; padding: 14px 18px 5px !important; height: auto !important; }
             .sidebar-mobile-open .sb-badge         { opacity: 1 !important; }
             .sidebar-mobile-open .sb-my-apps       { display: block !important; }
             .sidebar-mobile-open .sb-divider       { margin: 6px 14px !important; height: 1px !important; overflow: visible !important; }
+            .sidebar-mobile-open .sb-section-user .sb-item,
+            .sidebar-mobile-open .sb-section-dev  .sb-item { display: flex !important; }
             .btn-hamburger { display: flex !important; }
             .btn-new-project-label { display: none; }
             .main-content { padding: 12px !important; }
