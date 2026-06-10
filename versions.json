@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.29",
+    "latest": "1.1.30",
     "versions": [
         {
             "version": "1.0.0",
@@ -383,6 +383,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.28",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.30",
+            "type": "feature",
+            "released_at": "2026-06-10",
+            "changelog": "feat: marketplace bigger cards + sidebar auto-hide with peek arrow\n\n- Marketplace: bigger card grids (250px/225px minmax), CSS-var text colors\n  (var(--text-1)/var(--text-2)) instead of hardcoded hex, larger icon/body/footer padding\n- Sidebar: .sidebar-autohide CSS mode — collapses to 0 width when enabled;\n  .sb-peek fixed tab with brand-color left border + chevron-right arrow shows\n  at left edge; hover the peek arrow to expand the sidebar\n- Settings > System Config: new \"Auto-hide Sidebar\" toggle (disabled when\n  sidebar is hidden); disabled state styling + correct enable/disable logic\n- SettingsController: persist system.sidebar_auto_hide setting\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.30/ryaancms-v1.1.30-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.29",
             "critical": false,
             "file_count": null
         }
