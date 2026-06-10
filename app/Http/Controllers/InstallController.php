@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -88,11 +89,15 @@ class InstallController extends Controller
         ]);
 
         // Create admin user
-        User::create([
+        $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role'     => 'admin',
         ]);
+
+        // Seed default sidebar menus so Developer section is populated on first login
+        app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
 
         // Set APP_NAME
         $this->setEnvValues([

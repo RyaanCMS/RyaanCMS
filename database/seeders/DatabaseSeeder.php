@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\MarketplaceItem;
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,5 +28,8 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             MarketplaceSeeder::class,
         ]);
+
+        // Seed default sidebar menus for the admin user
+        app(DefaultSidebarMenuImporter::class)->ensureForUser($admin);
     }
 }

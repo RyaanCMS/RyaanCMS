@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -38,6 +39,8 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'role'     => 'user',
         ]);
+
+        app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
 
         Auth::login($user);
 
