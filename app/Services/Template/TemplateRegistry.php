@@ -17,6 +17,7 @@ class TemplateRegistry
                 'color'       => '#6366f1',
                 'view'        => 'templates.ryaancms',
                 'tags'        => ['ryaancms', 'default', 'landing', 'ai builder', 'cms'],
+                'is_global'   => true,
             ],
             'template.restaurant' => [
                 'key'         => 'template.restaurant',
@@ -28,6 +29,7 @@ class TemplateRegistry
                 'color'       => '#8b2500',
                 'view'        => 'templates.restaurant',
                 'tags'        => ['restaurant', 'food', 'menu', 'cafe', 'dining'],
+                'is_global'   => true,
             ],
             'template.ecommerce' => [
                 'key'         => 'template.ecommerce',
@@ -39,6 +41,7 @@ class TemplateRegistry
                 'color'       => '#e11d48',
                 'view'        => 'templates.ecommerce',
                 'tags'        => ['shop', 'ecommerce', 'store', 'retail', 'fashion'],
+                'is_global'   => true,
             ],
             'template.portfolio' => [
                 'key'         => 'template.portfolio',
@@ -50,6 +53,7 @@ class TemplateRegistry
                 'color'       => '#7c3aed',
                 'view'        => 'templates.portfolio',
                 'tags'        => ['portfolio', 'freelancer', 'designer', 'developer', 'personal'],
+                'is_global'   => true,
             ],
             'template.saas' => [
                 'key'         => 'template.saas',
@@ -61,6 +65,7 @@ class TemplateRegistry
                 'color'       => '#2563eb',
                 'view'        => 'templates.saas',
                 'tags'        => ['saas', 'software', 'startup', 'app', 'product'],
+                'is_global'   => true,
             ],
             'template.agency' => [
                 'key'         => 'template.agency',
@@ -72,6 +77,7 @@ class TemplateRegistry
                 'color'       => '#18181b',
                 'view'        => 'templates.agency',
                 'tags'        => ['agency', 'creative', 'design', 'studio', 'marketing'],
+                'is_global'   => true,
             ],
         ];
     }

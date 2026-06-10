@@ -971,7 +971,6 @@ TINY;
                 'name'      => basename($path),
                 'type'      => 'file',
                 'extension' => $extension,
-                'language'  => $this->detectLanguage($extension),
                 'content'   => $content,
                 'size'      => strlen($content),
             ]
@@ -1616,7 +1615,6 @@ CONTEXT;
                     'name'      => $name,
                     'type'      => 'file',
                     'extension' => $extension,
-                    'language'  => $this->detectLanguage($extension),
                     'content'   => $fileContent,
                     'size'      => strlen($fileContent),
                 ]
