@@ -20,6 +20,8 @@
     $showDashSidebar   = \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
     $sidebarAutoHide   = \App\Models\Setting::get('system.sidebar_auto_hide',      false, $userId);
     $aiBuilderDocs     = \App\Models\Setting::get('ai_builder.auto_docs',          false, $userId);
+    $publicSiteProjectId = (int) \App\Models\Setting::get('system.public_site_project_id', 0, null);
+    $allProjects = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->orderBy('name')->get(['id','name']) : collect();
 @endphp
 
 @push('head')
@@ -161,6 +163,7 @@
         sysShowMenu: {{ $showDashMenu ? 'true' : 'false' }},
         sysShowSidebar: {{ $showDashSidebar ? 'true' : 'false' }},
         sysAutoHideSidebar: {{ $sidebarAutoHide ? 'true' : 'false' }},
+        sysPublicSiteId: {{ $publicSiteProjectId ?? 0 }},
         sysAiBuilderDocs: {{ $aiBuilderDocs ? 'true' : 'false' }},
         sysSaving: false,
         sysSaved: false,
@@ -187,7 +190,7 @@
             await fetch('{{ route('settings.system-config') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar, sidebar_auto_hide: this.sysAutoHideSidebar, ai_builder_auto_docs: this.sysAiBuilderDocs })
+                body: JSON.stringify({ show_dashboard_menu: this.sysShowMenu, show_dashboard_sidebar: this.sysShowSidebar, sidebar_auto_hide: this.sysAutoHideSidebar, ai_builder_auto_docs: this.sysAiBuilderDocs, public_site_project_id: this.sysPublicSiteId })
             });
             this.sysSaving = false;
             this.sysSaved = true;
@@ -937,7 +940,7 @@
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">
                         @if(auth()->user()->isAdmin())
-                        <button type="button" onclick="saveBrandingGlobal(this)"
+                        <button type="button" @click="saveBrandingGlobal($el, brandColor, fontFamily)"
                                 style="display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:10px;font-size:12px;font-weight:600;background:#faf5ff;color:#7c3aed;border:1.5px solid #ddd6fe;cursor:pointer;transition:all .15s;"
                                 title="Set this as the default branding for all users (admin only)">
                             <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
@@ -1298,6 +1301,22 @@
                         </div>
                     </div>
 
+                    {{-- Public Site --}}
+                    <div style="padding:14px 0 0;">
+                        <div style="padding:14px 16px;border-radius:12px;background:var(--surface-raised);border:1px solid var(--border);">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;">Public Site Project</div>
+                            <div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px;">When a guest visits your domain root, serve this project's active template instead of the default welcome page.</div>
+                            <select x-model="sysPublicSiteId"
+                                    @change="saveSystemConfig()"
+                                    style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;">
+                                <option value="0">— Show default welcome page —</option>
+                                @foreach($allProjects as $proj)
+                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1344,42 +1363,236 @@
             </div>
         </div>
 
-        {{--         {{-- INTEGRATIONS --}}
-        <div x-show="tab === 'integrations'" class="st-panel" x-cloak>
-            <div class="scard">
+        {{-- ---- INTEGRATIONS ---- --}}
+        @php
+            $intUserId = auth()->id();
+            $intGithubToken = \App\Models\Setting::get('integration.github_token', '', $intUserId);
+            $intGithubOrg   = \App\Models\Setting::get('integration.github_org', '', $intUserId);
+            $intWebhookUrl  = \App\Models\Setting::get('integration.webhook_url', '', $intUserId);
+            $intWebhookSec  = \App\Models\Setting::get('integration.webhook_secret', '', $intUserId);
+            $intSlackWh     = \App\Models\Setting::get('integration.slack_webhook', '', $intUserId);
+            $intSlackCh     = \App\Models\Setting::get('integration.slack_channel', '#general', $intUserId);
+            $intSendgridKey = \App\Models\Setting::get('integration.sendgrid_key', '', $intUserId);
+            $intSendgridFrom= \App\Models\Setting::get('integration.sendgrid_from', '', $intUserId);
+            $intGaId        = \App\Models\Setting::get('integration.ga_id', '', $intUserId);
+            $intSmtpHost    = \App\Models\Setting::get('integration.smtp_host', '', $intUserId);
+            $intSmtpPort    = \App\Models\Setting::get('integration.smtp_port', '587', $intUserId);
+            $intSmtpUser    = \App\Models\Setting::get('integration.smtp_user', '', $intUserId);
+            $intSmtpFrom    = \App\Models\Setting::get('integration.smtp_from', '', $intUserId);
+        @endphp
+        <div x-show="tab === 'integrations'" class="st-panel" x-cloak
+             x-data="{
+                saving: null, testing: null, testResult: {},
+                async save(type, payload) {
+                    this.saving = type;
+                    try {
+                        payload.type = type;
+                        const fd = new FormData();
+                        Object.entries(payload).forEach(([k,v]) => fd.append(k, v));
+                        const r = await fetch('{{ route('settings.integrations.save') }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                            body: fd
+                        });
+                        const j = await r.json().catch(() => ({}));
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { type: r.ok ? 'success' : 'error', message: j.message || (r.ok ? 'Saved.' : 'Error.') } }));
+                    } catch(e) {
+                        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Network error.' } }));
+                    }
+                    this.saving = null;
+                },
+                async test(type) {
+                    this.testing = type;
+                    this.testResult[type] = null;
+                    try {
+                        const fd = new FormData();
+                        fd.append('type', type);
+                        const r = await fetch('{{ route('settings.integrations.test') }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                            body: fd
+                        });
+                        const j = await r.json().catch(() => ({}));
+                        this.testResult[type] = { ok: j.success, msg: j.message || '' };
+                    } catch(e) {
+                        this.testResult[type] = { ok: false, msg: 'Network error.' };
+                    }
+                    this.testing = null;
+                }
+             }">
+
+            {{-- GitHub --}}
+            <div class="scard" x-data="{ token: '{{ addslashes($intGithubToken) }}', org: '{{ addslashes($intGithubOrg) }}', show: false }">
                 <div class="scard-hd">
-                    <div class="scard-hd-icon" style="background:#f0f9ff;">
-                        <svg style="width:15px;height:15px;stroke:#0ea5e9" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="scard-hd-icon" style="background:#f6f8fa;">
+                        <svg style="width:16px;height:16px;" fill="#24292e" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.742 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">GitHub</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Push generated projects to GitHub repositories</div>
+                    </div>
+                    <span x-show="token" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Connected</span>
+                    <span x-show="!token" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--hover-bg);color:var(--text-3);border:1px solid var(--border);">Not connected</span>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label class="slabel">Personal Access Token</label>
+                        <div style="position:relative;">
+                            <input :type="show ? 'text' : 'password'" x-model="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                   style="width:100%;padding:8px 40px 8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;font-family:monospace;color:var(--text-1);outline:none;box-sizing:border-box;">
+                            <button type="button" @click="show=!show" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;">
+                                <svg style="width:14px;height:14px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Needs <code style="background:var(--hover-bg);padding:1px 5px;border-radius:4px;">repo</code> scope. <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--brand);">Create token →</a></div>
                     </div>
                     <div>
-                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Integrations</div>
-                        <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Connect external services to your workspace</div>
+                        <label class="slabel">Default Organization / User</label>
+                        <input type="text" x-model="org" placeholder="your-github-username"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" @click="save('github', { github_token: token, github_org: org })"
+                                :disabled="saving === 'github'"
+                                class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;" x-text="saving==='github' ? 'Saving...' : 'Save'"></button>
+                        <button type="button" @click="test('github')"
+                                :disabled="testing === 'github'"
+                                style="padding:7px 16px;border-radius:10px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;"
+                                x-text="testing==='github' ? 'Testing...' : 'Test Connection'"></button>
+                        <span x-show="testResult.github" :style="testResult.github?.ok ? 'color:#16a34a;' : 'color:#dc2626;'" style="font-size:12px;font-weight:600;" x-text="testResult.github?.msg"></span>
                     </div>
                 </div>
-                <div class="scard-body" style="display:flex;flex-direction:column;gap:10px;">
-                    @foreach([
-                        ['icon'=>'M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.742 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z','label'=>'GitHub','desc'=>'Auto-push generated projects to GitHub repositories','color'=>'#24292e','bg'=>'#f6f8fa','fill'=>true],
-                        ['icon'=>'M13 10V3L4 14h7v7l9-11h-7z','label'=>'Webhooks','desc'=>'Send real-time build and deploy events to your HTTP endpoints','color'=>'#7c3aed','bg'=>'#faf5ff','fill'=>false],
-                        ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z','label'=>'Slack','desc'=>'Get instant notifications in Slack when builds complete','color'=>'#4a154b','bg'=>'#fdf4ff','fill'=>false],
-                        ['icon'=>'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z','label'=>'SendGrid','desc'=>'Transactional email delivery for your deployed applications','color'=>'#1a82e2','bg'=>'#eff6ff','fill'=>false],
-                        ['icon'=>'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z','label'=>'AWS S3','desc'=>'Store and serve project assets from your S3 bucket','color'=>'#f97316','bg'=>'#fff7ed','fill'=>false],
-                        ['icon'=>'M5 3l14 9-14 9V3z','label'=>'Vercel','desc'=>'One-click deploy generated apps directly to Vercel','color'=>'#000000','bg'=>'#f8fafc','fill'=>true],
-                    ] as $intg)
-                    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--surface-raised);">
-                        <div style="width:40px;height:40px;border-radius:11px;background:{{ $intg['bg'] }};border:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg style="width:18px;height:18px;" fill="{{ $intg['fill'] ? $intg['color'] : 'none' }}" stroke="{{ $intg['color'] }}" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $intg['icon'] }}"/></svg>
-                        </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:var(--text-1);">{{ $intg['label'] }}</div>
-                            <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">{{ $intg['desc'] }}</div>
-                        </div>
-                        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--brand) 8%,transparent);color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);white-space:nowrap;flex-shrink:0;">Coming Soon</span>
+            </div>
+
+            {{-- Webhooks --}}
+            <div class="scard" x-data="{ url: '{{ addslashes($intWebhookUrl) }}', secret: '{{ addslashes($intWebhookSec) }}' }">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#faf5ff;">
+                        <svg style="width:16px;height:16px;stroke:#7c3aed" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    @endforeach
-                    <div style="margin-top:6px;padding:14px 16px;border-radius:12px;background:color-mix(in srgb,var(--brand) 5%,transparent);border:1px dashed color-mix(in srgb,var(--brand) 25%,transparent);text-align:center;">
-                        <div style="font-size:12.5px;font-weight:600;color:var(--brand);margin-bottom:3px;">More integrations coming in v1.1</div>
-                        <div style="font-size:11.5px;color:var(--text-3);">Contact support to request a specific integration</div>
+                    <div style="flex:1;">
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Webhooks</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Send real-time build and deploy events to your HTTP endpoint</div>
                     </div>
+                    <span x-show="url" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Active</span>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label class="slabel">Endpoint URL</label>
+                        <input type="url" x-model="url" placeholder="https://yourapp.com/webhooks/ryaancms"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label class="slabel">Secret (optional — used to sign payloads)</label>
+                        <input type="text" x-model="secret" placeholder="my-webhook-secret"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;font-family:monospace;color:var(--text-1);outline:none;box-sizing:border-box;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" @click="save('webhook', { webhook_url: url, webhook_secret: secret })"
+                                :disabled="saving === 'webhook'"
+                                class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;" x-text="saving==='webhook' ? 'Saving...' : 'Save'"></button>
+                        <button type="button" @click="test('webhook')"
+                                :disabled="testing === 'webhook' || !url"
+                                style="padding:7px 16px;border-radius:10px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;"
+                                x-text="testing==='webhook' ? 'Sending...' : 'Send Test'"></button>
+                        <span x-show="testResult.webhook" :style="testResult.webhook?.ok ? 'color:#16a34a;' : 'color:#dc2626;'" style="font-size:12px;font-weight:600;" x-text="testResult.webhook?.msg"></span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Slack --}}
+            <div class="scard" x-data="{ webhook: '{{ addslashes($intSlackWh) }}', channel: '{{ addslashes($intSlackCh) }}' }">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#fdf4ff;">
+                        <svg style="width:16px;height:16px;stroke:#4a154b" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Slack</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Get build notifications in Slack when deploys complete</div>
+                    </div>
+                    <span x-show="webhook" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Connected</span>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label class="slabel">Incoming Webhook URL</label>
+                        <input type="url" x-model="webhook" placeholder="https://hooks.slack.com/services/T.../B.../..."
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;">
+                        <div style="font-size:11px;color:var(--text-3);margin-top:4px;"><a href="https://api.slack.com/messaging/webhooks" target="_blank" style="color:var(--brand);">Create a Slack Incoming Webhook →</a></div>
+                    </div>
+                    <div>
+                        <label class="slabel">Default Channel</label>
+                        <input type="text" x-model="channel" placeholder="#deployments"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" @click="save('slack', { slack_webhook: webhook, slack_channel: channel })"
+                                :disabled="saving === 'slack'"
+                                class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;" x-text="saving==='slack' ? 'Saving...' : 'Save'"></button>
+                        <button type="button" @click="test('slack')"
+                                :disabled="testing === 'slack' || !webhook"
+                                style="padding:7px 16px;border-radius:10px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);background:var(--surface-raised);color:var(--text-2);cursor:pointer;"
+                                x-text="testing==='slack' ? 'Sending...' : 'Send Test Message'"></button>
+                        <span x-show="testResult.slack" :style="testResult.slack?.ok ? 'color:#16a34a;' : 'color:#dc2626;'" style="font-size:12px;font-weight:600;" x-text="testResult.slack?.msg"></span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Google Analytics --}}
+            <div class="scard" x-data="{ gaId: '{{ addslashes($intGaId) }}' }">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#fff7ed;">
+                        <svg style="width:16px;height:16px;stroke:#f97316" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">Google Analytics</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Inject GA4 tracking into all deployed project pages</div>
+                    </div>
+                    <span x-show="gaId" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Active</span>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label class="slabel">GA4 Measurement ID</label>
+                        <input type="text" x-model="gaId" placeholder="G-XXXXXXXXXX"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;font-family:monospace;color:var(--text-1);outline:none;box-sizing:border-box;">
+                        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Will be injected into the <code style="background:var(--hover-bg);padding:1px 5px;border-radius:4px;">&lt;head&gt;</code> of all your deployed project pages.</div>
+                    </div>
+                    <button type="button" @click="save('google_analytics', { ga_id: gaId })"
+                            :disabled="saving === 'google_analytics'"
+                            class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;align-self:flex-start;" x-text="saving==='google_analytics' ? 'Saving...' : 'Save'"></button>
+                </div>
+            </div>
+
+            {{-- SendGrid --}}
+            <div class="scard" x-data="{ key: '{{ addslashes($intSendgridKey) }}', from: '{{ addslashes($intSendgridFrom) }}', show: false }">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#eff6ff;">
+                        <svg style="width:16px;height:16px;stroke:#1a82e2" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">SendGrid</div>
+                        <div style="font-size:11.5px;color:var(--text-3);">Transactional email delivery for your applications</div>
+                    </div>
+                    <span x-show="key" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Connected</span>
+                </div>
+                <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
+                    <div>
+                        <label class="slabel">API Key</label>
+                        <div style="position:relative;">
+                            <input :type="show ? 'text' : 'password'" x-model="key" placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
+                                   style="width:100%;padding:8px 40px 8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;font-family:monospace;color:var(--text-1);outline:none;box-sizing:border-box;">
+                            <button type="button" @click="show=!show" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);">
+                                <svg style="width:14px;height:14px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="slabel">From Email Address</label>
+                        <input type="email" x-model="from" placeholder="noreply@yourapp.com"
+                               style="width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:13px;color:var(--text-1);outline:none;box-sizing:border-box;">
+                    </div>
+                    <button type="button" @click="save('sendgrid', { sendgrid_key: key, sendgrid_from: from })"
+                            :disabled="saving === 'sendgrid'"
+                            class="sbtn-primary" style="padding:7px 18px;font-size:12.5px;align-self:flex-start;" x-text="saving==='sendgrid' ? 'Saving...' : 'Save'"></button>
                 </div>
             </div>
         </div>
@@ -1831,10 +2044,10 @@
 
 @push('scripts')
 <script>
-async function saveBrandingGlobal(btn) {
-    const form = btn.closest('form');
-    if (!form) return;
-    const data = new FormData(form);
+async function saveBrandingGlobal(btn, color, font) {
+    const data = new FormData();
+    data.append('primary_color', color || '#6366f1');
+    data.append('font_family',   font  || 'Poppins');
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<svg style="width:12px;height:12px;stroke:currentColor;animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/></svg> Saving...';

@@ -197,6 +197,9 @@ class SettingsController extends Controller
         Setting::set('system.show_dashboard_sidebar', $request->boolean('show_dashboard_sidebar') ? '1' : '0', 'boolean', $userId);
         Setting::set('system.sidebar_auto_hide',      $request->boolean('sidebar_auto_hide')      ? '1' : '0', 'boolean', $userId);
         Setting::set('ai_builder.auto_docs',          $request->boolean('ai_builder_auto_docs')   ? '1' : '0', 'boolean', $userId);
+        if ($request->has('public_site_project_id')) {
+            Setting::set('system.public_site_project_id', (string)(int)$request->input('public_site_project_id', 0), 'string', null);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -595,5 +598,98 @@ class SettingsController extends Controller
         $user->delete();
 
         return response()->json(['success' => true, 'message' => $name.' removed from team.']);
+    }
+
+    // ── Integrations ─────────────────────────────────────────────────────────
+
+    public function saveIntegration(Request $request)
+    {
+        $type = $request->input('type');
+        $allowed = ['github', 'webhook', 'slack', 'sendgrid', 'google_analytics', 'smtp'];
+        abort_unless(in_array($type, $allowed), 422, 'Unknown integration type.');
+
+        $userId = Auth::id();
+
+        match ($type) {
+            'github' => [
+                Setting::set('integration.github_token',   $request->input('github_token', ''),   'string', $userId),
+                Setting::set('integration.github_org',     $request->input('github_org', ''),     'string', $userId),
+            ],
+            'webhook' => [
+                Setting::set('integration.webhook_url',    $request->input('webhook_url', ''),    'string', $userId),
+                Setting::set('integration.webhook_secret', $request->input('webhook_secret', ''), 'string', $userId),
+            ],
+            'slack' => [
+                Setting::set('integration.slack_webhook',  $request->input('slack_webhook', ''),  'string', $userId),
+                Setting::set('integration.slack_channel',  $request->input('slack_channel', '#general'), 'string', $userId),
+            ],
+            'sendgrid' => [
+                Setting::set('integration.sendgrid_key',   $request->input('sendgrid_key', ''),   'string', $userId),
+                Setting::set('integration.sendgrid_from',  $request->input('sendgrid_from', ''),  'string', $userId),
+            ],
+            'google_analytics' => [
+                Setting::set('integration.ga_id',          $request->input('ga_id', ''),          'string', $userId),
+            ],
+            'smtp' => [
+                Setting::set('integration.smtp_host',     $request->input('smtp_host', ''),     'string', $userId),
+                Setting::set('integration.smtp_port',     $request->input('smtp_port', '587'),  'string', $userId),
+                Setting::set('integration.smtp_user',     $request->input('smtp_user', ''),     'string', $userId),
+                Setting::set('integration.smtp_password', $request->input('smtp_password', ''), 'string', $userId),
+                Setting::set('integration.smtp_from',     $request->input('smtp_from', ''),     'string', $userId),
+            ],
+            default => null,
+        };
+
+        return response()->json(['success' => true, 'message' => ucfirst(str_replace('_', ' ', $type)).' settings saved.']);
+    }
+
+    public function testIntegration(Request $request)
+    {
+        $type  = $request->input('type');
+        $userId = Auth::id();
+
+        try {
+            switch ($type) {
+                case 'webhook': {
+                    $url = Setting::get('integration.webhook_url', '', $userId);
+                    if (!$url) return response()->json(['success' => false, 'message' => 'No webhook URL configured.']);
+                    $secret = Setting::get('integration.webhook_secret', '', $userId);
+                    $payload = json_encode(['event' => 'test', 'source' => 'RyaanCMS', 'timestamp' => now()->toISOString()]);
+                    $sig = $secret ? hash_hmac('sha256', $payload, $secret) : null;
+                    $headers = ['Content-Type' => 'application/json', 'X-RyaanCMS-Event' => 'test'];
+                    if ($sig) $headers['X-RyaanCMS-Signature'] = 'sha256='.$sig;
+                    $response = \Illuminate\Support\Facades\Http::withHeaders($headers)->timeout(8)->post($url, json_decode($payload, true));
+                    return response()->json([
+                        'success' => $response->successful(),
+                        'message' => $response->successful() ? 'Webhook delivered successfully (HTTP '.$response->status().').' : 'Webhook failed: HTTP '.$response->status().'.',
+                    ]);
+                }
+                case 'slack': {
+                    $webhook = Setting::get('integration.slack_webhook', '', $userId);
+                    if (!$webhook) return response()->json(['success' => false, 'message' => 'No Slack webhook URL configured.']);
+                    $response = \Illuminate\Support\Facades\Http::timeout(8)->post($webhook, [
+                        'text' => ':white_check_mark: *RyaanCMS test message* — your Slack integration is working!',
+                    ]);
+                    return response()->json([
+                        'success' => $response->successful(),
+                        'message' => $response->successful() ? 'Test message sent to Slack!' : 'Slack error: '.$response->body(),
+                    ]);
+                }
+                case 'github': {
+                    $token = Setting::get('integration.github_token', '', $userId);
+                    if (!$token) return response()->json(['success' => false, 'message' => 'No GitHub token configured.']);
+                    $response = \Illuminate\Support\Facades\Http::withToken($token)->timeout(8)->get('https://api.github.com/user');
+                    if ($response->successful()) {
+                        $login = $response->json('login');
+                        return response()->json(['success' => true, 'message' => "Connected as @{$login}."]);
+                    }
+                    return response()->json(['success' => false, 'message' => 'GitHub auth failed: '.($response->json('message') ?? 'Invalid token.')]);
+                }
+                default:
+                    return response()->json(['success' => false, 'message' => 'Test not supported for this integration.']);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: '.$e->getMessage()]);
+        }
     }
 }

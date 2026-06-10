@@ -29,49 +29,25 @@ Route::get('/install/complete',  [InstallController::class, 'complete'])->name('
 // Public site serving — active template for a project (no auth required)
 Route::get('/site/{project}', [TemplateController::class, 'serve'])->name('site.serve');
 
-// Welcome / Landing Page — serves the active public site template if configured
+// Welcome / Landing Page — serves active public-site template if configured
 Route::get('/', function () {
-    $mainTemplateKey = \App\Models\Setting::get('system.public_site_template_key');
-    if ($mainTemplateKey) {
-        $template = app(\App\Services\Template\TemplateRegistry::class)->get($mainTemplateKey);
+    if (auth()->check()) return redirect()->route('dashboard');
 
-        if ($template && ($template['is_global'] ?? false) && view()->exists($template['view'])) {
-            return view($template['view'], compact('template'));
-        }
-    }
-
-    $project = null;
     $projectId = \App\Models\Setting::get('system.public_site_project_id');
-
     if ($projectId) {
         $project = \App\Models\Project::find((int) $projectId);
-
-        $hasActiveTemplate = $project && \App\Models\ProjectModule::where('project_id', $project->id)
-            ->where('module_key', 'like', 'template.%')
-            ->where('status', 'active')
-            ->exists();
-
-        if (!$hasActiveTemplate) {
-            $project = null;
+        if ($project) {
+            $activeModule = \App\Models\ProjectModule::where('project_id', $project->id)
+                ->where('module_key', 'like', 'template.%')
+                ->where('status', 'active')
+                ->first();
+            if ($activeModule) {
+                return app(\App\Http\Controllers\TemplateController::class)->serve($project);
+            }
         }
     }
 
-    if (!$project) {
-        $activeTemplate = \App\Models\ProjectModule::with('project')
-            ->where('module_key', 'like', 'template.%')
-            ->where('status', 'active')
-            ->whereHas('project', fn ($query) => $query->where('slug', 'core-cms'))
-            ->latest('updated_at')
-            ->first();
-
-        $project = $activeTemplate?->project;
-    }
-
-    if ($project) {
-        return app(\App\Http\Controllers\TemplateController::class)->serve($project);
-    }
-
-    return view('templates.ryaancms');
+    return view('welcome');
 })->name('home');
 
 // Legal Pages
@@ -156,6 +132,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/ai-providers/{aiProvider}/keys/{key}/toggle',       [SettingsController::class, 'toggleProviderKey'])->name('ai-provider.key.toggle');
         Route::patch('/ai-providers/{aiProvider}/toggle-active',           [SettingsController::class, 'toggleAIProviderActive'])->name('ai-provider.toggle-active');
         Route::post('/system-config',                                      [SettingsController::class, 'saveSystemConfig'])->name('system-config');
+        Route::post('/integrations',                                       [SettingsController::class, 'saveIntegration'])->name('integrations.save');
+        Route::post('/integrations/test',                                  [SettingsController::class, 'testIntegration'])->name('integrations.test');
         Route::post('/profile/avatar',                                     [SettingsController::class, 'uploadAvatar'])->name('profile.avatar');
         Route::post('/branding/global',                                    [SettingsController::class, 'saveBrandingGlobal'])->name('branding.global');
         // Team CRUD
