@@ -80,7 +80,7 @@
     display:flex;
     align-items:center;
     gap:10px;
-    padding:10px 14px;
+    padding:7px 14px;
     font-size:13px;
     font-weight:500;
     color:var(--text-2);
