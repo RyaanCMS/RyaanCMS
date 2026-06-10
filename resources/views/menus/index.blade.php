@@ -609,10 +609,9 @@ function menuTable() {
             if (this.statusFilter === 'active')   rows = rows.filter(m => m.is_active);
             if (this.statusFilter === 'inactive') rows = rows.filter(m => !m.is_active);
             if (this.categoryFilter) rows = rows.filter(m => m.category === this.categoryFilter);
-            if (this.sortBy === 'name_asc')   rows = [...rows].sort((a,b) => a.name.localeCompare(b.name));
-            if (this.sortBy === 'name_desc')  rows = [...rows].sort((a,b) => b.name.localeCompare(a.name));
-            if (this.sortBy === 'items_desc') rows = [...rows].sort((a,b) => (b.all_items_count??0) - (a.all_items_count??0));
-            if (this.sortBy === 'category')   rows = [...rows].sort((a,b) => a.category.localeCompare(b.category));
+            if (this.sortBy === 'name_asc')  rows = [...rows].sort((a,b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_desc') rows = [...rows].sort((a,b) => b.name.localeCompare(a.name));
+            if (this.sortBy === 'category')  rows = [...rows].sort((a,b) => a.category.localeCompare(b.category));
             return rows;
         },
         get paginated() { return this.filtered.slice((this.page-1)*this.perPage, this.page*this.perPage); },
