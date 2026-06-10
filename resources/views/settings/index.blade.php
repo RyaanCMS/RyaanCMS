@@ -1348,10 +1348,13 @@
         {{-- ---- TEAM ---- --}}
         @if(auth()->user()->isAdmin())
         @php
-            $teamMembersJson = \App\Models\User::where('id', '!=', auth()->id())
-                ->orderByDesc('is_active')->orderBy('name')
+            $selfId = auth()->id();
+            $teamMembersJson = \App\Models\User::orderByDesc('is_active')->orderBy('name')
                 ->get(['id','name','email','username','role','avatar','is_active','created_at'])
-                ->map(fn($u) => array_merge($u->toArray(), ['avatar_url' => $u->avatar_url]));
+                ->map(fn($u) => array_merge($u->toArray(), [
+                    'avatar_url' => $u->avatar_url,
+                    'is_self'    => $u->id === $selfId,
+                ]));
         @endphp
         <script type="application/json" id="team-members-data">{!! json_encode($teamMembersJson) !!}</script>
         @endif
@@ -1462,22 +1465,34 @@
                                 </td></tr>
                             </template>
                             <template x-for="(m, i) in paginated" :key="m.id">
-                                <tr class="dt-tr">
+                                <tr class="dt-tr" :style="m.is_self ? 'background:color-mix(in srgb, var(--brand) 4%, transparent)' : ''">
                                     <td class="dt-td" style="color:var(--text-3);font-size:12px" x-text="(page - 1) * perPage + i + 1"></td>
                                     <td class="dt-td">
                                         <div style="display:flex;align-items:center;gap:10px">
-                                            <img :src="m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff&size=64'"
-                                                 style="width:34px;height:34px;border-radius:9px;flex-shrink:0" alt="">
+                                            <div style="position:relative;flex-shrink:0">
+                                                <img :src="m.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name) + '&background=6366f1&color=fff&size=64'"
+                                                     style="width:34px;height:34px;border-radius:9px;display:block" alt="">
+                                                <template x-if="m.is_self">
+                                                    <span style="position:absolute;bottom:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:2px solid var(--card-bg);display:block"></span>
+                                                </template>
+                                            </div>
                                             <div>
-                                                <div style="font-size:13px;font-weight:600;color:var(--text-1)" x-html="highlight(m.name)"></div>
+                                                <div style="display:flex;align-items:center;gap:6px">
+                                                    <span style="font-size:13px;font-weight:600;color:var(--text-1)" x-html="highlight(m.name)"></span>
+                                                    <template x-if="m.is_self">
+                                                        <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--brand);color:#fff;letter-spacing:.4px">You</span>
+                                                    </template>
+                                                </div>
                                                 <div style="font-size:11px;color:var(--text-3);margin-top:1px" x-html="highlight(m.email)"></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="dt-td">
                                         @if(auth()->user()->isAdmin())
-                                        <select @change="updateRole(m, $event.target.value)"
-                                                style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;font-weight:600;color:var(--text-1);outline:none;cursor:pointer"
+                                        <select @change="!m.is_self && updateRole(m, $event.target.value)"
+                                                :disabled="m.is_self"
+                                                style="padding:4px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface-raised);font-size:12px;font-weight:600;color:var(--text-1);outline:none;"
+                                                :style="m.is_self ? 'cursor:not-allowed;opacity:.6' : 'cursor:pointer'"
                                                 :value="m.role">
                                             <option value="admin">Admin</option>
                                             <option value="developer">Developer</option>
@@ -1502,30 +1517,39 @@
                                     @if(auth()->user()->isAdmin())
                                     <td class="dt-td" style="text-align:right">
                                         <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px">
-                                            <button @click="toggleStatus(m)"
-                                                    :title="m.is_active ? 'Deactivate' : 'Activate'"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
-                                                    :style="m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                                </svg>
-                                            </button>
-                                            <button @click="openEdit(m)" title="Edit"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
-                                                    style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe"
-                                                    onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                </svg>
-                                            </button>
-                                            <button @click="removeMember(m)" title="Remove"
-                                                    class="w-8 h-8 rounded-lg flex items-center justify-center"
-                                                    style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca"
-                                                    onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
+                                            <template x-if="!m.is_self">
+                                                <button @click="toggleStatus(m)"
+                                                        :title="m.is_active ? 'Deactivate' : 'Activate'"
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                        :style="m.is_active ? 'background:#fef2f2;color:#ef4444;border:1px solid #fecaca' : 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template x-if="!m.is_self">
+                                                <button @click="openEdit(m)" title="Edit"
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                        style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe"
+                                                        onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template x-if="!m.is_self">
+                                                <button @click="removeMember(m)" title="Remove"
+                                                        class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                        style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca"
+                                                        onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template x-if="m.is_self">
+                                                <span style="font-size:11px;color:var(--text-3);padding:0 4px">That's you</span>
+                                            </template>
                                         </div>
                                     </td>
                                     @endif
@@ -2185,13 +2209,16 @@ function teamManager() {
                     (m.role  || '').toLowerCase().includes(q)
                 );
             }
-            return [...list].sort((a, b) => {
+            const sorted = [...list].sort((a, b) => {
                 if (this.sortBy === 'name_asc')  return (a.name || '').localeCompare(b.name || '');
                 if (this.sortBy === 'name_desc') return (b.name || '').localeCompare(a.name || '');
                 if (this.sortBy === 'newest')    return new Date(b.created_at) - new Date(a.created_at);
                 if (this.sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
                 return 0;
             });
+            const self = sorted.filter(m => m.is_self);
+            const others = sorted.filter(m => !m.is_self);
+            return [...self, ...others];
         },
 
         get paginated() {
@@ -2255,7 +2282,7 @@ function teamManager() {
                     this.addError = errs.join(' ');
                     return;
                 }
-                this.members = [data.member, ...this.members];
+                this.members = [{ ...data.member, is_self: false }, ...this.members];
                 this.showAddModal = false;
                 this.addForm = { name: '', email: '', password: '', role: 'user' };
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: data.message } }));
