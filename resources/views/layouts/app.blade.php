@@ -325,6 +325,36 @@
         .sys-pill:hover    { background: color-mix(in srgb, var(--brand) 10%, #fff); color: var(--brand); border-color: var(--brand-ring); }
         .sys-pill-on       { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; box-shadow: 0 2px 8px var(--brand-ring); }
 
+        /* ── DataTable system ── */
+        .dt-wrap { border-radius:16px; overflow:hidden; background:var(--surface-base); border:1px solid var(--border); box-shadow:var(--shadow); }
+        .dt-toolbar { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        .dt-search { position:relative; flex:1; min-width:200px; }
+        .dt-search-ico { position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-2); pointer-events:none; }
+        .dt-search-input { width:100%; padding:8px 34px 8px 34px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:13px; color:var(--text-1); outline:none; font-family:inherit; transition:border-color .15s, box-shadow .15s; box-sizing:border-box; }
+        .dt-search-input:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
+        .dt-clear { position:absolute; right:9px; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%; background:var(--border); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-3); transition:all .13s; line-height:1; }
+        .dt-clear:hover { background:var(--text-3); color:#fff; }
+        .dt-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-2); flex-shrink:0; }
+        .dt-per-page select { padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface-raised); font-size:12px; color:var(--text-1); outline:none; cursor:pointer; transition:border-color .15s; }
+        .dt-per-page select:focus { border-color:var(--brand); }
+        .dt-count { font-size:12px; color:var(--text-3); flex-shrink:0; margin-left:auto; white-space:nowrap; }
+        .dt-table { width:100%; border-collapse:collapse; }
+        .dt-th { padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); background:var(--surface-raised); white-space:nowrap; }
+        .dt-th:last-child { text-align:right; }
+        .dt-td { padding:12px 16px; font-size:13px; color:var(--text-1); border-top:1px solid var(--border); vertical-align:middle; }
+        .dt-tr { transition:background .1s; }
+        .dt-tr:hover .dt-td { background:var(--hover-bg, var(--surface-raised)); }
+        .dt-foot { padding:12px 18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+        .dt-foot-info { font-size:12px; color:var(--text-3); }
+        .dt-pages { display:flex; align-items:center; gap:3px; }
+        .dt-page-btn { min-width:30px; height:30px; padding:0 6px; border-radius:8px; border:1.5px solid var(--border); background:none; cursor:pointer; font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; justify-content:center; transition:all .13s; }
+        .dt-page-btn:hover:not(:disabled):not(.dt-page-on) { background:var(--surface-raised); }
+        .dt-page-btn:disabled { opacity:.35; cursor:default; }
+        .dt-page-on { background:var(--brand) !important; color:#fff !important; border-color:var(--brand) !important; }
+        .dt-page-dot { padding:0 4px; font-size:13px; color:var(--text-3); }
+        .dt-empty { padding:52px 20px; text-align:center; color:var(--text-3); font-size:13px; }
+        .dt-mark { background:color-mix(in srgb,var(--brand) 18%,#fff); color:var(--brand); border-radius:2px; padding:0 1px; }
+
         /* ═══════════════════════════════════════════════════════════
            SIDEBAR
         ═══════════════════════════════════════════════════════════ */
@@ -1282,6 +1312,53 @@ function toastSystem() {
         dismiss(id) {
             const t = this.toasts.find(t => t.id === id);
             if (t) { t.show = false; setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 300); }
+        },
+    };
+}
+
+function dtMixin(opts) {
+    opts = opts || {};
+    return {
+        search: '',
+        page: 1,
+        perPage: opts.perPage || 10,
+        perPageOpts: [10, 20, 50, 100],
+
+        dtSearch(list, keys) {
+            var q = this.search.trim().toLowerCase();
+            if (!q) return list;
+            return list.filter(r =>
+                keys.some(k => {
+                    var v = k.split('.').reduce((o, p) => (o && o[p] != null ? o[p] : ''), r);
+                    return String(v).toLowerCase().includes(q);
+                })
+            );
+        },
+
+        dtPageRange(total, cur) {
+            var p = [];
+            if (total <= 7) { for (var i = 1; i <= total; i++) p.push(i); return p; }
+            p.push(1);
+            if (cur > 3) p.push('…');
+            for (var i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) p.push(i);
+            if (cur < total - 2) p.push('…');
+            p.push(total);
+            return p;
+        },
+
+        dtInfo(total, page, pp) {
+            if (!total) return 'No results';
+            var f = (page - 1) * pp + 1, l = Math.min(page * pp, total);
+            return 'Showing ' + f + '–' + l + ' of ' + total;
+        },
+
+        dtHighlight(text, q) {
+            if (text == null) return '—';
+            var s = String(text)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (!q || !q.trim()) return s;
+            var esc = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return s.replace(new RegExp('(' + esc + ')', 'gi'), '<mark class="dt-mark">$1</mark>');
         },
     };
 }

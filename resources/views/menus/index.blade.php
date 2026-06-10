@@ -17,16 +17,16 @@
 <div x-data="menuTable()" @open-add-menu.window="showAddModal = true" class="space-y-5">
 
     {{-- Data table card --}}
-    <div class="rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow);">
+    <div class="dt-wrap">
 
-        {{-- Smart Toolbar --}}
-        <div class="px-5 pt-4 pb-3" style="border-bottom:1px solid var(--border);">
-            {{-- Row 1: search + status + sort + count --}}
+        {{-- Toolbar --}}
+        <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
+            {{-- Row 1: search + per-page + status + sort + count --}}
             <div class="flex items-center gap-3 flex-wrap">
 
                 {{-- Search box --}}
-                <div class="relative flex-1 min-w-[220px]">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="color:var(--text-3)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="dt-search">
+                    <svg class="dt-search-ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                     <input x-ref="searchInput"
@@ -34,71 +34,72 @@
                            @keydown.escape="search = ''; page = 1"
                            type="text"
                            placeholder="Search name, slug, category, status…"
-                           class="w-full pl-9 pr-8 py-2 rounded-xl text-sm outline-none transition-all"
-                           style="background:var(--card-sub);border:1px solid var(--border);color:var(--text-1);"
-                           onfocus="this.style.borderColor='var(--brand)';this.style.boxShadow='0 0 0 3px var(--brand-ring)'"
-                           onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
-                    {{-- Clear button --}}
+                           class="dt-search-input">
                     <button x-show="search" @click="search = ''; page = 1; $refs.searchInput.focus()"
-                            class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition-colors"
-                            style="background:var(--border);color:var(--text-3);"
-                            onmouseover="this.style.background='var(--text-3)';this.style.color='#fff'"
-                            onmouseout="this.style.background='var(--border)';this.style.color='var(--text-3)'"
-                            title="Clear (Esc)">
-                        <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            class="dt-clear" title="Clear (Esc)" x-cloak>
+                        <svg style="width:9px;height:9px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
 
+                {{-- Per-page selector --}}
+                <div class="dt-per-page">
+                    <span>Show</span>
+                    <select x-model.number="perPage" @change="page = 1">
+                        <template x-for="n in perPageOpts" :key="n">
+                            <option :value="n" x-text="n"></option>
+                        </template>
+                    </select>
+                </div>
+
                 {{-- Status filter --}}
-                <div class="flex rounded-xl overflow-hidden" style="border:1px solid var(--border);flex-shrink:0;">
+                <div class="flex rounded-xl overflow-hidden flex-shrink-0" style="border:1px solid var(--border);">
                     <button @click="statusFilter = 'all'; page = 1"
-                            class="px-3 py-1.5 text-xs font-600 transition-all"
+                            class="px-3 py-1.5 text-xs transition-all"
                             :style="statusFilter === 'all'
                                 ? 'background:var(--brand);color:#fff;font-weight:700'
-                                : 'background:var(--card-sub);color:var(--text-2)'">All</button>
+                                : 'background:var(--surface-raised);color:var(--text-2)'">All</button>
                     <button @click="statusFilter = 'active'; page = 1"
                             class="px-3 py-1.5 text-xs transition-all border-l"
                             style="border-color:var(--border);"
                             :style="statusFilter === 'active'
                                 ? 'background:#15803d;color:#fff;font-weight:700'
-                                : 'background:var(--card-sub);color:var(--text-2)'">Active</button>
+                                : 'background:var(--surface-raised);color:var(--text-2)'">Active</button>
                     <button @click="statusFilter = 'inactive'; page = 1"
                             class="px-3 py-1.5 text-xs transition-all border-l"
                             style="border-color:var(--border);"
                             :style="statusFilter === 'inactive'
                                 ? 'background:#64748b;color:#fff;font-weight:700'
-                                : 'background:var(--card-sub);color:var(--text-2)'">Inactive</button>
+                                : 'background:var(--surface-raised);color:var(--text-2)'">Inactive</button>
                 </div>
 
                 {{-- Sort --}}
-                <select x-model="sortBy" @change="page = 1"
-                        class="px-3 py-1.5 rounded-xl text-xs outline-none flex-shrink-0"
-                        style="background:var(--card-sub);border:1px solid var(--border);color:var(--text-2);"
-                        onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
-                    <option value="name_asc">Name A → Z</option>
-                    <option value="name_desc">Name Z → A</option>
-                    <option value="items_desc">Most Items</option>
-                    <option value="newest">Newest</option>
-                    <option value="oldest">Oldest</option>
-                </select>
+                <div class="dt-per-page">
+                    <span>Sort</span>
+                    <select x-model="sortBy" @change="page = 1">
+                        <option value="name_asc">Name A → Z</option>
+                        <option value="name_desc">Name Z → A</option>
+                        <option value="items_desc">Most Items</option>
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                    </select>
+                </div>
 
                 {{-- Result count --}}
-                <p class="text-xs flex-shrink-0 ml-auto" style="color:var(--text-3)">
+                <span class="dt-count">
                     <span x-text="filtered.length"></span>
                     <span x-text="filtered.length === 1 ? ' menu' : ' menus'"></span>
-                </p>
+                </span>
             </div>
 
             {{-- Row 2: category pills --}}
-            <div class="flex flex-wrap gap-1.5 mt-3">
+            <div class="flex flex-wrap gap-1.5">
                 <template x-for="pill in catPills" :key="pill.val">
                     <button @click="catFilter = catFilter === pill.val ? '' : pill.val; page = 1"
-                            class="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
-                            :style="catFilter === pill.val
-                                ? pill.activeStyle
-                                : 'background:var(--card-sub);color:var(--text-3);border:1px solid var(--border)'">
+                            class="sys-pill"
+                            :class="catFilter === pill.val ? 'sys-pill-on' : ''"
+                            :style="catFilter === pill.val ? pill.activeBg : ''">
                         <span x-text="pill.label"></span>
                         <span class="ml-1 opacity-70" x-text="'(' + catCount(pill.val) + ')'"></span>
                     </button>
@@ -108,70 +109,66 @@
 
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead style="background:var(--card-sub);">
+            <table class="dt-table">
+                <thead>
                     <tr>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">#</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Name</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Category</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Items</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Status</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Created</th>
-                        <th class="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider" style="color:var(--text-3)">Actions</th>
+                        <th class="dt-th">#</th>
+                        <th class="dt-th">Name</th>
+                        <th class="dt-th">Category</th>
+                        <th class="dt-th">Items</th>
+                        <th class="dt-th">Status</th>
+                        <th class="dt-th">Created</th>
+                        <th class="dt-th" style="text-align:right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <template x-if="filtered.length === 0">
+                    <template x-if="paginated.length === 0">
                         <tr>
-                            <td colspan="7" class="px-5 py-14 text-center">
-                                <div class="flex flex-col items-center">
-                                    <svg class="w-10 h-10 mb-3" style="color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <p class="text-sm font-medium" style="color:var(--text-3)">No menus found</p>
-                                    <p class="text-xs mt-1" style="color:var(--text-3)">Try a different search term</p>
-                                </div>
+                            <td colspan="7" class="dt-empty">
+                                <svg class="w-10 h-10 mb-3 mx-auto" style="color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p class="text-sm font-medium">No menus found</p>
+                                <p class="text-xs mt-1">Try a different search or filter</p>
                             </td>
                         </tr>
                     </template>
                     <template x-for="(menu, i) in paginated" :key="menu.id">
-                        <tr class="transition-colors" style="border-top:1px solid var(--border);"
-                            onmouseover="this.style.background='var(--hover-bg)'"
-                            onmouseout="this.style.background=''">
+                        <tr class="dt-tr">
                             {{-- # --}}
-                            <td class="px-5 py-3.5 text-sm" style="color:var(--text-3)"
+                            <td class="dt-td" style="color:var(--text-3)"
                                 x-text="(page - 1) * perPage + i + 1"></td>
                             {{-- Name + Slug --}}
-                            <td class="px-5 py-3.5">
+                            <td class="dt-td">
                                 <p class="font-semibold text-sm" style="color:var(--text-1)" x-html="highlight(menu.name)"></p>
                                 <p class="text-[11px] font-mono mt-0.5" style="color:var(--text-3)" x-html="highlight(menu.slug)"></p>
                             </td>
                             {{-- Category badge --}}
-                            <td class="px-5 py-3.5">
+                            <td class="dt-td">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
                                       :style="catStyle(menu.category)"
                                       x-text="catLabel(menu.category)"></span>
                             </td>
                             {{-- Items count --}}
-                            <td class="px-5 py-3.5">
+                            <td class="dt-td">
                                 <span class="text-sm font-semibold" style="color:var(--text-2)"
                                       x-text="(menu.all_items_count ?? 0)"></span>
                             </td>
                             {{-- Status --}}
-                            <td class="px-5 py-3.5">
+                            <td class="dt-td">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
                                       :style="menu.is_active
                                           ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
-                                          : 'background:var(--card-sub);color:var(--text-3);border:1px solid var(--border)'">
+                                          : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'">
                                     <span class="w-1.5 h-1.5 rounded-full" :class="menu.is_active ? 'bg-green-500' : 'bg-gray-400'"></span>
                                     <span x-text="menu.is_active ? 'Active' : 'Inactive'"></span>
                                 </span>
                             </td>
                             {{-- Created --}}
-                            <td class="px-5 py-3.5 text-sm" style="color:var(--text-3)"
+                            <td class="dt-td" style="color:var(--text-3)"
                                 x-text="fmtDate(menu.created_at)"></td>
                             {{-- Actions --}}
-                            <td class="px-5 py-3.5">
+                            <td class="dt-td" style="text-align:right">
                                 <div class="flex items-center justify-end gap-2">
                                     {{-- Edit Items --}}
                                     <a :href="'/menus/' + menu.id"
@@ -212,35 +209,21 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        <div x-show="totalPages > 1"
-             class="flex items-center justify-between px-5 py-3.5" style="border-top:1px solid var(--border);">
-            <p class="text-xs" style="color:var(--text-3)">
-                Showing
-                <span x-text="((page-1)*perPage)+1"></span>–<span x-text="Math.min(page*perPage, filtered.length)"></span>
-                of <span x-text="filtered.length"></span>
-            </p>
-            <div class="flex items-center gap-1">
-                <button @click="page = Math.max(1, page-1)" :disabled="page === 1"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
-                        style="border:1px solid var(--border);color:var(--text-2);"
-                        onmouseover="if(!this.disabled) this.style.background='var(--hover-bg)'"
-                        onmouseout="this.style.background=''">‹</button>
-                <template x-for="p in pageRange" :key="p">
-                    <button @click="if(p !== '…') page = p"
-                            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold transition-colors"
-                            :style="p === page
-                                ? 'background:var(--brand);color:#fff;border:1px solid var(--brand)'
-                                : p === \'…\'
-                                    ? \'border:1px solid transparent;color:var(--text-3);cursor:default\'
-                                    : \'border:1px solid var(--border);color:var(--text-2)\'"
-                            x-text="p"></button>
+        {{-- Footer: info + pagination --}}
+        <div class="dt-foot">
+            <span class="dt-foot-info" x-text="dtInfo(filtered.length, page, perPage)"></span>
+            <div class="dt-pages" x-show="totalPages > 1">
+                <button class="dt-page-btn" @click="page = Math.max(1, page - 1)" :disabled="page === 1">‹</button>
+                <template x-for="p in pageRange" :key="p + '-' + page">
+                    <template x-if="p === '…'">
+                        <span class="dt-page-dot">…</span>
+                    </template>
+                    <template x-if="p !== '…'">
+                        <button class="dt-page-btn" :class="p === page ? 'dt-page-on' : ''"
+                                @click="page = p" x-text="p"></button>
+                    </template>
                 </template>
-                <button @click="page = Math.min(totalPages, page+1)" :disabled="page === totalPages"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
-                        style="border:1px solid var(--border);color:var(--text-2);"
-                        onmouseover="if(!this.disabled) this.style.background='var(--hover-bg)'"
-                        onmouseout="this.style.background=''">›</button>
+                <button class="dt-page-btn" @click="page = Math.min(totalPages, page + 1)" :disabled="page === totalPages">›</button>
             </div>
         </div>
 
@@ -447,12 +430,12 @@
 <script>
 function menuTable() {
     return {
-        search:        '',
+        ...dtMixin({ perPage: 10 }),
+
         statusFilter:  'all',
         catFilter:     '',
         sortBy:        'name_asc',
         page:          1,
-        perPage:       20,
         showAddModal:  false,
         showEditModal: false,
         editMenu:      { name: '', category: 'header', is_active: true },
@@ -460,7 +443,6 @@ function menuTable() {
 
         allMenus: @json($menus),
 
-        // Category label map (also used for smart keyword matching)
         catMap: {
             admin_sidebar: 'Admin Menu',
             user_topbar:   'User Menu',
@@ -471,13 +453,17 @@ function menuTable() {
         },
 
         catPills: [
-            { val: 'admin_sidebar', label: '🛠 Admin',  activeStyle: 'background:#7c3aed;color:#fff;border:1px solid #7c3aed' },
-            { val: 'user_topbar',   label: '👤 Top Bar', activeStyle: 'background:#b45309;color:#fff;border:1px solid #b45309' },
-            { val: 'header',        label: 'Header',     activeStyle: 'background:#1d4ed8;color:#fff;border:1px solid #1d4ed8' },
-            { val: 'footer',        label: 'Footer',     activeStyle: 'background:#15803d;color:#fff;border:1px solid #15803d' },
-            { val: 'sidebar',       label: 'Sidebar',    activeStyle: 'background:#6d28d9;color:#fff;border:1px solid #6d28d9' },
-            { val: 'custom',        label: 'Custom',     activeStyle: 'background:#475569;color:#fff;border:1px solid #475569' },
+            { val: 'admin_sidebar', label: '🛠 Admin',  activeBg: '--c:#7c3aed' },
+            { val: 'user_topbar',   label: '👤 Top Bar', activeBg: '--c:#b45309' },
+            { val: 'header',        label: 'Header',     activeBg: '--c:#1d4ed8' },
+            { val: 'footer',        label: 'Footer',     activeBg: '--c:#15803d' },
+            { val: 'sidebar',       label: 'Sidebar',    activeBg: '--c:#6d28d9' },
+            { val: 'custom',        label: 'Custom',     activeBg: '--c:#475569' },
         ],
+
+        init() {
+            this.$watch('perPage', () => { this.page = 1; });
+        },
 
         catCount(val) {
             return this.allMenus.filter(m => m.category === val).length;
@@ -486,38 +472,32 @@ function menuTable() {
         get filtered() {
             let list = this.allMenus;
 
-            // Status filter
             if (this.statusFilter === 'active')   list = list.filter(m => m.is_active);
             if (this.statusFilter === 'inactive') list = list.filter(m => !m.is_active);
-
-            // Category pill filter
             if (this.catFilter) list = list.filter(m => m.category === this.catFilter);
 
-            // Smart text search
             const q = this.search.trim().toLowerCase();
             if (q) {
                 list = list.filter(m => {
                     const label  = (this.catMap[m.category] || m.category).toLowerCase();
                     const status = m.is_active ? 'active' : 'inactive';
-                    const items  = String(m.all_items_count || 0);
                     return (
                         m.name.toLowerCase().includes(q) ||
                         (m.slug || '').toLowerCase().includes(q) ||
                         label.includes(q) ||
                         m.category.toLowerCase().includes(q) ||
                         status.includes(q) ||
-                        items === q
+                        String(m.all_items_count || 0) === q
                     );
                 });
             }
 
-            // Sort
             list = [...list];
-            if (this.sortBy === 'name_asc')    list.sort((a, b) => a.name.localeCompare(b.name));
-            if (this.sortBy === 'name_desc')   list.sort((a, b) => b.name.localeCompare(a.name));
-            if (this.sortBy === 'items_desc')  list.sort((a, b) => (b.all_items_count || 0) - (a.all_items_count || 0));
-            if (this.sortBy === 'newest')      list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            if (this.sortBy === 'oldest')      list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            if (this.sortBy === 'name_asc')   list.sort((a, b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_desc')  list.sort((a, b) => b.name.localeCompare(a.name));
+            if (this.sortBy === 'items_desc') list.sort((a, b) => (b.all_items_count || 0) - (a.all_items_count || 0));
+            if (this.sortBy === 'newest')     list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            if (this.sortBy === 'oldest')     list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
             return list;
         },
@@ -532,30 +512,11 @@ function menuTable() {
         },
 
         get pageRange() {
-            const total = this.totalPages, cur = this.page, pages = [];
-            if (total <= 7) {
-                for (let i = 1; i <= total; i++) pages.push(i);
-            } else {
-                pages.push(1);
-                if (cur > 3) pages.push('…');
-                for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i);
-                if (cur < total - 2) pages.push('…');
-                pages.push(total);
-            }
-            return pages;
+            return this.dtPageRange(this.totalPages, this.page);
         },
 
-        // Highlight matched query text in a string
         highlight(text) {
-            if (!text) return '—';
-            const q = this.search.trim();
-            if (!q) return this.esc(text);
-            const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-            return this.esc(text).replace(re, '<mark style="background:color-mix(in srgb,var(--brand) 18%,#fff);color:var(--brand);border-radius:2px;padding:0 1px;">$1</mark>');
-        },
-
-        esc(s) {
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return this.dtHighlight(text, this.search.trim());
         },
 
         openEdit(menu) {
@@ -581,7 +542,7 @@ function menuTable() {
                 footer:        'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
                 sidebar:       'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
                 custom:        'background:#f8fafc;color:#475569;border:1px solid #e2e8f0',
-            }[cat] || 'background:var(--card-sub);color:var(--text-3);border:1px solid var(--border)';
+            }[cat] || 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)';
         },
 
         fmtDate(d) {

@@ -1341,6 +1341,84 @@ UI CARD DESIGN RULES (mandatory)
 • Icon badge: `width:40px;height:40px;border-radius:11px;background:color-mix(in srgb,var(--c,var(--brand)) 10%,#fff)`
 • Action buttons: `background:color-mix(in srgb,var(--c,var(--brand)) 10%,#fff);color:var(--c,var(--brand))` → solid on hover
 
+═══════════════════════════════════════════════
+DATATABLE RULES (mandatory for every list/table view)
+═══════════════════════════════════════════════
+ALL data tables MUST use the global `.dt-*` class system and `dtMixin()` helper (both are pre-loaded globally):
+
+HTML structure:
+  <div class="dt-wrap">
+    <div class="dt-toolbar">
+      <div class="dt-search">
+        <svg class="dt-search-ico">…search icon…</svg>
+        <input x-model="search" @input="page=1" class="dt-search-input" placeholder="Search…">
+        <button x-show="search" @click="search='';page=1" class="dt-clear">×</button>
+      </div>
+      <div class="dt-per-page">
+        <span>Show</span>
+        <select x-model.number="perPage" @change="page=1">
+          <template x-for="n in perPageOpts"><option :value="n" x-text="n"></option></template>
+        </select>
+      </div>
+      <span class="dt-count" x-text="filtered.length + ' results'"></span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="dt-table">
+        <thead><tr>
+          <th class="dt-th">Col</th> …
+          <th class="dt-th" style="text-align:right">Actions</th>
+        </tr></thead>
+        <tbody>
+          <template x-if="paginated.length === 0">
+            <tr><td colspan="N" class="dt-empty">No results found</td></tr>
+          </template>
+          <template x-for="(row, i) in paginated" :key="row.id">
+            <tr class="dt-tr">
+              <td class="dt-td" x-html="dtHighlight(row.name, search)">…</td>
+              …
+              <td class="dt-td" style="text-align:right">…actions…</td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+    <div class="dt-foot">
+      <span class="dt-foot-info" x-text="dtInfo(filtered.length, page, perPage)"></span>
+      <div class="dt-pages" x-show="totalPages > 1">
+        <button class="dt-page-btn" @click="page=Math.max(1,page-1)" :disabled="page===1">‹</button>
+        <template x-for="p in pageRange" :key="p+'-'+page">
+          <template x-if="p==='…'"><span class="dt-page-dot">…</span></template>
+          <template x-if="p!=='…'">
+            <button class="dt-page-btn" :class="p===page?'dt-page-on':''" @click="page=p" x-text="p"></button>
+          </template>
+        </template>
+        <button class="dt-page-btn" @click="page=Math.min(totalPages,page+1)" :disabled="page===totalPages">›</button>
+      </div>
+    </div>
+  </div>
+
+Alpine JS data function — spread dtMixin first, then override:
+  function myTable() {
+    return {
+      ...dtMixin({ perPage: 10 }),  // provides: search, page, perPage, perPageOpts, dtSearch(), dtPageRange(), dtInfo(), dtHighlight()
+      allRows: [],  // populated from @json($items)
+      init() { this.$watch('perPage', () => { this.page = 1; }); },
+      get filtered() {
+        let list = this.allRows;
+        // apply any extra filters…
+        return this.dtSearch(list, ['name', 'email', 'status']);  // pass searchable fields
+      },
+      get paginated() { const s=(this.page-1)*this.perPage; return this.filtered.slice(s,s+this.perPage); },
+      get totalPages() { return Math.max(1, Math.ceil(this.filtered.length/this.perPage)); },
+      get pageRange()  { return this.dtPageRange(this.totalPages, this.page); },
+    };
+  }
+
+• Use `dtHighlight(row.field, search)` (returns HTML with `<mark class="dt-mark">`) inside `x-html` directives
+• Default perPage is 10; perPageOpts is [10,20,50,100] — always expose the selector
+• Always use `dtInfo(filtered.length, page, perPage)` for the footer "Showing X–Y of Z" text
+• Never build custom pagination or search from scratch when dtMixin is available
+
 When modifying existing files: read the file content provided in the user message,
 make only the requested changes, and return the complete updated file.
 Never skip unchanged sections with "..." or "// rest stays same".
