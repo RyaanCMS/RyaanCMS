@@ -1203,18 +1203,26 @@
             <div class="sb-section-dev" style="flex-shrink:0;padding:0 0 6px;" @mouseenter="hoveredSection='dev'">
                 <div class="sb-divider"></div>
                 <div class="sb-section-label">DEVELOPER</div>
-                @foreach($devItems as $item)
-                @php extract($renderItem($item, $projectCount)); @endphp
-                <a href="{{ $url }}"
-                   class="sb-item{{ $active ? ' active' : '' }}"
-                   aria-current="{{ $active ? 'page' : 'false' }}">
-                    <div class="sb-ico" style="{{ $active ? $activeIco : '' }}">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $activeStroke : $inactiveStroke }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $icon }}"/>
+                @foreach($devSidebarItems as $mItem)
+                @php
+                    $mUrl    = $mItem->url ?? '';
+                    $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
+                    $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+                @endphp
+                <a href="{{ $mUrl ?: '#' }}" target="{{ $mItem->target === '_blank' ? '_blank' : '_self' }}"
+                   class="sb-item{{ $mActive ? ' active' : '' }}"
+                   aria-current="{{ $mActive ? 'page' : 'false' }}">
+                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                        @if($mItem->icon)
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
                         </svg>
+                        @else
+                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                        @endif
                     </div>
-                    <span class="sb-label" style="{{ $active ? 'color:'.$color.';font-weight:600;' : '' }}">{{ $label }}</span>
-                    <span class="sb-tooltip" aria-hidden="true">{{ $label }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $mItem->label }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
                 </a>
                 @endforeach
 
