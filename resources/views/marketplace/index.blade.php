@@ -181,9 +181,9 @@
 }
 .ms-btn-installed-lg:hover { background: #dcfce7; }
 
-/* Grids */
-.ms-grid-lg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.ms-grid    { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+/* Grids — auto-fill keeps each card ~project-card size */
+.ms-grid-lg { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.ms-grid    { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 
 /* Agent tier badge colors */
 .tier-free    { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
@@ -213,9 +213,12 @@
 .ms-stat-lbl  { font-size: 11px; color: #94a3b8; }
 .ms-stat-sep  { width: 1px; height: 28px; background: var(--border); }
 
-@media (max-width: 1100px) { .ms-grid-lg { grid-template-columns: repeat(2,1fr); } .ms-grid { grid-template-columns: repeat(3,1fr); } }
-@media (max-width: 768px)  { .ms-grid-lg { grid-template-columns: repeat(1,1fr); } .ms-grid { grid-template-columns: repeat(2,1fr); } }
-@media (max-width: 480px)  { .ms-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+    .ms-grid-lg, .ms-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 360px) {
+    .ms-grid-lg, .ms-grid { grid-template-columns: 1fr; }
+}
 
 /* ─── Override ms-card/ms-card-lg with sys-card pattern ─── */
 .ms-card, .ms-card-lg {
