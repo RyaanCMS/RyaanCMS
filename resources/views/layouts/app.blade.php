@@ -1109,43 +1109,29 @@
 
         {{-- Navigation --}}
         @php
-            $userItems = [
-                ['route'=>'dashboard',       'label'=>'Dashboard', 'color'=>'#6366f1', 'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                ['route'=>'projects.index',  'label'=>'My Apps',   'color'=>'#8b5cf6', 'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'badge'=>'projects'],
-            ];
-            $devItems = [
-                ['route'=>'marketplace.index', 'label'=>'Marketplace',  'color'=>'#10b981', 'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
-                ['route'=>'templates.manage',  'label'=>'Templates',    'color'=>'#7c3aed', 'icon'=>'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z'],
-                ['route'=>'wisdom.index',      'label'=>'AI Knowledge', 'color'=>'#f59e0b', 'icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
-                ['route'=>'menus.index',       'label'=>'Menus',        'color'=>'#ec4899', 'icon'=>'M4 6h16M4 12h16M4 18h7'],
-                ['route'=>'settings.index',    'label'=>'Settings',     'color'=>'#f97316', 'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
-            ];
+            if (auth()->check()) {
+                app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
+            }
             $projectCount    = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->count() : 0;
             $sidebarProjects = auth()->check() ? \App\Models\Project::where('user_id', auth()->id())->latest()->take(5)->get(['id','name']) : collect();
-            $dynamicSidebarMenus = auth()->check()
-                ? \App\Models\Menu::where('user_id', auth()->id())
-                      ->whereIn('category', ['sidebar', 'admin_sidebar'])
-                      ->where('is_active', true)
-                      ->with(['items' => fn($q) => $q->where('is_active', true)->orderBy('order')->with([
-                          'children' => fn($q2) => $q2->where('is_active', true)->orderBy('order'),
-                      ])])
-                      ->get()
-                : collect();
-        @endphp
 
-        @php
-        $renderItem = function(array $item, int $projectCount) {
-            $active = request()->routeIs(explode('.', $item['route'])[0].'*');
-            $url    = route($item['route']);
-            $color  = $item['color'];
-            $label  = $item['label'];
-            $icon   = $item['icon'];
-            $hasBadge = isset($item['badge']) && $item['badge'] === 'projects' && $projectCount > 0;
-            $activeIco  = 'background:color-mix(in srgb,'.$color.' 15%,transparent);';
-            $activeStroke = $color;
-            $inactiveStroke = 'var(--text-3)';
-            return compact('active','url','color','label','icon','hasBadge','activeIco','activeStroke','inactiveStroke');
-        };
+            $loadSidebarItems = function (string $category) {
+                if (!auth()->check()) return collect();
+                return \App\Models\MenuItem::whereHas('menu', fn ($q) =>
+                        $q->where('user_id', auth()->id())
+                          ->where('category', $category)
+                          ->where('is_active', true)
+                    )
+                    ->whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->orderBy('order')
+                    ->orderBy('label')
+                    ->get();
+            };
+
+            $userSidebarItems = $loadSidebarItems('user');
+            $devSidebarItems  = $loadSidebarItems('developer');
+            $projectsUrl      = auth()->check() ? route('projects.index') : '';
         @endphp
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">
@@ -1153,25 +1139,34 @@
             {{-- ─── USER section (top) ─── --}}
             <div class="sb-section-user" style="padding:6px 0 0;" @mouseenter="hoveredSection='user'">
                 <div class="sb-section-label">USER</div>
-                @foreach($userItems as $item)
-                @php extract($renderItem($item, $projectCount)); @endphp
-                <a href="{{ $url }}"
-                   class="sb-item{{ $active ? ' active' : '' }}"
-                   aria-current="{{ $active ? 'page' : 'false' }}">
-                    <div class="sb-ico" style="{{ $active ? $activeIco : '' }}">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $active ? $activeStroke : $inactiveStroke }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $icon }}"/>
+                @foreach($userSidebarItems as $mItem)
+                @php
+                    $mUrl    = $mItem->url ?? '';
+                    $mPath   = ltrim(parse_url($mUrl, PHP_URL_PATH) ?? '', '/');
+                    $mActive = $mUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
+                    $mIsProjects = $mUrl && rtrim($mUrl, '/') === rtrim($projectsUrl, '/');
+                @endphp
+                <a href="{{ $mUrl ?: '#' }}" target="{{ $mItem->target === '_blank' ? '_blank' : '_self' }}"
+                   class="sb-item{{ $mActive ? ' active' : '' }}"
+                   aria-current="{{ $mActive ? 'page' : 'false' }}">
+                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
+                        @if($mItem->icon)
+                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
                         </svg>
+                        @else
+                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
+                        @endif
                     </div>
-                    <span class="sb-label" style="{{ $active ? 'color:'.$color.';font-weight:600;' : '' }}">{{ $label }}</span>
-                    @if($hasBadge)
-                    <span class="sb-badge" style="{{ $active ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
+                    <span class="sb-label" style="{{ $mActive ? 'color:var(--brand);font-weight:600;' : '' }}">{{ $mItem->label }}</span>
+                    @if($mIsProjects && $projectCount > 0)
+                    <span class="sb-badge" style="{{ $mActive ? '' : 'background:var(--surface-overlay);color:var(--text-2);' }}">{{ $projectCount }}</span>
                     @endif
-                    <span class="sb-tooltip" aria-hidden="true">{{ $label }}</span>
+                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
                 </a>
                 @endforeach
 
-                {{-- My Apps sub-items: recent projects (visible when sidebar expanded) --}}
+                {{-- My Apps sub-items: recent projects --}}
                 @if($sidebarProjects->isNotEmpty())
                 <div class="sb-my-apps">
                     @foreach($sidebarProjects as $proj)
@@ -1199,37 +1194,6 @@
                     @endif
                 </div>
                 @endif
-
-                {{-- Dynamic custom menus under USER --}}
-                @foreach($dynamicSidebarMenus as $dynMenu)
-                <div class="sb-divider"></div>
-                <div class="sb-section-label">{{ $dynMenu->name }}</div>
-                @foreach($dynMenu->items as $mItem)
-                @php
-                    $rawUrl  = $mItem->url ?? '';
-                    $urlPath = parse_url($rawUrl, PHP_URL_PATH) ?? '';
-                    if ($rawUrl && preg_match('#^/builder/[^/]+$#', $urlPath)) {
-                        $rawUrl = rtrim($rawUrl, '/') . '/preview';
-                    }
-                    $mPath   = ltrim($urlPath !== '' ? $urlPath : '', '/');
-                    $mActive = $rawUrl && ($mPath ? request()->is($mPath, $mPath.'/*') : false);
-                @endphp
-                <a href="{{ $rawUrl ?: '#' }}" target="{{ $mItem->target ?: '_blank' }}"
-                   class="sb-item{{ $mActive ? ' active' : '' }}">
-                    <div class="sb-ico" style="{{ $mActive ? 'background:var(--brand-light);' : '' }}">
-                        @if($mItem->icon)
-                        <svg fill="none" viewBox="0 0 24 24" stroke="{{ $mActive ? 'var(--brand)' : 'var(--text-3)' }}" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $mItem->icon }}"/>
-                        </svg>
-                        @else
-                        <span style="width:6px;height:6px;border-radius:50%;background:{{ $mActive ? 'var(--brand)' : 'var(--border-strong)' }};display:block;"></span>
-                        @endif
-                    </div>
-                    <span class="sb-label">{{ $mItem->label }}</span>
-                    <span class="sb-tooltip" aria-hidden="true">{{ $mItem->label }}</span>
-                </a>
-                @endforeach
-                @endforeach
             </div>
 
             {{-- Spacer: hidden when collapsed (icons fill space), visible when expanded --}}
