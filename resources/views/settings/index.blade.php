@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('title', 'Settings')
 @section('header', 'Settings')
 
@@ -22,7 +22,7 @@
 .sbtn-primary:hover{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 4px 14px var(--brand-ring);transform:translateY(-1px);}
 .sbtn-secondary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
 
-/* ─── Settings layout ─── */
+/* â”€â”€â”€ Settings layout â”€â”€â”€ */
 .st-wrap{
     display:grid;
     grid-template-columns:210px 1fr;
@@ -93,6 +93,13 @@
 /* Section nav separator */
 .st-nav-sep{height:1px;background:var(--border);margin:4px 0;}
 .st-nav-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);padding:8px 14px 4px;}
+
+/* System-config toggle switch (CSS-class driven â€” no :style string needed) */
+.sys-toggle-btn{position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;background:#d1d5db;}
+.sys-toggle-on{background:var(--brand);}
+.sys-toggle-disabled{opacity:.4;cursor:not-allowed;}
+.sys-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;transform:translateX(0);}
+.sys-toggle-thumb-on{transform:translateX(20px);}
 </style>
 @endpush
 
@@ -120,7 +127,7 @@
         }
      }">
 
-    {{-- ══ LEFT NAV ══ --}}
+    {{-- â•â• LEFT NAV â•â• --}}
     <nav class="st-nav">
         <div class="st-nav-user">
             <img src="{{ auth()->user()->avatar_url }}"
@@ -142,15 +149,6 @@
                 </div>
                 Profile
             </button>
-            <button @click="tab='security'" :class="tab==='security' ? 'active' : ''" class="st-nav-item">
-                <div class="st-nav-ico" :style="tab==='security' ? '' : ''">
-                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                </div>
-                Security
-            </button>
-
             <div class="st-nav-sep"></div>
             <div class="st-nav-label">Workspace</div>
 
@@ -230,10 +228,10 @@
         </div>
     </nav>
 
-    {{-- ══ CONTENT ══ --}}
+    {{-- â•â• CONTENT â•â• --}}
     <div>
 
-        {{-- ──── PROFILE ──── --}}
+        {{-- â”€â”€â”€â”€ PROFILE â”€â”€â”€â”€ --}}
         <div x-show="tab === 'profile'" class="st-panel">
             @if(session('status') === 'profile-updated')
             <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
@@ -297,8 +295,8 @@
             </div>
         </div>
 
-        {{-- ──── SECURITY ──── --}}
-        <div x-show="tab === 'security'" class="st-panel">
+        {{-- â”€â”€â”€â”€ SECURITY â”€â”€â”€â”€ --}}
+        <div x-show="tab === 'profile'" class="st-panel">
             @if(session('status') === 'password-updated')
             <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;">
                 <svg style="width:16px;height:16px;flex-shrink:0;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -347,184 +345,321 @@
             </div>
         </div>
 
-        {{-- ──── AI PROVIDERS ──── --}}
+        {{-- â”€â”€â”€â”€ AI PROVIDERS â”€â”€â”€â”€ --}}
         <div x-show="tab === 'ai'" class="st-panel">
-            <div class="scard">
-                <div class="scard-hd">
-                    <div class="scard-hd-icon" style="background:#fffbeb;">
-                        <svg style="width:15px;height:15px;stroke:#d97706" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            @php
+                $providerLinks = [
+                    'claude'      => ['url' => 'https://console.anthropic.com/settings/keys', 'label' => 'console.anthropic.com'],
+                    'openai'      => ['url' => 'https://platform.openai.com/api-keys', 'label' => 'platform.openai.com'],
+                    'gemini'      => ['url' => 'https://aistudio.google.com/app/apikey', 'label' => 'aistudio.google.com'],
+                    'mistral'     => ['url' => 'https://console.mistral.ai/api-keys', 'label' => 'console.mistral.ai'],
+                    'grok'        => ['url' => 'https://console.x.ai/', 'label' => 'console.x.ai'],
+                    'deepseek'    => ['url' => 'https://platform.deepseek.com/api-keys', 'label' => 'platform.deepseek.com'],
+                    'groq'        => ['url' => 'https://console.groq.com/keys', 'label' => 'console.groq.com'],
+                    'cohere'      => ['url' => 'https://dashboard.cohere.com/api-keys', 'label' => 'dashboard.cohere.com'],
+                    'perplexity'  => ['url' => 'https://www.perplexity.ai/settings/api', 'label' => 'perplexity.ai'],
+                    'openrouter'  => ['url' => 'https://openrouter.ai/keys', 'label' => 'openrouter.ai'],
+                    'together'    => ['url' => 'https://api.together.ai/settings/api-keys', 'label' => 'api.together.ai'],
+                    'huggingface' => ['url' => 'https://huggingface.co/settings/tokens', 'label' => 'huggingface.co'],
+                    'azure'       => ['url' => 'https://portal.azure.com/', 'label' => 'portal.azure.com'],
+                    'bedrock'     => ['url' => 'https://aws.amazon.com/bedrock/', 'label' => 'aws.amazon.com/bedrock'],
+                    'replicate'   => ['url' => 'https://replicate.com/account/api-tokens', 'label' => 'replicate.com'],
+                    'fireworks'   => ['url' => 'https://fireworks.ai/account/api-keys', 'label' => 'fireworks.ai'],
+                    'cerebras'    => ['url' => 'https://cloud.cerebras.ai/', 'label' => 'cloud.cerebras.ai'],
+                    'ai21'        => ['url' => 'https://studio.ai21.com/account/api-key', 'label' => 'studio.ai21.com'],
+                    'sambanova'   => ['url' => 'https://cloud.sambanova.ai/apis', 'label' => 'cloud.sambanova.ai'],
+                    'elevenlabs'  => ['url' => 'https://elevenlabs.io/app/settings/api-keys', 'label' => 'elevenlabs.io'],
+                    'ollama'      => ['url' => 'https://ollama.com/download', 'label' => 'ollama.com'],
+                ];
+                $categoryTitles = ['text' => 'Text Generation', 'voice' => 'Voice & Audio', 'local' => 'Local / Self-Hosted'];
+                $providerRows = collect($allProviders)->map(function ($provider, $key) use ($aiProviders, $providerLinks, $categoryTitles) {
+                    $saved = $aiProviders->where('provider', $key)->first();
+                    $models = collect($provider['models'] ?? [])->map(fn($name, $modelKey) => ['key' => $modelKey, 'name' => $name])->values();
+
+                    return [
+                        'provider' => $key,
+                        'name' => $provider['name'] ?? ucfirst($key),
+                        'category' => $provider['category'] ?? 'text',
+                        'category_label' => $categoryTitles[$provider['category'] ?? 'text'] ?? ucfirst($provider['category'] ?? 'text'),
+                        'configured' => (bool) ($saved && $saved->is_active),
+                        'provider_id' => $saved?->id,
+                        'api_url' => $saved?->api_url ?? ($provider['api_url'] ?? ''),
+                        'default_model' => $saved?->default_model ?? ($provider['default_model'] ?? ''),
+                        'is_default' => (bool) ($saved?->is_default),
+                        'last_used_at' => optional($saved?->last_used_at)->toISOString(),
+                        'updated_at' => optional($saved?->updated_at)->toISOString(),
+                        'models' => $models,
+                        'model_count' => $models->count(),
+                        'requires_endpoint' => !empty($provider['requires_endpoint']) || $key === 'ollama',
+                        'api_url_label' => $key === 'ollama' ? 'Ollama Host URL' : ($key === 'bedrock' ? 'AWS Region' : 'Endpoint URL'),
+                        'external_url' => $providerLinks[$key]['url'] ?? null,
+                        'external_label' => $providerLinks[$key]['label'] ?? null,
+                    ];
+                })->values();
+            @endphp
+
+            <div class="dt-wrap" x-data="aiProviderTable(@json($providerRows))">
+                <div class="dt-toolbar" style="flex-direction:column;align-items:stretch;gap:10px;">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="dt-search">
+                            <svg class="dt-search-ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input x-ref="searchInput" x-model="search" @input="page = 1" @keydown.escape="search = ''; page = 1"
+                                   type="text" placeholder="Search provider, category, model, status..." class="dt-search-input">
+                            <button x-show="search" @click="search = ''; page = 1; $refs.searchInput.focus()" class="dt-clear" title="Clear (Esc)" x-cloak>
+                                <svg style="width:9px;height:9px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="dt-per-page">
+                            <span>Show</span>
+                            <select x-model.number="perPage" @change="page = 1">
+                                <template x-for="n in perPageOpts" :key="n">
+                                    <option :value="n" x-text="n"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="flex rounded-xl overflow-hidden flex-shrink-0" style="border:1px solid var(--border);">
+                            <button @click="statusFilter = 'all'; page = 1" class="px-3 py-1.5 text-xs transition-all"
+                                    :style="statusFilter === 'all' ? 'background:var(--brand);color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">All</button>
+                            <button @click="statusFilter = 'connected'; page = 1" class="px-3 py-1.5 text-xs transition-all border-l" style="border-color:var(--border);"
+                                    :style="statusFilter === 'connected' ? 'background:#15803d;color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">Connected</button>
+                            <button @click="statusFilter = 'missing'; page = 1" class="px-3 py-1.5 text-xs transition-all border-l" style="border-color:var(--border);"
+                                    :style="statusFilter === 'missing' ? 'background:#64748b;color:#fff;font-weight:700' : 'background:var(--surface-raised);color:var(--text-2)'">Missing</button>
+                        </div>
+
+                        <div class="dt-per-page">
+                            <span>Sort</span>
+                            <select x-model="sortBy" @change="page = 1">
+                                <option value="name_asc">Name A to Z</option>
+                                <option value="name_desc">Name Z to A</option>
+                                <option value="connected">Connected First</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
+
+                        <span class="dt-count">
+                            <span x-text="filtered.length"></span>
+                            <span x-text="filtered.length === 1 ? ' provider' : ' providers'"></span>
+                        </span>
                     </div>
-                    <div>
-                        <div style="font-size:13.5px;font-weight:700;color:#0f172a;">AI Provider Keys</div>
-                        <div style="font-size:11.5px;color:#94a3b8;margin-top:1px;">Connect AI accounts to enable code generation</div>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        <template x-for="pill in categoryPills" :key="pill.val">
+                            <button @click="categoryFilter = categoryFilter === pill.val ? '' : pill.val; page = 1"
+                                    class="sys-pill" :class="categoryFilter === pill.val ? 'sys-pill-on' : ''">
+                                <span x-text="pill.label"></span>
+                                <span class="ml-1 opacity-70" x-text="'(' + categoryCount(pill.val) + ')'"></span>
+                            </button>
+                        </template>
                     </div>
                 </div>
-                <div class="scard-body" style="display:flex;flex-direction:column;gap:10px;">
-                    @php
-                        $grouped = collect($allProviders)->groupBy(fn($p) => $p['category'] ?? 'text', preserveKeys: true);
-                        $categoryTitles = ['text' => 'Text Generation', 'voice' => 'Voice & Audio', 'local' => 'Local / Self-Hosted'];
-                        $categoryIcons  = ['text' => '🧠', 'voice' => '🎙️', 'local' => '💻'];
-                    @endphp
-                    @foreach($grouped as $catKey => $catProviders)
-                    <div>
-                        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#cbd5e1;padding:0 0 8px;">
-                            {{ $categoryIcons[$catKey] ?? '' }} {{ $categoryTitles[$catKey] ?? ucfirst($catKey) }}
-                        </div>
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                        @foreach($catProviders as $key => $provider)
-                        @php
-                            $savedProvider = $aiProviders->where('provider', $key)->first();
-                            $isConfigured  = $savedProvider && $savedProvider->is_active;
-                            $providerLinks = [
-                                'claude'      =>['url'=>'https://console.anthropic.com/settings/keys',   'label'=>'console.anthropic.com'],
-                                'openai'      =>['url'=>'https://platform.openai.com/api-keys',          'label'=>'platform.openai.com'],
-                                'gemini'      =>['url'=>'https://aistudio.google.com/app/apikey',        'label'=>'aistudio.google.com'],
-                                'mistral'     =>['url'=>'https://console.mistral.ai/api-keys',           'label'=>'console.mistral.ai'],
-                                'grok'        =>['url'=>'https://console.x.ai/',                         'label'=>'console.x.ai'],
-                                'deepseek'    =>['url'=>'https://platform.deepseek.com/api-keys',        'label'=>'platform.deepseek.com'],
-                                'groq'        =>['url'=>'https://console.groq.com/keys',                 'label'=>'console.groq.com'],
-                                'cohere'      =>['url'=>'https://dashboard.cohere.com/api-keys',         'label'=>'dashboard.cohere.com'],
-                                'perplexity'  =>['url'=>'https://www.perplexity.ai/settings/api',        'label'=>'perplexity.ai'],
-                                'openrouter'  =>['url'=>'https://openrouter.ai/keys',                    'label'=>'openrouter.ai'],
-                                'together'    =>['url'=>'https://api.together.ai/settings/api-keys',     'label'=>'api.together.ai'],
-                                'huggingface' =>['url'=>'https://huggingface.co/settings/tokens',        'label'=>'huggingface.co'],
-                                'azure'       =>['url'=>'https://portal.azure.com/',                     'label'=>'portal.azure.com'],
-                                'bedrock'     =>['url'=>'https://aws.amazon.com/bedrock/',               'label'=>'aws.amazon.com/bedrock'],
-                                'replicate'   =>['url'=>'https://replicate.com/account/api-tokens',      'label'=>'replicate.com'],
-                                'fireworks'   =>['url'=>'https://fireworks.ai/account/api-keys',         'label'=>'fireworks.ai'],
-                                'cerebras'    =>['url'=>'https://cloud.cerebras.ai/',                    'label'=>'cloud.cerebras.ai'],
-                                'ai21'        =>['url'=>'https://studio.ai21.com/account/api-key',       'label'=>'studio.ai21.com'],
-                                'sambanova'   =>['url'=>'https://cloud.sambanova.ai/apis',               'label'=>'cloud.sambanova.ai'],
-                                'elevenlabs'  =>['url'=>'https://elevenlabs.io/app/settings/api-keys',   'label'=>'elevenlabs.io'],
-                                'ollama'      =>['url'=>'https://ollama.com/download',                   'label'=>'ollama.com'],
-                            ];
-                            $link = $providerLinks[$key] ?? null;
-                            $providerEmojis = ['claude'=>'🤖','openai'=>'🔮','gemini'=>'✨','mistral'=>'🌀','grok'=>'⚡','deepseek'=>'🔵','groq'=>'🚀','cohere'=>'🧠','perplexity'=>'🔍','openrouter'=>'🔀','together'=>'🤝','huggingface'=>'🤗','azure'=>'☁️','bedrock'=>'🟠','replicate'=>'♻️','fireworks'=>'🎆','cerebras'=>'⚙️','ai21'=>'🔬','sambanova'=>'🏎️','elevenlabs'=>'🎙️','ollama'=>'🦙'];
-                        @endphp
-                        <div style="border-radius:12px;padding:14px;transition:all .13s;"
-                             x-data="providerCard({{ $isConfigured ? 'true' : 'false' }}, '{{ $savedProvider?->id ?? '' }}', '{{ $key }}')"
-                             :style="connected ? 'border:1.5px solid #a7f3d0;background:#f0fdf4;' : 'border:1.5px solid #e8ecf0;background:#fafbff;'">
 
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                                <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                    <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:all .13s;"
-                                         :style="connected ? 'background:#dcfce7;border:1px solid #a7f3d0;' : 'background:#f1f5f9;border:1px solid #e2e8f0;'">
-                                        {{ $providerEmojis[$key] ?? '🔧' }}
-                                    </div>
-                                    <div style="min-width:0;">
-                                        <div style="font-size:13px;font-weight:600;color:#0f172a;">{{ $provider['name'] }}</div>
-                                        <div style="font-size:11px;margin-top:1px;transition:color .13s;"
-                                             :style="connected ? 'color:#15803d;' : 'color:#94a3b8;'"
-                                             x-text="connected ? '✓ Connected' : 'Not configured'"></div>
-                                        @if($link)
-                                        <a href="{{ $link['url'] }}" target="_blank" rel="noopener"
-                                           style="display:inline-flex;align-items:center;gap:4px;font-size:10px;margin-top:1px;color:var(--brand);">
-                                            <svg style="width:9px;height:9px;stroke:currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                            {{ $link['label'] }}
-                                        </a>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                                    <button x-show="connected" x-cloak @click="runTest()" :disabled="testing"
-                                            style="padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:500;border:1px solid #e2e8f0;background:#fff;color:#475569;cursor:pointer;transition:all .13s;disabled:opacity:.5;"
-                                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
-                                        <span x-text="testing ? 'Testing…' : 'Test'"></span>
-                                    </button>
-                                    <button @click="open = !open"
-                                            style="padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .13s;border:1px solid;"
-                                            :style="connected
-                                                ? 'background:#dcfce7;border-color:#a7f3d0;color:#15803d;'
-                                                : 'background:var(--brand-light,#eef2ff);border-color:var(--brand-ring,#c7d2fe);color:var(--brand);'">
-                                        <span x-text="connected ? '✓ Update' : '+ Connect'"></span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div x-show="testResult || saveResult" style="margin-top:10px;padding:10px 12px;border-radius:9px;font-size:12px;"
-                                 :style="(testResult?.success || saveResult?.success)
-                                    ? 'background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;'
-                                    : 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b;'">
-                                <span x-text="testResult?.message || saveResult?.message"></span>
-                            </div>
-
-                            <div x-show="open" x-transition style="margin-top:12px;padding-top:12px;border-top:1px solid #e8ecf0;display:flex;flex-direction:column;gap:10px;">
-                                <input type="hidden" id="provider_key_{{ $key }}" value="{{ $key }}">
-                                <input type="hidden" id="csrf_{{ $key }}" value="{{ csrf_token() }}">
-
-                                @if($key !== 'ollama')
-                                <div>
-                                    <label class="slabel">API Key</label>
-                                    <input type="password" id="api_key_{{ $key }}"
-                                           :placeholder="connected ? '•••••••• (leave blank to keep current)' : 'Enter {{ $provider['name'] }} API key'"
-                                           class="sfield" style="background:#fff;border:1.5px solid #e2e8f0;color:#0f172a;">
-                                </div>
-                                @endif
-
-                                @if(!empty($provider['requires_endpoint']) || $key === 'ollama')
-                                <div>
-                                    <label class="slabel">
-                                        @if($key === 'ollama') Ollama Host URL
-                                        @elseif($key === 'bedrock') AWS Region
-                                        @else Endpoint URL
-                                        @endif
-                                    </label>
-                                    <input type="text" id="api_url_{{ $key }}"
-                                           value="{{ $savedProvider?->api_url ?? $provider['api_url'] }}"
-                                           placeholder="{{ $provider['api_url'] }}"
-                                           class="sfield" style="background:#fff;border:1.5px solid #e2e8f0;color:#0f172a;">
-                                </div>
-                                @endif
-
-                                <div>
-                                    <label class="slabel">Default Model</label>
-                                    <select id="model_{{ $key }}"
-                                            class="sfield" style="background:#fff;border:1.5px solid #e2e8f0;color:#0f172a;appearance:none;cursor:pointer;">
-                                        @foreach($provider['models'] as $mKey => $mName)
-                                        <option value="{{ $mKey }}" {{ ($savedProvider?->default_model === $mKey) ? 'selected' : '' }}>{{ $mName }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div style="display:flex;align-items:center;gap:8px;">
-                                    <input type="checkbox" id="default_{{ $key }}" style="width:14px;height:14px;border-radius:4px;accent-color:var(--brand);">
-                                    <label for="default_{{ $key }}" style="font-size:12.5px;color:#475569;cursor:pointer;">Set as default AI provider</label>
-                                </div>
-
-                                <div style="display:flex;align-items:center;gap:8px;padding-top:2px;">
-                                    <button @click="doSave('{{ $key }}')" :disabled="saving"
-                                            class="sbtn-primary"
-                                            style="font-size:12px;padding:7px 16px;"
-                                            :style="saveResult?.success ? 'background:#16a34a;color:#fff;border-color:#16a34a;box-shadow:none;' : ''">
-                                        <svg x-show="saving" style="width:12px;height:12px;flex-shrink:0;" class="animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                <div class="overflow-x-auto">
+                    <table class="dt-table">
+                        <thead>
+                            <tr>
+                                <th class="dt-th">#</th>
+                                <th class="dt-th">Provider</th>
+                                <th class="dt-th">Category</th>
+                                <th class="dt-th">Model</th>
+                                <th class="dt-th">Status</th>
+                                <th class="dt-th">Updated</th>
+                                <th class="dt-th" style="text-align:right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if="paginated.length === 0">
+                                <tr>
+                                    <td colspan="7" class="dt-empty">
+                                        <svg class="w-10 h-10 mb-3 mx-auto" style="color:var(--border)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
-                                        <span x-text="saving ? 'Saving…' : (saveResult?.success ? '✓ Saved!' : 'Connect')"></span>
-                                    </button>
-                                    <button type="button" @click="open=false; saveResult=null"
-                                            style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:500;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;cursor:pointer;"
-                                            onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-                                        Cancel
-                                    </button>
-                                    <button type="button" x-show="connected" x-cloak
-                                            @click="doRemove('{{ route('settings.ai-provider.delete', ['aiProvider' => $savedProvider?->id ?? 0]) }}')"
-                                            style="margin-left:auto;padding:7px 14px;border-radius:9px;font-size:12px;font-weight:500;color:#ef4444;border:none;background:transparent;cursor:pointer;"
-                                            onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
-                                        Remove
-                                    </button>
+                                        <p class="text-sm font-medium">No AI providers found</p>
+                                        <p class="text-xs mt-1">Try a different search or filter</p>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-for="(provider, i) in paginated" :key="provider.provider">
+                                <tr class="dt-tr">
+                                    <td class="dt-td" style="color:var(--text-3)" x-text="(page - 1) * perPage + i + 1"></td>
+                                    <td class="dt-td">
+                                        <p class="font-semibold text-sm" style="color:var(--text-1)" x-html="highlight(provider.name)"></p>
+                                        <p class="text-[11px] font-mono mt-0.5" style="color:var(--text-3)" x-html="highlight(provider.provider)"></p>
+                                    </td>
+                                    <td class="dt-td">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                              :style="categoryStyle(provider.category)" x-text="provider.category_label"></span>
+                                    </td>
+                                    <td class="dt-td">
+                                        <p class="text-sm font-semibold" style="color:var(--text-2)" x-text="provider.default_model || 'Not selected'"></p>
+                                        <p class="text-[11px] mt-0.5" style="color:var(--text-3)" x-text="provider.model_count + ' models'"></p>
+                                    </td>
+                                    <td class="dt-td">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                              :style="provider.configured ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0' : 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)'">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="provider.configured ? 'bg-green-500' : 'bg-gray-400'"></span>
+                                            <span x-text="provider.configured ? (provider.is_default ? 'Default' : 'Connected') : 'Not configured'"></span>
+                                        </span>
+                                    </td>
+                                    <td class="dt-td" style="color:var(--text-3)" x-text="fmtDate(provider.updated_at)"></td>
+                                    <td class="dt-td" style="text-align:right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button x-show="provider.configured" x-cloak @click="runTest(provider)" :disabled="testing === provider.provider"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                                                    style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">
+                                                <span x-text="testing === provider.provider ? 'Testing...' : 'Test'"></span>
+                                            </button>
+                                            <button @click="openEdit(provider)"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                                    style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;" title="Edit">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                            </button>
+                                            <button x-show="provider.configured" x-cloak @click="removeProvider(provider)"
+                                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                                    style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;" title="Delete">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="dt-foot">
+                    <span class="dt-foot-info" x-text="dtInfo(filtered.length, page, perPage)"></span>
+                    <div class="dt-pages" x-show="totalPages > 1">
+                        <button class="dt-page-btn" @click="page = Math.max(1, page - 1)" :disabled="page === 1">&lsaquo;</button>
+                        <template x-for="p in pageRange" :key="p + '-' + page">
+                            <template x-if="p === '...'"><span class="dt-page-dot">...</span></template>
+                            <template x-if="p !== '...'"><button class="dt-page-btn" :class="p === page ? 'dt-page-on' : ''" @click="page = p" x-text="p"></button></template>
+                        </template>
+                        <button class="dt-page-btn" @click="page = Math.min(totalPages, page + 1)" :disabled="page === totalPages">&rsaquo;</button>
+                    </div>
+                </div>
+
+                <div x-show="showModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.45);" @click.self="closeModal()" x-cloak>
+                    <div class="w-full max-w-lg rounded-2xl overflow-hidden" style="background:var(--card-bg);border:1px solid var(--border);box-shadow:var(--shadow-lg);" @click.stop>
+                        <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border);">
+                            <div>
+                                <h3 class="font-bold text-base" style="color:var(--text-1)" x-text="modalTitle"></h3>
+                                <p class="text-xs mt-0.5" style="color:var(--text-3)"
+                                   x-text="editing?.provider + (editing?.configured && editing?.updated_at ? ' Â· Updated ' + fmtDate(editing?.updated_at) : '')"></p>
+                            </div>
+                            <button @click="closeModal()" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style="color:var(--text-3);">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <form @submit.prevent="saveProvider()" class="p-6 space-y-4">
+                            <div x-show="editing?.provider !== 'ollama'">
+                                {{-- Configured: show "key saved" pill + toggle to update --}}
+                                <div x-show="editing?.configured">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                        <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;">
+                                            <svg style="width:12px;height:12px;color:#16a34a;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                            </svg>
+                                            <span style="font-size:12px;font-weight:600;color:#16a34a;">API key is saved</span>
+                                        </div>
+                                        <button type="button" @click="form.showKeyField = !form.showKeyField"
+                                                style="font-size:12px;font-weight:600;color:var(--brand);background:none;border:1px solid transparent;cursor:pointer;padding:4px 10px;border-radius:7px;transition:all .13s;"
+                                                onmouseover="this.style.background='var(--brand-light,#eef2ff)';this.style.borderColor='var(--brand-ring,#c7d2fe)'"
+                                                onmouseout="this.style.background='none';this.style.borderColor='transparent'">
+                                            <span x-text="form.showKeyField ? 'âœ• Cancel' : 'â†º Update key'"></span>
+                                        </button>
+                                    </div>
+                                    <div x-show="form.showKeyField" x-transition style="margin-top:2px;">
+                                        <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2);">New API Key</label>
+                                        <input type="password" x-model="form.api_key" placeholder="Enter new API key to replace saved key"
+                                               class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                                               style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);">
+                                    </div>
+                                </div>
+                                {{-- Not configured: always show key input --}}
+                                <div x-show="!editing?.configured">
+                                    <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2);">API Key <span style="color:#ef4444">*</span></label>
+                                    <input type="password" x-model="form.api_key" placeholder="Enter API key"
+                                           class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                                           style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);">
                                 </div>
                             </div>
-                        </div>
-                        @endforeach
-                        </div>
+
+                            <div x-show="editing?.requires_endpoint">
+                                <label class="block text-sm font-semibold mb-1.5" style="color:var(--text-2)" x-text="editing?.api_url_label || 'Endpoint URL'"></label>
+                                <input type="text" x-model="form.api_url" class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                                       style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);"
+                                       :placeholder="editing?.api_url_label === 'Ollama Host URL' ? 'http://localhost:11434' : 'https://'">
+                            </div>
+
+                            <div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                    <label class="block text-sm font-semibold" style="color:var(--text-2);">Default Model</label>
+                                    <span class="text-xs" style="color:var(--text-3);" x-text="(editing?.model_count || 0) + ' models available'"></span>
+                                </div>
+                                <select x-model="form.default_model" class="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                                        style="background:var(--input-bg);border:1px solid var(--border);color:var(--text-1);cursor:pointer;">
+                                    <template x-for="model in editing?.models || []" :key="model.key">
+                                        <option :value="model.key" x-text="model.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px;background:var(--surface-raised);border:1px solid var(--border);">
+                                <label class="flex items-center gap-2 cursor-pointer" style="flex:1;">
+                                    <input type="checkbox" x-model="form.set_default" style="width:14px;height:14px;border-radius:4px;accent-color:var(--brand);cursor:pointer;">
+                                    <div>
+                                        <span class="text-sm font-semibold" style="color:var(--text-1);">Set as default provider</span>
+                                        <p class="text-xs mt-0.5" style="color:var(--text-3);">Used for all AI generation by default</p>
+                                    </div>
+                                </label>
+                                <svg x-show="editing?.is_default" style="width:16px;height:16px;color:#f59e0b;flex-shrink:0" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            </div>
+
+                            <div x-show="editing?.external_url" style="padding:8px 12px;border-radius:9px;background:var(--surface-raised);border:1px solid var(--border);">
+                                <div style="font-size:11px;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Get your API key from</div>
+                                <a :href="editing?.external_url" target="_blank" rel="noopener"
+                                   style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--brand);text-decoration:none;">
+                                    <svg style="width:11px;height:11px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    <span x-text="editing?.external_label"></span>
+                                </a>
+                            </div>
+
+                            <div x-show="result" class="rounded-xl px-4 py-3 text-sm"
+                                 :style="result?.success ? 'background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;' : 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b;'">
+                                <span x-text="result?.message"></span>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 pt-2" style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
+                                <button type="button" @click="closeModal()" class="px-4 py-2 rounded-xl text-sm font-medium transition-colors" style="color:var(--text-2);border:1px solid var(--border);">Cancel</button>
+                                <button type="submit" :disabled="saving" class="px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px" style="background:var(--brand);box-shadow:0 2px 8px var(--brand-ring);">
+                                    <span x-text="saving ? 'Saving...' : 'Save Provider'"></span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    @endforeach
                 </div>
             </div>
+
         </div>
 
-        {{-- ──── BRANDING ──── --}}
+        {{-- â”€â”€â”€â”€ BRANDING â”€â”€â”€â”€ --}}
         <div x-show="tab === 'branding'" class="st-panel">
             <div class="scard">
                 <div class="scard-hd">
@@ -588,7 +723,7 @@
                                         </div>
                                         <div style="font-size:10.5px;font-weight:600;"
                                              :style="fontFamily === '{{ $font['name'] }}' ? 'color:var(--brand);' : 'color:#94a3b8;'">
-                                            {{ $font['name'] }}{{ ($font['default'] ?? false) ? ' ✓' : '' }}
+                                            {{ $font['name'] }}{{ ($font['default'] ?? false) ? ' âœ“' : '' }}
                                         </div>
                                     </div>
                                 </label>
@@ -652,11 +787,11 @@
                                     </div>
                                 </template>
                                 <div style="font-size:12.5px;font-weight:600;color:#475569;">Click to upload</div>
-                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">PNG, SVG, JPG · Max 2MB</div>
+                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">PNG, SVG, JPG Â· Max 2MB</div>
                             </div>
                             <input type="file" name="file" x-ref="logoInput" accept="image/*" style="display:none;"
                                    @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
-                            @if($savedLogo)<div style="margin-top:6px;font-size:11px;color:#16a34a;">✓ Logo uploaded</div>@endif
+                            @if($savedLogo)<div style="margin-top:6px;font-size:11px;color:#16a34a;">âœ“ Logo uploaded</div>@endif
                         </form>
 
                         <form method="POST" action="{{ route('settings.branding.upload') }}" enctype="multipart/form-data"
@@ -676,18 +811,18 @@
                                     </div>
                                 </template>
                                 <div style="font-size:12.5px;font-weight:600;color:#475569;">Click to upload</div>
-                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">ICO, PNG, SVG · 32×32px</div>
+                                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">ICO, PNG, SVG Â· 32Ã—32px</div>
                             </div>
                             <input type="file" name="file" x-ref="favInput" accept="image/*,.ico" style="display:none;"
                                    @change="preview = URL.createObjectURL($event.target.files[0]); $el.closest('form').submit()">
-                            @if($savedFav)<div style="margin-top:6px;font-size:11px;color:#16a34a;">✓ Favicon uploaded</div>@endif
+                            @if($savedFav)<div style="margin-top:6px;font-size:11px;color:#16a34a;">âœ“ Favicon uploaded</div>@endif
                         </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- ──── SYSTEM CONFIG ──── --}}
+        {{-- â”€â”€â”€â”€ SYSTEM CONFIG â”€â”€â”€â”€ --}}
         <div x-show="tab === 'system_config'" class="st-panel" x-cloak>
 
             {{-- Success toast --}}
@@ -719,10 +854,9 @@
                         </div>
                         <button type="button" @click="sysShowSidebar = !sysShowSidebar; saveSystemConfig()"
                                 :aria-checked="sysShowSidebar" role="switch"
-                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
-                                :style="sysShowSidebar ? 'background:var(--brand)' : 'background:#d1d5db'">
-                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
-                                  :style="sysShowSidebar ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                                class="sys-toggle-btn"
+                                :class="sysShowSidebar ? 'sys-toggle-on' : 'sys-toggle-off'">
+                            <span class="sys-toggle-thumb" :class="sysShowSidebar ? 'sys-toggle-thumb-on' : ''"></span>
                         </button>
                     </div>
 
@@ -730,15 +864,13 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);">
                         <div>
                             <div style="font-size:13.5px;font-weight:600;color:var(--text-1);">Auto-hide Sidebar</div>
-                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Sidebar fully hides — hover the left edge to reveal it</div>
+                            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Sidebar fully hides â€” hover the left edge to reveal it</div>
                         </div>
-                        <button type="button" @click="sysAutoHideSidebar = !sysAutoHideSidebar; saveSystemConfig()"
+                        <button type="button" @click="if(sysShowSidebar){ sysAutoHideSidebar = !sysAutoHideSidebar; saveSystemConfig(); }"
                                 :aria-checked="sysAutoHideSidebar" role="switch"
-                                :disabled="!sysShowSidebar"
-                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
-                                :style="!sysShowSidebar ? 'opacity:.4;cursor:not-allowed;background:#d1d5db' : (sysAutoHideSidebar ? 'background:var(--brand)' : 'background:#d1d5db')">
-                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
-                                  :style="sysAutoHideSidebar ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                                class="sys-toggle-btn"
+                                :class="!sysShowSidebar ? 'sys-toggle-disabled' : (sysAutoHideSidebar ? 'sys-toggle-on' : 'sys-toggle-off')">
+                            <span class="sys-toggle-thumb" :class="sysAutoHideSidebar ? 'sys-toggle-thumb-on' : ''"></span>
                         </button>
                     </div>
 
@@ -750,10 +882,9 @@
                         </div>
                         <button type="button" @click="sysShowMenu = !sysShowMenu; saveSystemConfig()"
                                 :aria-checked="sysShowMenu" role="switch"
-                                style="position:relative;display:inline-flex;height:24px;width:44px;border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0;"
-                                :style="sysShowMenu ? 'background:var(--brand)' : 'background:#d1d5db'">
-                            <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;"
-                                  :style="sysShowMenu ? 'transform:translateX(20px)' : 'transform:translateX(0)'"></span>
+                                class="sys-toggle-btn"
+                                :class="sysShowMenu ? 'sys-toggle-on' : 'sys-toggle-off'">
+                            <span class="sys-toggle-thumb" :class="sysShowMenu ? 'sys-toggle-thumb-on' : ''"></span>
                         </button>
                     </div>
 
@@ -778,7 +909,7 @@
 
         </div>
 
-        {{-- ──── NOTIFICATIONS ──── --}}
+        {{-- â”€â”€â”€â”€ NOTIFICATIONS â”€â”€â”€â”€ --}}
         <div x-show="tab === 'notifications'" class="st-panel" x-cloak>
             <div class="scard">
                 <div class="scard-hd">
@@ -819,7 +950,7 @@
             </div>
         </div>
 
-        {{-- ──── INTEGRATIONS ──── --}}
+        {{-- â”€â”€â”€â”€ INTEGRATIONS â”€â”€â”€â”€ --}}
         <div x-show="tab === 'integrations'" class="st-panel" x-cloak>
             <div class="scard">
                 <div class="scard-hd">
@@ -833,12 +964,12 @@
                 </div>
                 <div class="scard-body" style="display:flex;flex-direction:column;gap:12px;">
                     @foreach([
-                        ['ico'=>'🐙','label'=>'GitHub',    'desc'=>'Auto-push generated projects to GitHub repos',  'badge'=>'Soon','color'=>'#1e293b'],
-                        ['ico'=>'🪝','label'=>'Webhooks',  'desc'=>'Send build & deploy events to your endpoints',  'badge'=>'Soon','color'=>'#8b5cf6'],
-                        ['ico'=>'💬','label'=>'Slack',     'desc'=>'Get notified in Slack when builds complete',     'badge'=>'Soon','color'=>'#4a154b'],
-                        ['ico'=>'📧','label'=>'SendGrid',  'desc'=>'Transactional email for deployed apps',          'badge'=>'Soon','color'=>'#1a82e2'],
-                        ['ico'=>'☁️','label'=>'AWS S3',    'desc'=>'Store project assets in your S3 bucket',         'badge'=>'Soon','color'=>'#f97316'],
-                        ['ico'=>'🚀','label'=>'Vercel',    'desc'=>'One-click deploy generated apps to Vercel',      'badge'=>'Soon','color'=>'#000'],
+                        ['ico'=>'ðŸ™','label'=>'GitHub',    'desc'=>'Auto-push generated projects to GitHub repos',  'badge'=>'Soon','color'=>'#1e293b'],
+                        ['ico'=>'ðŸª','label'=>'Webhooks',  'desc'=>'Send build & deploy events to your endpoints',  'badge'=>'Soon','color'=>'#8b5cf6'],
+                        ['ico'=>'ðŸ’¬','label'=>'Slack',     'desc'=>'Get notified in Slack when builds complete',     'badge'=>'Soon','color'=>'#4a154b'],
+                        ['ico'=>'ðŸ“§','label'=>'SendGrid',  'desc'=>'Transactional email for deployed apps',          'badge'=>'Soon','color'=>'#1a82e2'],
+                        ['ico'=>'â˜ï¸','label'=>'AWS S3',    'desc'=>'Store project assets in your S3 bucket',         'badge'=>'Soon','color'=>'#f97316'],
+                        ['ico'=>'ðŸš€','label'=>'Vercel',    'desc'=>'One-click deploy generated apps to Vercel',      'badge'=>'Soon','color'=>'#000'],
                     ] as $intg)
                     <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-raised);">
                         <div style="width:40px;height:40px;border-radius:11px;background:var(--surface-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">{{ $intg['ico'] }}</div>
@@ -853,7 +984,7 @@
             </div>
         </div>
 
-        {{-- ──── TEAM ──── --}}
+        {{-- â”€â”€â”€â”€ TEAM â”€â”€â”€â”€ --}}
         <div x-show="tab === 'team'" class="st-panel" x-cloak>
             <div class="scard">
                 <div class="scard-hd">
@@ -891,7 +1022,7 @@
             </div>
         </div>
 
-        {{-- ──── DANGER ZONE ──── --}}
+        {{-- â”€â”€â”€â”€ DANGER ZONE â”€â”€â”€â”€ --}}
         <div x-show="tab === 'danger'" class="st-panel" x-cloak x-data="{ confirmReset: false, confirmDelete: false, resetPhrase: '', deletePhrase: '' }">
             <div style="padding:12px 16px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12.5px;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
                 <svg style="width:16px;height:16px;stroke:currentColor;flex-shrink:0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -987,107 +1118,220 @@
 
 @push('scripts')
 <script>
-function providerCard(isConnected, savedId, providerKey) {
+function aiProviderTable(providerRows) {
     return {
-        connected:   isConnected,
-        providerId:  savedId,
-        open:        false,
-        saving:      false,
-        testing:     false,
-        saveResult:  null,
-        testResult:  null,
+        ...dtMixin({ perPage: 10 }),
 
-        doSave(key) {
-            this.saveResult = null;
-            this.testResult = null;
+        allProviders: providerRows || [],
+        statusFilter: 'all',
+        categoryFilter: '',
+        sortBy: 'name_asc',
+        page: 1,
+        showModal: false,
+        editing: null,
+        saving: false,
+        testing: null,
+        result: null,
+        form: { api_key: '', api_url: '', default_model: '', set_default: false },
 
-            const apiKeyEl  = document.getElementById('api_key_'  + key);
-            const apiUrlEl  = document.getElementById('api_url_'  + key);
-            const modelEl   = document.getElementById('model_'    + key);
-            const defaultEl = document.getElementById('default_'  + key);
-            const csrfEl    = document.getElementById('csrf_'     + key);
+        get categoryPills() {
+            const seen = {};
+            return this.allProviders
+                .filter(p => {
+                    if (seen[p.category]) return false;
+                    seen[p.category] = true;
+                    return true;
+                })
+                .map(p => ({ val: p.category, label: p.category_label }));
+        },
 
-            const keyValue = apiKeyEl ? apiKeyEl.value.trim() : '';
+        categoryCount(category) {
+            return this.allProviders.filter(p => p.category === category).length;
+        },
 
-            if (!this.connected && !keyValue) {
-                this.saveResult = { success: false, message: 'API Key is required. Please paste it in the field above.' };
+        get filtered() {
+            let list = this.allProviders;
+
+            if (this.statusFilter === 'connected') list = list.filter(p => p.configured);
+            if (this.statusFilter === 'missing') list = list.filter(p => !p.configured);
+            if (this.categoryFilter) list = list.filter(p => p.category === this.categoryFilter);
+
+            const q = this.search.trim().toLowerCase();
+            if (q) {
+                list = list.filter(p => [
+                    p.name,
+                    p.provider,
+                    p.category_label,
+                    p.default_model,
+                    p.configured ? 'connected default active' : 'missing not configured',
+                ].some(v => String(v || '').toLowerCase().includes(q)));
+            }
+
+            list = [...list];
+            if (this.sortBy === 'name_asc') list.sort((a, b) => a.name.localeCompare(b.name));
+            if (this.sortBy === 'name_desc') list.sort((a, b) => b.name.localeCompare(a.name));
+            if (this.sortBy === 'connected') list.sort((a, b) => Number(b.configured) - Number(a.configured) || a.name.localeCompare(b.name));
+            if (this.sortBy === 'category') list.sort((a, b) => a.category_label.localeCompare(b.category_label) || a.name.localeCompare(b.name));
+
+            return list;
+        },
+
+        get paginated() {
+            const start = (this.page - 1) * this.perPage;
+            return this.filtered.slice(start, start + this.perPage);
+        },
+
+        get totalPages() {
+            return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+        },
+
+        get pageRange() {
+            return this.dtPageRange(this.totalPages, this.page).map(p => typeof p === 'number' ? p : '...');
+        },
+
+        get modalTitle() {
+            if (!this.editing) return 'AI Provider';
+            return (this.editing.configured ? 'Edit ' : 'Connect ') + this.editing.name;
+        },
+
+        highlight(text) {
+            return this.dtHighlight(text, this.search.trim());
+        },
+
+        openEdit(provider) {
+            this.editing = { ...provider };
+            this.form = {
+                api_key: '',
+                api_url: provider.api_url || '',
+                default_model: provider.default_model || provider.models?.[0]?.key || '',
+                set_default: !!provider.is_default,
+                showKeyField: !provider.configured,
+            };
+            this.result = null;
+            this.showModal = true;
+        },
+
+        closeModal() {
+            this.showModal = false;
+            this.editing = null;
+            this.result = null;
+        },
+
+        saveProvider() {
+            if (!this.editing) return;
+            if (this.editing.provider !== 'ollama' && !this.editing.configured && !this.form.api_key.trim()) {
+                this.result = { success: false, message: 'API Key is required for this provider.' };
                 return;
             }
 
             this.saving = true;
-
-            const body = {
-                provider:      key,
-                api_key:       keyValue,
-                api_url:       apiUrlEl  ? apiUrlEl.value  : '',
-                default_model: modelEl   ? modelEl.value   : '',
-                set_default:   defaultEl ? (defaultEl.checked ? '1' : '0') : '0',
-            };
+            this.result = null;
 
             fetch('{{ route('settings.ai-provider.save') }}', {
-                method:  'POST',
+                method: 'POST',
                 headers: {
-                    'Content-Type':  'application/json',
-                    'Accept':        'application/json',
-                    'X-CSRF-TOKEN':  csrfEl ? csrfEl.value : document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
-                body: JSON.stringify(body),
+                body: JSON.stringify({
+                    provider: this.editing.provider,
+                    api_key: this.form.api_key.trim(),
+                    api_url: this.form.api_url,
+                    default_model: this.form.default_model,
+                    set_default: this.form.set_default ? '1' : '0',
+                }),
             })
-            .then(r => r.json())
-            .then(data => {
-                this.saving     = false;
-                this.saveResult = data;
-                if (data.success) {
-                    this.connected  = true;
-                    this.providerId = data.provider_id ?? this.providerId;
-                    if (apiKeyEl) apiKeyEl.value = '';
-                    setTimeout(() => { this.open = false; this.saveResult = null; }, 2500);
-                }
+            .then(r => r.json().then(data => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+                this.saving = false;
+                this.result = data;
+                if (!ok || !data.success) return;
+
+                this.allProviders = this.allProviders.map(provider => {
+                    if (provider.provider !== this.editing.provider) {
+                        return this.form.set_default ? { ...provider, is_default: false } : provider;
+                    }
+
+                    return {
+                        ...provider,
+                        configured: true,
+                        provider_id: data.provider_id || provider.provider_id,
+                        api_url: this.form.api_url,
+                        default_model: this.form.default_model,
+                        is_default: this.form.set_default || provider.is_default,
+                        updated_at: new Date().toISOString(),
+                    };
+                });
+
+                setTimeout(() => this.closeModal(), 900);
             })
             .catch(() => {
-                this.saving     = false;
-                this.saveResult = { success: false, message: 'Network error — please try again.' };
+                this.saving = false;
+                this.result = { success: false, message: 'Network error. Please try again.' };
             });
         },
 
-        runTest() {
-            this.testing    = true;
-            this.testResult = null;
-            this.saveResult = null;
+        runTest(provider) {
+            this.testing = provider.provider;
 
             fetch('{{ route('settings.ai-provider.test') }}', {
-                method:  'POST',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept':       'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
-                body: JSON.stringify({ provider: providerKey }),
-            })
-            .then(r => r.json())
-            .then(data => { this.testing = false; this.testResult = data; })
-            .catch(() => { this.testing = false; this.testResult = { success: false, message: 'Connection failed.' }; });
-        },
-
-        doRemove(deleteUrl) {
-            if (!confirm('Remove this provider and its API key?')) return;
-            fetch(deleteUrl, {
-                method:  'DELETE',
-                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: JSON.stringify({ provider: provider.provider }),
             })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    this.connected  = false;
-                    this.providerId = '';
-                    this.open       = false;
-                    this.saveResult = null;
-                    this.testResult = null;
-                }
+                this.testing = null;
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { type: data.success ? 'success' : 'error', message: data.message || 'Connection test complete.' }
+                }));
             })
-            .catch(() => {});
+            .catch(() => {
+                this.testing = null;
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Connection failed.' } }));
+            });
+        },
+
+        removeProvider(provider) {
+            if (!provider.provider_id || !confirm('Remove ' + provider.name + ' and its API key?')) return;
+
+            fetch('/settings/ai-providers/' + provider.provider_id, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                this.allProviders = this.allProviders.map(p => p.provider === provider.provider
+                    ? { ...p, configured: false, provider_id: null, is_default: false, updated_at: null }
+                    : p
+                );
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: provider.name + ' removed.' } }));
+            });
+        },
+
+        categoryStyle(category) {
+            return {
+                text: 'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe',
+                voice: 'background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff',
+                local: 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
+            }[category] || 'background:var(--surface-raised);color:var(--text-3);border:1px solid var(--border)';
+        },
+
+        fmtDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         },
     };
 }
 </script>
 @endpush
+

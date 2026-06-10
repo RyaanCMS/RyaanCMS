@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AIProvider;
+use App\Models\AIProviderKey;
 use App\Models\Setting;
 use App\Services\AI\AIManager;
 use Illuminate\Http\Request;
@@ -65,6 +66,74 @@ class SettingsController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // ── AI Provider key management ──────────────────────────────────────────────
+
+    public function addProviderKey(Request $request, AIProvider $aiProvider)
+    {
+        abort_if($aiProvider->user_id !== Auth::id(), 403);
+
+        $request->validate([
+            'label'   => ['nullable', 'string', 'max:100'],
+            'api_key' => ['required', 'string'],
+        ]);
+
+        $keyNumber  = $aiProvider->keys()->count() + 1;
+        $isPrimary  = $keyNumber === 1;
+
+        $key = $aiProvider->keys()->create([
+            'user_id'    => Auth::id(),
+            'label'      => $request->input('label') ?: "Key {$keyNumber}",
+            'api_key'    => $request->input('api_key'),
+            'is_primary' => $isPrimary,
+            'is_active'  => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'key'     => [
+                'id'          => $key->id,
+                'label'       => $key->label,
+                'is_primary'  => $key->is_primary,
+                'is_active'   => $key->is_active,
+                'fail_count'  => 0,
+                'last_used_at' => null,
+            ],
+        ]);
+    }
+
+    public function deleteProviderKey(AIProvider $aiProvider, AIProviderKey $key)
+    {
+        abort_if($aiProvider->user_id !== Auth::id() || $key->ai_provider_id !== $aiProvider->id, 403);
+
+        $wasPrimary = $key->is_primary;
+        $key->delete();
+
+        if ($wasPrimary) {
+            $aiProvider->keys()->where('is_active', true)->first()?->update(['is_primary' => true]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function setPrimaryProviderKey(AIProvider $aiProvider, AIProviderKey $key)
+    {
+        abort_if($aiProvider->user_id !== Auth::id() || $key->ai_provider_id !== $aiProvider->id, 403);
+
+        $aiProvider->keys()->update(['is_primary' => false]);
+        $key->update(['is_primary' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function toggleProviderKey(AIProvider $aiProvider, AIProviderKey $key)
+    {
+        abort_if($aiProvider->user_id !== Auth::id() || $key->ai_provider_id !== $aiProvider->id, 403);
+
+        $key->update(['is_active' => !$key->is_active]);
+
+        return response()->json(['success' => true, 'is_active' => $key->is_active]);
+    }
+
     // AI Provider methods
 
     public function saveAIProvider(Request $request)
@@ -107,6 +176,23 @@ class SettingsController extends Controller
         if ($request->filled('api_key')) {
             $provider->api_key = $request->api_key;
             $provider->save();
+
+            // Sync the new key into ai_provider_keys as the primary key
+            $primaryKey = $provider->keys()->where('is_primary', true)->first();
+            if ($primaryKey) {
+                $primaryKey->api_key = $request->api_key;
+                $primaryKey->fail_count = 0;
+                $primaryKey->last_failed_at = null;
+                $primaryKey->save();
+            } else {
+                $provider->keys()->create([
+                    'user_id'    => Auth::id(),
+                    'label'      => 'Primary Key',
+                    'api_key'    => $request->api_key,
+                    'is_primary' => true,
+                    'is_active'  => true,
+                ]);
+            }
         }
 
         // Set as default if requested or if it's the first provider

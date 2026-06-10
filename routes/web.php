@@ -106,10 +106,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/preferences',                   [SettingsController::class, 'updatePreferences'])->name('preferences');
         Route::post('/branding',                     [SettingsController::class, 'saveBranding'])->name('branding');
         Route::post('/branding/upload',              [SettingsController::class, 'uploadBrandingAsset'])->name('branding.upload');
-        Route::post('/ai-providers',                 [SettingsController::class, 'saveAIProvider'])->name('ai-provider.save');
-        Route::delete('/ai-providers/{aiProvider}',  [SettingsController::class, 'deleteAIProvider'])->name('ai-provider.delete');
-        Route::post('/ai-providers/test',            [SettingsController::class, 'testAIProvider'])->name('ai-provider.test');
-        Route::post('/system-config',                [SettingsController::class, 'saveSystemConfig'])->name('system-config');
+        Route::post('/ai-providers',                                       [SettingsController::class, 'saveAIProvider'])->name('ai-provider.save');
+        Route::delete('/ai-providers/{aiProvider}',                        [SettingsController::class, 'deleteAIProvider'])->name('ai-provider.delete');
+        Route::post('/ai-providers/test',                                  [SettingsController::class, 'testAIProvider'])->name('ai-provider.test');
+        // Per-provider key management (multiple keys / failover)
+        Route::post('/ai-providers/{aiProvider}/keys',                     [SettingsController::class, 'addProviderKey'])->name('ai-provider.key.add');
+        Route::delete('/ai-providers/{aiProvider}/keys/{key}',             [SettingsController::class, 'deleteProviderKey'])->name('ai-provider.key.delete');
+        Route::patch('/ai-providers/{aiProvider}/keys/{key}/primary',      [SettingsController::class, 'setPrimaryProviderKey'])->name('ai-provider.key.primary');
+        Route::patch('/ai-providers/{aiProvider}/keys/{key}/toggle',       [SettingsController::class, 'toggleProviderKey'])->name('ai-provider.key.toggle');
+        Route::post('/system-config',                                      [SettingsController::class, 'saveSystemConfig'])->name('system-config');
 
         // System Updates
         Route::get('/updates',              [UpdateController::class, 'index'])->name('updates');

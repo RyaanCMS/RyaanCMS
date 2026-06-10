@@ -134,15 +134,96 @@ class AIManager
     public function makeFromModel(AIProviderModel $model): AIProviderInterface
     {
         $config = config("ai.providers.{$model->provider}", []);
-        $config['api_key']       = $model->getDecryptedApiKey() ?? $config['api_key'] ?? '';
         $config['default_model'] = $model->default_model ?? $config['default_model'];
 
         if ($model->api_url) {
             $config['api_url'] = $model->api_url;
         }
 
-        $model->markAsUsed();
+        // Prefer the primary key from ai_provider_keys; fall back to ai_providers.api_key
+        $primaryKey = $model->activeKeysForFailover()->first();
+        if ($primaryKey) {
+            $config['api_key'] = $primaryKey->getDecryptedApiKey() ?? '';
+            $primaryKey->markAsUsed();
+        } else {
+            $config['api_key'] = $model->getDecryptedApiKey() ?? $config['api_key'] ?? '';
+            $model->markAsUsed();
+        }
+
         return $this->makeDriver($model->provider, $config);
+    }
+
+    /**
+     * Try an AI call with automatic key failover.
+     * Rotates through all active keys when a key-related error occurs.
+     */
+    public function withKeyFallback(AIProviderModel $model, callable $call): mixed
+    {
+        $activeKeys = $model->activeKeysForFailover()->get();
+        $baseConfig = config("ai.providers.{$model->provider}", []);
+        $baseConfig['default_model'] = $model->default_model ?? $baseConfig['default_model'];
+        if ($model->api_url) {
+            $baseConfig['api_url'] = $model->api_url;
+        }
+
+        // Build ordered list: managed keys first, then fall back to legacy api_providers.api_key
+        $keyAttempts = $activeKeys->map(fn($k) => ['key_model' => $k, 'api_key' => $k->getDecryptedApiKey()])->all();
+
+        if (empty($keyAttempts)) {
+            $legacyKey = $model->getDecryptedApiKey();
+            $keyAttempts = [['key_model' => null, 'api_key' => $legacyKey]];
+        }
+
+        $lastException = null;
+
+        foreach ($keyAttempts as $attempt) {
+            if (empty($attempt['api_key'])) continue;
+
+            try {
+                $config = array_merge($baseConfig, ['api_key' => $attempt['api_key']]);
+                $provider = $this->makeDriver($model->provider, $config);
+                $result = $call($provider);
+
+                if ($attempt['key_model']) {
+                    $attempt['key_model']->markAsUsed();
+                } else {
+                    $model->markAsUsed();
+                }
+
+                return $result;
+            } catch (\Exception $e) {
+                $lastException = $e;
+
+                if ($this->isKeyRelatedError($e)) {
+                    if ($attempt['key_model']) {
+                        $attempt['key_model']->recordFailure();
+                    }
+                    continue;
+                }
+
+                throw $e;
+            }
+        }
+
+        throw $lastException ?? new \RuntimeException(
+            "All API keys for {$model->name} are unavailable or exhausted."
+        );
+    }
+
+    protected function isKeyRelatedError(\Exception $e): bool
+    {
+        $msg = strtolower($e->getMessage());
+        $phrases = [
+            'invalid api key', 'incorrect api key', 'quota exceeded',
+            'insufficient_quota', 'insufficient credit', 'rate limit exceeded',
+            'authentication', 'unauthorized', 'api_key_invalid',
+            'credits exhausted', 'billing', 'payment required',
+        ];
+        foreach ($phrases as $phrase) {
+            if (str_contains($msg, $phrase)) return true;
+        }
+        $code = method_exists($e, 'getCode') ? $e->getCode() : 0;
+        return in_array($code, [401, 402, 403, 429]);
     }
 
     public function makeFromConfig(string $name): AIProviderInterface

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Crypt;
 
 class AIProvider extends Model
@@ -26,6 +27,21 @@ class AIProvider extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function keys(): HasMany
+    {
+        return $this->hasMany(AIProviderKey::class);
+    }
+
+    /** Active keys sorted for failover: primary first, then fewest failures. */
+    public function activeKeysForFailover(): HasMany
+    {
+        return $this->hasMany(AIProviderKey::class)
+            ->where('is_active', true)
+            ->orderByDesc('is_primary')
+            ->orderBy('fail_count')
+            ->orderBy('last_failed_at');
     }
 
     public function setApiKeyAttribute(string $value): void
