@@ -345,6 +345,52 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
 </div>
 
 {{-- ══ KPI ROW — 6 cards ═══════════════════════════════════════ --}}
+<div class="db-smart">
+    <div class="db-smart-card">
+        <div class="db-smart-main">
+            <div>
+                <div class="db-smart-kicker">Workspace Intelligence</div>
+                <div class="db-smart-title">
+                    {{ $readinessScore >= 80 ? 'Your build stack is in strong shape' : ($readinessScore >= 45 ? 'Your workspace is almost ready' : 'A few setup steps will unlock the workspace') }}
+                </div>
+                <div class="db-smart-hint">
+                    RyaanCMS is tracking AI readiness, project momentum, deployments, and module coverage from your actual workspace state.
+                </div>
+            </div>
+            <div class="db-score" style="--score:{{ $readinessScore }};">
+                <div class="db-score-val">{{ $readinessScore }}%</div>
+                <div class="db-score-lbl">Ready</div>
+            </div>
+        </div>
+        <div class="db-signal-row">
+            @foreach($smartSignals as $signal)
+            <div class="db-signal">
+                <div class="db-signal-label">{{ $signal['label'] }}</div>
+                <div class="db-signal-val">
+                    <span class="db-signal-dot" style="background:{{ $signal['ok'] ? '#22c55e' : '#f59e0b' }};"></span>
+                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $signal['value'] }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    <div class="db-smart-card">
+        <div class="db-next">
+            <div>
+                <div class="db-smart-kicker">Next Best Action</div>
+                <div class="db-smart-title">{{ $nextAction['label'] }}</div>
+                <div class="db-smart-hint">{{ $nextAction['hint'] }}</div>
+            </div>
+            <a href="{{ $nextAction['href'] }}" class="db-next-link">
+                Continue
+                <svg style="width:12px;height:12px;stroke:currentColor" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="db-kpi-row">
 
     {{-- Projects --}}

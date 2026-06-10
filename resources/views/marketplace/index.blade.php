@@ -107,17 +107,17 @@
    .ms-card-lg   = featured/popular size (larger, more prominent)
 */
 .ms-card, .ms-card-lg {
-    background: var(--surface-base);
+    background: color-mix(in srgb, var(--surface-base) 96%, #f8fafc);
     border: 1px solid var(--border);
     border-radius: 14px;
     display: flex;
     flex-direction: column;
-    transition: box-shadow .18s, border-color .18s, transform .18s;
+    transition: box-shadow .18s, border-color .18s, transform .18s, background .18s;
     overflow: hidden;
     aspect-ratio: 1;
 }
-.ms-card:hover    { box-shadow: 0 6px 24px rgba(0,0,0,.08); border-color: #c7d2fe; transform: translateY(-2px); }
-.ms-card-lg:hover { box-shadow: 0 8px 32px rgba(0,0,0,.1);  border-color: #c7d2fe; transform: translateY(-2px); }
+.ms-card:hover    { background:#fff; box-shadow: 0 6px 22px rgba(15,23,42,.055); border-color: #dbe2ea; transform: translateY(-2px); }
+.ms-card-lg:hover { background:#fff; box-shadow: 0 8px 28px rgba(15,23,42,.065); border-color: #dbe2ea; transform: translateY(-2px); }
 
 /* Card top accent stripe */
 .ms-card-stripe { height: 3px; width: 100%; flex-shrink: 0; }
@@ -131,18 +131,18 @@
 .ms-card-lg .ms-ico { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
 
 /* Name */
-.ms-card    .ms-name { font-size: 13px;   font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ms-card-lg .ms-name { font-size: 14px;   font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-card    .ms-name { font-size: 13px;   font-weight: 650; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-card-lg .ms-name { font-size: 14px;   font-weight: 680; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Description — 2-line clamp to fit square */
-.ms-card    .ms-desc { font-size: 11.5px; color: var(--text-2); line-height: 1.5; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.ms-card-lg .ms-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.5; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.ms-card    .ms-desc { font-size: 11.5px; color: #94a3b8; line-height: 1.55; font-weight:400; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ms-card-lg .ms-desc { font-size: 12.5px; color: #94a3b8; line-height: 1.55; font-weight:400; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
 /* Tag row */
 .ms-tags { display: flex; flex-wrap: wrap; gap: 4px; }
 .ms-tag  {
     font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px;
-    background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;
+    background: #f8fafc; color: #94a3b8; border: 1px solid #edf2f7;
 }
 
 /* Badges */
@@ -227,8 +227,8 @@
 }
 .ms-card:hover, .ms-card-lg:hover {
     border-left-color: var(--c, var(--brand)) !important;
-    box-shadow: 0 10px 36px color-mix(in srgb, var(--c, var(--brand)) 20%, transparent),
-                0 2px 10px  color-mix(in srgb, var(--c, var(--brand)) 10%, transparent) !important;
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--c, var(--brand)) 12%, transparent),
+                0 2px 8px  color-mix(in srgb, var(--c, var(--brand)) 7%, transparent) !important;
     transform: translateY(-3px) !important;
     border-color: var(--border) !important;
 }
