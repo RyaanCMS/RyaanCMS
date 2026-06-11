@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.69",
+    "latest": "1.1.70",
     "versions": [
         {
             "version": "1.0.0",
@@ -863,6 +863,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.68",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.70",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: sidebar menus missing after fresh install\n\nTwo-layer fix:\n1. InstallController: clear route+config cache before seeding menus, and wrap\n   ensureForUser in try/catch so a stale route cache never blocks the install\n2. app.blade.php: auto-heal on first page load — if developer menus are empty\n   (install edge case), call ensureForUser and reload; fully idempotent via\n   firstOrCreate so safe to run on every page load when menus are missing",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.70/ryaancms-v1.1.70-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.69",
             "critical": false,
             "file_count": null
         }
