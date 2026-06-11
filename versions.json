@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.42",
+    "latest": "1.1.43",
     "versions": [
         {
             "version": "1.0.0",
@@ -539,6 +539,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.41",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.43",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: 5 bugs in Intelligence Credits system\n\n1. Sidebar widget — wrap getBalance() in try/catch; shows safe BYOK defaults\n   if credit_balances table doesn't exist yet (pre-migration).\n\n2. generate() non-streaming — add pre-flight gate check (Credits users were\n   bypassing the gate on non-SSE requests).\n\n3. recordUsageAfterStream — check deduct() return value; log warning on race\n   condition instead of silently dropping it; wrap AiUsageLog::create in\n   try/catch so logging never breaks the generation response.\n\n4. LicenseService — remove unused User import.\n\n5. retryAfterContentFilter — already correct (verified).\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.43/ryaancms-v1.1.43-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.42",
             "critical": false,
             "file_count": null
         }
