@@ -441,7 +441,17 @@ class SettingsController extends Controller
 
         $userId = Auth::id();
         $type   = $request->input('type');
-        $path   = $request->file('file')->store("branding/{$userId}", 'public');
+        $file   = $request->file('file');
+
+        // Store directly in public/uploads/ — no storage:link symlink required on cPanel
+        $dir = public_path("uploads/branding/{$userId}");
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $filename = $type . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $filename);
+        $path = "uploads/branding/{$userId}/{$filename}";
 
         Setting::set("branding.{$type}_path", $path, 'string', $userId);
 

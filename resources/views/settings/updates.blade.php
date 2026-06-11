@@ -462,42 +462,65 @@ function updatesApp() {
             if (this.updating) return;
             this.updating    = true;
             this.progress    = 5;
-            this.progressMsg = version === 'latest'
-                ? `Preparing ${this.pendingUpdates.length} sequential updates…`
-                : `Preparing update to v${version}…`;
+            const total      = this.pendingUpdates.length || 1;
+            let   applied    = 0;
 
-            const tick = setInterval(() => {
-                if (this.progress < 90) this.progress += Math.random() * 8;
-            }, 1200);
+            this.progressMsg = `Preparing update${total > 1 ? 's' : ''}…`;
 
-            try {
-                const r = await fetch('{{ route('settings.updates.apply') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ version })
-                });
-                const d = await r.json();
-                clearInterval(tick);
-                this.progress = 100;
+            // Loop: backend applies ONE step per request (prevents PHP timeout on shared hosting)
+            while (true) {
+                this.progressMsg = `Downloading & applying update ${applied + 1} of ${total}…`;
 
-                if (d.success) {
-                    this.toast(d.message);
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    this.progressMsg = 'Update failed.';
-                    this.toast(d.message || 'Update failed.', false);
+                let d;
+                try {
+                    const r = await fetch('{{ route('settings.updates.apply') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ version })
+                    });
+                    d = await r.json();
+                } catch (e) {
+                    this.toast('Network error: ' + e.message, false);
                     this.updating = false;
                     this.progress = 0;
+                    this.progressMsg = '';
+                    return;
                 }
-            } catch (e) {
-                clearInterval(tick);
-                this.toast('Network error: ' + e.message, false);
-                this.updating = false;
-                this.progress = 0;
+
+                if (!d.success) {
+                    // "already up to date" means the loop finished cleanly
+                    if (applied > 0) {
+                        this.progress = 100;
+                        this.progressMsg = 'All updates applied!';
+                        this.toast(`Successfully updated — all updates applied.`);
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        this.toast(d.message || 'Update failed.', false);
+                        this.updating = false;
+                        this.progress = 0;
+                        this.progressMsg = '';
+                    }
+                    return;
+                }
+
+                applied++;
+                this.progress    = Math.min(95, Math.round((applied / total) * 95));
+                this.progressMsg = `Applied v${d.newVersion}` + (d.remaining > 0 ? ` — ${d.remaining} more pending…` : ' — finalizing…');
+
+                if (d.remaining === 0) {
+                    this.progress = 100;
+                    this.progressMsg = 'Update complete!';
+                    this.toast(d.message || `Updated to v${d.newVersion}.`);
+                    setTimeout(() => window.location.reload(), 1500);
+                    return;
+                }
+
+                // Small pause between steps so server can breathe
+                await new Promise(res => setTimeout(res, 800));
             }
         }
     };

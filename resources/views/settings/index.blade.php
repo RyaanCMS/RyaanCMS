@@ -16,6 +16,9 @@
     $savedFont   = \App\Models\Setting::get('branding.font_family',   'Poppins', $userId);
     $savedLogo   = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $savedFav    = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
+    $brandingUrl = fn(?string $p): string => $p
+        ? (str_starts_with($p, 'uploads/') ? asset($p) : \Illuminate\Support\Facades\Storage::url($p))
+        : '';
     $showDashMenu      = \App\Models\Setting::get('system.show_dashboard_menu',    true,  $userId);
     $showDashSidebar   = \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
     $sidebarAutoHide   = \App\Models\Setting::get('system.sidebar_auto_hide',      false, $userId);
@@ -1068,7 +1071,7 @@
                 <div class="scard-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                         {{-- Logo upload --}}
-                        <form @submit.prevent x-data="{ preview: '{{ $savedLogo ? Storage::url($savedLogo) : '' }}', dragging: false, uploading: false,
+                        <form @submit.prevent x-data="{ preview: '{{ $savedLogo ? $brandingUrl($savedLogo) : '' }}', dragging: false, uploading: false,
                             async upload(file) {
                                 if (!file) return;
                                 this.uploading = true;
@@ -1119,7 +1122,7 @@
                         </form>
 
                         {{-- Favicon upload --}}
-                        <form @submit.prevent x-data="{ preview: '{{ $savedFav ? Storage::url($savedFav) : '' }}', dragging: false, uploading: false,
+                        <form @submit.prevent x-data="{ preview: '{{ $savedFav ? $brandingUrl($savedFav) : '' }}', dragging: false, uploading: false,
                             async upload(file) {
                                 if (!file) return;
                                 this.uploading = true;

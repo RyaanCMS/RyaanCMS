@@ -5,6 +5,12 @@
     $fontFamily  = \App\Models\Setting::get('branding.font_family',   'Inter',   $userId);
     $logoPath    = \App\Models\Setting::get('branding.logo_path',     null,      $userId);
     $faviconPath = \App\Models\Setting::get('branding.favicon_path',  null,      $userId);
+    // Resolve branding asset URL — new paths start with 'uploads/' (direct public/),
+    // legacy paths use the storage symlink (Storage::url)
+    $brandingUrl = function(?string $path): string {
+        if (!$path) return '';
+        return str_starts_with($path, 'uploads/') ? asset($path) : \Illuminate\Support\Facades\Storage::url($path);
+    };
     $fontSlug    = strtolower(str_replace(' ', '+', $fontFamily));
     $showSidebar     = (bool) \App\Models\Setting::get('system.show_dashboard_sidebar', true,  $userId);
     $showTopbar      = (bool) \App\Models\Setting::get('system.show_dashboard_menu',    true,  $userId);
@@ -17,7 +23,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
 
-    <link rel="icon" type="image/svg+xml" href="{{ $faviconPath ? Storage::url($faviconPath) : asset('favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ $faviconPath ? $brandingUrl($faviconPath) : asset('favicon.svg') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family={{ $fontSlug }}:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
@@ -1094,7 +1100,7 @@
         {{-- Logo --}}
         <div style="height:56px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;">
             @if($logoPath)
-            <img src="{{ Storage::url($logoPath) }}" alt="Logo"
+            <img src="{{ $brandingUrl($logoPath) }}" alt="Logo"
                  style="width:32px;height:32px;border-radius:9px;object-cover;flex-shrink:0;">
             @else
             <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px var(--brand-ring);">

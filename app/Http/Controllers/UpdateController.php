@@ -70,11 +70,16 @@ class UpdateController extends Controller
     }
 
     /**
-     * Apply all pending updates (or update to a specific version).
-     * Sequential: 1.0 → 1.1 → 1.2 → 1.3 etc.
+     * Apply ONE pending update step.
+     * The frontend loops — calling this endpoint repeatedly until remaining === 0.
+     * One step per request keeps each request within PHP's max_execution_time.
      */
     public function apply(Request $request)
     {
+        // Allow long-running downloads on restrictive shared hosts
+        @set_time_limit(0);
+        @ini_set('max_execution_time', '0');
+
         $request->validate([
             'version' => ['nullable', 'string', 'max:20'],
         ]);
@@ -83,12 +88,12 @@ class UpdateController extends Controller
         $current       = $this->updater->getCurrentVersion();
 
         if ($targetVersion === 'latest') {
-            $steps = $this->updater->getPendingUpdates($current);
+            $allSteps = $this->updater->getPendingUpdates($current);
         } else {
-            $steps = $this->updater->getUpdatePath($current, $targetVersion);
+            $allSteps = $this->updater->getUpdatePath($current, $targetVersion);
         }
 
-        if (empty($steps)) {
+        if (empty($allSteps)) {
             return response()->json([
                 'success' => false,
                 'message' => 'RyaanCMS is already up to date.',
@@ -107,39 +112,34 @@ class UpdateController extends Controller
         if (!is_dir(storage_path('updates'))) mkdir(storage_path('updates'), 0755, true);
         file_put_contents($lockFile, date('c'));
 
-        $applied = [];
-        $failed  = null;
+        // Apply only the FIRST step — frontend loops for each remaining step
+        $step = $allSteps[0];
 
         try {
-            foreach ($steps as $step) {
-                $this->updater->applyVersion($step);
-                $applied[] = $step['version'];
-            }
+            $this->updater->applyVersion($step);
         } catch (\Throwable $e) {
-            $failed = "v{$step['version']}: " . $e->getMessage();
-        } finally {
             @unlink($lockFile);
-        }
-
-        if ($failed) {
             return response()->json([
                 'success' => false,
-                'applied' => $applied,
-                'message' => $failed,
-                'hint'    => 'Partial update applied. Check error logs for details.',
+                'applied' => [],
+                'message' => "v{$step['version']}: " . $e->getMessage(),
+                'hint'    => 'Update failed. Check server error logs for details.',
             ], 422);
         }
 
-        $newVersion = end($applied);
+        @unlink($lockFile);
+
+        $newVersion = $step['version'];
+        $remaining  = count($allSteps) - 1;
 
         return response()->json([
             'success'    => true,
-            'applied'    => $applied,
+            'applied'    => [$newVersion],
             'newVersion' => $newVersion,
-            'steps'      => count($applied),
-            'message'    => count($applied) === 1
-                ? "Successfully updated to v{$newVersion}."
-                : count($applied) . " updates applied — now on v{$newVersion}.",
+            'remaining'  => $remaining,
+            'message'    => $remaining > 0
+                ? "Applied v{$newVersion} — {$remaining} more update" . ($remaining > 1 ? 's' : '') . ' pending.'
+                : "Successfully updated to v{$newVersion}.",
         ]);
     }
 
