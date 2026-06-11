@@ -8,6 +8,7 @@ use App\Models\ProjectFile;
 use App\Models\User;
 use App\Models\AiUsageLog;
 use App\Services\AI\ComponentRegistry;
+use App\Services\AI\ZeroCostFeatureGenerator;
 use App\Services\AI\DesignVariantService;
 use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\SeniorDevKnowledgeBase;
@@ -28,7 +29,8 @@ class CodeGeneratorService
         protected KnowledgeBaseService   $kb,
         protected SeniorDevKnowledgeBase $seniorKb,
         protected WisdomEngine           $wisdomEngine,
-        protected ComponentRegistry      $componentRegistry,
+        protected ComponentRegistry            $componentRegistry,
+        protected ZeroCostFeatureGenerator  $zeroCost,
         protected ?IntelligenceGate      $gate = null,
         protected ?RyaanCreditsService   $credits = null,
         protected ?CreditPricingService  $pricing = null,
@@ -255,6 +257,31 @@ class CodeGeneratorService
             ];
         }
 
+
+        // Zero-cost feature generation: analytics, reports, calendar, kanban — no AI needed
+        $zcIntent = $this->zeroCost->detectIntent($rawPrompt);
+        if ($zcIntent && !$isTemplateCustomization) {
+            $this->autoTitleConversation($conversation, $rawPrompt);
+            $conversation->addMessage('user', $rawPrompt);
+            $zcFiles = $this->zeroCost->generate($rawPrompt, $project) ?? [];
+            $savedZc = [];
+            foreach ($zcFiles as $f) {
+                $saved = $this->saveFileToProject($project, $f['path'], $f['content']);
+                if ($saved) $savedZc[] = $saved;
+            }
+            $label = $this->zeroCost->intentLabel($zcIntent);
+            $zcMsg = "⚡ **{$label}** generated — " . count($savedZc) . " files created with zero AI tokens.\n\n" .
+                     "Check the files panel. Add any missing routes from the `routes/_*.txt` files into `routes/web.php` and you're ready.";
+            $conversation->addMessage('assistant', $zcMsg, ['tokens_used' => 0, 'model' => 'zero-cost', 'generated_files' => array_column($savedZc, 'path')]);
+            return [
+                'message'         => $zcMsg,
+                'files_generated' => $savedZc,
+                'tokens_used'     => 0,
+                'tokens_saved'    => 8000,
+                'model'           => 'zero-cost',
+                'task_type'       => $taskType,
+            ];
+        }
         // Wisdom routing: check if this task can bypass AI entirely
         $wisdomRoute = $isTemplateCustomization
             ? ['use_ai' => true, 'routing_step' => 7, 'reason' => 'Template customization requires AI.']

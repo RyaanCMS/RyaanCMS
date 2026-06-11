@@ -12,6 +12,7 @@ use App\Services\AI\DesignVariantService;
 use App\Services\AI\IntentEngine;
 use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\MetadataCrudGenerator;
+use App\Services\AI\ZeroCostFeatureGenerator;
 use App\Services\AI\MultilingualNormalizer;
 use App\Services\AI\Pipeline\PipelineOrchestrator;
 use App\Services\AI\Pipeline\BuildValidator;
@@ -46,6 +47,7 @@ class AIServiceProvider extends ServiceProvider
         ));
         $this->app->singleton(DesignVariantService::class, fn() => new DesignVariantService());
         $this->app->singleton(ComponentRegistry::class, fn() => new ComponentRegistry());
+        $this->app->singleton(ZeroCostFeatureGenerator::class, fn() => new ZeroCostFeatureGenerator());
 
         $this->app->singleton(RyaanCreditsService::class, fn() => new RyaanCreditsService());
         $this->app->singleton(CreditPricingService::class, fn() => new CreditPricingService());
@@ -75,6 +77,7 @@ class AIServiceProvider extends ServiceProvider
             $app->make(SeniorDevKnowledgeBase::class),
             $app->make(WisdomEngine::class),
             $app->make(ComponentRegistry::class),
+            $app->make(ZeroCostFeatureGenerator::class),
             $app->make(IntelligenceGate::class),
             $app->make(RyaanCreditsService::class),
             $app->make(CreditPricingService::class),
