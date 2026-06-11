@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.52",
+    "latest": "1.1.53",
     "versions": [
         {
             "version": "1.0.0",
@@ -659,6 +659,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.51",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.53",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: update manifest URL back to GitHub raw (public update channel)\n\nUsers check for updates directly from:\n  https://raw.githubusercontent.com/RyaanCMS/RyaanCMS/main/versions.json\n\nAny release pushed to the repo automatically becomes available to all\ninstalled instances via Settings → Updates. Override with UPDATE_MANIFEST_URL\nin .env for private mirrors.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.53/ryaancms-v1.1.53-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.52",
             "critical": false,
             "file_count": null
         }
