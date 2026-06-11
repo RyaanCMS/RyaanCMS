@@ -1526,7 +1526,7 @@ Alpine JS data function — spread dtMixin first, then override:
     return {
       ...dtMixin({ perPage: 10 }),  // provides: search, page, perPage, perPageOpts, dtSearch(), dtPageRange(), dtInfo(), dtHighlight()
       allRows: @json(\$records ?? []),  // replace \$records with the actual collection variable passed by the controller
-      init() { this.$watch('perPage', () => { this.page = 1; }); },
+      init() { this.\$watch('perPage', () => { this.page = 1; }); },
       get filtered() {
         let list = this.allRows;
         // apply any extra filters…
@@ -1552,7 +1552,7 @@ You are a low-code expert. When solving problems or implementing features, alway
 1. USE WHAT EXISTS FIRST
    - Before writing custom code, check if the framework / ecosystem already solves it
    - Laravel: leverage Eloquent scopes, mutators, casts, policies, form requests, observers, jobs, events
-   - Alpine.js: $store, $dispatch, $watch, magic methods — avoid vanilla JS duplication
+   - Alpine.js: \$store, \$dispatch, \$watch, magic methods — avoid vanilla JS duplication
    - Tailwind: utility classes over custom CSS — only write custom CSS for things Tailwind can't express
 
 2. REACH FOR PACKAGES BEFORE CUSTOM CODE
