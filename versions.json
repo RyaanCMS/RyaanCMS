@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.58",
+    "latest": "1.1.59",
     "versions": [
         {
             "version": "1.0.0",
@@ -731,6 +731,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.57",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.59",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: preserve CRUD files when Step 3 AI call fails\n\nWhen Step 3 (dashboard/advanced logic) fails due to depleted credits,\nrate limit, or any AI error, both streamBlueprintDriven and\ngenerateBlueprintDriven now return the CRUD files already built in\nStep 2 instead of discarding them with an error. User sees the core\nmodules plus a clear message to add/fix their API key and ask for\nthe dashboard separately.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.59/ryaancms-v1.1.59-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.58",
             "critical": false,
             "file_count": null
         }
