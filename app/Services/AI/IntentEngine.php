@@ -19,6 +19,29 @@ class IntentEngine
     public function __construct()
     {
         $this->patterns = require config_path('genome/intent_patterns.php');
+        $this->mergeLanguageSupplements();
+    }
+
+    /**
+     * Merge language_supplements.php (languages 26-100) into the loaded patterns.
+     * Dot-notation keys: "actions.build", "industries.hospital", etc.
+     */
+    private function mergeLanguageSupplements(): void
+    {
+        $path = config_path('genome/language_supplements.php');
+        if (!file_exists($path)) {
+            return;
+        }
+
+        foreach (require $path as $dotKey => $words) {
+            [$section, $key] = explode('.', $dotKey, 2);
+            if (isset($this->patterns[$section][$key]['patterns'])) {
+                $this->patterns[$section][$key]['patterns'] = array_merge(
+                    $this->patterns[$section][$key]['patterns'],
+                    array_values((array) $words)
+                );
+            }
+        }
     }
 
     /**
