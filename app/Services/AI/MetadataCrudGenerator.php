@@ -1901,18 +1901,24 @@ BLADE;
     {
         $t = strtolower($appName . ' ' . implode(' ', array_column($entities, 'name')));
 
+        // Variant 0-2: each app name deterministically picks a different color scheme
+        // within its domain — same app name = same design, different names = different designs
+        $v = (crc32($appName) & 0x7FFFFFFF) % 3;
+
         if (preg_match('/hospital|clinic|medical|health|patient|doctor|nurse|pharmacy|ward|surgery|diagnostic|icu|opd/', $t)) {
+            $colors = [
+                ['#0ea5e9','#0284c7','#e0f2fe','#020d18 0%,#0b1a2e 40%,#082330 100%'],
+                ['#06b6d4','#0891b2','#cffafe','#020e12 0%,#051a20 40%,#062830 100%'],
+                ['#10b981','#059669','#d1fae5','#020f08 0%,#051a10 40%,#071d12 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'hospital',
-                'brand'     => '#0ea5e9',
-                'brandDk'   => '#0284c7',
-                'brandLight'=> '#e0f2fe',
-                'gradient'  => '#020d18 0%,#0b1a2e 40%,#082330 100%',
+                'domain'    => 'hospital',   'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🏥 Healthcare Platform · HIPAA Ready · Real-time',
                 'heroSub'   => 'Streamline patient care, clinical workflows, staff management and medical records — all in one secure, compliant platform built for modern hospitals.',
                 'metrics'   => [['num'=>'50K+','lbl'=>'Patients Managed'],['num'=>'99.9%','lbl'=>'System Uptime'],['num'=>'200+','lbl'=>'Clinical Staff']],
-                'userRole'  => 'Chief Medical Officer',
-                'userName'  => 'Dr. Admin',
+                'userRole'  => 'Chief Medical Officer', 'userName' => 'Dr. Admin',
                 'sbSection' => 'Clinical Modules',
                 'kpiPfx'    => ['Active','On Duty','Scheduled','Available','Pending','Completed','Registered','In Queue'],
                 'featSuffix'=> 'with complete clinical history, audit trails, and HIPAA-compliant data storage.',
@@ -1920,17 +1926,19 @@ BLADE;
         }
 
         if (preg_match('/ecommerce|e-commerce|shop|store|retail|product|order|cart|checkout|marketplace|catalogue/', $t)) {
+            $colors = [
+                ['#7c3aed','#6d28d9','#ede9fe','#0d0618 0%,#130926 40%,#1a0d35 100%'],
+                ['#6366f1','#4f46e5','#eef2ff','#06040f 0%,#0f0a24 40%,#130d2e 100%'],
+                ['#ec4899','#db2777','#fce7f3','#140208 0%,#250410 40%,#2d0515 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'ecommerce',
-                'brand'     => '#7c3aed',
-                'brandDk'   => '#6d28d9',
-                'brandLight'=> '#ede9fe',
-                'gradient'  => '#0d0618 0%,#130926 40%,#1a0d35 100%',
+                'domain'    => 'ecommerce',  'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🛍️ eCommerce Platform · Multi-Store · Scalable',
                 'heroSub'   => 'Manage your entire store — products, orders, customers, inventory, and analytics — from one powerful platform that scales with your business.',
                 'metrics'   => [['num'=>'$2.4M','lbl'=>'Revenue Processed'],['num'=>'15K+','lbl'=>'Orders Fulfilled'],['num'=>'8K+','lbl'=>'Happy Customers']],
-                'userRole'  => 'Store Manager',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Store Manager', 'userName' => 'Admin User',
                 'sbSection' => 'Store Modules',
                 'kpiPfx'    => ['Total','New','Pending','Active','Completed','Featured','Published','Fulfilled'],
                 'featSuffix'=> 'with advanced filtering, bulk actions, and real-time inventory sync.',
@@ -1938,17 +1946,19 @@ BLADE;
         }
 
         if (preg_match('/school|education|university|college|academy|student|teacher|course|class|grade|exam|curriculum|faculty/', $t)) {
+            $colors = [
+                ['#2563eb','#1d4ed8','#dbeafe','#020714 0%,#080f24 40%,#0a1030 100%'],
+                ['#0ea5e9','#0284c7','#e0f2fe','#020a12 0%,#051525 40%,#072030 100%'],
+                ['#8b5cf6','#7c3aed','#ede9fe','#0d0618 0%,#12082a 40%,#160a30 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'education',
-                'brand'     => '#2563eb',
-                'brandDk'   => '#1d4ed8',
-                'brandLight'=> '#dbeafe',
-                'gradient'  => '#020714 0%,#080f24 40%,#0a1030 100%',
+                'domain'    => 'education',  'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🎓 Education Platform · LMS Ready · Multi-Campus',
                 'heroSub'   => 'Manage students, teachers, courses, exams, and academic records with a modern learning management system built for 21st century education.',
                 'metrics'   => [['num'=>'5K+','lbl'=>'Students Enrolled'],['num'=>'98%','lbl'=>'Pass Rate'],['num'=>'150+','lbl'=>'Courses Offered']],
-                'userRole'  => 'Principal',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Principal', 'userName' => 'Admin User',
                 'sbSection' => 'Academic Modules',
                 'kpiPfx'    => ['Enrolled','Active','Scheduled','Graded','Passed','Published','Registered','Assigned'],
                 'featSuffix'=> 'with academic tracking, progress reports, and parent portal integration.',
@@ -1956,17 +1966,19 @@ BLADE;
         }
 
         if (preg_match('/restaurant|food|cafe|menu|kitchen|recipe|dish|table|reservation|waiter|chef|dine/', $t)) {
+            $colors = [
+                ['#ea580c','#c2410c','#fff7ed','#180802 0%,#1f0f05 40%,#241206 100%'],
+                ['#f59e0b','#d97706','#fef3c7','#100a02 0%,#1a1205 40%,#1e1608 100%'],
+                ['#ef4444','#dc2626','#fee2e2','#180202 0%,#240505 40%,#2c0505 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'restaurant',
-                'brand'     => '#ea580c',
-                'brandDk'   => '#c2410c',
-                'brandLight'=> '#fff7ed',
-                'gradient'  => '#180802 0%,#1f0f05 40%,#241206 100%',
+                'domain'    => 'restaurant', 'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🍽️ Restaurant Platform · POS Ready · Multi-Branch',
                 'heroSub'   => 'Run your restaurant smarter — manage orders, tables, menu, kitchen workflow, staff and customer experience from a single integrated platform.',
                 'metrics'   => [['num'=>'500+','lbl'=>'Orders Daily'],['num'=>'4.9★','lbl'=>'Customer Rating'],['num'=>'12+','lbl'=>'Locations']],
-                'userRole'  => 'Restaurant Manager',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Restaurant Manager', 'userName' => 'Admin User',
                 'sbSection' => 'Restaurant Modules',
                 'kpiPfx'    => ["Today's",'Active','Pending','Completed','Available','Featured','Reserved','Open'],
                 'featSuffix'=> 'with real-time kitchen display, POS integration, and customer feedback.',
@@ -1974,17 +1986,19 @@ BLADE;
         }
 
         if (preg_match('/hotel|resort|property|realestate|real.estate|room|booking|guest|tenant|lease|apartment|hostel|accommodation/', $t)) {
+            $colors = [
+                ['#d97706','#b45309','#fef3c7','#180e02 0%,#1a1005 40%,#1e1408 100%'],
+                ['#f59e0b','#d97706','#fef9c3','#12100 0%,#1e1600 40%,#241c02 100%'],
+                ['#0ea5e9','#0284c7','#e0f2fe','#020d18 0%,#0b1a2e 40%,#082330 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'hotel',
-                'brand'     => '#d97706',
-                'brandDk'   => '#b45309',
-                'brandLight'=> '#fef3c7',
-                'gradient'  => '#180e02 0%,#1a1005 40%,#1e1408 100%',
+                'domain'    => 'hotel',      'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🏨 Property Platform · Multi-Property · Revenue Mgmt',
                 'heroSub'   => 'Manage reservations, guests, rooms, housekeeping, billing and revenue across all your properties from one elegant platform.',
                 'metrics'   => [['num'=>'95%','lbl'=>'Occupancy Rate'],['num'=>'1.2K','lbl'=>'Happy Guests'],['num'=>'48h','lbl'=>'Avg Stay']],
-                'userRole'  => 'General Manager',
-                'userName'  => 'Admin User',
+                'userRole'  => 'General Manager', 'userName' => 'Admin User',
                 'sbSection' => 'Property Modules',
                 'kpiPfx'    => ['Available','Booked','Check-in','Check-out','Occupied','Reserved','Pending','Completed'],
                 'featSuffix'=> 'with channel manager integration, revenue optimization, and guest CRM.',
@@ -1992,17 +2006,19 @@ BLADE;
         }
 
         if (preg_match('/finance|bank|accounting|loan|ledger|transaction|account|balance|payroll|tax|audit|budget|insurance|capital/', $t)) {
+            $colors = [
+                ['#1e40af','#1e3a8a','#dbeafe','#02060f 0%,#060d1f 40%,#080e25 100%'],
+                ['#0f172a','#020617','#e2e8f0','#000000 0%,#030308 40%,#060612 100%'],
+                ['#0ea5e9','#0284c7','#e0f2fe','#020d18 0%,#0b1a2e 40%,#082330 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'finance',
-                'brand'     => '#1e40af',
-                'brandDk'   => '#1e3a8a',
-                'brandLight'=> '#dbeafe',
-                'gradient'  => '#02060f 0%,#060d1f 40%,#080e25 100%',
+                'domain'    => 'finance',    'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '🏦 Finance Platform · SOX Compliant · Real-time',
                 'heroSub'   => 'Comprehensive financial management — accounts, transactions, loans, payroll, tax reporting and audit trails built for modern financial institutions.',
                 'metrics'   => [['num'=>'$50M+','lbl'=>'Assets Managed'],['num'=>'100%','lbl'=>'Audit Compliant'],['num'=>'5K+','lbl'=>'Client Accounts']],
-                'userRole'  => 'Finance Director',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Finance Director', 'userName' => 'Admin User',
                 'sbSection' => 'Finance Modules',
                 'kpiPfx'    => ['Total','Active','Pending','Processed','Outstanding','Cleared','Approved','Reconciled'],
                 'featSuffix'=> 'with double-entry accounting, real-time reconciliation, and regulatory reporting.',
@@ -2010,17 +2026,19 @@ BLADE;
         }
 
         if (preg_match('/\bhr\b|human.resource|employee|staff|recruitment|payroll|attendance|leave|performance|training|onboard/', $t)) {
+            $colors = [
+                ['#7c3aed','#6d28d9','#ede9fe','#0d0618 0%,#12082a 40%,#160a30 100%'],
+                ['#8b5cf6','#7c3aed','#f3e8ff','#0f0620 0%,#160930 40%,#1a0b38 100%'],
+                ['#ec4899','#db2777','#fce7f3','#140208 0%,#250410 40%,#2d0515 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'hr',
-                'brand'     => '#7c3aed',
-                'brandDk'   => '#6d28d9',
-                'brandLight'=> '#ede9fe',
-                'gradient'  => '#0d0618 0%,#12082a 40%,#160a30 100%',
+                'domain'    => 'hr',         'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '👥 HR Platform · HRMS · Payroll Automation',
                 'heroSub'   => 'Manage your entire workforce — recruitment, onboarding, attendance, payroll, performance reviews and training from one intelligent HR platform.',
                 'metrics'   => [['num'=>'500+','lbl'=>'Employees Managed'],['num'=>'99%','lbl'=>'Payroll Accuracy'],['num'=>'40h','lbl'=>'Saved Monthly']],
-                'userRole'  => 'HR Director',
-                'userName'  => 'Admin User',
+                'userRole'  => 'HR Director', 'userName' => 'Admin User',
                 'sbSection' => 'HR Modules',
                 'kpiPfx'    => ['Total','Active','On Leave','New Hires','Pending','Completed','Approved','Scheduled'],
                 'featSuffix'=> 'with automated payroll, leave approval workflows, and performance dashboards.',
@@ -2028,17 +2046,19 @@ BLADE;
         }
 
         if (preg_match('/\bcrm\b|sales|lead|deal|pipeline|prospect|opportunity|campaign|funnel/', $t)) {
+            $colors = [
+                ['#059669','#047857','#d1fae5','#020f0a 0%,#051a10 40%,#071d12 100%'],
+                ['#10b981','#059669','#ecfdf5','#020d08 0%,#041a0a 40%,#051d0c 100%'],
+                ['#06b6d4','#0891b2','#cffafe','#020e12 0%,#051a20 40%,#062830 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'crm',
-                'brand'     => '#059669',
-                'brandDk'   => '#047857',
-                'brandLight'=> '#d1fae5',
-                'gradient'  => '#020f0a 0%,#051a10 40%,#071d12 100%',
+                'domain'    => 'crm',        'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '📈 CRM Platform · Sales Pipeline · Revenue Intelligence',
                 'heroSub'   => 'Supercharge your sales team with intelligent lead tracking, deal pipeline management, customer insights, and automated follow-up workflows.',
                 'metrics'   => [['num'=>'340%','lbl'=>'Pipeline Growth'],['num'=>'2.4x','lbl'=>'Faster Close Rate'],['num'=>'$1.8M','lbl'=>'Revenue Tracked']],
-                'userRole'  => 'Sales Director',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Sales Director', 'userName' => 'Admin User',
                 'sbSection' => 'Sales Modules',
                 'kpiPfx'    => ['Total','Hot','Qualified','Closed','Active','New','Won','In Progress'],
                 'featSuffix'=> 'with pipeline visualization, activity tracking, and revenue forecasting.',
@@ -2046,34 +2066,39 @@ BLADE;
         }
 
         if (preg_match('/inventory|warehouse|stock|logistics|supply|shipment|purchase|vendor|supplier|freight|dispatch/', $t)) {
+            $colors = [
+                ['#f59e0b','#d97706','#fef3c7','#100a02 0%,#1a1205 40%,#1e1608 100%'],
+                ['#ea580c','#c2410c','#fff7ed','#180802 0%,#1f0f05 40%,#241206 100%'],
+                ['#84cc16','#65a30d','#ecfccb','#070e02 0%,#0f1a03 40%,#121e04 100%'],
+            ];
+            [$brand,$brandDk,$brandLight,$gradient] = $colors[$v];
             return [
-                'domain'    => 'inventory',
-                'brand'     => '#f59e0b',
-                'brandDk'   => '#d97706',
-                'brandLight'=> '#fef3c7',
-                'gradient'  => '#100a02 0%,#1a1205 40%,#1e1608 100%',
+                'domain'    => 'inventory',  'brand' => $brand, 'brandDk' => $brandDk,
+                'brandLight'=> $brandLight,  'gradient' => $gradient,
                 'heroTag'   => '📦 Inventory Platform · WMS · Real-time Tracking',
                 'heroSub'   => 'Take full control of your supply chain — track stock levels, manage vendors, process purchase orders and optimize warehouse operations in real time.',
                 'metrics'   => [['num'=>'99.8%','lbl'=>'Inventory Accuracy'],['num'=>'10K+','lbl'=>'SKUs Tracked'],['num'=>'48h','lbl'=>'Avg Fulfillment']],
-                'userRole'  => 'Warehouse Manager',
-                'userName'  => 'Admin User',
+                'userRole'  => 'Warehouse Manager', 'userName' => 'Admin User',
                 'sbSection' => 'Inventory Modules',
                 'kpiPfx'    => ['Total','In Stock','Low Stock','Pending','Shipped','Received','Returned','Reserved'],
                 'featSuffix'=> 'with barcode scanning, reorder alerts, and multi-warehouse support.',
             ];
         }
 
+        // Default — 3 color variants so different apps look distinct
+        $defColors = [
+            ['#6366f1','#4f46e5','#eef2ff','#06040f 0%,#0f0a24 40%,#130d2e 100%'],
+            ['#8b5cf6','#7c3aed','#f3e8ff','#0f0620 0%,#160930 40%,#1a0b38 100%'],
+            ['#0ea5e9','#0284c7','#e0f2fe','#020d18 0%,#0b1a2e 40%,#082330 100%'],
+        ];
+        [$brand,$brandDk,$brandLight,$gradient] = $defColors[$v];
         return [
-            'domain'    => 'default',
-            'brand'     => '#6366f1',
-            'brandDk'   => '#4f46e5',
-            'brandLight'=> '#eef2ff',
-            'gradient'  => '#06040f 0%,#0f0a24 40%,#130d2e 100%',
+            'domain'    => 'default',    'brand' => $brand, 'brandDk' => $brandDk,
+            'brandLight'=> $brandLight,  'gradient' => $gradient,
             'heroTag'   => '✦ Enterprise Platform · Production Ready · AI Powered',
             'heroSub'   => 'The complete enterprise management platform. Manage all operations, workflows and teams from one intelligent, scalable system built for your business.',
             'metrics'   => [['num'=>(string)count($entities),'lbl'=>'Modules Ready'],['num'=>'∞','lbl'=>'Records Supported'],['num'=>'24/7','lbl'=>'Always Available']],
-            'userRole'  => 'Super Admin',
-            'userName'  => 'Admin User',
+            'userRole'  => 'Super Admin', 'userName' => 'Admin User',
             'sbSection' => 'Modules',
             'kpiPfx'    => ['Total','Active','New','Pending','Completed','Published','Registered','Processed'],
             'featSuffix'=> 'with full CRUD operations, search, filters, export, and audit logging.',
