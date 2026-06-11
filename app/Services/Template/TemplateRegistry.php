@@ -67,6 +67,18 @@ class TemplateRegistry
                 'tags'        => ['agency', 'creative', 'design', 'studio', 'marketing'],
                 'is_global'   => true,
             ],
+            'template.ryaancms' => [
+                'key'         => 'template.ryaancms',
+                'name'        => 'RyaanCMS',
+                'description' => 'The official RyaanCMS platform template — dark-themed, AI-powered CMS showcase',
+                'category'    => 'Platform & CMS',
+                'type'        => 'template',
+                'icon'        => '🤖',
+                'color'       => '#6366f1',
+                'view'        => 'templates.ryaancms',
+                'tags'        => ['cms', 'ai', 'platform', 'builder', 'ryaancms'],
+                'is_global'   => true,
+            ],
         ];
     }
 
