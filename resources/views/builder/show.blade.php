@@ -668,16 +668,6 @@
                 </div>
             </div>
 
-            <div x-show="selectedTemplateKey" x-cloak class="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-xl"
-                 style="background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;">
-                <div class="min-w-0">
-                    <div class="text-xs font-bold truncate" x-text="'AI template context: ' + selectedTemplateName()"></div>
-                    <div class="text-xs opacity-80 truncate">Your prompt will customize this template.</div>
-                </div>
-                <button @click="selectedTemplateKey=''" class="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-lg"
-                        style="background:#fff;color:#4338ca;border:1px solid #c7d2fe;">Clear</button>
-            </div>
-
             <!-- URL input row -->
             <div x-show="showUrlInput" x-transition class="flex items-center gap-2 mb-2">
                 <input type="url" x-model="urlInput"
@@ -804,15 +794,6 @@
                                   x-text="todos.filter(t=>!t.done).length"
                                   style="position:absolute;top:2px;right:2px;min-width:14px;height:14px;padding:0 3px;border-radius:99px;background:var(--brand);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;"></span>
                         </button>
-                        <select x-model="selectedTemplateKey"
-                                title="Use a template as AI context"
-                                class="text-xs rounded-xl px-2 py-1.5 outline-none"
-                                style="max-width:150px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-weight:600;">
-                            <option value="">Template</option>
-                            @foreach($templates as $key => $tpl)
-                            <option value="{{ $key }}">{{ $tpl['name'] }}</option>
-                            @endforeach
-                        </select>
                     </div>
                     <div class="flex items-center gap-2">
                         <span x-show="isRecording && !isThinking" class="text-xs font-medium" style="color:#ef4444;">● REC</span>
