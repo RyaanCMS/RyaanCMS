@@ -522,6 +522,14 @@ FLD;
                 'path'    => 'preview.html',
                 'content' => $this->shellPreviewHtml($appName, array_values($validEntities)),
             ],
+            [
+                'path'    => 'app/Http/Controllers/SettingsController.php',
+                'content' => $this->shellSettingsController(),
+            ],
+            [
+                'path'    => 'resources/views/settings/index.blade.php',
+                'content' => $this->shellSettingsView($appName),
+            ],
         ];
     }
 
@@ -539,8 +547,14 @@ FLD;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+Route::post('/settings/branding', [SettingsController::class, 'updateBranding'])->name('settings.branding');
+Route::post('/settings/email', [SettingsController::class, 'updateEmail'])->name('settings.email');
+Route::post('/settings/system', [SettingsController::class, 'updateSystem'])->name('settings.system');
 
 {$lines}
 PHP;
@@ -631,10 +645,16 @@ BLADE;
         <div style="padding:12px 8px;">
             <a href="{{ route('dashboard') }}"
                class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">📊</span>
                 Dashboard
             </a>
 {$navLinks}
+            <div style="margin:8px 8px 4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em">System</div>
+            <a href="{{ route('settings') }}"
+               class="nav-link {{ request()->routeIs('settings*') ? 'active' : '' }}">
+                <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">⚙️</span>
+                Settings
+            </a>
         </div>
     </nav>
 
@@ -774,8 +794,9 @@ BLADE;
             $label   = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
             $color   = $palette[$i % count($palette)];
             $icon    = $this->entityIcon($e['name']);
-            $count   = number_format($samples[$i % count($samples)]);
-            $trend   = $trends[$i % count($trends)];
+            $rc      = $this->realisticCount($e['name'], $profile['domain']);
+            $count   = number_format($rc['count']);
+            $trend   = $rc['trend'];
             $bgLight = $color . '18';
             $kpiPfx  = $profile['kpiPfx'][$i % 8];
             $kpiLbl  = $kpiPfx . ' ' . $label;
@@ -818,6 +839,9 @@ HTML;
             'name'  => $e['name'],
             'label' => Str::title(str_replace('_', ' ', Str::snake($e['name']))),
         ], $entities)));
+
+        // Settings screen HTML (PHP-built, JSON-passed to JS)
+        $settingsHtmlJson = json_encode($this->buildSettingsHtml($appName, $userName, $userRole, $userInitials, $brand));
 
         $entityCount = count($entities);
         $year        = date('Y');
@@ -1074,6 +1098,10 @@ HTML;
     </button>
     <div class="sb-section">{$sbSection}</div>
     {$sidebarLinks}
+    <div class="sb-section" style="padding-top:12px;margin-top:4px;border-top:1px solid rgba(255,255,255,.04)">System</div>
+    <button class="nav-item" onclick="showSettings(this)" id="nav-settings">
+      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+    </button>
     <div class="sb-user">
       <div class="sb-user-avatar">{$userInitials}</div>
       <div>
@@ -1135,8 +1163,9 @@ HTML;
 </div>
 
 <script>
-const ENTITIES = {$entitiesJson};
-const PALETTE  = [{$chartBg}];
+const ENTITIES      = {$entitiesJson};
+const PALETTE       = [{$chartBg}];
+const SETTINGS_HTML = {$settingsHtmlJson};
 const SAMPLES  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
 const STATUSES = [
   {label:'Active',    cls:'pill-green'},
@@ -1270,11 +1299,49 @@ function showForm(name,label){
 document.getElementById('sb-search-input').addEventListener('input',function(){
   var q=this.value.toLowerCase();
   document.querySelectorAll('.nav-item').forEach(function(el){
-    if(!el.id||el.id==='nav-dashboard')return;
+    if(!el.id||el.id==='nav-dashboard'||el.id==='nav-settings')return;
     el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
   });
 });
+
+/* ── Settings tab switcher (global — called from injected HTML) ── */
+function switchTab(btn,id){
+  document.querySelectorAll('.stab').forEach(function(b){
+    b.style.background='transparent';b.style.color='#64748b';
+  });
+  btn.style.background='var(--brand)';btn.style.color='#fff';
+  ['t-profile','t-brand','t-email','t-system'].forEach(function(t){
+    var el=document.getElementById(t);
+    if(el)el.style.display=(t===id)?'block':'none';
+  });
+}
+
+/* ── Settings screen ── */
+function showSettings(el){
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  if(el)el.classList.add('active');
+  document.getElementById('breadcrumb-cur').textContent='Settings';
+  document.getElementById('dash-content').innerHTML=SETTINGS_HTML;
+}
+
+/* ── Full Screen ── */
+function toggleFS(){
+  var btn=document.getElementById('fs-btn');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(function(){});
+    if(btn)btn.innerHTML='<span>⊠</span> Exit Full Screen';
+  }else{
+    document.exitFullscreen();
+    if(btn)btn.innerHTML='<span>⛶</span> Full Screen';
+  }
+}
+document.addEventListener('fullscreenchange',function(){
+  var btn=document.getElementById('fs-btn');
+  if(btn)btn.innerHTML=document.fullscreenElement?'<span>⊠</span> Exit Full Screen':'<span>⛶</span> Full Screen';
+});
 </script>
+
+<button id="fs-btn" onclick="toggleFS()" title="Toggle full screen" style="position:fixed;bottom:20px;right:20px;z-index:9999;background:rgba(15,23,42,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);color:#e2e8f0;padding:8px 18px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;letter-spacing:.02em;transition:background .15s" onmouseover="this.style.background='rgba(99,102,241,.85)'" onmouseout="this.style.background='rgba(15,23,42,.82)'"><span>⛶</span> Full Screen</button>
 </body>
 </html>
 HTML;
