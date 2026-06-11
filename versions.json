@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.51",
+    "latest": "1.1.52",
     "versions": [
         {
             "version": "1.0.0",
@@ -647,6 +647,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.50",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.52",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: replace blueprint/pricing messaging with credit system on landing page\n\n- Remove all 'Blueprint Library / 100+ blueprints' references (internal mechanic, confidential)\n- Hero: '95% almost zero AI cost' + 'credits only for the 5%'\n- Terminal: 'zero-cost mode' + credits=0 display\n- Two Modes: renamed 'Blueprint Mode' → 'Zero-Cost Mode', no internal detail exposed\n- Flow diagram: removed 'Blueprint Found?' step → 'Domain Analyzed' / '95% Generated Free'\n- Pyramid stats: '∞ Domain Blueprints' → '~$0 Average App Cost'\n- Features: removed '100+ Ready Blueprints' card → 'Credit System — Pay Almost Nothing'\n- Numbers bar: '100+ Ready Blueprints' → '~$1 Average App Build Cost'\n- Pricing section replaced with Credit System: Starter (free 100 credits), Basic ($5/500), Pro ($15/2000, first pack free), Agency ($40/7000)\n- Credits never expire, no subscription, BYOK support, FAQ row\n- Marketplace: 'Blueprint Marketplace' → 'App Template Marketplace'\n- CTA trust badges updated: 100 free credits on signup\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.52/ryaancms-v1.1.52-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.51",
             "critical": false,
             "file_count": null
         }
