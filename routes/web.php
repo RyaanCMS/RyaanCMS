@@ -14,6 +14,8 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\WisdomController;
+use App\Http\Controllers\Api\CentralApiController;
+use App\Http\Controllers\Admin\HubController;
 use Illuminate\Support\Facades\Route;
 
 // Installation Wizard (no auth, no installed-check)
@@ -234,6 +236,33 @@ Route::middleware('auth')->group(function () {
         Route::get('/{item}',                              [MarketplaceController::class, 'show'])->name('show');
         Route::post('/{item}/install',                     [MarketplaceController::class, 'install'])->name('install');
     });
+
+    // ─── Admin Hub (registry mode: central server only) ─────────────────────
+    if (config('registry.mode') === 'registry') {
+        Route::prefix('admin/hub')->name('admin.hub.')->middleware('auth')->group(function () {
+            Route::get('/',                                  [HubController::class, 'index'])->name('index');
+            Route::get('/licenses',                          [HubController::class, 'licenses'])->name('licenses');
+            Route::post('/licenses/issue',                   [HubController::class, 'issueLicense'])->name('issue');
+            Route::post('/licenses/{key}/suspend',           [HubController::class, 'suspendLicense'])->name('suspend');
+            Route::post('/licenses/{key}/activate',          [HubController::class, 'activateLicense'])->name('activate');
+            Route::post('/licenses/{key}/topup',             [HubController::class, 'topupCredits'])->name('topup');
+            Route::get('/telemetry',                         [HubController::class, 'telemetry'])->name('telemetry');
+            Route::get('/installs',                          [HubController::class, 'installs'])->name('installs');
+        });
+    }
+
+    // ─── Central API (registry mode: accepts pings from customer installs) ──
+    if (config('registry.mode') === 'registry') {
+        Route::prefix('api/central/v1')->name('central.api.')->middleware('throttle:60,1')->group(function () {
+            Route::post('/license/validate', [CentralApiController::class, 'validateLicense'])->name('license.validate');
+            Route::post('/credits/check',    [CentralApiController::class, 'checkCredits'])->name('credits.check')
+                ->middleware(\App\Http\Middleware\CentralApiAuth::class);
+            Route::post('/credits/deduct',   [CentralApiController::class, 'deductCredits'])->name('credits.deduct')
+                ->middleware(\App\Http\Middleware\CentralApiAuth::class);
+            Route::post('/telemetry',        [CentralApiController::class, 'ingestTelemetry'])->name('telemetry');
+            Route::post('/install/ping',     [CentralApiController::class, 'ping'])->name('install.ping');
+        });
+    }
 
     // Templates management (WordPress-like theme manager)
     Route::get('/templates',                       [\App\Http\Controllers\TemplateController::class, 'manage'])->name('templates.manage');

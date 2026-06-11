@@ -431,6 +431,24 @@ class CodeGeneratorService
             'ai_cost_estimate' => round($tokensUsed * 0.000003, 6),
         ]);
 
+        // Fire anonymized telemetry to central server (best-effort, never blocks generation)
+        try {
+            $entities = $this->extractEntitiesFromPrompt($rawPrompt);
+            /** @var \App\Services\Central\CentralClientService $centralClient */
+            $centralClient = app(\App\Services\Central\CentralClientService::class);
+            $centralClient->sendTelemetry([
+                'intent_domain'   => $project->type ?? null,
+                'entities'        => $entities,
+                'functions'       => array_column($generatedFiles, 'path'),
+                'language'        => $this->detectLanguageCode($rawPrompt),
+                'country'         => null,
+                'generation_type' => $taskType,
+                'used_ai'         => true,
+            ]);
+        } catch (\Throwable) {
+            // Telemetry failures must never affect the customer
+        }
+
         return [
             'message'         => $displayMessage,
             'files_generated' => $generatedFiles,
@@ -3073,5 +3091,44 @@ PHASE2;
         }
 
         return false;
+    }
+
+    /**
+     * Extract likely entity names (CamelCase words or quoted nouns) from a user prompt.
+     * Used for anonymized telemetry — these are structural labels, not PII.
+     */
+    private function extractEntitiesFromPrompt(string $prompt): array
+    {
+        $entities = [];
+        // CamelCase words (e.g. "ProductCategory", "OrderItem")
+        preg_match_all('/\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b/', $prompt, $m1);
+        // Quoted words (e.g. "employees", 'invoices')
+        preg_match_all('/["\']([A-Za-z][a-z]+)["\']/', $prompt, $m2);
+        $raw = array_merge($m1[0] ?? [], $m2[1] ?? []);
+        foreach ($raw as $e) {
+            $e = strtolower(trim($e));
+            if (strlen($e) >= 3 && strlen($e) <= 40) {
+                $entities[] = $e;
+            }
+        }
+        return array_values(array_unique(array_slice($entities, 0, 20)));
+    }
+
+    /**
+     * Detect a 2-letter language code from common script markers in the prompt.
+     * Returns null if uncertain.
+     */
+    private function detectLanguageCode(string $prompt): ?string
+    {
+        // Arabic script
+        if (preg_match('/\p{Arabic}/u', $prompt)) return 'ar';
+        // Chinese
+        if (preg_match('/\p{Han}/u', $prompt)) return 'zh';
+        // Devanagari (Hindi/Sanskrit)
+        if (preg_match('/\p{Devanagari}/u', $prompt)) return 'hi';
+        // Cyrillic (Russian etc.)
+        if (preg_match('/\p{Cyrillic}/u', $prompt)) return 'ru';
+        // Default: English
+        return 'en';
     }
 }
