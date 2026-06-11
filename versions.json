@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.46",
+    "latest": "1.1.47",
     "versions": [
         {
             "version": "1.0.0",
@@ -587,6 +587,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.45",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.47",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: expand Blueprint Genome System to 100 languages\n\n- Add config/genome/language_supplements.php with 75 new languages\n  (languages 26-100: Amharic, Hausa, Yoruba, Igbo, Zulu, Afrikaans,\n  Somali, Kinyarwanda, Burmese, Khmer, Lao, Sinhala, Nepali, Punjabi,\n  Gujarati, Marathi, Telugu, Kannada, Malayalam, Odia, Pashto, Uzbek,\n  Kazakh, Georgian, Armenian, Azerbaijani, Serbian, Bulgarian, Romanian,\n  Czech, Hungarian, Greek, Finnish, Swedish, Norwegian, Danish, Hebrew,\n  Slovak, Croatian, Lithuanian, Latvian, Catalan, Albanian, Macedonian,\n  Belarusian, Estonian, Maltese, Welsh, Irish, Basque, Mongolian, Tibetan,\n  Kurdish, Cebuano, Javanese, Sundanese, Twi, Tigrinya, Fula, Oromo,\n  Shona, Tatar, Luxembourgish, Slovenian, Icelandic, Galician, Esperanto,\n  Wolof, Lingala, Xhosa, and more)\n- Update IntentEngine::mergeLanguageSupplements() to merge supplements\n  into patterns at load time — zero overhead, clean architecture\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.47/ryaancms-v1.1.47-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.46",
             "critical": false,
             "file_count": null
         }
