@@ -369,42 +369,38 @@ class UpdateService
 
     private function readEnvVersion(): ?string
     {
-        $envVersion     = null;
-        $storageVersion = null;
+        $candidates = [];
 
-        // Read APP_VERSION from .env (may be stale if .env write failed during update)
+        // Source 1: APP_VERSION in .env (may be stale if .env is read-only on cPanel)
         $envPath = base_path('.env');
         if (is_file($envPath)) {
             $content = (string) file_get_contents($envPath);
             if (preg_match('/^APP_VERSION=(.+)$/m', $content, $matches) === 1) {
                 $v = trim($matches[1], " \t\n\r\0\x0B\"'");
-                if ($v !== '') {
-                    $envVersion = $v;
-                }
+                if ($v !== '') $candidates[] = $v;
             }
         }
 
-        // Read storage/app/.app_version — written by every successful updateEnvVersion call.
-        // Storage is always writable on cPanel even when .env is restricted (444/644).
+        // Source 2: storage/app/.app_version (writable even when .env is 444/644)
         $storageFile = storage_path('app/.app_version');
         if (is_file($storageFile)) {
             $v = trim((string) file_get_contents($storageFile));
-            if ($v !== '') {
-                $storageVersion = $v;
-            }
+            if ($v !== '') $candidates[] = $v;
         }
 
-        if ($storageVersion === null && $envVersion === null) {
-            return null;
+        // Source 3: versions.json "installed" field — most reliable write target because
+        // versions.json lives in the app root which is always writable by the web process.
+        $versionsFile = base_path('versions.json');
+        if (is_file($versionsFile)) {
+            $data = json_decode((string) file_get_contents($versionsFile), true);
+            if (!empty($data['installed'])) $candidates[] = (string) $data['installed'];
         }
-        if ($storageVersion === null) return $envVersion;
-        if ($envVersion === null)     return $storageVersion;
 
-        // Return whichever is newer. Storage wins ties — it is the authoritative
-        // write target for the update process and is never accidentally left stale.
-        return version_compare($storageVersion, $envVersion, '>=')
-            ? $storageVersion
-            : $envVersion;
+        if (empty($candidates)) return null;
+
+        // Return the newest version found across all sources.
+        usort($candidates, 'version_compare');
+        return end($candidates);
     }
 
     private function getBundledVersion(): ?string
@@ -456,7 +452,7 @@ class UpdateService
 
     private function updateEnvVersion(string $version): void
     {
-        // Primary: update APP_VERSION in .env
+        // 1. Update APP_VERSION in .env (may fail if .env is read-only on cPanel)
         $envPath = base_path('.env');
         $content = file_exists($envPath) ? file_get_contents($envPath) : '';
         if (str_contains($content, 'APP_VERSION=')) {
@@ -466,16 +462,26 @@ class UpdateService
         }
         $envWritten = file_put_contents($envPath, $content);
 
-        // Fallback: write to storage/app/.app_version — storage/ is always writable
-        // on cPanel, .env may have restricted permissions but storage/ is always writable
+        // 2. Write to storage/app/.app_version (writable even when .env is 444/644)
         $storageDir = storage_path('app');
         if (!is_dir($storageDir)) {
             @mkdir($storageDir, 0755, true);
         }
         file_put_contents(storage_path('app/.app_version'), $version);
 
+        // 3. Write installed version into versions.json — most reliable target because the
+        // app root is always writable by the web process (used as tiebreaker in readEnvVersion).
+        $versionsFile = base_path('versions.json');
+        if (is_file($versionsFile)) {
+            $data = json_decode((string) file_get_contents($versionsFile), true) ?? [];
+        } else {
+            $data = [];
+        }
+        $data['installed'] = $version;
+        file_put_contents($versionsFile, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
         if ($envWritten === false) {
-            \Illuminate\Support\Facades\Log::warning("UpdateService: could not write APP_VERSION to .env; version stored in storage/app/.app_version only.");
+            \Illuminate\Support\Facades\Log::warning("UpdateService: could not write APP_VERSION to .env; version stored in storage/app/.app_version and versions.json.");
         }
 
         config(['version.current' => $version]);
