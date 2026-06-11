@@ -668,6 +668,16 @@ MANDATORY SRS FILE:
   9. Non-functional requirements: security, performance, audit, backup, accessibility
   10. Assumptions and out-of-scope items.
 
+BUSINESS OPERATOR PLAN FILE:
+  For business problem or outcome prompts, also generate `docs/operating-plan.md`.
+  It must include:
+  1. Problem statement and suspected root cause
+  2. Confidence level and assumptions
+  3. Evidence/data needed to confirm diagnosis
+  4. Recommended actions ranked by impact and effort
+  5. Modules, workflows, automations, dashboards, and memory records to implement
+  6. Monitoring KPIs, alerts, owner, review cycle, and estimated impact
+
 ══ HOTEL MANAGEMENT SYSTEM — REFERENCE EXAMPLE ══
 Entities: hotels, room_types, rooms, guests, bookings, payments, housekeeping_tasks, staff
 Auth: roles (admin, receptionist, housekeeping) — role column on users table
@@ -1588,6 +1598,7 @@ CODE QUALITY — NON-NEGOTIABLE:
 
 DOCUMENTATION (always generate for complete systems):
   - docs/srs.md - complete Software Requirements Specification
+  - docs/operating-plan.md - required for business problem or outcome prompts
   □ README.md — purpose, tech stack, quick-start (3 commands to get running)
   □ API_DOCS.md — all endpoints, request/response examples, auth instructions
   □ DEPLOYMENT.md — environment variables, server requirements, deployment steps

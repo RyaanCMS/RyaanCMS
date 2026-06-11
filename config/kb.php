@@ -34,4 +34,8 @@ return [
     'ai_replacement'     => require __DIR__ . '/kb/ai_replacement.php',
     'mental_models'      => require __DIR__ . '/kb/mental_models.php',
     'wisdom_patterns'    => require __DIR__ . '/kb/wisdom_patterns.php',
+    'business_os_asset_layers' => require __DIR__ . '/kb/business_os_asset_layers.php',
+    'problem_solving_library' => require __DIR__ . '/kb/problem_solving_library.php',
+    'intelligence_library' => require __DIR__ . '/kb/intelligence_library.php',
+    'autonomous_business_operator' => require __DIR__ . '/kb/autonomous_business_operator.php',
 ];

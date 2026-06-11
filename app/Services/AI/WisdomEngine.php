@@ -25,6 +25,7 @@ class WisdomEngine
     private array $mentalModels;
     private array $aiReplacement;
     private array $intelligenceLibrary;
+    private array $autonomousBusinessOperator;
     private bool  $dbAvailable;
 
     public function __construct()
@@ -33,6 +34,7 @@ class WisdomEngine
         $this->mentalModels   = config('kb.mental_models', []);
         $this->aiReplacement  = config('kb.ai_replacement', []);
         $this->intelligenceLibrary = config('kb.intelligence_library', []);
+        $this->autonomousBusinessOperator = config('kb.autonomous_business_operator', []);
         $this->dbAvailable    = $this->checkDbAvailability();
     }
 
@@ -72,6 +74,14 @@ class WisdomEngine
             $lines[] = 'BUSINESS INTELLIGENCE PATTERNS:';
             foreach ($intelligencePatterns as $pattern) {
                 $lines[] = '  - ' . $pattern;
+            }
+        }
+
+        $operatorLoop = $this->getRelevantOperatorLoop($prompt);
+        if ($operatorLoop) {
+            $lines[] = 'BUSINESS OPERATOR LOOP:';
+            foreach ($operatorLoop as $step) {
+                $lines[] = '  - ' . $step;
             }
         }
 
@@ -147,8 +157,44 @@ class WisdomEngine
             }
         }
 
-        foreach (['crm', 'inventory', 'stock', 'return', 'ecommerce', 'cod', 'lead', 'follow'] as $signal) {
+        foreach (['crm', 'inventory', 'stock', 'return', 'ecommerce', 'cod', 'lead', 'follow', 'revenue', 'growth', 'profit', 'pricing', 'churn', 'focus', 'bottleneck'] as $signal) {
             if (str_contains($lowerPrompt, $signal) && str_contains($haystack, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getRelevantOperatorLoop(string $prompt): array
+    {
+        if (!$this->isOperatorPrompt($prompt)) {
+            return [];
+        }
+
+        $loop = $this->autonomousBusinessOperator['operating_loop'] ?? [];
+        $steps = [];
+
+        foreach ($loop as $step => $description) {
+            $steps[] = str_replace('_', ' ', (string) $step) . ': ' . $description;
+        }
+
+        return array_slice($steps, 0, 5);
+    }
+
+    private function isOperatorPrompt(string $prompt): bool
+    {
+        $lower = strtolower($prompt);
+        $signals = [
+            'revenue dropped', 'revenue down', 'sales down', 'profit down',
+            'growth slow', 'company growing slowly', 'what should i focus',
+            'focus this month', 'priority this month', 'increase price',
+            'optimize pricing', 'simulate', 'digital twin', 'ceo assistant',
+            'bottleneck', 'estimated impact',
+        ];
+
+        foreach ($signals as $signal) {
+            if (str_contains($lower, $signal)) {
                 return true;
             }
         }
