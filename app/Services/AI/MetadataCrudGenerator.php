@@ -1792,7 +1792,7 @@ PHP;
             'pricing' => [
                 ['name'=>'Boutique',    'price'=>'$59', 'period'=>'/mo','desc'=>'Small hotels up to 30 rooms',    'highlight'=>false,'cta'=>'Start Free Trial','features'=>['30 rooms','Online booking widget','Front desk POS','Basic reports','Email support']],
                 ['name'=>'Business',    'price'=>'$149','period'=>'/mo','desc'=>'Hotels with 31–200 rooms',       'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['200 rooms','Channel manager (OTA sync)','Revenue management','Housekeeping app','F&B module','Priority support']],
-                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'','desc'=>'Hotel chains & large resorts',   'highlight'=>false,'cta'=>'Contact Sales',   ['features'=>'Unlimited properties','Central reservation system','Custom integrations','Dedicated CSM','White-label app'],'features'=>['Unlimited properties','Central reservation system','Custom integrations','Dedicated CSM','White-label app']],
+                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'','desc'=>'Hotel chains & large resorts',   'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited properties','Central reservation system','Custom integrations','Dedicated CSM','White-label app']],
             ],
             'faq' => [
                 ['q'=>'Which OTAs does the channel manager support?',   'a'=>'Booking.com, Expedia, Airbnb, MakeMyTrip, Hotels.com, Agoda, and 80+ more via two-way API connection.'],
@@ -1963,37 +1963,66 @@ PHP;
 
     private function shellLandingView(string $appName, array $entities): string
     {
-        $profile   = $this->domainProfile($appName, $entities);
-        $brand     = $profile['brand'];
-        $brandDk   = $profile['brandDk'];
-        $gradient  = $profile['gradient'];
-        $heroTag   = $profile['heroTag'];
-        $heroSub   = $profile['heroSub'];
-        $userRole  = $profile['userRole'];
+        $profile = $this->domainProfile($appName, $entities);
+        $extras  = $this->domainExtras($profile['domain'], $appName);
 
-        // Build editable metrics list as PHP array literal
-        $metricsPhp = '';
-        foreach ($profile['metrics'] as $m) {
-            $n = addslashes($m['num']);
-            $l = addslashes($m['lbl']);
-            $metricsPhp .= "    ['num' => '{$n}', 'lbl' => '{$l}'],\n";
-        }
-
-        // Build editable features list
-        $featPhp = '';
+        $brand      = $profile['brand'];
+        $brandDk    = $profile['brandDk'];
+        $gradient   = $profile['gradient'];
+        $heroTag    = $profile['heroTag'];
+        $heroSub    = $profile['heroSub'];
+        $userRole   = $profile['userRole'];
         $featSuffix = $profile['featSuffix'];
-        foreach ($entities as $i => $e) {
-            $icon  = $this->entityIcon($e['name']);
-            $title = ucwords(str_replace('_', ' ', $e['name'])) . ' Management';
-            $desc  = "Manage all {$e['name']} records {$featSuffix}";
-            $featPhp .= "    ['icon' => '{$icon}', 'title' => '" . addslashes($title) . "', 'desc' => '" . addslashes($desc) . "'],\n";
-        }
-        if (!$featPhp) {
-            $featPhp = "    ['icon' => '⚡', 'title' => 'Fast & Reliable', 'desc' => 'Built for performance and scale {$featSuffix}'],\n";
-        }
-
         $appInitial = strtoupper(substr($appName, 0, 1));
         $year       = date('Y');
+
+        // ── PHP array literal builders ──────────────────────────────────────────
+
+        $metricsPhp = "[\n";
+        foreach ($profile['metrics'] as $m) {
+            $metricsPhp .= "        ['num'=>'" . addslashes($m['num']) . "','lbl'=>'" . addslashes($m['lbl']) . "'],\n";
+        }
+        $metricsPhp .= "    ]";
+
+        $featuresPhp = "[\n";
+        foreach ($entities as $e) {
+            $icon  = $this->entityIcon($e['name']);
+            $title = addslashes(ucwords(str_replace('_', ' ', $e['name'])) . ' Management');
+            $desc  = addslashes("Manage all {$e['name']} records {$featSuffix}");
+            $featuresPhp .= "        ['icon'=>'{$icon}','title'=>'{$title}','desc'=>'{$desc}'],\n";
+        }
+        if (empty($entities)) {
+            $featuresPhp .= "        ['icon'=>'⚡','title'=>'Fast & Reliable','desc'=>'Built for performance and scale {$featSuffix}'],\n";
+        }
+        $featuresPhp .= "    ]";
+
+        $trustedPhp = "['" . implode("','", array_map('addslashes', $extras['trustedBy'])) . "']";
+
+        $stepsPhp = "[\n";
+        foreach ($extras['steps'] as $s) {
+            $stepsPhp .= "        ['num'=>'" . addslashes($s['num']) . "','icon'=>'" . addslashes($s['icon']) . "','title'=>'" . addslashes($s['title']) . "','desc'=>'" . addslashes($s['desc']) . "'],\n";
+        }
+        $stepsPhp .= "    ]";
+
+        $testimonialsPhp = "[\n";
+        foreach ($extras['testimonials'] as $t) {
+            $testimonialsPhp .= "        ['init'=>'" . addslashes($t['init']) . "','name'=>'" . addslashes($t['name']) . "','role'=>'" . addslashes($t['role']) . "','company'=>'" . addslashes($t['company']) . "','quote'=>'" . addslashes($t['quote']) . "'],\n";
+        }
+        $testimonialsPhp .= "    ]";
+
+        $pricingPhp = "[\n";
+        foreach ($extras['pricing'] as $p) {
+            $hl       = $p['highlight'] ? 'true' : 'false';
+            $featsStr = "['" . implode("','", array_map('addslashes', $p['features'])) . "']";
+            $pricingPhp .= "        ['name'=>'" . addslashes($p['name']) . "','price'=>'" . addslashes($p['price']) . "','period'=>'" . addslashes($p['period']) . "','desc'=>'" . addslashes($p['desc']) . "','highlight'=>{$hl},'cta'=>'" . addslashes($p['cta']) . "','features'=>{$featsStr}],\n";
+        }
+        $pricingPhp .= "    ]";
+
+        $faqPhp = "[\n";
+        foreach ($extras['faq'] as $f) {
+            $faqPhp .= "        ['q'=>'" . addslashes($f['q']) . "','a'=>'" . addslashes($f['a']) . "'],\n";
+        }
+        $faqPhp .= "    ]";
 
         return <<<BLADE
 {{--
