@@ -162,23 +162,12 @@ class CodeGeneratorService
         $message = strtolower($e->getMessage());
 
         foreach ([
-            '429',
-            'quota',
-            'credit',
-            'credits',
-            'billing',
-            'insufficient_quota',
-            'rate limit',
-            'rate_limit',
-            'limit reached',
-            'limit exceeded',
-            'exceeded',
-            'too many requests',
-            'resource_exhausted',
-            'balance',
-            'payment',
-            'capacity',
-            'overloaded',
+            // Rate / quota / billing
+            '429', 'quota', 'billing', 'insufficient_quota', 'rate limit', 'rate_limit',
+            'limit reached', 'limit exceeded', 'exceeded', 'too many requests',
+            'resource_exhausted', 'balance', 'payment', 'capacity', 'overloaded',
+            // Content-filter: all Gemini retry strategies exhausted — try next provider
+            'content policy blocked', 'content filtering',
         ] as $needle) {
             if (str_contains($message, $needle)) {
                 return true;
