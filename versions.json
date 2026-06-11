@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.60",
+    "latest": "1.1.61",
     "versions": [
         {
             "version": "1.0.0",
@@ -755,6 +755,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.59",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.61",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: ZeroCostFeatureGenerator — analytics, reports, calendar, kanban without AI\n\nDetect feature intent from prompt keywords and generate complete pages:\n- 'charts/analytics/dashboard' → Chart.js analytics with KPI cards, line/doughnut charts\n- 'report/export'             → Reports page with date filter, print CSS, pagination\n- 'calendar/schedule'         → FullCalendar 6 view with DB-backed events endpoint\n- 'kanban/board/pipeline'     → Drag-and-drop kanban with Alpine.js + PATCH status API\n\nAll generators read the project blueprint entities to produce relevant\ncolumns, charts, and fields — 100% deterministic, zero AI tokens.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.61/ryaancms-v1.1.61-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.60",
             "critical": false,
             "file_count": null
         }
