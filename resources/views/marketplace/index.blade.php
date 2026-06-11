@@ -3,26 +3,26 @@
 @section('header', 'RyaanCMS Module Store')
 
 @section('header-actions')
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-2 flex-wrap">
     <a href="{{ route('marketplace.index', ['tab' => 'plugins']) }}"
-       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
+       class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
        style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-bg)'">
-        🎨 Templates
+        🎨 <span class="hidden sm:inline">Templates</span><span class="sm:hidden">Tpl</span>
     </a>
     <a href="{{ route('marketplace.my-items') }}"
-       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all"
+       class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
        style="border:1px solid var(--border); color:var(--text-2); background:var(--card-bg);"
        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card-bg)'">
         My Items
     </a>
     <a href="{{ route('marketplace.upload-install') }}"
-       class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-px"
+       class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:-translate-y-px"
        style="background:var(--brand); box-shadow:0 2px 8px var(--brand-ring);">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
         </svg>
-        Upload Package
+        <span class="hidden sm:inline">Upload Package</span><span class="sm:hidden">Upload</span>
     </a>
 </div>
 @endsection
@@ -213,9 +213,62 @@
 .ms-stat-lbl  { font-size: 11px; color: var(--text-3); }
 .ms-stat-sep  { width: 1px; height: 28px; background: var(--border); }
 
-@media (max-width: 600px) {
-    .ms-grid-lg, .ms-grid { grid-template-columns: repeat(2, 1fr); }
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+    /* Stats strip: horizontal scroll, no overflow */
+    .ms-stats {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 12px;
+        padding: 10px 14px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+    }
+    .ms-stats::-webkit-scrollbar { display: none; }
+    .ms-stat-item { flex-shrink: 0; }
+
+    /* Tabs: horizontal scroll */
+    .ms-tabs {
+        overflow-x: auto;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .ms-tabs::-webkit-scrollbar { display: none; }
+
+    /* Cards: remove fixed aspect-ratio so content breathes */
+    .ms-card, .ms-card-lg { aspect-ratio: unset; min-height: 180px; }
+
+    /* Search: full width */
+    .ms-search { max-width: 100%; width: 100%; }
+
+    /* Category pills: tighter */
+    .ms-cat-pill { font-size: 11px; padding: 4px 10px; }
 }
+
+@media (max-width: 600px) {
+    .ms-grid-lg, .ms-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .ms-stat-val  { font-size: 14px; }
+    .ms-stat-lbl  { font-size: 10px; }
+    .ms-stat-sep  { display: none; }
+    .ms-section-hd { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .ms-card    .ms-body { padding: 14px 14px; gap: 7px; }
+    .ms-card-lg .ms-body { padding: 16px 16px; gap: 9px; }
+    .ms-card    .ms-foot { padding: 0 12px 12px; }
+    .ms-card-lg .ms-foot { padding: 0 14px 14px; }
+    .ms-card    .ms-ico  { width: 38px; height: 38px; font-size: 18px; }
+    .ms-card-lg .ms-ico  { width: 44px; height: 44px; font-size: 20px; }
+    .ms-card    .ms-name { font-size: 13px; }
+    .ms-card-lg .ms-name { font-size: 13.5px; }
+    .ms-card    .ms-desc { font-size: 11.5px; -webkit-line-clamp: 2; }
+    .ms-card-lg .ms-desc { font-size: 12px;   -webkit-line-clamp: 2; }
+}
+
+@media (max-width: 420px) {
+    .ms-grid-lg, .ms-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
 @media (max-width: 360px) {
     .ms-grid-lg, .ms-grid { grid-template-columns: 1fr; }
 }
@@ -292,8 +345,8 @@
 <div x-data="marketplace()" x-init="init()">
 
 {{-- ── Top bar: search + stats ──────────────────────────────────────── --}}
-<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
-    <form method="GET" action="{{ route('marketplace.index') }}" class="ms-search">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <form method="GET" action="{{ route('marketplace.index') }}" class="ms-search" style="flex:1;min-width:200px;max-width:440px;">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
@@ -303,7 +356,7 @@
             Search
         </button>
     </form>
-    <div class="ms-stats" style="margin-bottom:0;">
+    <div class="ms-stats" style="margin-bottom:0;flex-shrink:0;">
         <div class="ms-stat-item">
             <div class="ms-stat-ico" style="background:#eef2ff;">🧩</div>
             <div>
