@@ -158,19 +158,31 @@ class GeminiProvider implements AIProviderInterface
                 ['json' => $payload, 'stream' => true]
             );
         } catch (RequestException $e) {
-            $body   = $e->getResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : [];
-            $apiMsg = $body['error']['message'] ?? $e->getMessage();
-            $status = $e->getResponse()?->getStatusCode();
+            $rawBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : '';
+            $body    = json_decode($rawBody, true) ?? [];
+            // Gemini SSE endpoint wraps errors in a JSON array; generateContent uses a plain object
+            $errItem = is_array($body) && isset($body[0]) ? $body[0] : $body;
+            $apiMsg  = $errItem['error']['message'] ?? $e->getMessage();
+            $status  = $e->getResponse()?->getStatusCode();
+
             if ($status === 401 || $status === 403) throw new \RuntimeException('Invalid Gemini API key. Please update it in Settings → AI Providers.');
             if ($status === 429) throw new \RuntimeException('Gemini rate limit reached. Please wait and try again.');
 
-            // Content filter on stream — fall back to non-stream chat() which has its own retry
-            if ($status === 400 && (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked'))) {
-                $result = $this->chat($messages, $options);
-                if (!empty($result['content'])) {
-                    $callback($result['content']);
-                    return;
-                }
+            // Content filter — detected either via parsed body or raw body string
+            $isContentFilter = str_contains($apiMsg, 'content filtering')
+                || str_contains($apiMsg, 'Output blocked')
+                || str_contains($rawBody, 'content filtering')
+                || str_contains($rawBody, 'Output blocked');
+
+            if ($status === 400 && $isContentFilter) {
+                // Fall back to non-stream chat() which has its own system-instruction retry
+                try {
+                    $result = $this->chat($messages, $options);
+                    if (!empty($result['content'])) {
+                        $callback($result['content']);
+                        return;
+                    }
+                } catch (\Throwable) {}
                 throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or breaking your prompt into smaller parts.');
             }
 
@@ -194,6 +206,15 @@ class GeminiProvider implements AIProviderInterface
 
                 $data = json_decode($jsonStr, true);
                 if (!is_array($data)) continue;
+
+                // Error embedded in stream body (200 OK but error JSON inside SSE data)
+                if (isset($data['error'])) {
+                    $errMsg = $data['error']['message'] ?? 'Unknown error';
+                    if (str_contains($errMsg, 'content filtering') || str_contains($errMsg, 'Output blocked')) {
+                        throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or breaking your prompt into smaller parts.');
+                    }
+                    throw new \RuntimeException('Gemini API Error: ' . $errMsg);
+                }
 
                 // Check for safety block mid-stream
                 $finishReason = $data['candidates'][0]['finishReason'] ?? '';
