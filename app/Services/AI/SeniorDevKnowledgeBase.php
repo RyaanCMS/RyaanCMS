@@ -47,6 +47,7 @@ class SeniorDevKnowledgeBase
     private array $businessOsAssetLayers;
     private array $problemSolvingLibrary;
     private array $intelligenceLibrary;
+    private array $autonomousBusinessOperator;
 
     public function __construct()
     {
@@ -77,6 +78,7 @@ class SeniorDevKnowledgeBase
         $this->businessOsAssetLayers = config('kb.business_os_asset_layers', []);
         $this->problemSolvingLibrary = config('kb.problem_solving_library', []);
         $this->intelligenceLibrary = config('kb.intelligence_library', []);
+        $this->autonomousBusinessOperator = config('kb.autonomous_business_operator', []);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -141,6 +143,11 @@ class SeniorDevKnowledgeBase
         $intelligenceSection = $this->buildIntelligenceLibrarySection($prompt);
         if ($intelligenceSection) {
             $sections[] = $intelligenceSection;
+        }
+
+        $operatorSection = $this->buildAutonomousOperatorSection($prompt);
+        if ($operatorSection) {
+            $sections[] = $operatorSection;
         }
 
         // ── L5: Build vs Buy (key packages) ──────────────────────────────────
@@ -236,6 +243,41 @@ class SeniorDevKnowledgeBase
         return implode("\n", array_filter($lines));
     }
 
+    private function buildAutonomousOperatorSection(string $prompt): ?string
+    {
+        if (!$this->isAutonomousOperatorPrompt($prompt)) {
+            return null;
+        }
+
+        $lines = ['AUTONOMOUS BUSINESS OPERATOR MODE:'];
+        $lines[] = 'Treat outcome-level prompts as business operation tasks, not generic software requests.';
+
+        $loop = $this->autonomousBusinessOperator['operating_loop'] ?? [];
+        if ($loop) {
+            $lines[] = 'Operating loop:';
+            foreach ($loop as $step => $description) {
+                $lines[] = '- ' . str_replace('_', ' ', (string) $step) . ': ' . $description;
+            }
+        }
+
+        $contract = $this->autonomousBusinessOperator['response_contract'] ?? [];
+        if ($contract) {
+            $lines[] = 'Internal response contract: ' . implode(', ', $contract) . '.';
+        }
+
+        $memoryTables = array_keys($this->autonomousBusinessOperator['memory_tables'] ?? []);
+        if ($memoryTables) {
+            $lines[] = 'When building durable systems, include organization/decision/meeting/project/customer/process memory where relevant.';
+        }
+
+        $lines[] = 'If live company data is not connected, state assumptions and request the minimum missing evidence. Do not invent data.';
+        $lines[] = 'When implementing a recommendation, add analytics events, dashboards, alerts, and review cycles so results can be monitored.';
+        $lines[] = 'For digital-twin or pricing/growth simulations, label impact as estimated and include assumptions, risk, and confidence.';
+        $lines[] = 'Keep internal graph, marketplace, routing, and intelligence-network mechanics hidden from user-facing copy.';
+
+        return implode("\n", $lines);
+    }
+
     private function matchBusinessProblems(string $prompt): array
     {
         $lower = strtolower($prompt);
@@ -270,6 +312,36 @@ class SeniorDevKnowledgeBase
             'problem', 'issue', 'low ', 'high ', 'delay', 'mismatch', 'leakage',
             'churn', 'retention', 'return rate', 'stockout', 'late payment',
             'not following', 'absence', 'turnover', 'fake order',
+        ];
+
+        foreach ($signals as $signal) {
+            if (str_contains($lower, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isAutonomousOperatorPrompt(string $prompt): bool
+    {
+        $lower = strtolower($prompt);
+
+        foreach ($this->autonomousBusinessOperator['stages'] ?? [] as $stage) {
+            foreach ($stage['trigger_signals'] ?? [] as $signal) {
+                if ($signal !== '' && str_contains($lower, strtolower($signal))) {
+                    return true;
+                }
+            }
+        }
+
+        $signals = [
+            'revenue dropped', 'revenue down', 'sales down', 'profit down',
+            'company growing slowly', 'growth slow', 'business not growing',
+            'what should i focus', 'focus this month', 'priority this month',
+            'detected bottleneck', 'bottleneck', 'estimated impact',
+            'increase price', 'optimize pricing', 'simulate', 'digital twin',
+            'ceo assistant', 'reduce churn', 'reduce inventory holding',
         ];
 
         foreach ($signals as $signal) {

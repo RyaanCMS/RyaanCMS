@@ -13,6 +13,11 @@ class AIRouter
             'fake orders', 'fake order', 'stockouts', 'stockout', 'order delays',
             'cash flow issues', 'late payments', 'revenue leakage', 'high cac',
             'low roas', 'user churn', 'low activation', 'feature adoption',
+            'revenue dropped', 'revenue down', 'sales down', 'profit down',
+            'company growing slowly', 'growth slow', 'business not growing',
+            'what should i focus', 'focus this month', 'priority this month',
+            'increase price', 'optimize pricing', 'simulate', 'digital twin',
+            'ceo assistant', 'reduce churn', 'reduce inventory holding',
         ],
         'architecture' => [
             'build system', 'create app', 'full system', 'complete platform',

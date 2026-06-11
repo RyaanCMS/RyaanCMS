@@ -15,6 +15,10 @@ use App\Services\AI\Pipeline\PipelineOrchestrator;
 use App\Services\AI\Pipeline\BuildValidator;
 use App\Services\AI\SeniorDevKnowledgeBase;
 use App\Services\AI\WisdomEngine;
+use App\Services\Credits\CreditPricingService;
+use App\Services\Credits\IntelligenceGate;
+use App\Services\Credits\LicenseService;
+use App\Services\Credits\RyaanCreditsService;
 use App\Services\Module\ModuleInstaller;
 use App\Services\Module\ModuleRegistry;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +38,14 @@ class AIServiceProvider extends ServiceProvider
         $this->app->singleton(DesignVariantService::class, fn() => new DesignVariantService());
         $this->app->singleton(ComponentRegistry::class, fn() => new ComponentRegistry());
 
+        $this->app->singleton(RyaanCreditsService::class, fn() => new RyaanCreditsService());
+        $this->app->singleton(CreditPricingService::class, fn() => new CreditPricingService());
+        $this->app->singleton(LicenseService::class, fn() => new LicenseService());
+        $this->app->singleton(IntelligenceGate::class, fn($app) => new IntelligenceGate(
+            $app->make(RyaanCreditsService::class),
+            $app->make(LicenseService::class),
+        ));
+
         $this->app->singleton(ModuleInstaller::class, fn($app) => new ModuleInstaller(
             $app->make(ModuleRegistry::class)
         ));
@@ -49,6 +61,9 @@ class AIServiceProvider extends ServiceProvider
             $app->make(SeniorDevKnowledgeBase::class),
             $app->make(WisdomEngine::class),
             $app->make(ComponentRegistry::class),
+            $app->make(IntelligenceGate::class),
+            $app->make(RyaanCreditsService::class),
+            $app->make(CreditPricingService::class),
         ));
 
         $this->app->singleton(PipelineOrchestrator::class, fn($app) => new PipelineOrchestrator(

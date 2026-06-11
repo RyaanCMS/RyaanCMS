@@ -6,11 +6,15 @@ use App\Models\AIConversation;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\User;
+use App\Models\AiUsageLog;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\DesignVariantService;
 use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\SeniorDevKnowledgeBase;
 use App\Services\AI\WisdomEngine;
+use App\Services\Credits\CreditPricingService;
+use App\Services\Credits\IntelligenceGate;
+use App\Services\Credits\RyaanCreditsService;
 
 class CodeGeneratorService
 {
@@ -25,6 +29,9 @@ class CodeGeneratorService
         protected SeniorDevKnowledgeBase $seniorKb,
         protected WisdomEngine           $wisdomEngine,
         protected ComponentRegistry      $componentRegistry,
+        protected ?IntelligenceGate      $gate = null,
+        protected ?RyaanCreditsService   $credits = null,
+        protected ?CreditPricingService  $pricing = null,
     ) {}
 
     /**
@@ -457,6 +464,11 @@ TINY;
             'order delay', 'stockout', 'process bottleneck', 'cod verification',
             'high return', 'return rate', 'fake order', 'repeat purchase', 'user churn',
             'low activation', 'feature adoption', 'problem', 'mismatch', 'not following',
+            'revenue dropped', 'revenue down', 'sales down', 'profit down',
+            'company growing slowly', 'growth slow', 'business not growing',
+            'what should i focus', 'focus this month', 'priority this month',
+            'increase price', 'optimize pricing', 'simulate', 'digital twin',
+            'ceo assistant', 'reduce churn', 'reduce inventory holding',
         ];
 
         foreach ($problemSignals as $signal) {
@@ -2007,7 +2019,19 @@ HTML;
             $prompt       = $this->normalizer->enrichPrompt($aiPromptRaw);
             $isBusinessProblem = $this->isBusinessProblemRequest($prompt);
             $isTiny       = !$isBusinessProblem && $this->isTinyEdit($prompt);
+            $isFullSystem = $this->isFullSystemRequest($prompt);
             $aiProvider   = $this->aiManager->provider($provider, $user);
+
+            // Intelligence Gate: pre-flight credit check for Credits-tier users
+            if ($this->gate && $this->pricing) {
+                $outcomeType = $this->pricing->outcomeFromTaskType('generation', $isTiny, $isFullSystem);
+                $creditCost  = $this->pricing->costForOutcome($outcomeType);
+                $check       = $this->gate->checkOperation($user, $outcomeType, $creditCost);
+                if (!$check['allowed']) {
+                    $onEvent(['type' => 'error', 'message' => $check['reason']]);
+                    return;
+                }
+            }
 
             $systemPrompt = $isTiny
                 ? $this->buildTinySystemPrompt()
@@ -2017,7 +2041,9 @@ HTML;
             $this->autoTitleConversation($conversation, $rawPrompt);
             $conversation->addMessage('user', $rawPrompt);
 
-            if ($this->isFullSystemRequest($prompt)) {
+            $startMs = (int) (microtime(true) * 1000);
+
+            if ($isFullSystem) {
                 $this->streamBlueprintDriven(
                     $prompt, $project, $conversation,
                     $aiProvider, $systemPrompt, $history, $model, $onEvent
@@ -2028,9 +2054,46 @@ HTML;
                     $aiProvider, $systemPrompt, $history, $model, $onEvent, $isTiny
                 );
             }
+
+            // Deduct credits and log usage after successful generation
+            $this->recordUsageAfterStream($user, $project, $provider, $model, $isTiny, $isFullSystem, $startMs);
+
         } catch (\Throwable $e) {
             $onEvent(['type' => 'error', 'message' => $e->getMessage()]);
         }
+    }
+
+    private function recordUsageAfterStream(
+        User $user, Project $project, ?string $provider, ?string $model,
+        bool $isTiny, bool $isFullSystem, int $startMs
+    ): void {
+        if (!$this->gate || !$this->credits || !$this->pricing) return;
+
+        $outcomeType = $this->pricing->outcomeFromTaskType('generation', $isTiny, $isFullSystem);
+        $creditCost  = $this->pricing->costForOutcome($outcomeType);
+        $responseMs  = (int) (microtime(true) * 1000) - $startMs;
+
+        // Deduct credits for Credits-tier users (BYOK users are not charged)
+        if ($this->gate->isCreditsUser($user)) {
+            $this->credits->deduct(
+                $user, $creditCost,
+                "AI generation: {$outcomeType}",
+                Project::class, $project->id,
+                ['outcome' => $outcomeType, 'response_ms' => $responseMs]
+            );
+        }
+
+        // Log usage for all users
+        AiUsageLog::create([
+            'user_id'          => $user->id,
+            'project_id'       => $project->id,
+            'provider'         => $provider ?? 'unknown',
+            'model'            => $model ?? 'default',
+            'task_type'        => 'generation',
+            'credits_used'     => $this->gate->isCreditsUser($user) ? $creditCost : 0,
+            'response_time_ms' => $responseMs,
+            'tier_at_time'     => $this->gate->tier($user),
+        ]);
     }
 
     private function streamSinglePhase(

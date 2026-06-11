@@ -8,6 +8,47 @@
  * not just an app generator.
  */
 return [
+    'executive' => [
+        'revenue_drop' => [
+            'triggers' => ['revenue dropped', 'revenue down', 'sales down', 'income dropped', '20% revenue', 'revenue fell', 'profit down'],
+            'diagnosis' => 'Revenue decline usually comes from fewer qualified leads, lower conversion, smaller average order value, churn, pricing leakage, or fulfillment constraints.',
+            'solutions' => [
+                'Segment revenue by channel, product, customer cohort, and sales owner',
+                'Compare lead volume, conversion, AOV, churn, and delivery capacity against the previous period',
+                'Identify the largest negative variance and assign a focused recovery owner',
+                'Launch 2-3 reversible experiments with weekly measurement',
+                'Add executive KPI monitoring with root-cause drilldowns',
+            ],
+            'modules' => ['Executive KPI Dashboard', 'Revenue Variance Analysis', 'Sales Funnel Analytics', 'Cohort Retention', 'Experiment Tracker'],
+            'kpis' => ['Revenue by channel', 'Lead-to-sale conversion', 'Average order value', 'Customer churn', 'Gross margin', 'Recovery experiment impact'],
+        ],
+        'slow_growth' => [
+            'triggers' => ['company growing slowly', 'growth slow', 'slow growth', 'business not growing', 'growth problem'],
+            'diagnosis' => 'Growth is constrained when acquisition, activation, retention, pricing, and operational capacity are not measured as one system.',
+            'solutions' => [
+                'Map the full growth funnel from acquisition to repeat purchase',
+                'Rank bottlenecks by revenue impact and implementation effort',
+                'Improve lead response and onboarding speed first',
+                'Test pricing or packaging only with a controlled segment',
+                'Create monthly CEO priorities with accountable owners',
+            ],
+            'modules' => ['Growth Funnel', 'Bottleneck Analysis', 'CEO Priority Board', 'Pricing Experiment', 'Retention Automation'],
+            'kpis' => ['Qualified leads', 'Activation rate', 'Conversion rate', 'Repeat purchase rate', 'Revenue per customer', 'Monthly recurring revenue'],
+        ],
+        'monthly_focus' => [
+            'triggers' => ['what should i focus', 'focus this month', 'priority this month', 'monthly priority', 'ceo assistant'],
+            'diagnosis' => 'The company needs a ranked operating plan based on revenue impact, urgency, risk, and execution capacity.',
+            'solutions' => [
+                'Score all active problems by impact, confidence, effort, and risk',
+                'Select the top 3 priorities only',
+                'Assign owner, KPI, deadline, and weekly check-in for each priority',
+                'Defer low-impact work to protect team focus',
+            ],
+            'modules' => ['CEO Priority Board', 'Impact Effort Matrix', 'Weekly Operating Review', 'KPI Ownership'],
+            'kpis' => ['Priority completion rate', 'Revenue impact', 'Blocked work count', 'Owner follow-through rate'],
+        ],
+    ],
+
     'sales' => [
         'follow_up_delay' => [
             'triggers' => ['follow-up', 'follow up', 'not following', 'lead delay', 'sales team not calling'],

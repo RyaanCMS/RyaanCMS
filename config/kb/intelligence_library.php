@@ -23,6 +23,21 @@ return [
             'apply_when' => ['automation', 'notification', 'reminder', 'escalation'],
             'output' => 'Event, trigger, owner, SLA, success KPI, failure state.',
         ],
+        'operator_loop' => [
+            'rule' => 'When the user gives a business outcome, run analyze -> root cause -> plan -> implement -> monitor.',
+            'apply_when' => ['revenue dropped', 'sales down', 'profit down', 'growth slow', 'what should i focus'],
+            'output' => 'Problem, root cause, confidence, evidence needed, actions, modules, estimated impact, KPIs.',
+        ],
+        'simulation_before_change' => [
+            'rule' => 'For pricing, churn, staffing, inventory, or growth changes, simulate likely impact before implementing.',
+            'apply_when' => ['increase price', 'reduce churn', 'optimize pricing', 'marketing spend', 'inventory holding'],
+            'output' => 'Scenario assumptions, revenue impact, margin impact, churn risk, confidence, monitoring plan.',
+        ],
+        'memory_before_recommendation' => [
+            'rule' => 'Use organization, decision, meeting, project, customer, and process memory before recommending actions.',
+            'apply_when' => ['company', 'team', 'customer', 'process', 'meeting', 'decision'],
+            'output' => 'Relevant memory, missing data, recommended action, reusable lesson to record.',
+        ],
     ],
 
     'success_patterns' => [
@@ -37,6 +52,14 @@ return [
         'inventory_ledger' => [
             'pattern' => 'Inventory accuracy improves when stock is an immutable movement ledger, not an editable quantity field.',
             'modules' => ['Stock Ledger', 'Adjustment Approval', 'Cycle Count', 'Variance Report'],
+        ],
+        'executive_revenue_drop_diagnostics' => [
+            'pattern' => 'Revenue drop diagnosis should separate traffic/lead volume, conversion, AOV, churn, pricing, and fulfillment capacity before recommending fixes.',
+            'modules' => ['Executive KPI Dashboard', 'Revenue Variance', 'Funnel Analytics', 'Cohort Retention'],
+        ],
+        'ceo_priority_operating_review' => [
+            'pattern' => 'Monthly company focus works best when priorities are limited to three, each with owner, KPI, deadline, and weekly review.',
+            'modules' => ['CEO Priority Board', 'Weekly Review', 'Impact Effort Matrix', 'KPI Ownership'],
         ],
     ],
 
@@ -56,6 +79,16 @@ return [
             'consequence' => 'Cannot identify product, courier, customer, or expectation issues.',
             'fix' => 'Use tagged return reasons and product/courier/customer reports.',
         ],
+        'advice_without_connected_data' => [
+            'mistake' => 'Giving confident business advice without connected data, assumptions, or confidence level.',
+            'consequence' => 'The user may execute the wrong change and lose trust.',
+            'fix' => 'State assumptions, ask for the smallest missing dataset, and label impact as estimated.',
+        ],
+        'automation_without_monitoring' => [
+            'mistake' => 'Implementing an automation without a KPI, owner, alert, or review cycle.',
+            'consequence' => 'The system acts but nobody knows whether the business improved.',
+            'fix' => 'Add dashboards, alerts, experiment tracking, and weekly outcome review.',
+        ],
     ],
 
     'optimization_patterns' => [
@@ -70,6 +103,18 @@ return [
         'closed_loop_learning' => [
             'principle' => 'Record decision, expected outcome, actual outcome, and recommendation after each project.',
             'benefit' => 'Future recommendations become more accurate and cheaper.',
+        ],
+        'organizational_memory_compounding' => [
+            'principle' => 'Store every reusable decision, meeting, process, customer signal, and project lesson as structured memory.',
+            'benefit' => 'The company keeps learning even when employees or vendors change.',
+        ],
+        'marketplace_asset_compounding' => [
+            'principle' => 'Convert repeated solutions into marketplace assets: playbooks, workflows, AI agents, packs, and blueprints.',
+            'benefit' => 'Developers earn, RyaanCMS earns commission, and customers get faster proven solutions.',
+        ],
+        'anonymous_network_learning' => [
+            'principle' => 'Only use cross-company intelligence when aggregated, anonymized, permissioned, and privacy-safe.',
+            'benefit' => 'Industry recommendations improve without exposing customer data.',
         ],
     ],
 ];

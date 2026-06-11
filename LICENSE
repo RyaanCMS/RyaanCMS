@@ -1,0 +1,57 @@
+Business Source License 1.1
+
+Licensor:             RyaanCMS / Ryaan Technologies
+Licensed Work:        RyaanCMS — AI-Powered Application Operating System
+                      The Licensed Work is (c) 2024–2026 Ryaan Technologies
+Change Date:          Four years from the date of each release
+Change License:       MIT License
+
+Additional Use Grant:
+  You may use the Licensed Work for any purpose EXCEPT a "Competing Use."
+  A "Competing Use" means providing a commercial SaaS or hosted product that
+  allows third parties to generate, build, or deploy applications using this
+  codebase without obtaining a commercial license from Ryaan Technologies.
+
+  The following are NOT Competing Uses:
+  - Running the software for your own internal business purposes
+  - Hosting it for a single organisation you own or operate
+  - Contributing patches or improvements to the open-source repository
+  - Academic, research, or personal learning use
+
+  Contact: hello@ryaancms.com for commercial/SaaS licensing.
+
+Grant of License:
+  Licensor hereby grants you the right to copy, modify, create derivative
+  works, redistribute, and make non-production use of the Licensed Work.
+  The Licensor may make an Additional Use Grant, above, permitting limited
+  production use.
+
+  Effective on the Change Date (or the fourth anniversary of the publication
+  date of a given version of the Licensed Work if no Change Date is specified),
+  the terms of this license will change to those of the Change License.
+  The provisions of the Change License will then govern your rights to use,
+  copy, modify, and distribute the Licensed Work.
+
+Covenants of Licensor:
+  In consideration of the right to use this software, you covenant to
+  Licensor not to sue Licensor or any contributor to the Licensed Work for
+  infringement of any patent claim(s) that you own or control, directly or
+  indirectly, covering the Licensed Work or any derivative work, for the
+  term of this license.
+
+Notice:
+  The Business Source License (this document, or the "License") is not an
+  Open Source license. However, the Licensed Work will eventually be made
+  available under an Open Source License, as stated in this License.
+
+  For more information on the use of the Business Source License, see
+  https://mariadb.com/bsl11/ and https://spdx.org/licenses/BUSL-1.1.html
+
+Definitions:
+  "Licensed Work" — the software described above.
+  "Licensor"      — Ryaan Technologies, the creator and owner of RyaanCMS.
+  "You"           — the recipient of the license.
+  "Competing Use" — see above.
+  "Change Date"   — the date specified above after which the Change License
+                    applies to each version of the Licensed Work.
+  "Change License" — MIT License (https://opensource.org/licenses/MIT).

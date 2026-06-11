@@ -1208,6 +1208,37 @@
 
         </nav>
 
+        {{-- Ryaan Credits widget --}}
+        @auth
+        @php
+            $__creditsBalance = app(\App\Services\Credits\RyaanCreditsService::class)->getBalance(auth()->user());
+            $__creditsTier    = $__creditsBalance->tier;
+            $__creditsAmount  = number_format($__creditsBalance->balance);
+            $__isByok         = $__creditsTier === 'byok';
+        @endphp
+        <div class="sb-show-expanded" style="padding:0 8px 6px;flex-shrink:0;">
+            <a href="{{ route('settings.index') }}"
+               style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--surface-raised);border:1px solid var(--border);text-decoration:none;transition:background var(--dur-fast);"
+               onmouseover="this.style.background='var(--surface-hover,rgba(99,102,241,.08))'" onmouseout="this.style.background='var(--surface-raised)'">
+                <span style="font-size:14px;line-height:1;">⚡</span>
+                <div style="flex:1;min-width:0;">
+                    @if($__isByok)
+                        <div style="font-size:11px;font-weight:600;color:var(--text-2);">BYOK Mode</div>
+                        <div style="font-size:10px;color:var(--text-3);margin-top:1px;">Your API keys active</div>
+                    @else
+                        <div style="font-size:11px;font-weight:600;color:#6366f1;">{{ $__creditsAmount }} Credits</div>
+                        <div style="font-size:10px;color:var(--text-3);margin-top:1px;text-transform:capitalize;">{{ $__creditsTier }} plan</div>
+                    @endif
+                </div>
+                @if($__isByok)
+                    <span style="font-size:9px;font-weight:700;color:#6366f1;background:rgba(99,102,241,.12);padding:2px 6px;border-radius:4px;white-space:nowrap;">UPGRADE</span>
+                @else
+                    <span style="font-size:9px;font-weight:700;color:#22c55e;background:rgba(34,197,94,.12);padding:2px 6px;border-radius:4px;white-space:nowrap;">PRO</span>
+                @endif
+            </a>
+        </div>
+        @endauth
+
         {{-- User profile --}}
         <div style="padding:8px;border-top:1px solid var(--border);flex-shrink:0;" x-data="{ open: false }">
             <button @click="open=!open"

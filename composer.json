@@ -2,7 +2,7 @@
     "name": "ryaan/cms",
     "description": "RyaanCMS - AI-Powered Application Operating System",
     "keywords": ["laravel", "cms", "ai", "builder"],
-    "license": "MIT",
+    "license": "BUSL-1.1",
     "type": "project",
     "require": {
         "php": "^8.2",

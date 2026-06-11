@@ -88,4 +88,19 @@ class User extends Authenticatable
         }
         return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=6366f1&color=fff';
     }
+
+    public function creditBalance()
+    {
+        return $this->hasOne(CreditBalance::class);
+    }
+
+    public function creditTransactions()
+    {
+        return $this->hasMany(CreditTransaction::class);
+    }
+
+    public function aiUsageLogs()
+    {
+        return $this->hasMany(AiUsageLog::class);
+    }
 }
