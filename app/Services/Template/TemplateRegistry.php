@@ -7,18 +7,6 @@ class TemplateRegistry
     public function all(): array
     {
         return [
-            'template.ryaancms' => [
-                'key'         => 'template.ryaancms',
-                'name'        => 'RyaanCMS',
-                'description' => 'Default RyaanCMS public landing page with product, domain, marketplace, and download sections.',
-                'category'    => 'RyaanCMS',
-                'type'        => 'template',
-                'icon'        => 'R',
-                'color'       => '#6366f1',
-                'view'        => 'templates.ryaancms',
-                'tags'        => ['ryaancms', 'default', 'landing', 'ai builder', 'cms'],
-                'is_global'   => true,
-            ],
             'template.restaurant' => [
                 'key'         => 'template.restaurant',
                 'name'        => 'La Bella Cucina',

@@ -1137,12 +1137,9 @@
             $userSidebarMenus = $loadSidebarMenus('user');
             $devSidebarMenus  = $loadSidebarMenus('developer');
 
-            // Sync developer menus if missing or outdated (fewer than 9 = stale from old version)
-            if (auth()->check() && $devSidebarMenus->count() < 9) {
-                app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
-                $userSidebarMenus = $loadSidebarMenus('user');
-                $devSidebarMenus  = $loadSidebarMenus('developer');
-            }
+            // Developer menus are seeded once on registration — never re-seeded on page load.
+            // Deleted menus stay deleted. New menu items added in future versions are
+            // handled via database migrations or php artisan ryaan:seed-menus.
         @endphp
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">

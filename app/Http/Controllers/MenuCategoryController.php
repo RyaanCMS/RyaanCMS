@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Menu;
 use App\Models\MenuCategory;
-use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -14,8 +13,6 @@ class MenuCategoryController extends Controller
 {
     public function index()
     {
-        app(DefaultSidebarMenuImporter::class)->ensureForUser(Auth::user());
-
         $categories = MenuCategory::where('user_id', Auth::id())
             ->with('parent:id,user_id,parent_id,name,slug,color')
             ->orderBy('sort_order')

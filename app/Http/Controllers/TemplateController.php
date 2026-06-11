@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 class TemplateController extends Controller
 {
-    private const DEFAULT_TEMPLATE = 'template.ryaancms';
+    private const DEFAULT_TEMPLATE = 'template.saas';
     private const CORE_CMS_PROJECT_SLUG = 'core-cms';
     private const MAX_UPLOADED_TEMPLATE_CHARS = 500000;
 
