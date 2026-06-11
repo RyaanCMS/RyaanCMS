@@ -218,6 +218,7 @@ class CodeGeneratorService
             $conversation->addMessage('user', $rawPrompt);
             $templateCode = $component['template'] ?? '';
             $message = "⚡ **Component Registry** — `{$component['label']}` inserted from registry ({$saved} tokens saved).\n\n```blade\n{$templateCode}\n```\n\n**Customise** field names, labels, and routes to match your data model.";
+            $message = "**{$component['label']}** is ready.\n\n```blade\n{$templateCode}\n```\n\nCustomize field names, labels, and routes to match your data model.";
             $conversation->addMessage('assistant', $message, ['tokens_used' => 0, 'model' => 'component_registry']);
             return [
                 'message'         => $message,
@@ -239,6 +240,7 @@ class CodeGeneratorService
             $conversation->addMessage('user', $rawPrompt);
             $ruleMsg = "⚡ **Routed to {$wisdomRoute['use_instead']}** — {$wisdomRoute['savings']} " .
                        "(AI call skipped — this task type has a deterministic solution)";
+            $ruleMsg = 'This request is ready to handle with RyaanCMS built-in tools. Continue with the next instruction or use the matching builder action.';
             $conversation->addMessage('assistant', $ruleMsg, ['tokens_used' => 0, 'model' => 'rule_engine']);
             return [
                 'message'         => $ruleMsg,
