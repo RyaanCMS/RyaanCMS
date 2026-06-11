@@ -559,6 +559,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\LandingController;
 
 Route::get('/landing', [LandingController::class, 'index'])->name('landing');
+Route::post('/contact', [LandingController::class, 'contact'])->name('contact');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
 Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
@@ -2026,75 +2027,136 @@ PHP;
 
         return <<<BLADE
 {{--
-  Landing Page — {$appName}
-  ════════════════════════════════════════════════════════════════
-  All editable content is in the @php block below.
-  Change text, colors, nav links, metrics, features — no AI needed.
-  ════════════════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════════════════╗
+║  Landing Page — {$appName}                                       ║
+║  ──────────────────────────────────────────────────────────────  ║
+║  ALL editable content lives in the @php block below.            ║
+║  Change text, metrics, steps, testimonials, pricing, FAQ,        ║
+║  contact info, footer — no AI needed, just edit and refresh.    ║
+╚══════════════════════════════════════════════════════════════════╝
 --}}
 @php
-// ┌─────────────────────────────────────────────────────────────┐
-// │  EDITABLE CONTENT — change anything here without touching   │
-// │  the HTML below. No AI, no rebuild, just edit and refresh.  │
-// └─────────────────────────────────────────────────────────────┘
-
+// ┌──────────────────────────────────────────────────────────────┐
+// │  EDITABLE CONTENT  —  no AI, no rebuild, just edit + refresh │
+// └──────────────────────────────────────────────────────────────┘
 \$page = [
 
-    // ── Brand ────────────────────────────────────────────────────
-    'appName'    => '{$appName}',
-    'appInitial' => '{$appInitial}',
-    'tagline'    => 'Smarter. Faster. Built for your team.',
+  // ── Brand & Colors ─────────────────────────────────────────────
+  'appName'    => '{$appName}',
+  'appInitial' => '{$appInitial}',
+  'tagline'    => 'Smarter. Faster. Built for your team.',
+  'brand'      => '{$brand}',
+  'brandDk'    => '{$brandDk}',
+  'gradient'   => 'linear-gradient(160deg,{$gradient})',
 
-    // ── Colors (CSS hex) ─────────────────────────────────────────
-    'brand'      => '{$brand}',
-    'brandDk'    => '{$brandDk}',
-    'gradient'   => 'linear-gradient(160deg,{$gradient})',
+  // ── Nav ────────────────────────────────────────────────────────
+  'navLinks' => [
+    ['label'=>'Features',     'href'=>'#features'],
+    ['label'=>'How It Works', 'href'=>'#how-it-works'],
+    ['label'=>'Pricing',      'href'=>'#pricing'],
+    ['label'=>'FAQ',          'href'=>'#faq'],
+    ['label'=>'Contact',      'href'=>'#contact'],
+  ],
+  'navCta'     => 'Sign In',
+  'navCtaHref' => '/login',
 
-    // ── Hero section ─────────────────────────────────────────────
-    'heroEyebrow' => '{$heroTag}',
-    'heroTitle'   => '{$appName}',
-    'heroSub'     => '{$heroSub}',
-    'heroCta'     => 'Get Started Free',
-    'heroCtaHref' => '/register',
-    'heroCtaAlt'  => 'Live Demo',
-    'heroCtaAltHref' => '/demo',
+  // ── Hero ───────────────────────────────────────────────────────
+  'heroEyebrow'    => '{$heroTag}',
+  'heroTitle'      => '{$appName}',
+  'heroSub'        => '{$heroSub}',
+  'heroCta'        => 'Start Free Trial',
+  'heroCtaHref'    => '/register',
+  'heroCtaAlt'     => 'Watch Demo',
+  'heroCtaAltHref' => '#how-it-works',
 
-    // ── Metrics strip ─────────────────────────────────────────────
-    // Each item: ['num' => '...', 'lbl' => '...']
-    'metrics' => [
-{$metricsPhp}    ],
+  // ── Metrics strip ──────────────────────────────────────────────
+  'metrics' => {$metricsPhp},
 
-    // ── Nav links ─────────────────────────────────────────────────
-    // Each item: ['label' => '...', 'href' => '...']
-    'navLinks' => [
-        ['label' => 'Features',  'href' => '#features'],
-        ['label' => 'Pricing',   'href' => '#pricing'],
-        ['label' => 'About',     'href' => '#about'],
-        ['label' => 'Contact',   'href' => '#contact'],
-    ],
-    'navCta'     => 'Sign In',
-    'navCtaHref' => '/login',
+  // ── Trusted By ─────────────────────────────────────────────────
+  'trustedBy'     => {$trustedPhp},
+  'trustedByLabel'=> 'Trusted by leading organizations worldwide',
 
-    // ── Features section ─────────────────────────────────────────
-    'featuresTitle' => 'Everything you need, nothing you don\'t',
-    'featuresSub'   => 'A complete platform purpose-built for {$userRole}s and their teams.',
-    // Each item: ['icon' => '...', 'title' => '...', 'desc' => '...']
-    'features' => [
-{$featPhp}    ],
+  // ── Features ───────────────────────────────────────────────────
+  'featuresTitle' => 'Everything you need, nothing you don\'t',
+  'featuresSub'   => 'A complete platform built for {$userRole}s and their teams.',
+  'features'      => {$featuresPhp},
 
-    // ── CTA banner ────────────────────────────────────────────────
-    'ctaTitle'    => 'Ready to transform your operations?',
-    'ctaSub'      => 'Join thousands of teams already using {$appName}.',
-    'ctaBtn'      => 'Start for Free',
-    'ctaBtnHref'  => '/register',
+  // ── How It Works ───────────────────────────────────────────────
+  'stepsTitle' => 'Up and running in four simple steps',
+  'stepsSub'   => 'From setup to fully operational in less time than you think.',
+  'steps'      => {$stepsPhp},
 
-    // ── Footer ────────────────────────────────────────────────────
-    'footerCopy'  => '© {$year} {$appName}. All rights reserved.',
-    'footerLinks' => [
-        ['label' => 'Privacy Policy', 'href' => '/privacy'],
-        ['label' => 'Terms of Service', 'href' => '/terms'],
-        ['label' => 'Support', 'href' => '/support'],
-    ],
+  // ── Testimonials ───────────────────────────────────────────────
+  'testimonialsTitle' => 'Trusted by industry leaders',
+  'testimonialsSub'   => 'See what real customers say about {$appName}.',
+  'testimonials'      => {$testimonialsPhp},
+
+  // ── Pricing ────────────────────────────────────────────────────
+  'pricingTitle'   => 'Simple, transparent pricing',
+  'pricingSub'     => 'All plans include a 14-day free trial — no credit card required.',
+  'pricingBadge'   => 'Most Popular',
+  'pricing'        => {$pricingPhp},
+
+  // ── FAQ ────────────────────────────────────────────────────────
+  'faqTitle' => 'Frequently Asked Questions',
+  'faqSub'   => 'Still have questions? Contact our team — we reply within 24 hours.',
+  'faq'      => {$faqPhp},
+
+  // ── Contact ────────────────────────────────────────────────────
+  'contactTitle'   => 'Get in touch',
+  'contactSub'     => 'Have a question or want to schedule a demo? We\'d love to hear from you.',
+  'contactEmail'   => 'hello@{$appName}.com',
+  'contactPhone'   => '+1 (555) 000-0000',
+  'contactAddress' => '123 Business Ave, Suite 100, New York, NY 10001',
+  'contactHours'   => 'Mon–Fri, 9 AM – 6 PM EST',
+
+  // ── CTA Banner ─────────────────────────────────────────────────
+  'ctaTitle'   => 'Ready to transform how your team works?',
+  'ctaSub'     => 'Join thousands of {$userRole}s already using {$appName}.',
+  'ctaBtn'     => 'Start Your Free Trial',
+  'ctaBtnHref' => '/register',
+  'ctaBtnAlt'  => 'Schedule a Demo',
+  'ctaBtnAltHref' => '#contact',
+
+  // ── Footer ─────────────────────────────────────────────────────
+  'footerTagline' => 'The smartest way to manage your {$appName} operations.',
+  'footerCols' => [
+    ['title'=>'Product', 'links'=>[
+      ['label'=>'Features',    'href'=>'#features'],
+      ['label'=>'Pricing',     'href'=>'#pricing'],
+      ['label'=>'Integrations','href'=>'/integrations'],
+      ['label'=>'Changelog',   'href'=>'/changelog'],
+      ['label'=>'Roadmap',     'href'=>'/roadmap'],
+    ]],
+    ['title'=>'Company', 'links'=>[
+      ['label'=>'About Us',  'href'=>'/about'],
+      ['label'=>'Blog',      'href'=>'/blog'],
+      ['label'=>'Careers',   'href'=>'/careers'],
+      ['label'=>'Press Kit', 'href'=>'/press'],
+      ['label'=>'Partners',  'href'=>'/partners'],
+    ]],
+    ['title'=>'Support', 'links'=>[
+      ['label'=>'Documentation', 'href'=>'/docs'],
+      ['label'=>'Help Centre',   'href'=>'/help'],
+      ['label'=>'Status Page',   'href'=>'/status'],
+      ['label'=>'Contact Us',    'href'=>'#contact'],
+      ['label'=>'Community',     'href'=>'/community'],
+    ]],
+    ['title'=>'Legal', 'links'=>[
+      ['label'=>'Privacy Policy',   'href'=>'/privacy'],
+      ['label'=>'Terms of Service', 'href'=>'/terms'],
+      ['label'=>'Cookie Policy',    'href'=>'/cookies'],
+      ['label'=>'Security',         'href'=>'/security'],
+      ['label'=>'GDPR',             'href'=>'/gdpr'],
+    ]],
+  ],
+  'footerSocial' => [
+    ['icon'=>'𝕏',  'href'=>'https://twitter.com'],
+    ['icon'=>'in', 'href'=>'https://linkedin.com'],
+    ['icon'=>'gh', 'href'=>'https://github.com'],
+    ['icon'=>'yt', 'href'=>'https://youtube.com'],
+  ],
+  'footerCopy' => '© {$year} {$appName}. All rights reserved.',
 ];
 @endphp
 <!DOCTYPE html>
@@ -2102,116 +2164,386 @@ PHP;
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ \$page['appName'] }}</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="description" content="{{ \$page['heroSub'] }}">
+<title>{{ \$page['appName'] }} — {{ \$page['tagline'] }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root { --brand: {{ \$page['brand'] }}; --brand-dk: {{ \$page['brandDk'] }}; }
-  body  { font-family:'Inter',system-ui,sans-serif; background:#0a0a0f; color:#e2e8f0; }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--brand), var(--brand-dk));
-    color:#fff; padding:14px 36px; border-radius:12px; font-weight:700;
-    font-size:15px; text-decoration:none; display:inline-block; transition:.2s;
-    box-shadow:0 4px 20px rgba(0,0,0,.4);
-  }
-  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.5); }
-  .btn-ghost {
-    border:1px solid rgba(255,255,255,.18); color:#e2e8f0; padding:14px 36px;
-    border-radius:12px; font-weight:600; font-size:15px; text-decoration:none;
-    display:inline-block; transition:.2s; backdrop-filter:blur(6px);
-  }
-  .btn-ghost:hover { background:rgba(255,255,255,.07); }
-  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; transition:.2s; }
-  .card:hover { background:rgba(255,255,255,.07); border-color:var(--brand); transform:translateY(-3px); }
-  .metric-val { font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,var(--brand),#fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  nav a { color:#94a3b8; text-decoration:none; font-size:14px; font-weight:500; transition:.15s; }
-  nav a:hover { color:#e2e8f0; }
-  .eyebrow { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--brand:{{ \$page['brand'] }};--brand-dk:{{ \$page['brandDk'] }};--bg:#09090f;--surface:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);--text:#e2e8f0;--muted:#64748b;--subtle:#94a3b8}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit;transition:.15s}
+img{max-width:100%;display:block}
+.container{max-width:1200px;margin:0 auto;padding:0 5%}
+.section{padding:96px 5%}
+.section-center{text-align:center;max-width:680px;margin:0 auto 64px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin-bottom:14px}
+h2.sec-title{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;color:#f1f5f9;line-height:1.15;margin-bottom:14px}
+p.sec-sub{font-size:16px;color:var(--muted);line-height:1.7}
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-dk));color:#fff;padding:14px 36px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block;transition:.2s;box-shadow:0 4px 24px rgba(0,0,0,.4);cursor:pointer;border:none}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.5);color:#fff}
+.btn-ghost{border:1px solid rgba(255,255,255,.18);color:var(--text);padding:14px 36px;border-radius:12px;font-weight:600;font-size:15px;display:inline-block;transition:.2s;backdrop-filter:blur(6px)}
+.btn-ghost:hover{background:rgba(255,255,255,.07);color:#fff}
+.btn-sm{padding:10px 24px;font-size:13px;border-radius:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;transition:.25s}
+.card:hover{background:rgba(255,255,255,.07);border-color:var(--brand);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.metric-val{font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,var(--brand),#f8fafc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* Nav */
+nav a{color:var(--subtle);font-size:14px;font-weight:500}
+nav a:hover{color:var(--text)}
+/* Trusted logos */
+.trusted-logo{border:1px solid var(--border);border-radius:10px;padding:10px 22px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
+/* Steps */
+.step-num{font-size:3rem;font-weight:900;color:var(--brand);opacity:.25;line-height:1;margin-bottom:6px}
+.step-connector{height:2px;background:linear-gradient(90deg,var(--brand),transparent);flex:1;margin:0 12px;opacity:.3;margin-top:-30px}
+/* Testimonials */
+.testi-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dk));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+.stars{color:#f59e0b;font-size:14px;letter-spacing:1px;margin-bottom:14px}
+/* Pricing */
+.pricing-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;display:flex;flex-direction:column;transition:.25s}
+.pricing-card.highlighted{border-color:var(--brand);background:rgba(255,255,255,.07);position:relative}
+.pricing-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.35)}
+.pricing-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;font-size:11px;font-weight:800;padding:4px 16px;border-radius:20px;white-space:nowrap}
+.price-amount{font-size:3rem;font-weight:900;color:#f1f5f9;line-height:1}
+.price-period{font-size:14px;color:var(--muted);margin-left:4px}
+.price-feat{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--subtle);margin-bottom:10px}
+.price-feat::before{content:'✓';color:var(--brand);font-weight:900;flex-shrink:0;margin-top:1px}
+/* FAQ */
+details{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:.2s}
+details:hover{border-color:rgba(255,255,255,.14)}
+details[open]{border-color:var(--brand)}
+summary{padding:20px 24px;cursor:pointer;font-size:15px;font-weight:600;color:#f1f5f9;display:flex;justify-content:space-between;align-items:center;list-style:none;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';font-size:20px;font-weight:400;color:var(--subtle);transition:.2s;flex-shrink:0}
+details[open] summary::after{content:'−';color:var(--brand)}
+details[open] summary{color:var(--brand)}
+.faq-body{padding:0 24px 20px;font-size:14.5px;color:var(--muted);line-height:1.75;border-top:1px solid var(--border)}
+/* Contact form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:var(--subtle)}
+.form-input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;width:100%;outline:none;transition:.2s;font-family:inherit}
+.form-input:focus{border-color:var(--brand);background:rgba(255,255,255,.09)}
+textarea.form-input{resize:vertical;min-height:130px}
+.alert-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34d399;padding:14px 18px;border-radius:10px;font-size:14px;margin-bottom:20px}
+/* Footer */
+.footer-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#f1f5f9;margin-bottom:18px}
+.footer-col a{font-size:13px;color:var(--muted);display:block;margin-bottom:10px}
+.footer-col a:hover{color:var(--text)}
+.social-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--subtle);transition:.2s}
+.social-btn:hover{border-color:var(--brand);color:var(--brand)}
+/* CTA gradient */
+.cta-section{background:linear-gradient(135deg,rgba(0,0,0,0) 0%,rgba(255,255,255,.02) 100%);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+/* Dividers */
+.section-divider{border:none;border-top:1px solid var(--border);margin:0}
+/* Responsive */
+@media(max-width:768px){
+  .form-row{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column;align-items:center}
+  nav .nav-links{display:none}
+}
 </style>
 </head>
 <body>
 
-{{-- ── NAV ───────────────────────────────────────────────────────── --}}
-<nav style="position:sticky;top:0;z-index:100;background:rgba(10,10,15,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.07);padding:0 5%;">
-  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;height:64px;gap:32px;">
-    <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#f1f5f9;">
-      <div style="width:32px;height:32px;background:var(--brand);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;">{{ \$page['appInitial'] }}</div>
+{{-- ══ 1. STICKY NAV ══════════════════════════════════════════════ --}}
+<nav style="position:sticky;top:0;z-index:200;background:rgba(9,9,15,.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 5%">
+  <div class="container" style="display:flex;align-items:center;height:66px;gap:36px;max-width:1200px;margin:0 auto;padding:0">
+    <a href="/" style="display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px;color:#f8fafc;flex-shrink:0">
+      <div style="width:34px;height:34px;background:var(--brand);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff">{{ \$page['appInitial'] }}</div>
       {{ \$page['appName'] }}
-    </div>
-    <div style="display:flex;gap:28px;margin-left:auto;align-items:center;">
+    </a>
+    <div class="nav-links" style="display:flex;gap:28px;margin-left:auto;align-items:center">
       @foreach(\$page['navLinks'] as \$link)
         <a href="{{ \$link['href'] }}">{{ \$link['label'] }}</a>
       @endforeach
-      <a href="{{ \$page['navCtaHref'] }}" class="btn-primary" style="padding:9px 22px;font-size:13px;">{{ \$page['navCta'] }}</a>
+      <a href="{{ \$page['navCtaHref'] }}" class="btn-primary btn-sm" style="margin-left:8px">{{ \$page['navCta'] }}</a>
     </div>
   </div>
 </nav>
 
-{{-- ── HERO ─────────────────────────────────────────────────────── --}}
-<section style="background:{{ \$page['gradient'] }};padding:100px 5% 80px;text-align:center;position:relative;overflow:hidden;">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(var(--brand),0.12),transparent);pointer-events:none;"></div>
-  <div style="max-width:820px;margin:0 auto;position:relative;">
-    <div class="eyebrow" style="margin-bottom:20px;">{{ \$page['heroEyebrow'] }}</div>
-    <h1 style="font-size:clamp(2.4rem,6vw,4rem);font-weight:900;line-height:1.1;margin:0 0 20px;color:#f8fafc;">
+{{-- ══ 2. HERO ════════════════════════════════════════════════════ --}}
+<section style="background:{{ \$page['gradient'] }};padding:110px 5% 90px;text-align:center;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% -10%,rgba(14,165,233,.1),transparent);pointer-events:none"></div>
+  <div style="position:absolute;top:15%;left:5%;width:320px;height:320px;background:var(--brand);opacity:.04;border-radius:50%;filter:blur(80px);pointer-events:none"></div>
+  <div style="position:absolute;bottom:10%;right:5%;width:400px;height:400px;background:var(--brand-dk);opacity:.05;border-radius:50%;filter:blur(100px);pointer-events:none"></div>
+  <div style="max-width:860px;margin:0 auto;position:relative">
+    <div class="eyebrow">{{ \$page['heroEyebrow'] }}</div>
+    <h1 style="font-size:clamp(2.6rem,7vw,4.4rem);font-weight:900;line-height:1.06;color:#f8fafc;margin-bottom:22px;letter-spacing:-.02em">
       {{ \$page['heroTitle'] }}
     </h1>
-    <p style="font-size:clamp(1rem,2.5vw,1.2rem);color:#94a3b8;line-height:1.7;margin:0 0 40px;">
+    <p style="font-size:clamp(1.05rem,2.5vw,1.22rem);color:var(--subtle);line-height:1.72;max-width:680px;margin:0 auto 44px">
       {{ \$page['heroSub'] }}
     </p>
-    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <a href="{{ \$page['heroCta'] !== '' ? \$page['heroCtaHref'] : '#' }}" class="btn-primary">{{ \$page['heroCta'] }}</a>
+    <div class="hero-btns" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="{{ \$page['heroCtaHref'] }}" class="btn-primary">{{ \$page['heroCta'] }}</a>
       <a href="{{ \$page['heroCtaAltHref'] }}" class="btn-ghost">{{ \$page['heroCtaAlt'] }}</a>
     </div>
+    <p style="margin-top:18px;font-size:12.5px;color:var(--muted)">No credit card required · 14-day free trial · Cancel anytime</p>
   </div>
 </section>
 
-{{-- ── METRICS STRIP ────────────────────────────────────────────── --}}
-<section style="border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);padding:40px 5%;background:rgba(255,255,255,.02);">
-  <div style="max-width:1000px;margin:0 auto;display:flex;justify-content:center;gap:60px;flex-wrap:wrap;text-align:center;">
+{{-- ══ 3. METRICS STRIP ══════════════════════════════════════════ --}}
+<div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.025);padding:44px 5%">
+  <div class="container" style="display:flex;justify-content:center;gap:clamp(32px,6vw,80px);flex-wrap:wrap;text-align:center">
     @foreach(\$page['metrics'] as \$m)
       <div>
         <div class="metric-val">{{ \$m['num'] }}</div>
-        <div style="font-size:13px;color:#64748b;margin-top:4px;">{{ \$m['lbl'] }}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:5px">{{ \$m['lbl'] }}</div>
+      </div>
+    @endforeach
+  </div>
+</div>
+
+{{-- ══ 4. TRUSTED BY ═════════════════════════════════════════════ --}}
+<div style="padding:40px 5%;text-align:center;border-bottom:1px solid var(--border)">
+  <p style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:22px">{{ \$page['trustedByLabel'] }}</p>
+  <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px">
+    @foreach(\$page['trustedBy'] as \$org)
+      <span class="trusted-logo">{{ \$org }}</span>
+    @endforeach
+  </div>
+</div>
+
+{{-- ══ 5. FEATURES ═══════════════════════════════════════════════ --}}
+<section id="features" class="section">
+  <div class="section-center">
+    <div class="eyebrow">Features</div>
+    <h2 class="sec-title">{{ \$page['featuresTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['featuresSub'] }}</p>
+  </div>
+  <div class="container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px">
+    @foreach(\$page['features'] as \$feat)
+      <div class="card">
+        <div style="font-size:2.1rem;margin-bottom:14px">{{ \$feat['icon'] }}</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px">{{ \$feat['title'] }}</h3>
+        <p style="font-size:13.5px;color:var(--muted);line-height:1.65">{{ \$feat['desc'] }}</p>
       </div>
     @endforeach
   </div>
 </section>
 
-{{-- ── FEATURES ─────────────────────────────────────────────────── --}}
-<section id="features" style="padding:90px 5%;">
-  <div style="max-width:1200px;margin:0 auto;">
-    <div style="text-align:center;margin-bottom:60px;">
-      <div class="eyebrow" style="margin-bottom:12px;">Features</div>
-      <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:#f1f5f9;margin:0 0 14px;">{{ \$page['featuresTitle'] }}</h2>
-      <p style="color:#64748b;font-size:16px;max-width:560px;margin:0 auto;">{{ \$page['featuresSub'] }}</p>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
-      @foreach(\$page['features'] as \$feat)
-        <div class="card">
-          <div style="font-size:2rem;margin-bottom:12px;">{{ \$feat['icon'] }}</div>
-          <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin:0 0 8px;">{{ \$feat['title'] }}</h3>
-          <p style="font-size:13.5px;color:#64748b;line-height:1.6;margin:0;">{{ \$feat['desc'] }}</p>
-        </div>
-      @endforeach
-    </div>
-  </div>
-</section>
+<hr class="section-divider">
 
-{{-- ── CTA BANNER ───────────────────────────────────────────────── --}}
-<section style="padding:80px 5%;background:linear-gradient(135deg,rgba(var(--brand),.12),rgba(var(--brand-dk),.08));border-top:1px solid rgba(255,255,255,.07);">
-  <div style="max-width:700px;margin:0 auto;text-align:center;">
-    <h2 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;color:#f1f5f9;margin:0 0 14px;">{{ \$page['ctaTitle'] }}</h2>
-    <p style="font-size:16px;color:#94a3b8;margin:0 0 36px;">{{ \$page['ctaSub'] }}</p>
-    <a href="{{ \$page['ctaBtnHref'] }}" class="btn-primary">{{ \$page['ctaBtn'] }}</a>
+{{-- ══ 6. HOW IT WORKS ══════════════════════════════════════════ --}}
+<section id="how-it-works" class="section">
+  <div class="section-center">
+    <div class="eyebrow">How It Works</div>
+    <h2 class="sec-title">{{ \$page['stepsTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['stepsSub'] }}</p>
   </div>
-</section>
-
-{{-- ── FOOTER ───────────────────────────────────────────────────── --}}
-<footer style="border-top:1px solid rgba(255,255,255,.07);padding:32px 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-  <span style="font-size:13px;color:#475569;">{{ \$page['footerCopy'] }}</span>
-  <div style="display:flex;gap:20px;">
-    @foreach(\$page['footerLinks'] as \$fl)
-      <a href="{{ \$fl['href'] }}" style="font-size:13px;color:#475569;text-decoration:none;">{{ \$fl['label'] }}</a>
+  <div class="container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px">
+    @foreach(\$page['steps'] as \$step)
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 26px;position:relative">
+        <div class="step-num">{{ \$step['num'] }}</div>
+        <div style="font-size:2rem;margin-bottom:12px">{{ \$step['icon'] }}</div>
+        <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:9px">{{ \$step['title'] }}</h3>
+        <p style="font-size:13.5px;color:var(--muted);line-height:1.65">{{ \$step['desc'] }}</p>
+      </div>
     @endforeach
+  </div>
+</section>
+
+<hr class="section-divider">
+
+{{-- ══ 7. TESTIMONIALS ══════════════════════════════════════════ --}}
+<section style="padding:96px 5%">
+  <div class="section-center">
+    <div class="eyebrow">Customer Stories</div>
+    <h2 class="sec-title">{{ \$page['testimonialsTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['testimonialsSub'] }}</p>
+  </div>
+  <div class="container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px">
+    @foreach(\$page['testimonials'] as \$t)
+      <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;gap:20px">
+        <div>
+          <div class="stars">★★★★★</div>
+          <p style="font-size:14.5px;color:var(--subtle);line-height:1.75;font-style:italic">"{{ \$t['quote'] }}"</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding-top:16px;border-top:1px solid var(--border)">
+          <div class="testi-avatar">{{ \$t['init'] }}</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#f1f5f9">{{ \$t['name'] }}</div>
+            <div style="font-size:12.5px;color:var(--muted)">{{ \$t['role'] }}, {{ \$t['company'] }}</div>
+          </div>
+        </div>
+      </div>
+    @endforeach
+  </div>
+</section>
+
+<hr class="section-divider">
+
+{{-- ══ 8. PRICING ════════════════════════════════════════════════ --}}
+<section id="pricing" class="section">
+  <div class="section-center">
+    <div class="eyebrow">Pricing</div>
+    <h2 class="sec-title">{{ \$page['pricingTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['pricingSub'] }}</p>
+  </div>
+  <div class="container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;align-items:start">
+    @foreach(\$page['pricing'] as \$plan)
+      <div class="pricing-card {{ \$plan['highlight'] ? 'highlighted' : '' }}">
+        @if(\$plan['highlight'])
+          <div class="pricing-badge">{{ \$page['pricingBadge'] }}</div>
+        @endif
+        <div style="margin-bottom:20px">
+          <div style="font-size:16px;font-weight:800;color:#f1f5f9;margin-bottom:6px">{{ \$plan['name'] }}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:18px">{{ \$plan['desc'] }}</div>
+          <div style="display:flex;align-items:baseline;gap:2px">
+            <span class="price-amount">{{ \$plan['price'] }}</span>
+            <span class="price-period">{{ \$plan['period'] }}</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:20px;margin-bottom:24px;flex:1">
+          @foreach(\$plan['features'] as \$feat)
+            <div class="price-feat">{{ \$feat }}</div>
+          @endforeach
+        </div>
+        <a href="{{ \$plan['highlight'] ? '/register' : (\$plan['cta'] === 'Contact Sales' ? '#contact' : '/register') }}"
+           class="{{ \$plan['highlight'] ? 'btn-primary' : 'btn-ghost' }}" style="text-align:center;display:block;padding:13px 24px;font-size:14px">
+          {{ \$plan['cta'] }}
+        </a>
+      </div>
+    @endforeach
+  </div>
+</section>
+
+<hr class="section-divider">
+
+{{-- ══ 9. FAQ ════════════════════════════════════════════════════ --}}
+<section id="faq" class="section">
+  <div class="section-center">
+    <div class="eyebrow">FAQ</div>
+    <h2 class="sec-title">{{ \$page['faqTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['faqSub'] }}</p>
+  </div>
+  <div class="container" style="max-width:780px;margin:0 auto">
+    @foreach(\$page['faq'] as \$item)
+      <details>
+        <summary>{{ \$item['q'] }}</summary>
+        <div class="faq-body">{{ \$item['a'] }}</div>
+      </details>
+    @endforeach
+  </div>
+</section>
+
+<hr class="section-divider">
+
+{{-- ══ 10. CONTACT ══════════════════════════════════════════════ --}}
+<section id="contact" class="section">
+  <div class="section-center">
+    <div class="eyebrow">Contact</div>
+    <h2 class="sec-title">{{ \$page['contactTitle'] }}</h2>
+    <p class="sec-sub">{{ \$page['contactSub'] }}</p>
+  </div>
+  <div class="container" style="display:grid;grid-template-columns:1fr 1.4fr;gap:48px;align-items:start;max-width:1000px;margin:0 auto">
+    {{-- Contact info column --}}
+    <div>
+      <div class="card" style="padding:32px">
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:24px">Contact Information</h3>
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">✉️</div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Email</div><div style="font-size:14px;color:#f1f5f9">{{ \$page['contactEmail'] }}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📞</div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Phone</div><div style="font-size:14px;color:#f1f5f9">{{ \$page['contactPhone'] }}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📍</div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Address</div><div style="font-size:14px;color:#f1f5f9">{{ \$page['contactAddress'] }}</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🕐</div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Hours</div><div style="font-size:14px;color:#f1f5f9">{{ \$page['contactHours'] }}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{-- Contact form column --}}
+    <div class="card" style="padding:32px">
+      <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:24px">Send us a message</h3>
+      @if(session('contact_success'))
+        <div class="alert-success">✓ {{ session('contact_success') }}</div>
+      @endif
+      <form action="{{ route('contact') }}" method="POST">
+        @csrf
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" name="name" class="form-input" placeholder="John Smith" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" name="email" class="form-input" placeholder="john@company.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input type="text" name="subject" class="form-input" placeholder="How can we help you?">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea name="message" class="form-input" placeholder="Tell us about your project or question..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;text-align:center;font-size:15px;padding:14px">Send Message →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{{-- ══ 11. CTA BANNER ════════════════════════════════════════════ --}}
+<section class="cta-section" style="padding:96px 5%;text-align:center">
+  <div style="max-width:680px;margin:0 auto">
+    <div class="eyebrow" style="margin-bottom:14px">Get Started Today</div>
+    <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;color:#f1f5f9;line-height:1.15;margin-bottom:16px">{{ \$page['ctaTitle'] }}</h2>
+    <p style="font-size:16px;color:var(--subtle);margin-bottom:40px;line-height:1.7">{{ \$page['ctaSub'] }}</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="{{ \$page['ctaBtnHref'] }}" class="btn-primary">{{ \$page['ctaBtn'] }}</a>
+      <a href="{{ \$page['ctaBtnAltHref'] }}" class="btn-ghost">{{ \$page['ctaBtnAlt'] }}</a>
+    </div>
+    <p style="margin-top:18px;font-size:12.5px;color:var(--muted)">No credit card required · 14-day free trial · Cancel anytime</p>
+  </div>
+</section>
+
+{{-- ══ 12. FOOTER (4-COLUMN) ═════════════════════════════════════ --}}
+<footer style="background:rgba(255,255,255,.015);border-top:1px solid var(--border);padding:72px 5% 0">
+  <div class="container" style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:40px;margin-bottom:56px">
+    {{-- Brand column --}}
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px;color:#f1f5f9;margin-bottom:14px">
+        <div style="width:34px;height:34px;background:var(--brand);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff">{{ \$page['appInitial'] }}</div>
+        {{ \$page['appName'] }}
+      </div>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:22px;max-width:220px">{{ \$page['footerTagline'] }}</p>
+      <div style="display:flex;gap:8px">
+        @foreach(\$page['footerSocial'] as \$s)
+          <a href="{{ \$s['href'] }}" class="social-btn" target="_blank" rel="noopener">{{ \$s['icon'] }}</a>
+        @endforeach
+      </div>
+    </div>
+    {{-- Link columns --}}
+    @foreach(\$page['footerCols'] as \$col)
+      <div class="footer-col">
+        <h4>{{ \$col['title'] }}</h4>
+        @foreach(\$col['links'] as \$lnk)
+          <a href="{{ \$lnk['href'] }}">{{ \$lnk['label'] }}</a>
+        @endforeach
+      </div>
+    @endforeach
+  </div>
+
+  {{-- ── COPYRIGHT BAR ──────────────────────────────────────────── --}}
+  <div style="border-top:1px solid var(--border);padding:22px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <span style="font-size:13px;color:var(--muted)">{{ \$page['footerCopy'] }}</span>
+    <div style="display:flex;gap:18px">
+      <a href="/privacy" style="font-size:13px;color:var(--muted)">Privacy</a>
+      <a href="/terms" style="font-size:13px;color:var(--muted)">Terms</a>
+      <a href="/cookies" style="font-size:13px;color:var(--muted)">Cookies</a>
+    </div>
   </div>
 </footer>
 
