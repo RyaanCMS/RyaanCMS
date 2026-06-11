@@ -1525,7 +1525,7 @@ Alpine JS data function — spread dtMixin first, then override:
   function myTable() {
     return {
       ...dtMixin({ perPage: 10 }),  // provides: search, page, perPage, perPageOpts, dtSearch(), dtPageRange(), dtInfo(), dtHighlight()
-      allRows: [],  // populated from @json($items)
+      allRows: @json(\$records ?? []),  // replace \$records with the actual collection variable passed by the controller
       init() { this.$watch('perPage', () => { this.page = 1; }); },
       get filtered() {
         let list = this.allRows;
