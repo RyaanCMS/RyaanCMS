@@ -1526,7 +1526,7 @@ MODULE MANIFEST (always generate module.json):
       "php": ">=8.2",
       "modules": []
     },
-    "license": "MIT",
+    "license": "BSL-1.1",
     "entry": "ModuleServiceProvider.php"
   }
 

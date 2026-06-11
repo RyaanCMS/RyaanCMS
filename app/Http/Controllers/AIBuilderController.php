@@ -819,13 +819,22 @@ HTML;
             // Step 1: Library lookup — 0 AI tokens, no API key needed
             $blueprint = $this->blueprintService->tryLibrary($description);
 
-            // Step 2: Fall back to AI only when library has no match
+            // Step 2: Fall back to AI only when intelligence engine has no match
             if (!$blueprint) {
-                $aiProvider = $this->aiManager->provider(
-                    $request->input('provider'),
-                    Auth::user()
-                );
-                $blueprint = $this->blueprintService->discover($description, $aiProvider);
+                $user = Auth::user();
+                $hasProvider = $user->aiProviders()->where('is_active', true)->exists();
+
+                if (!$hasProvider) {
+                    return response()->json([
+                        'success'        => false,
+                        'needs_provider' => true,
+                        'error'          => 'This looks like a highly custom domain. Add an AI provider key in Settings → AI Providers to generate it. (95% of standard apps work without an AI key.)',
+                        'redirect'       => route('settings.index') . '#ai',
+                    ], 422);
+                }
+
+                $aiProvider = $this->aiManager->provider($request->input('provider'), $user);
+                $blueprint  = $this->blueprintService->discover($description, $aiProvider);
             }
 
             $this->blueprintService->store($project, $blueprint);

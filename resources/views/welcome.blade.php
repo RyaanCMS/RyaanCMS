@@ -1273,8 +1273,8 @@
         <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
              style="border-top:1px solid #e5e7eb;">
             <div class="flex items-center gap-6">
-                <p class="text-xs" style="color:#9ca3af;">© {{ date('Y') }} RyaanCMS. Open Source. Free Forever.</p>
-                <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">v1.0 — MIT License</span>
+                <p class="text-xs" style="color:#9ca3af;">© {{ date('Y') }} RyaanCMS · Ryaan Technologies</p>
+                <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;">v{{ config('version.current','1.0.0') }} — BSL 1.1</span>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-1.5">

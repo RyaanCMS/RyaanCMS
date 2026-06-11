@@ -6,11 +6,11 @@
 
 ### World's First AI Business Operating System Builder
 
-**Free & Open Source · Self-Hosted · Laravel 11 · PHP 8.3**
+**Self-Hosted · Laravel 11 · PHP 8.3 · Almost Zero AI Cost**
 
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
-[![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/License-BSL%201.1-7c3aed?style=flat-square)](LICENSE)
 [![AI Agents](https://img.shields.io/badge/AI%20Agents-10-6366f1?style=flat-square)](#autonomous-pipeline)
 [![Knowledge Bases](https://img.shields.io/badge/Knowledge%20Bases-21-0891b2?style=flat-square)](#intelligence-system)
 
@@ -434,13 +434,22 @@ Contributions are welcome. Please open an issue first to discuss what you'd like
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+RyaanCMS is licensed under the **Business Source License 1.1 (BSL 1.1)**.
+
+- ✅ Self-host for your own business — **free**
+- ✅ Use internally within a single organisation — **free**
+- ✅ Personal, academic, research use — **free**
+- ❌ Offering RyaanCMS as a commercial hosted/SaaS product to third parties — **requires a commercial license**
+
+After four years from each release date, that version automatically converts to the MIT License.
+
+See [LICENSE](LICENSE) for full terms. Commercial licensing: [hello@ryaancms.com](mailto:hello@ryaancms.com)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ — Free Forever · Self-Hosted · Open Source**
+**Built with ❤️ — Self-Hosted · BSL 1.1 · Almost Zero AI Cost**
 
 [⭐ Star this repo](https://github.com/RyaanCMS/RyaanCMS) · [🐛 Report Bug](https://github.com/RyaanCMS/RyaanCMS/issues) · [💡 Request Feature](https://github.com/RyaanCMS/RyaanCMS/issues)
 
