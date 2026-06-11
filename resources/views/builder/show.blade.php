@@ -146,15 +146,91 @@
 @push('head')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<style>
+/* ── Builder mobile tab bar ── */
+.builder-tab-bar { display: none; }
+@media (max-width: 640px) {
+    .builder-tab-bar {
+        display: flex;
+        flex-shrink: 0;
+        background: #111827;
+        border-bottom: 2px solid #1f2937;
+    }
+    .builder-tab-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 11px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        cursor: pointer;
+        transition: color .15s, border-color .15s;
+    }
+    .builder-tab-btn.btab-active {
+        color: #a5b4fc;
+        border-bottom-color: #6366f1;
+    }
+    .builder-tab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    /* Hide drag handle on mobile */
+    .builder-drag-handle { display: none !important; }
+    /* Hide inactive panel on mobile */
+    .builder-panel-hidden { display: none !important; }
+    /* Active chat panel: full width */
+    .builder-chat-panel {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        border-right: none !important;
+    }
+}
+</style>
 @endpush
 
 @section('content')
-<div class="flex h-full" x-data="builderApp()" x-init="init()">
+<div class="flex flex-col h-full" x-data="builderApp()" x-init="init()">
+
+    <!-- ══════════════════════════════════════
+         Mobile Tab Bar (hidden on desktop)
+    ══════════════════════════════════════ -->
+    <div class="builder-tab-bar">
+        <button class="builder-tab-btn" :class="builderPage === 'prompt' ? 'btab-active' : ''"
+                @click="builderPage = 'prompt'">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            Prompt
+        </button>
+        <button class="builder-tab-btn" :class="builderPage === 'preview' ? 'btab-active' : ''"
+                @click="builderPage = 'preview'">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            Preview
+        </button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         Main panels row
+    ══════════════════════════════════════ -->
+    <div class="flex flex-1 min-h-0 overflow-hidden">
 
     <!-- ══════════════════════════════════════
          AI Chat Panel — LEFT (1st column)
     ══════════════════════════════════════ -->
-    <div class="flex-shrink-0 flex flex-col" :style="`width:${chatPanelWidth}px; min-width:260px; max-width:640px; background:#fff; border-right:1px solid #e5e7eb;`">
+    <div class="builder-chat-panel flex-shrink-0 flex flex-col"
+         :class="{ 'builder-panel-hidden': builderPage !== 'prompt' }"
+         :style="`width:${chatPanelWidth}px; min-width:260px; max-width:640px; background:#fff; border-right:1px solid #e5e7eb;`">
 
         <!-- ═══════════════ BLUEPRINT PANEL (hidden — runs automatically via chat) ═══════════════ -->
         <div style="display:none;">
@@ -847,7 +923,7 @@
     </div>
 
     <!-- Drag handle between chat panel and builder -->
-    <div class="w-1 flex-shrink-0 cursor-col-resize select-none relative group"
+    <div class="builder-drag-handle w-1 flex-shrink-0 cursor-col-resize select-none relative group"
          style="background:#e5e7eb;"
          @mousedown.prevent="startChatResize($event)">
         <div class="absolute inset-y-0 -left-1 -right-1 group-hover:bg-indigo-400/30 transition-colors"></div>
@@ -856,7 +932,8 @@
     <!-- ══════════════════════════════════════
          Main Builder Area — CENTER (2nd column)
     ══════════════════════════════════════ -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden"
+         :class="{ 'builder-panel-hidden': builderPage !== 'preview' }">
 
         <!-- Toolbar -->
         <div class="flex items-center bg-gray-900 border-b border-gray-800 px-3 py-1.5 gap-1 flex-shrink-0">
@@ -994,6 +1071,7 @@
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100 translate-x-0"
          x-transition:leave-end="opacity-0 translate-x-4"
+         :class="{ 'builder-panel-hidden': builderPage !== 'preview' }"
          class="w-64 flex-shrink-0 bg-gray-900 border-l border-gray-800 flex flex-col">
         <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Files</span>
@@ -1063,7 +1141,8 @@
         </div>
     </div>
 
-</div>
+    </div>{{-- /panels row --}}
+</div>{{-- /builder-root --}}
 @endsection
 
 @php
@@ -1099,6 +1178,7 @@ $messageData = $messages->map(fn($m) => [
 function builderApp() {
     return {
         viewMode: 'preview',
+        builderPage: 'prompt',
         hasPreviewContent: false,
         _blobUrl: null,
         chatPanelWidth: 384,
@@ -1177,6 +1257,10 @@ function builderApp() {
             // When AI starts, reveal preview pane if user is in code-only mode
             this.$watch('isThinking', (val) => {
                 if (val && this.viewMode === 'editor') this.viewMode = 'split';
+                // On mobile: auto-switch to Preview tab when AI finishes
+                if (!val && this.builderPage === 'prompt' && window.innerWidth <= 640) {
+                    this.builderPage = 'preview';
+                }
             });
 
             // Catch JS / Alpine errors reported from inside the iframe

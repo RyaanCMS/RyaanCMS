@@ -346,16 +346,32 @@ $feedDep  = $feedAll->where('kind','deploy')->values();
     .db-kpi-row { grid-template-columns:repeat(2,1fr); }
     .db-proj-grid { grid-template-columns:1fr; }
     .db-greet { flex-direction:column;align-items:flex-start;gap:12px;padding:16px; }
+    .db-greet > div:last-child { width:100%;flex-wrap:wrap;gap:8px; }
+    .db-greet > div:last-child > * { flex:1;min-width:120px;justify-content:center; }
     .db-smart-main { align-items:flex-start;flex-direction:column; }
-    .db-signal-row { grid-template-columns:1fr; }
+    .db-signal-row { grid-template-columns:repeat(2,1fr); }
     .db-brief-grid { grid-template-columns:repeat(2,1fr); }
     .db-signal { border-right:none;border-bottom:1px solid var(--border); }
     .db-signal:last-child { border-bottom:none; }
+    .db-signal:nth-child(odd) { border-right:1px solid var(--border); }
+    .db-feed-title { font-size:12px; }
+    .db-feed-meta  { font-size:10px; }
 }
 @media(max-width:480px) {
     .db-kpi-row { grid-template-columns:1fr 1fr; }
-    .db-kpi { padding:14px 12px; }
-    .db-kpi-val { font-size:22px; }
+    .db-kpi { padding:12px 10px; }
+    .db-kpi-val { font-size:20px; }
+    .db-kpi-label { font-size:10px; }
+    .db-brief-grid { grid-template-columns:1fr 1fr; }
+    .db-signal-row { grid-template-columns:1fr 1fr; }
+    .db-greet > div:last-child > * { min-width:100px;font-size:11px;padding:6px 10px; }
+}
+@media(max-width:380px) {
+    .db-kpi-row { grid-template-columns:1fr 1fr; }
+    .db-brief-grid { grid-template-columns:1fr; }
+    .db-signal-row { grid-template-columns:1fr; }
+    .db-greet > div:last-child > * { min-width:unset;width:100%; }
+    .db-proj-card { padding:12px; }
 }
 </style>
 @endpush

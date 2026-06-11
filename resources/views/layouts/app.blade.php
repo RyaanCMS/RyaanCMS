@@ -872,14 +872,25 @@
         }
         .mbn-item {
             display: flex; flex-direction: column; align-items: center; gap: 3px;
-            text-decoration: none; padding: 6px 12px; border-radius: 10px;
-            transition: background .1s;
+            text-decoration: none; padding: 6px 8px; border-radius: 10px;
+            transition: background .1s; flex: 1;
         }
         .mbn-item svg { width: 20px; height: 20px; }
         .mbn-item span { font-size: 10px; font-weight: 600; }
         .mbn-item:hover, .mbn-item.active { background: var(--brand-light); }
         .mbn-item.active svg, .mbn-item.active span { color: var(--brand); }
         .mbn-item:not(.active) svg, .mbn-item:not(.active) span { color: var(--text-3); }
+        /* Build (special center) button */
+        .mbn-build { position: relative; padding: 0 8px; background: transparent !important; }
+        .mbn-build-inner {
+            display: flex; align-items: center; justify-content: center;
+            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 70%, #818cf8));
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--brand) 45%, transparent);
+            margin-bottom: 2px;
+        }
+        .mbn-build-inner svg { width: 20px; height: 20px; color: #fff; stroke: #fff; }
+        .mbn-build span { color: var(--brand) !important; font-size: 9px; font-weight: 700; }
 
         @media (max-width: 640px) {
             .mobile-bottom-nav { display: block; }
@@ -1423,20 +1434,35 @@
     <div class="mobile-bottom-nav-inner">
         @php
             $mbnItems = [
-                ['route'=>'dashboard',       'label'=>'Home',        'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                ['route'=>'projects.index',  'label'=>'Projects',    'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z'],
-                ['route'=>'marketplace.index','label'=>'Store',      'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
-                ['route'=>'settings.index',  'label'=>'Settings',    'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+                ['route'=>'dashboard',        'label'=>'Home',      'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['route'=>'projects.index',   'label'=>'Projects',  'icon'=>'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z'],
+                ['route'=>'projects.create',  'label'=>'Build',     'icon'=>'M13 10V3L4 14h7v7l9-11h-7z', 'special'=>true],
+                ['route'=>'marketplace.index','label'=>'Store',     'icon'=>'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+                ['route'=>'settings.index',   'label'=>'Settings',  'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
             ];
         @endphp
         @foreach($mbnItems as $mbn)
-        @php $mbnActive = request()->routeIs(explode('.', $mbn['route'])[0].'*'); @endphp
+        @php
+            $mbnActive  = request()->routeIs(explode('.', $mbn['route'])[0].'*');
+            $mbnSpecial = !empty($mbn['special']);
+        @endphp
+        @if($mbnSpecial)
+        <a href="{{ route($mbn['route']) }}" class="mbn-item mbn-build{{ $mbnActive ? ' active' : '' }}" aria-label="{{ $mbn['label'] }}">
+            <span class="mbn-build-inner">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $mbn['icon'] }}"/>
+                </svg>
+            </span>
+            <span>{{ $mbn['label'] }}</span>
+        </a>
+        @else
         <a href="{{ route($mbn['route']) }}" class="mbn-item{{ $mbnActive ? ' active' : '' }}" aria-current="{{ $mbnActive ? 'page' : 'false' }}">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $mbn['icon'] }}"/>
             </svg>
             <span>{{ $mbn['label'] }}</span>
         </a>
+        @endif
         @endforeach
     </div>
 </nav>
