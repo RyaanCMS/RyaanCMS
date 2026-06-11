@@ -110,8 +110,9 @@ class InstallController extends Controller
             'APP_VERSION' => $installedVersion,
         ]);
 
-        // Mark as installed
+        // Mark as installed + persist installed version so update system can always read it
         file_put_contents(storage_path('app/.installed'), now()->toISOString());
+        file_put_contents(storage_path('app/.app_version'), $installedVersion);
 
         Artisan::call('config:clear');
         Artisan::call('cache:clear');

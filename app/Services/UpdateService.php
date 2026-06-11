@@ -214,22 +214,27 @@ class UpdateService
 
     private function downloadZip(string $url, string $dest): void
     {
-        $fp = fopen($dest, 'wb');
-        if (!$fp) {
-            throw new \RuntimeException("Cannot create file for download at: {$dest}");
-        }
+        $fallback = 'https://github.com/RyaanCMS/RyaanCMS/archive/refs/heads/main.zip';
+        $urls     = array_values(array_unique([$url, $fallback]));
 
-        try {
-            $response = Http::timeout(300)
-                ->withOptions(['sink' => $fp])
-                ->get($url);
-
-            if (!$response->ok()) {
-                throw new \RuntimeException("Download failed: HTTP {$response->status()} for {$url}");
+        $lastError = null;
+        foreach ($urls as $tryUrl) {
+            $fp = fopen($dest, 'wb');
+            if (!$fp) {
+                throw new \RuntimeException("Cannot create download file at: {$dest}");
             }
-        } finally {
-            fclose($fp);
+            try {
+                $response = Http::timeout(300)->withOptions(['sink' => $fp])->get($tryUrl);
+                if ($response->ok()) {
+                    return;
+                }
+                $lastError = "HTTP {$response->status()} from {$tryUrl}";
+            } finally {
+                fclose($fp);
+            }
         }
+
+        throw new \RuntimeException("Download failed — tried {$urls[0]}" . (count($urls) > 1 ? " and fallback {$urls[1]}" : '') . ". Last error: {$lastError}");
     }
 
     private function extractZip(string $zipPath, string $extractPath): void
@@ -358,18 +363,30 @@ class UpdateService
 
     private function readEnvVersion(): ?string
     {
+        // Check .env for APP_VERSION
         $envPath = base_path('.env');
-        if (!is_file($envPath)) {
-            return null;
+        if (is_file($envPath)) {
+            $content = (string) file_get_contents($envPath);
+            if (preg_match('/^APP_VERSION=(.+)$/m', $content, $matches) === 1) {
+                $version = trim($matches[1], " \t\n\r\0\x0B\"'");
+                if ($version !== '') {
+                    // Also keep storage file in sync in case .env was updated externally
+                    @file_put_contents(storage_path('app/.app_version'), $version);
+                    return $version;
+                }
+            }
         }
 
-        if (preg_match('/^APP_VERSION=(.+)$/m', (string) file_get_contents($envPath), $matches) !== 1) {
-            return null;
+        // Fallback: storage/app/.app_version (written by every successful update)
+        $storageVersion = storage_path('app/.app_version');
+        if (is_file($storageVersion)) {
+            $version = trim((string) file_get_contents($storageVersion));
+            if ($version !== '') {
+                return $version;
+            }
         }
 
-        $version = trim($matches[1], " \t\n\r\0\x0B\"'");
-
-        return $version !== '' ? $version : null;
+        return null;
     }
 
     private function getBundledVersion(): ?string
@@ -421,16 +438,28 @@ class UpdateService
 
     private function updateEnvVersion(string $version): void
     {
+        // Primary: update APP_VERSION in .env
         $envPath = base_path('.env');
         $content = file_exists($envPath) ? file_get_contents($envPath) : '';
-
         if (str_contains($content, 'APP_VERSION=')) {
             $content = preg_replace('/^APP_VERSION=.*/m', "APP_VERSION={$version}", $content);
         } else {
             $content = rtrim($content) . "\nAPP_VERSION={$version}\n";
         }
+        $envWritten = file_put_contents($envPath, $content);
 
-        file_put_contents($envPath, $content);
+        // Fallback: write to storage/app/.app_version — storage/ is always writable
+        // on cPanel, .env may have restricted permissions but storage/ is always writable
+        $storageDir = storage_path('app');
+        if (!is_dir($storageDir)) {
+            @mkdir($storageDir, 0755, true);
+        }
+        file_put_contents(storage_path('app/.app_version'), $version);
+
+        if ($envWritten === false) {
+            \Illuminate\Support\Facades\Log::warning("UpdateService: could not write APP_VERSION to .env; version stored in storage/app/.app_version only.");
+        }
+
         config(['version.current' => $version]);
     }
 
