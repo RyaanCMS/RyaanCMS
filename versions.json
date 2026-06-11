@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.72",
+    "latest": "1.1.73",
     "versions": [
         {
             "version": "1.0.0",
@@ -899,6 +899,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.71",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.73",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: cloud central architecture — license, credits, telemetry hub\n\nAdds a full central control plane that runs on the registry server\n(REGISTRY_MODE=registry) and is invisible to customer installs.\n\nNew files:\n- 4 migrations: central_licenses, central_installs, central_telemetry,\n  central_credit_ledger\n- 4 models: CentralLicense, CentralInstall, CentralTelemetry,\n  CentralCreditLedger (all in App\\Models\\Central)\n- 3 central services: LicenseManager, CreditManager, TelemetryAggregator\n- CentralClientService — customer installs phone home via this\n- CentralApiController — 5 endpoints: validate, credits check/deduct,\n  telemetry ingest, install ping\n- CentralApiAuth middleware — validates X-License-Key header\n- HubController + 4 admin views (index, licenses, installs, telemetry)\n\nModified:\n- routes/web.php — central API + admin hub routes gated behind\n  config(registry.mode) === registry; zero impact on customer installs\n- LicenseService — reads URL from config(registry.url) instead of\n  hardcoded api.ryaancms.com\n- CodeGeneratorService — fires anonymized telemetry after every real AI\n  generation (best-effort, never blocks generation)",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.73/ryaancms-v1.1.73-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.72",
             "critical": false,
             "file_count": null
         }
