@@ -725,15 +725,21 @@ BLADE;
 
     private function shellPreviewHtml(string $appName, array $entities): string
     {
-        $colors  = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
-        $icons   = ['🏥','👥','💊','🛏️','📋','💳','📊','🚑','🔬','⚕️','📅','🏢','📦','🗂️','🔧','💰','📁','🔗'];
+        $palette = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
+        $icons   = ['📦','👥','💳','📋','🏷️','📊','⭐','🚚','❤️','🏢','📁','🔧','💰','📅','🗂️','🔗','🛒','🔬'];
 
-        // Sidebar links
+        // Sidebar nav items
         $sidebarLinks = '';
+        $counts = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72,319,184];
         foreach ($entities as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
             $icon  = $icons[$i % count($icons)];
-            $sidebarLinks .= "<button class=\"nav-link\" onclick=\"showModule('{$e['name']}',this)\">{$icon} {$label}</button>\n";
+            $cnt   = $counts[$i % count($counts)];
+            $sidebarLinks .= "<button class=\"nav-item\" onclick=\"navTo('{$e['name']}','{$label}',this)\" id=\"nav-{$e['name']}\">"
+                           . "<span class=\"nav-icon\">{$icon}</span>"
+                           . "<span class=\"nav-label\">{$label}</span>"
+                           . "<span class=\"nav-badge\">{$cnt}</span>"
+                           . "</button>\n";
         }
 
         // Stat cards
