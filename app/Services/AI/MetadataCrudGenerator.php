@@ -583,11 +583,12 @@ PHP;
             $name      = Str::studly($e['name']);
             $plural    = Str::plural(Str::snake($name));
             $plurTitle = Str::title(str_replace('_', ' ', $plural));
+            $icon      = $this->entityIcon($e['name']);
             $navLinks .= <<<BLADE
 
                     <a href="{{ route('{$plural}.index') }}"
                        class="nav-link {{ request()->routeIs('{$plural}.*') ? 'active' : '' }}">
-                        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                        <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">{$icon}</span>
                         {$plurTitle}
                     </a>
 BLADE;
@@ -661,6 +662,7 @@ BLADE;
 
     private function shellDashboardView(string $appName, array $entities): string
     {
+        $profile = $this->domainProfile($appName, $entities);
         $cards = '';
         $colors = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'];
         $i = 0;
@@ -671,15 +673,15 @@ BLADE;
             $plural    = Str::plural(Str::snake($name));
             $plurTitle = Str::title(str_replace('_', ' ', $plural));
             $color     = $colors[$i % count($colors)];
+            $icon      = $this->entityIcon($e['name']);
+            $kpiPfx    = $profile['kpiPfx'][$i % 8];
             $i++;
             $cards .= <<<BLADE
 
         <a href="{{ route('{$plural}.index') }}" class="stat-card" style="--c:{$color};">
-            <div class="stat-icon">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:22px;height:22px;color:{$color};"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16"/></svg>
-            </div>
+            <div class="stat-icon" style="font-size:22px;line-height:1">{$icon}</div>
             <div class="stat-num">{{ \${$var}Count }}</div>
-            <div class="stat-label">Total {$plurTitle}</div>
+            <div class="stat-label">{$kpiPfx} {$plurTitle}</div>
             <div class="stat-hint">View all →</div>
         </a>
 BLADE;
@@ -725,15 +727,39 @@ BLADE;
 
     private function shellPreviewHtml(string $appName, array $entities): string
     {
-        $palette = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
-        $icons   = ['📦','👥','💳','📋','🏷️','📊','⭐','🚚','❤️','🏢','📁','🔧','💰','📅','🗂️','🔗','🛒','🔬'];
+        $profile     = $this->domainProfile($appName, $entities);
+        $brand       = $profile['brand'];
+        $brandDk     = $profile['brandDk'];
+        $brandLight  = $profile['brandLight'];
+        $gradient    = $profile['gradient'];
+        $heroTag     = $profile['heroTag'];
+        $heroSub     = $profile['heroSub'];
+        $userRole    = $profile['userRole'];
+        $userName    = $profile['userName'];
+        $sbSection   = $profile['sbSection'];
+        $featSfx     = $profile['featSuffix'];
+        $appInitial  = strtoupper(mb_substr($appName, 0, 1));
+        $userInitials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', str_replace(' ', '', $userName)), 0, 2));
 
-        // Sidebar nav items
+        $palette = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
+        $samples = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
+        $trends  = ['+14.2%','+8.7%','+5.1%','+22.3%','+3.8%','+11.6%','+6.4%','+9.2%'];
+        $counts  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72,319,184];
+
+        // Hero metrics HTML
+        $metricsHtml = '';
+        foreach ($profile['metrics'] as $idx => $m) {
+            if ($idx > 0) {
+                $metricsHtml .= '<div style="width:1px;background:rgba(255,255,255,.08)"></div>';
+            }
+            $metricsHtml .= '<div style="text-align:center"><div class="metric-num">' . $m['num'] . '</div><div class="metric-lbl">' . $m['lbl'] . '</div></div>';
+        }
+
+        // Sidebar nav links with domain-specific entity icons
         $sidebarLinks = '';
-        $counts = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72,319,184];
         foreach ($entities as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
-            $icon  = $icons[$i % count($icons)];
+            $icon  = $this->entityIcon($e['name']);
             $cnt   = $counts[$i % count($counts)];
             $sidebarLinks .= "<button class=\"nav-item\" onclick=\"navTo('{$e['name']}','{$label}',this)\" id=\"nav-{$e['name']}\">"
                            . "<span class=\"nav-icon\">{$icon}</span>"
@@ -742,25 +768,41 @@ BLADE;
                            . "</button>\n";
         }
 
-        // Stat cards for dashboard
-        $samples  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
-        $trends   = ['+14.2%','+8.7%','+5.1%','+22.3%','+3.8%','+11.6%','+6.4%','+9.2%'];
+        // KPI stat cards with domain-prefixed labels
         $cards = '';
         foreach ($entities as $i => $e) {
-            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
-            $color = $palette[$i % count($palette)];
-            $icon  = $icons[$i % count($icons)];
-            $count = number_format($samples[$i % count($samples)]);
-            $trend = $trends[$i % count($trends)];
+            $label   = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $color   = $palette[$i % count($palette)];
+            $icon    = $this->entityIcon($e['name']);
+            $count   = number_format($samples[$i % count($samples)]);
+            $trend   = $trends[$i % count($trends)];
             $bgLight = $color . '18';
-            $cards .= <<<HTML
+            $kpiPfx  = $profile['kpiPfx'][$i % 8];
+            $kpiLbl  = $kpiPfx . ' ' . $label;
+            $cards  .= <<<HTML
 <div class="kpi-card" onclick="navTo('{$e['name']}','{$label}',document.getElementById('nav-{$e['name']}'))">
   <div class="kpi-top">
     <div class="kpi-icon" style="background:{$bgLight};color:{$color}">{$icon}</div>
     <span class="kpi-trend">▲ {$trend}</span>
   </div>
   <div class="kpi-value">{$count}</div>
-  <div class="kpi-label">{$label}</div>
+  <div class="kpi-label">{$kpiLbl}</div>
+</div>
+HTML;
+        }
+
+        // Feature cards for landing (first 6 entities) with domain copy
+        $featureCards = '';
+        foreach (array_slice($entities, 0, 6) as $i => $e) {
+            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $icon  = $this->entityIcon($e['name']);
+            $color = $palette[$i % count($palette)];
+            $bgL   = $color . '22';
+            $featureCards .= <<<HTML
+<div class="feat-card">
+  <div class="feat-icon" style="background:{$bgL};color:{$color}">{$icon}</div>
+  <div class="feat-title">{$label} Management</div>
+  <div class="feat-desc">Complete {$label} records {$featSfx}</div>
 </div>
 HTML;
         }
@@ -771,22 +813,6 @@ HTML;
         $chartData   = implode(',', array_map(fn($i) => $samples[$i % count($samples)], range(0, count($chartSlice) - 1)));
         $chartBg     = implode(',', array_map(fn($i) => '"' . $palette[$i % count($palette)] . '"', range(0, count($chartSlice) - 1)));
 
-        // Feature cards for landing (first 6 entities)
-        $featureCards = '';
-        foreach (array_slice($entities, 0, 6) as $i => $e) {
-            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
-            $icon  = $icons[$i % count($icons)];
-            $color = $palette[$i % count($palette)];
-            $bgL   = $color . '22';
-            $featureCards .= <<<HTML
-<div class="feat-card">
-  <div class="feat-icon" style="background:{$bgL};color:{$color}">{$icon}</div>
-  <div class="feat-title">{$label} Management</div>
-  <div class="feat-desc">Complete CRUD operations, search, filters, reports and data export.</div>
-</div>
-HTML;
-        }
-
         // Entities JSON for JS module renderer
         $entitiesJson = json_encode(array_values(array_map(fn($e) => [
             'name'  => $e['name'],
@@ -795,7 +821,6 @@ HTML;
 
         $entityCount = count($entities);
         $year        = date('Y');
-        $firstLabel  = !empty($entities[0]) ? Str::title(str_replace('_', ' ', Str::snake($entities[0]['name']))) : 'Record';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -808,13 +833,13 @@ HTML;
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{--brand:#6366f1;--brand-dark:#4f46e5;--brand-light:#eef2ff;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--sidebar:#0f172a;--surface:#ffffff;--bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--subtle:#f1f5f9}
+:root{--brand:{$brand};--brand-dark:{$brandDk};--brand-light:{$brandLight};--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--sidebar:#0f172a;--surface:#ffffff;--bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--subtle:#f1f5f9}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,sans-serif}
 /* ── screens ── */
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex}
 /* ═══════════════ LANDING ═══════════════ */
-#screen-landing{flex-direction:column;background:linear-gradient(160deg,#0a0f1e 0%,#0f172a 40%,#1a1040 100%)}
+#screen-landing{flex-direction:column;background:linear-gradient(160deg,{$gradient})}
 .land-nav{display:flex;justify-content:space-between;align-items:center;padding:18px 64px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;backdrop-filter:blur(12px);background:rgba(10,15,30,.7);z-index:10}
 .land-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px}
 .land-logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%;display:inline-block}
@@ -845,7 +870,7 @@ HTML;
 .feat-title{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:6px}
 .feat-desc{font-size:13px;color:#64748b;line-height:1.5}
 /* ═══════════════ LOGIN ═══════════════ */
-#screen-login{align-items:center;justify-content:center;background:linear-gradient(160deg,#0a0f1e 0%,#0f172a 50%,#1a1040 100%)}
+#screen-login{align-items:center;justify-content:center;background:linear-gradient(160deg,{$gradient})}
 .login-wrap{width:420px}
 .login-brand{text-align:center;margin-bottom:32px}
 .login-brand-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px}
@@ -964,7 +989,7 @@ HTML;
 <div id="screen-landing" class="screen active">
   <nav class="land-nav">
     <div class="land-logo">
-      <span style="background:var(--brand);color:#fff;width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900">R</span>
+      <span style="background:var(--brand);color:#fff;width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900">{$appInitial}</span>
       {$appName}
     </div>
     <div class="land-pills">
@@ -978,20 +1003,14 @@ HTML;
     </div>
   </nav>
   <div class="hero">
-    <div class="hero-eyebrow">✦ Enterprise Platform &nbsp;·&nbsp; {$entityCount} Modules &nbsp;·&nbsp; Production Ready</div>
+    <div class="hero-eyebrow">{$heroTag} &nbsp;·&nbsp; {$entityCount} Modules</div>
     <h1 class="hero-h1">{$appName}</h1>
-    <p class="hero-sub">The complete enterprise management platform your business needs. Manage all operations, teams, and workflows from one intelligent system.</p>
+    <p class="hero-sub">{$heroSub}</p>
     <div class="hero-ctas">
-      <button class="btn-cta-primary" onclick="go('login')">🚀 Start for Free</button>
+      <button class="btn-cta-primary" onclick="go('login')">🚀 Get Started Free</button>
       <button class="btn-cta-ghost" onclick="go('login')">View Dashboard →</button>
     </div>
-    <div class="hero-metrics">
-      <div style="text-align:center"><div class="metric-num">{$entityCount}</div><div class="metric-lbl">Modules Ready</div></div>
-      <div style="width:1px;background:rgba(255,255,255,.08)"></div>
-      <div style="text-align:center"><div class="metric-num">100%</div><div class="metric-lbl">No AI Cost</div></div>
-      <div style="width:1px;background:rgba(255,255,255,.08)"></div>
-      <div style="text-align:center"><div class="metric-num">∞</div><div class="metric-lbl">Records</div></div>
-    </div>
+    <div class="hero-metrics">{$metricsHtml}</div>
     <div class="feat-grid">{$featureCards}</div>
   </div>
 </div>
@@ -1002,7 +1021,7 @@ HTML;
 <div id="screen-login" class="screen">
   <div class="login-wrap">
     <div class="login-brand">
-      <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;margin:0 auto 14px">R</div>
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;margin:0 auto 14px">{$appInitial}</div>
       <div class="login-brand-name">{$appName}</div>
       <div class="login-brand-sub">Sign in to your workspace</div>
     </div>
@@ -1038,7 +1057,7 @@ HTML;
   <div class="sidebar">
     <div class="sb-logo">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0">R</div>
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0">{$appInitial}</div>
         <div>
           <div class="sb-logo-name">{$appName}</div>
           <div class="sb-logo-tag">Admin Panel</div>
@@ -1053,13 +1072,13 @@ HTML;
       <span class="nav-icon">📊</span>
       <span class="nav-label">Dashboard</span>
     </button>
-    <div class="sb-section">Modules</div>
+    <div class="sb-section">{$sbSection}</div>
     {$sidebarLinks}
     <div class="sb-user">
-      <div class="sb-user-avatar">AD</div>
+      <div class="sb-user-avatar">{$userInitials}</div>
       <div>
-        <div class="sb-user-name">Admin User</div>
-        <div class="sb-user-role">Super Admin</div>
+        <div class="sb-user-name">{$userName}</div>
+        <div class="sb-user-role">{$userRole}</div>
       </div>
       <button class="sb-logout" onclick="go('landing')" title="Logout">⏻</button>
     </div>
@@ -1081,8 +1100,8 @@ HTML;
       <div class="topbar-actions">
         <button class="notif-btn">🔔<span class="notif-dot"></span></button>
         <div class="user-chip">
-          <div class="user-chip-avatar">AD</div>
-          <span class="user-chip-name">Admin</span>
+          <div class="user-chip-avatar">{$userInitials}</div>
+          <span class="user-chip-name">{$userName}</span>
           <span style="color:#94a3b8;font-size:10px">▾</span>
         </div>
       </div>
@@ -1259,6 +1278,251 @@ document.getElementById('sb-search-input').addEventListener('input',function(){
 </body>
 </html>
 HTML;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Domain intelligence — detects business domain and returns design tokens
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function domainProfile(string $appName, array $entities): array
+    {
+        $t = strtolower($appName . ' ' . implode(' ', array_column($entities, 'name')));
+
+        if (preg_match('/hospital|clinic|medical|health|patient|doctor|nurse|pharmacy|ward|surgery|diagnostic|icu|opd/', $t)) {
+            return [
+                'domain'    => 'hospital',
+                'brand'     => '#0ea5e9',
+                'brandDk'   => '#0284c7',
+                'brandLight'=> '#e0f2fe',
+                'gradient'  => '#020d18 0%,#0b1a2e 40%,#082330 100%',
+                'heroTag'   => '🏥 Healthcare Platform · HIPAA Ready · Real-time',
+                'heroSub'   => 'Streamline patient care, clinical workflows, staff management and medical records — all in one secure, compliant platform built for modern hospitals.',
+                'metrics'   => [['num'=>'50K+','lbl'=>'Patients Managed'],['num'=>'99.9%','lbl'=>'System Uptime'],['num'=>'200+','lbl'=>'Clinical Staff']],
+                'userRole'  => 'Chief Medical Officer',
+                'userName'  => 'Dr. Admin',
+                'sbSection' => 'Clinical Modules',
+                'kpiPfx'    => ['Active','On Duty','Scheduled','Available','Pending','Completed','Registered','In Queue'],
+                'featSuffix'=> 'with complete clinical history, audit trails, and HIPAA-compliant data storage.',
+            ];
+        }
+
+        if (preg_match('/ecommerce|e-commerce|shop|store|retail|product|order|cart|checkout|marketplace|catalogue/', $t)) {
+            return [
+                'domain'    => 'ecommerce',
+                'brand'     => '#7c3aed',
+                'brandDk'   => '#6d28d9',
+                'brandLight'=> '#ede9fe',
+                'gradient'  => '#0d0618 0%,#130926 40%,#1a0d35 100%',
+                'heroTag'   => '🛍️ eCommerce Platform · Multi-Store · Scalable',
+                'heroSub'   => 'Manage your entire store — products, orders, customers, inventory, and analytics — from one powerful platform that scales with your business.',
+                'metrics'   => [['num'=>'$2.4M','lbl'=>'Revenue Processed'],['num'=>'15K+','lbl'=>'Orders Fulfilled'],['num'=>'8K+','lbl'=>'Happy Customers']],
+                'userRole'  => 'Store Manager',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Store Modules',
+                'kpiPfx'    => ['Total','New','Pending','Active','Completed','Featured','Published','Fulfilled'],
+                'featSuffix'=> 'with advanced filtering, bulk actions, and real-time inventory sync.',
+            ];
+        }
+
+        if (preg_match('/school|education|university|college|academy|student|teacher|course|class|grade|exam|curriculum|faculty/', $t)) {
+            return [
+                'domain'    => 'education',
+                'brand'     => '#2563eb',
+                'brandDk'   => '#1d4ed8',
+                'brandLight'=> '#dbeafe',
+                'gradient'  => '#020714 0%,#080f24 40%,#0a1030 100%',
+                'heroTag'   => '🎓 Education Platform · LMS Ready · Multi-Campus',
+                'heroSub'   => 'Manage students, teachers, courses, exams, and academic records with a modern learning management system built for 21st century education.',
+                'metrics'   => [['num'=>'5K+','lbl'=>'Students Enrolled'],['num'=>'98%','lbl'=>'Pass Rate'],['num'=>'150+','lbl'=>'Courses Offered']],
+                'userRole'  => 'Principal',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Academic Modules',
+                'kpiPfx'    => ['Enrolled','Active','Scheduled','Graded','Passed','Published','Registered','Assigned'],
+                'featSuffix'=> 'with academic tracking, progress reports, and parent portal integration.',
+            ];
+        }
+
+        if (preg_match('/restaurant|food|cafe|menu|kitchen|recipe|dish|table|reservation|waiter|chef|dine/', $t)) {
+            return [
+                'domain'    => 'restaurant',
+                'brand'     => '#ea580c',
+                'brandDk'   => '#c2410c',
+                'brandLight'=> '#fff7ed',
+                'gradient'  => '#180802 0%,#1f0f05 40%,#241206 100%',
+                'heroTag'   => '🍽️ Restaurant Platform · POS Ready · Multi-Branch',
+                'heroSub'   => 'Run your restaurant smarter — manage orders, tables, menu, kitchen workflow, staff and customer experience from a single integrated platform.',
+                'metrics'   => [['num'=>'500+','lbl'=>'Orders Daily'],['num'=>'4.9★','lbl'=>'Customer Rating'],['num'=>'12+','lbl'=>'Locations']],
+                'userRole'  => 'Restaurant Manager',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Restaurant Modules',
+                'kpiPfx'    => ["Today's",'Active','Pending','Completed','Available','Featured','Reserved','Open'],
+                'featSuffix'=> 'with real-time kitchen display, POS integration, and customer feedback.',
+            ];
+        }
+
+        if (preg_match('/hotel|resort|property|realestate|real.estate|room|booking|guest|tenant|lease|apartment|hostel|accommodation/', $t)) {
+            return [
+                'domain'    => 'hotel',
+                'brand'     => '#d97706',
+                'brandDk'   => '#b45309',
+                'brandLight'=> '#fef3c7',
+                'gradient'  => '#180e02 0%,#1a1005 40%,#1e1408 100%',
+                'heroTag'   => '🏨 Property Platform · Multi-Property · Revenue Mgmt',
+                'heroSub'   => 'Manage reservations, guests, rooms, housekeeping, billing and revenue across all your properties from one elegant platform.',
+                'metrics'   => [['num'=>'95%','lbl'=>'Occupancy Rate'],['num'=>'1.2K','lbl'=>'Happy Guests'],['num'=>'48h','lbl'=>'Avg Stay']],
+                'userRole'  => 'General Manager',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Property Modules',
+                'kpiPfx'    => ['Available','Booked','Check-in','Check-out','Occupied','Reserved','Pending','Completed'],
+                'featSuffix'=> 'with channel manager integration, revenue optimization, and guest CRM.',
+            ];
+        }
+
+        if (preg_match('/finance|bank|accounting|loan|ledger|transaction|account|balance|payroll|tax|audit|budget|insurance|capital/', $t)) {
+            return [
+                'domain'    => 'finance',
+                'brand'     => '#1e40af',
+                'brandDk'   => '#1e3a8a',
+                'brandLight'=> '#dbeafe',
+                'gradient'  => '#02060f 0%,#060d1f 40%,#080e25 100%',
+                'heroTag'   => '🏦 Finance Platform · SOX Compliant · Real-time',
+                'heroSub'   => 'Comprehensive financial management — accounts, transactions, loans, payroll, tax reporting and audit trails built for modern financial institutions.',
+                'metrics'   => [['num'=>'$50M+','lbl'=>'Assets Managed'],['num'=>'100%','lbl'=>'Audit Compliant'],['num'=>'5K+','lbl'=>'Client Accounts']],
+                'userRole'  => 'Finance Director',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Finance Modules',
+                'kpiPfx'    => ['Total','Active','Pending','Processed','Outstanding','Cleared','Approved','Reconciled'],
+                'featSuffix'=> 'with double-entry accounting, real-time reconciliation, and regulatory reporting.',
+            ];
+        }
+
+        if (preg_match('/\bhr\b|human.resource|employee|staff|recruitment|payroll|attendance|leave|performance|training|onboard/', $t)) {
+            return [
+                'domain'    => 'hr',
+                'brand'     => '#7c3aed',
+                'brandDk'   => '#6d28d9',
+                'brandLight'=> '#ede9fe',
+                'gradient'  => '#0d0618 0%,#12082a 40%,#160a30 100%',
+                'heroTag'   => '👥 HR Platform · HRMS · Payroll Automation',
+                'heroSub'   => 'Manage your entire workforce — recruitment, onboarding, attendance, payroll, performance reviews and training from one intelligent HR platform.',
+                'metrics'   => [['num'=>'500+','lbl'=>'Employees Managed'],['num'=>'99%','lbl'=>'Payroll Accuracy'],['num'=>'40h','lbl'=>'Saved Monthly']],
+                'userRole'  => 'HR Director',
+                'userName'  => 'Admin User',
+                'sbSection' => 'HR Modules',
+                'kpiPfx'    => ['Total','Active','On Leave','New Hires','Pending','Completed','Approved','Scheduled'],
+                'featSuffix'=> 'with automated payroll, leave approval workflows, and performance dashboards.',
+            ];
+        }
+
+        if (preg_match('/\bcrm\b|sales|lead|deal|pipeline|prospect|opportunity|campaign|funnel/', $t)) {
+            return [
+                'domain'    => 'crm',
+                'brand'     => '#059669',
+                'brandDk'   => '#047857',
+                'brandLight'=> '#d1fae5',
+                'gradient'  => '#020f0a 0%,#051a10 40%,#071d12 100%',
+                'heroTag'   => '📈 CRM Platform · Sales Pipeline · Revenue Intelligence',
+                'heroSub'   => 'Supercharge your sales team with intelligent lead tracking, deal pipeline management, customer insights, and automated follow-up workflows.',
+                'metrics'   => [['num'=>'340%','lbl'=>'Pipeline Growth'],['num'=>'2.4x','lbl'=>'Faster Close Rate'],['num'=>'$1.8M','lbl'=>'Revenue Tracked']],
+                'userRole'  => 'Sales Director',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Sales Modules',
+                'kpiPfx'    => ['Total','Hot','Qualified','Closed','Active','New','Won','In Progress'],
+                'featSuffix'=> 'with pipeline visualization, activity tracking, and revenue forecasting.',
+            ];
+        }
+
+        if (preg_match('/inventory|warehouse|stock|logistics|supply|shipment|purchase|vendor|supplier|freight|dispatch/', $t)) {
+            return [
+                'domain'    => 'inventory',
+                'brand'     => '#f59e0b',
+                'brandDk'   => '#d97706',
+                'brandLight'=> '#fef3c7',
+                'gradient'  => '#100a02 0%,#1a1205 40%,#1e1608 100%',
+                'heroTag'   => '📦 Inventory Platform · WMS · Real-time Tracking',
+                'heroSub'   => 'Take full control of your supply chain — track stock levels, manage vendors, process purchase orders and optimize warehouse operations in real time.',
+                'metrics'   => [['num'=>'99.8%','lbl'=>'Inventory Accuracy'],['num'=>'10K+','lbl'=>'SKUs Tracked'],['num'=>'48h','lbl'=>'Avg Fulfillment']],
+                'userRole'  => 'Warehouse Manager',
+                'userName'  => 'Admin User',
+                'sbSection' => 'Inventory Modules',
+                'kpiPfx'    => ['Total','In Stock','Low Stock','Pending','Shipped','Received','Returned','Reserved'],
+                'featSuffix'=> 'with barcode scanning, reorder alerts, and multi-warehouse support.',
+            ];
+        }
+
+        return [
+            'domain'    => 'default',
+            'brand'     => '#6366f1',
+            'brandDk'   => '#4f46e5',
+            'brandLight'=> '#eef2ff',
+            'gradient'  => '#06040f 0%,#0f0a24 40%,#130d2e 100%',
+            'heroTag'   => '✦ Enterprise Platform · Production Ready · AI Powered',
+            'heroSub'   => 'The complete enterprise management platform. Manage all operations, workflows and teams from one intelligent, scalable system built for your business.',
+            'metrics'   => [['num'=>(string)count($entities),'lbl'=>'Modules Ready'],['num'=>'∞','lbl'=>'Records Supported'],['num'=>'24/7','lbl'=>'Always Available']],
+            'userRole'  => 'Super Admin',
+            'userName'  => 'Admin User',
+            'sbSection' => 'Modules',
+            'kpiPfx'    => ['Total','Active','New','Pending','Completed','Published','Registered','Processed'],
+            'featSuffix'=> 'with full CRUD operations, search, filters, export, and audit logging.',
+        ];
+    }
+
+    private function entityIcon(string $name): string
+    {
+        $n   = strtolower($name);
+        $map = [
+            'patient'      => '🤒', 'doctor'       => '👨‍⚕️', 'nurse'        => '👩‍⚕️',
+            'appointment'  => '📅', 'medicine'     => '💊', 'drug'         => '💊',
+            'pharmacy'     => '💊', 'ward'         => '🏥', 'bed'          => '🛏️',
+            'surgery'      => '🔬', 'lab'          => '🧪', 'diagnosis'    => '🩺',
+            'prescription' => '📋', 'ambulance'    => '🚑', 'insurance'    => '🛡️',
+            'vital'        => '❤️', 'treatment'    => '💉', 'equipment'    => '⚕️',
+            'product'      => '📦', 'item'         => '📦', 'sku'          => '📦',
+            'inventory'    => '📦', 'stock'        => '📦', 'warehouse'    => '🏭',
+            'order'        => '🛒', 'cart'         => '🛒', 'purchase'     => '🛒',
+            'sale'         => '💰', 'revenue'      => '📈', 'payment'      => '💳',
+            'invoice'      => '🧾', 'billing'      => '💳', 'transaction'  => '💳',
+            'customer'     => '👤', 'client'       => '👤', 'user'         => '👤',
+            'member'       => '👤', 'contact'      => '📞', 'lead'         => '📊',
+            'employee'     => '👥', 'staff'        => '👥', 'team'         => '👥',
+            'department'   => '🏢', 'branch'       => '🏢', 'office'       => '🏢',
+            'student'      => '🎓', 'teacher'      => '👨‍🏫', 'course'       => '📚',
+            'class'        => '🏫', 'grade'        => '📝', 'exam'         => '✏️',
+            'assignment'   => '📝', 'curriculum'   => '📚', 'attendance'   => '✅',
+            'menu'         => '🍽️', 'dish'         => '🍜', 'recipe'       => '🍳',
+            'table'        => '🍽️', 'reservation'  => '📅', 'chef'         => '👨‍🍳',
+            'ingredient'   => '🥕', 'kitchen'      => '🍳', 'food'         => '🍔',
+            'room'         => '🚪', 'booking'      => '📅', 'guest'        => '🏨',
+            'property'     => '🏠', 'tenant'       => '👤', 'lease'        => '📄',
+            'maintenance'  => '🔧', 'amenity'      => '⭐', 'hotel'        => '🏨',
+            'account'      => '🏦', 'loan'         => '💰', 'ledger'       => '📒',
+            'budget'       => '💰', 'expense'      => '📉', 'payroll'      => '💵',
+            'tax'          => '🧮', 'audit'        => '🔍', 'asset'        => '🏦',
+            'leave'        => '🌴', 'payslip'      => '💵', 'recruitment'  => '🎯',
+            'candidate'    => '🎯', 'training'     => '📚', 'performance'  => '⭐',
+            'deal'         => '🤝', 'opportunity'  => '🎯', 'pipeline'     => '📊',
+            'campaign'     => '📢', 'report'       => '📊', 'analytics'    => '📈',
+            'category'     => '🏷️', 'tag'          => '🏷️', 'role'         => '🔑',
+            'permission'   => '🔑', 'setting'      => '⚙️', 'config'       => '⚙️',
+            'supplier'     => '🚚', 'vendor'       => '🚚', 'shipment'     => '🚚',
+            'delivery'     => '🚚', 'logistics'    => '🚚', 'vehicle'      => '🚗',
+            'driver'       => '🚗', 'route'        => '🗺️', 'ticket'       => '🎫',
+            'task'         => '✅', 'project'      => '🗂️', 'milestone'    => '🎯',
+            'notification' => '🔔', 'message'      => '💬', 'email'        => '📧',
+            'feedback'     => '⭐', 'review'       => '⭐', 'rating'       => '⭐',
+            'blog'         => '✍️', 'post'         => '✍️', 'article'      => '✍️',
+            'document'     => '📄', 'certificate'  => '🏆', 'award'        => '🏆',
+            'location'     => '📍', 'address'      => '📍', 'map'          => '🗺️',
+            'discount'     => '🏷️', 'coupon'       => '🎟️', 'promotion'    => '📢',
+            'brand'        => '🏷️', 'banner'       => '🖼️', 'media'        => '🖼️',
+            'subscription' => '🔄', 'plan'         => '📋', 'feature'      => '⚡',
+        ];
+        foreach ($map as $keyword => $icon) {
+            if (str_contains($n, $keyword)) {
+                return $icon;
+            }
+        }
+        return '📋';
     }
 
     private function enumInput(string $name, array $opts, ?string $var, string $required): string
