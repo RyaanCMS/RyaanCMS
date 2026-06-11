@@ -48,6 +48,11 @@ class OpenAIProvider implements AIProviderInterface
 
             $data = json_decode($response->getBody()->getContents(), true);
 
+            $finishReason = $data['choices'][0]['finish_reason'] ?? '';
+            if ($finishReason === 'content_filter') {
+                throw new \RuntimeException('OpenAI blocked this output due to content policy. Try rephrasing your prompt or breaking it into smaller parts.');
+            }
+
             return [
                 'content'       => $data['choices'][0]['message']['content'] ?? '',
                 'tokens_used'   => $data['usage']['total_tokens'] ?? 0,

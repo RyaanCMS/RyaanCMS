@@ -47,6 +47,8 @@ class GeminiProvider implements AIProviderInterface
         $payload = [
             'contents'         => $contents,
             'generationConfig' => ['maxOutputTokens' => $options['max_tokens'] ?? $this->maxTokens],
+            // Relax safety thresholds — security/auth code in prompts triggers false positives
+            'safetySettings'   => self::codeSafetySettings(),
         ];
 
         if ($systemMessage) {
@@ -61,18 +63,36 @@ class GeminiProvider implements AIProviderInterface
 
             $data = json_decode($response->getBody()->getContents(), true);
 
+            // Prompt-level block (before any output generated)
+            if (!empty($data['promptFeedback']['blockReason'])) {
+                throw new \RuntimeException('Gemini blocked this prompt (' . $data['promptFeedback']['blockReason'] . '). Try rephrasing or splitting into smaller requests.');
+            }
+
+            // Candidate-level safety block (200 OK but finishReason = SAFETY)
+            $finishReason = $data['candidates'][0]['finishReason'] ?? '';
+            if ($finishReason === 'SAFETY') {
+                throw new \RuntimeException('Gemini flagged the generated output as unsafe. Try rephrasing your prompt or removing security-sensitive keywords.');
+            }
+
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            if ($text === '' && !in_array($finishReason, ['STOP', 'MAX_TOKENS', ''])) {
+                throw new \RuntimeException('Gemini returned empty output (reason: ' . $finishReason . '). Please try again.');
+            }
+
             return [
-                'content'       => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
+                'content'       => $text,
                 'tokens_used'   => ($data['usageMetadata']['totalTokenCount'] ?? 0),
                 'model'         => $model,
                 'response_time' => (int) ((microtime(true) - $startTime) * 1000),
                 'raw'           => $data,
             ];
         } catch (RequestException $e) {
-            $body = $e->getResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : [];
-            throw new \RuntimeException(
-                'Gemini API Error: '.($body['error']['message'] ?? $e->getMessage())
-            );
+            $body   = $e->getResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : [];
+            $apiMsg = $body['error']['message'] ?? $e->getMessage();
+            if (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked')) {
+                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or splitting your prompt into smaller parts.');
+            }
+            throw new \RuntimeException('Gemini API Error: ' . $apiMsg);
         }
     }
 
@@ -96,6 +116,7 @@ class GeminiProvider implements AIProviderInterface
         $payload = [
             'contents'         => $contents,
             'generationConfig' => ['maxOutputTokens' => $options['max_tokens'] ?? $this->maxTokens],
+            'safetySettings'   => self::codeSafetySettings(),
         ];
 
         if ($systemMessage) {
@@ -113,6 +134,9 @@ class GeminiProvider implements AIProviderInterface
             $status = $e->getResponse()?->getStatusCode();
             if ($status === 401 || $status === 403) throw new \RuntimeException('Invalid Gemini API key. Please update it in Settings → AI Providers.');
             if ($status === 429) throw new \RuntimeException('Gemini rate limit reached. Please wait and try again.');
+            if (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked')) {
+                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or splitting your prompt into smaller parts.');
+            }
             throw new \RuntimeException('Gemini API Error: ' . $apiMsg);
         }
 
@@ -132,6 +156,14 @@ class GeminiProvider implements AIProviderInterface
                 if ($jsonStr === '' || $jsonStr === '[DONE]') continue;
 
                 $data = json_decode($jsonStr, true);
+                if (!is_array($data)) continue;
+
+                // Check for safety block mid-stream
+                $finishReason = $data['candidates'][0]['finishReason'] ?? '';
+                if ($finishReason === 'SAFETY') {
+                    throw new \RuntimeException('Gemini flagged the output as unsafe mid-generation. Try rephrasing your prompt.');
+                }
+
                 $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
                 if ($text) $callback($text);
             }
@@ -156,5 +188,17 @@ class GeminiProvider implements AIProviderInterface
     public function isConfigured(): bool
     {
         return !empty($this->apiKey);
+    }
+
+    private static function codeSafetySettings(): array
+    {
+        // Relax to BLOCK_ONLY_HIGH for all categories — code generation prompts
+        // (security systems, auth, SQL, injection examples) trigger false positives at default thresholds.
+        return [
+            ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+        ];
     }
 }
