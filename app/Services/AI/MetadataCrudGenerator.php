@@ -733,7 +733,7 @@ BLADE;
         foreach ($entities as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
             $icon  = $icons[$i % count($icons)];
-            $sidebarLinks .= "<a href=\"#\" class=\"nav-link\" onclick=\"showSection('{$e['name']}')\">{$icon} {$label}</a>\n";
+            $sidebarLinks .= "<button class=\"nav-link\" onclick=\"showModule('{$e['name']}',this)\">{$icon} {$label}</button>\n";
         }
 
         // Stat cards
@@ -746,7 +746,7 @@ BLADE;
             $count = $samples[$i % count($samples)];
             $trend = $i % 3 === 0 ? '+12%' : ($i % 3 === 1 ? '+8%' : '+5%');
             $cards .= <<<HTML
-<div class="stat-card" onclick="showSection('{$e['name']}')" style="border-top:4px solid {$color}">
+<div class="stat-card" style="--c:{$color}" onclick="showModule('{$e['name']}',document.querySelector('.nav-link'))" style="cursor:pointer">
   <div style="display:flex;justify-content:space-between;align-items:flex-start">
     <div>
       <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">{$label}</div>
@@ -775,7 +775,22 @@ HTML;
         }
 
         $entityCount = count($entities);
-        $year = date('Y');
+        $year        = date('Y');
+
+        // Landing page feature cards (first 6 entities)
+        $featureCards = '';
+        foreach (array_slice($entities, 0, 6) as $i => $e) {
+            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $icon  = $icons[$i % count($icons)];
+            $color = $colors[$i % count($colors)];
+            $featureCards .= <<<HTML
+<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;transition:transform .2s" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+  <div style="font-size:36px;margin-bottom:12px">{$icon}</div>
+  <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">{$label} Management</div>
+  <div style="font-size:13px;color:#94a3b8;line-height:1.5">Complete {$label} module with full CRUD, search, filters and reporting.</div>
+</div>
+HTML;
+        }
 
         return <<<HTML
 <!DOCTYPE html>
@@ -783,91 +798,195 @@ HTML;
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{$appName}</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a;display:flex;min-height:100vh}
-  .sidebar{width:240px;background:#0f172a;color:#fff;display:flex;flex-direction:column;flex-shrink:0;padding:0 0 16px}
-  .sidebar-header{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .sidebar-title{font-size:16px;font-weight:800;color:#fff}
-  .sidebar-sub{font-size:11px;color:#64748b;margin-top:2px}
-  .nav-section{padding:12px 12px 4px;font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;color:#94a3b8;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s}
-  .nav-link:hover{background:rgba(99,102,241,.15);color:#fff}
-  .nav-link.active{background:rgba(99,102,241,.2);color:#fff;border-right:3px solid #6366f1}
-  .main{flex:1;display:flex;flex-direction:column;overflow:auto}
-  .topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
-  .topbar-title{font-size:18px;font-weight:700;color:#0f172a}
-  .badge{background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-  .content{padding:28px;flex:1}
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
-  .stat-card{background:#fff;border-radius:12px;padding:20px;cursor:pointer;transition:transform .15s,box-shadow .15s;border:1px solid #e2e8f0}
-  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
-  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
-  .card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px}
-  .card-title{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:16px}
-  table{width:100%;border-collapse:collapse}
-  th{text-align:left;padding:10px 14px;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
-  td{padding:12px 14px;font-size:13px;border-bottom:1px solid #f8fafc;color:#334155}
-  tr:hover td{background:#f8fafc}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#0f172a;color:#fff;min-height:100vh}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+/* ── Landing ── */
+#screen-landing{flex-direction:column;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)}
+.land-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 60px;border-bottom:1px solid rgba(255,255,255,.08)}
+.land-logo{font-size:20px;font-weight:800;color:#fff}
+.land-nav-btns{display:flex;gap:12px}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-primary{background:#6366f1;border:none;color:#fff;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-primary:hover{background:#4f46e5}
+.land-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 40px 40px}
+.hero-badge{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:24px}
+.hero-title{font-size:52px;font-weight:900;line-height:1.1;margin-bottom:20px;background:linear-gradient(135deg,#fff 0%,#a5b4fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:18px;color:#94a3b8;max-width:560px;line-height:1.6;margin-bottom:40px}
+.hero-btns{display:flex;gap:16px;margin-bottom:60px}
+.btn-lg-primary{background:#6366f1;border:none;color:#fff;padding:14px 32px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700}
+.btn-lg-ghost{background:transparent;border:2px solid rgba(255,255,255,.2);color:#fff;padding:14px 32px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700}
+.hero-stats{display:flex;gap:40px;margin-bottom:60px}
+.hero-stat-num{font-size:28px;font-weight:800;color:#fff}
+.hero-stat-lbl{font-size:12px;color:#64748b;margin-top:2px}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;width:100%}
+/* ── Login ── */
+#screen-login{align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)}
+.login-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:48px;width:400px;backdrop-filter:blur(10px)}
+.login-logo{text-align:center;font-size:18px;font-weight:800;color:#fff;margin-bottom:8px}
+.login-sub{text-align:center;font-size:13px;color:#64748b;margin-bottom:32px}
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.form-input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;outline:none}
+.form-input:focus{border-color:#6366f1}
+.btn-login{width:100%;background:#6366f1;border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+.back-link{display:block;text-align:center;margin-top:20px;color:#64748b;font-size:13px;cursor:pointer}
+.back-link:hover{color:#a5b4fc}
+/* ── Dashboard ── */
+#screen-dashboard{background:#f1f5f9;color:#0f172a}
+.sidebar{width:240px;background:#0f172a;color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-title{font-size:15px;font-weight:800;color:#fff}
+.sidebar-sub{font-size:11px;color:#64748b;margin-top:2px}
+.nav-sec{padding:12px 12px 4px;font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;color:#94a3b8;font-size:13px;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-link:hover,.nav-link.active{background:rgba(99,102,241,.2);color:#fff}
+.dash-main{flex:1;display:flex;flex-direction:column;overflow:auto}
+.topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
+.topbar-title{font-size:17px;font-weight:700}
+.topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:#64748b}
+.avatar{width:32px;height:32px;background:#6366f1;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.content{padding:24px;flex:1;overflow:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;border-top:4px solid var(--c)}
+.stat-label{font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase}
+.stat-value{font-size:30px;font-weight:800;margin:6px 0}
+.stat-trend{font-size:12px;color:#10b981;font-weight:600}
+.charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:24px}
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f8fafc}
+tr:hover td{background:#f8fafc}
 </style>
 </head>
 <body>
-<div class="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-title">🚀 {$appName}</div>
-    <div class="sidebar-sub">{$entityCount} modules ready</div>
-  </div>
-  <div class="nav-section">Overview</div>
-  <a href="#" class="nav-link active" onclick="showDashboard()">📊 Dashboard</a>
-  <div class="nav-section">Modules</div>
-  {$sidebarLinks}
-</div>
-<div class="main">
-  <div class="topbar">
-    <div class="topbar-title" id="page-title">Dashboard</div>
-    <span class="badge">{$entityCount} Modules</span>
-  </div>
-  <div class="content" id="main-content">
-    <div class="stats-grid">{$cards}</div>
-    <div class="charts-row">
-      <div class="card">
-        <div class="card-title">📈 Module Overview</div>
-        <canvas id="barChart" height="200"></canvas>
-      </div>
-      <div class="card">
-        <div class="card-title">🥧 Distribution</div>
-        <canvas id="doughnutChart" height="200"></canvas>
-      </div>
+
+<!-- ══════════════ SCREEN 1: LANDING ══════════════ -->
+<div id="screen-landing" class="screen active">
+  <nav class="land-nav">
+    <div class="land-logo">🏥 {$appName}</div>
+    <div class="land-nav-btns">
+      <button class="btn-ghost" onclick="go('login')">Login</button>
+      <button class="btn-primary" onclick="go('login')">Get Started</button>
     </div>
-    <div class="card">
-      <div class="card-title">📋 Recent {$firstLabel} Records</div>
-      <table>
-        <thead><tr><th>Name</th><th>Date</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
-        <tbody>{$tableRows}</tbody>
-      </table>
+  </nav>
+  <div class="land-hero">
+    <div class="hero-badge">Enterprise Application · {$entityCount} Modules</div>
+    <h1 class="hero-title">{$appName}</h1>
+    <p class="hero-sub">A complete enterprise management platform. Streamline operations, manage all modules, and make data-driven decisions from one unified system.</p>
+    <div class="hero-btns">
+      <button class="btn-lg-primary" onclick="go('login')">🚀 Get Started Free</button>
+      <button class="btn-lg-ghost" onclick="go('login')">🔑 Login to Dashboard</button>
     </div>
+    <div class="hero-stats">
+      <div style="text-align:center"><div class="hero-stat-num">{$entityCount}</div><div class="hero-stat-lbl">Modules Ready</div></div>
+      <div style="text-align:center"><div class="hero-stat-num">100%</div><div class="hero-stat-lbl">Zero AI Cost</div></div>
+      <div style="text-align:center"><div class="hero-stat-num">∞</div><div class="hero-stat-lbl">Records Supported</div></div>
+    </div>
+    <div class="features-grid">{$featureCards}</div>
   </div>
 </div>
+
+<!-- ══════════════ SCREEN 2: LOGIN ══════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-card">
+    <div class="login-logo">🏥 {$appName}</div>
+    <div class="login-sub">Sign in to your account</div>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" type="email" value="admin@example.com" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" value="password" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="go('dashboard')">Sign In →</button>
+    <span class="back-link" onclick="go('landing')">← Back to Home</span>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN 3: DASHBOARD ══════════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">🏥 {$appName}</div>
+      <div class="sidebar-sub">{$entityCount} modules</div>
+    </div>
+    <div class="nav-sec">Overview</div>
+    <button class="nav-link active" onclick="showDash(this)">📊 Dashboard</button>
+    <div class="nav-sec">Modules</div>
+    {$sidebarLinks}
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)">
+      <button class="nav-link" style="color:#ef4444" onclick="go('landing')">🚪 Logout</button>
+    </div>
+  </div>
+  <div class="dash-main">
+    <div class="topbar">
+      <div class="topbar-title" id="dash-title">Dashboard</div>
+      <div class="topbar-user"><span>Admin User</span><div class="avatar">A</div></div>
+    </div>
+    <div class="content" id="dash-content">
+      <div class="stats-grid">{$cards}</div>
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-title">📈 Module Overview</div>
+          <canvas id="barChart" height="180"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">🥧 Distribution</div>
+          <canvas id="doughChart" height="180"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Recent {$firstLabel} Records</div>
+        <table>
+          <thead><tr><th>Name</th><th>Date</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+          <tbody>{$tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const colors = [{$chartBg}];
-new Chart(document.getElementById('barChart'), {
-  type:'bar',
-  data:{labels:[{$chartLabels}],datasets:[{label:'Records',data:[{$chartData}],backgroundColor:colors,borderRadius:6}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}},maintainAspectRatio:false}
-});
-new Chart(document.getElementById('doughnutChart'), {
-  type:'doughnut',
-  data:{labels:[{$chartLabels}],datasets:[{data:[{$chartData}],backgroundColor:colors,borderWidth:0}]},
-  options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'65%',maintainAspectRatio:false}
-});
-function showSection(name){
-  document.getElementById('page-title').textContent = name.replace(/_/g,' ');
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-  document.getElementById('main-content').innerHTML = '<div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:16px">📋</div><h2 style="font-size:20px;font-weight:700;margin-bottom:8px">'+name+' Module</h2><p style="color:#64748b;margin-bottom:24px">Manage your '+name.toLowerCase()+' records. Full CRUD interface generated.</p><button onclick="showDashboard()" style="background:#6366f1;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">← Back to Dashboard</button></div>';
+function go(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  if(screen==='dashboard') initCharts();
 }
-function showDashboard(){location.reload();}
+let chartsInit=false;
+function initCharts(){
+  if(chartsInit)return; chartsInit=true;
+  const colors=[{$chartBg}];
+  new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels:[{$chartLabels}],datasets:[{label:'Records',data:[{$chartData}],backgroundColor:colors,borderRadius:6}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}},maintainAspectRatio:false}
+  });
+  new Chart(document.getElementById('doughChart'),{
+    type:'doughnut',
+    data:{labels:[{$chartLabels}],datasets:[{data:[{$chartData}],backgroundColor:colors,borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},cutout:'65%',maintainAspectRatio:false}
+  });
+}
+function showDash(el){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dash-title').textContent='Dashboard';
+  document.getElementById('dash-content').innerHTML=document.getElementById('dash-content').innerHTML;
+  location.reload();
+}
+function showModule(name,el){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dash-title').textContent=name.replace(/_/g,' ');
+  document.getElementById('dash-content').innerHTML='<div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:48px;text-align:center"><div style="font-size:52px;margin-bottom:16px">📋</div><h2 style="font-size:22px;font-weight:800;margin-bottom:8px">'+name.replace(/_/g,' ')+' Module</h2><p style="color:#64748b;margin-bottom:28px;font-size:14px">Full CRUD interface — list, create, edit, delete records with search and filters.</p><div style="display:flex;gap:12px;justify-content:center"><button onclick="go(\'dashboard\')" style="background:#f1f5f9;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">← Dashboard</button><button style="background:#6366f1;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">+ Add New</button></div></div>';
+}
 </script>
 </body>
 </html>
