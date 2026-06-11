@@ -349,6 +349,12 @@ class UpdateService
 
     private function clearCaches(): void
     {
+        // Invalidate PHP bytecode cache so newly-copied PHP files are loaded immediately.
+        // Without this, opcache can serve stale bytecode after a file update on LiteSpeed/cPanel.
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+
         foreach (['config:clear', 'cache:clear', 'view:clear', 'route:clear'] as $cmd) {
             try { Artisan::call($cmd); } catch (\Throwable) {}
         }
@@ -363,30 +369,42 @@ class UpdateService
 
     private function readEnvVersion(): ?string
     {
-        // Check .env for APP_VERSION
+        $envVersion     = null;
+        $storageVersion = null;
+
+        // Read APP_VERSION from .env (may be stale if .env write failed during update)
         $envPath = base_path('.env');
         if (is_file($envPath)) {
             $content = (string) file_get_contents($envPath);
             if (preg_match('/^APP_VERSION=(.+)$/m', $content, $matches) === 1) {
-                $version = trim($matches[1], " \t\n\r\0\x0B\"'");
-                if ($version !== '') {
-                    // Also keep storage file in sync in case .env was updated externally
-                    @file_put_contents(storage_path('app/.app_version'), $version);
-                    return $version;
+                $v = trim($matches[1], " \t\n\r\0\x0B\"'");
+                if ($v !== '') {
+                    $envVersion = $v;
                 }
             }
         }
 
-        // Fallback: storage/app/.app_version (written by every successful update)
-        $storageVersion = storage_path('app/.app_version');
-        if (is_file($storageVersion)) {
-            $version = trim((string) file_get_contents($storageVersion));
-            if ($version !== '') {
-                return $version;
+        // Read storage/app/.app_version — written by every successful updateEnvVersion call.
+        // Storage is always writable on cPanel even when .env is restricted (444/644).
+        $storageFile = storage_path('app/.app_version');
+        if (is_file($storageFile)) {
+            $v = trim((string) file_get_contents($storageFile));
+            if ($v !== '') {
+                $storageVersion = $v;
             }
         }
 
-        return null;
+        if ($storageVersion === null && $envVersion === null) {
+            return null;
+        }
+        if ($storageVersion === null) return $envVersion;
+        if ($envVersion === null)     return $storageVersion;
+
+        // Return whichever is newer. Storage wins ties — it is the authoritative
+        // write target for the update process and is never accidentally left stale.
+        return version_compare($storageVersion, $envVersion, '>=')
+            ? $storageVersion
+            : $envVersion;
     }
 
     private function getBundledVersion(): ?string

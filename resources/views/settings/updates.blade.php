@@ -497,7 +497,10 @@ function updatesApp() {
                         this.progress = 100;
                         this.progressMsg = 'All updates applied!';
                         this.toast(`Successfully updated — all updates applied.`);
-                        setTimeout(() => window.location.reload(), 1500);
+                        // Cache-busting redirect so LiteSpeed/CDN doesn't serve the old cached page
+                        setTimeout(() => {
+                            window.location.href = window.location.pathname + '?_v=' + Date.now();
+                        }, 1500);
                     } else {
                         this.toast(d.message || 'Update failed.', false);
                         this.updating = false;
@@ -515,7 +518,10 @@ function updatesApp() {
                     this.progress = 100;
                     this.progressMsg = 'Update complete!';
                     this.toast(d.message || `Updated to v${d.newVersion}.`);
-                    setTimeout(() => window.location.reload(), 1500);
+                    // Cache-busting redirect so LiteSpeed/CDN doesn't serve the old cached page
+                    setTimeout(() => {
+                        window.location.href = window.location.pathname + '?_v=' + d.newVersion;
+                    }, 1500);
                     return;
                 }
 
