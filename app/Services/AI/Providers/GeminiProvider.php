@@ -89,9 +89,38 @@ class GeminiProvider implements AIProviderInterface
         } catch (RequestException $e) {
             $body   = $e->getResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : [];
             $apiMsg = $body['error']['message'] ?? $e->getMessage();
-            if (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked')) {
-                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or splitting your prompt into smaller parts.');
+            $status = $e->getResponse()?->getStatusCode();
+
+            // Content filter on prompt (400) — retry without system instruction as fallback
+            if ($status === 400 && (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked'))) {
+                if ($systemMessage !== null) {
+                    // Retry: drop system instruction, prepend it as first user message instead
+                    $fallbackPayload = $payload;
+                    unset($fallbackPayload['systemInstruction']);
+                    array_unshift($fallbackPayload['contents'], [
+                        'role'  => 'user',
+                        'parts' => [['text' => '[Context] ' . mb_substr($systemMessage, 0, 2000)]],
+                    ]);
+                    try {
+                        $r2   = $this->client->post("{$this->apiUrl}/models/{$model}:generateContent?key={$this->apiKey}", ['json' => $fallbackPayload]);
+                        $d2   = json_decode($r2->getBody()->getContents(), true);
+                        $text = $d2['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                        if ($text !== '') {
+                            return [
+                                'content'       => $text,
+                                'tokens_used'   => $d2['usageMetadata']['totalTokenCount'] ?? 0,
+                                'model'         => $model,
+                                'response_time' => (int) ((microtime(true) - $startTime) * 1000),
+                                'raw'           => $d2,
+                            ];
+                        }
+                    } catch (\Throwable) {}
+                }
+                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or breaking your prompt into smaller parts.');
             }
+
+            if ($status === 401 || $status === 403) throw new \RuntimeException('Invalid Gemini API key. Please update it in Settings → AI Providers.');
+            if ($status === 429) throw new \RuntimeException('Gemini rate limit reached. Please wait and try again.');
             throw new \RuntimeException('Gemini API Error: ' . $apiMsg);
         }
     }
@@ -134,9 +163,17 @@ class GeminiProvider implements AIProviderInterface
             $status = $e->getResponse()?->getStatusCode();
             if ($status === 401 || $status === 403) throw new \RuntimeException('Invalid Gemini API key. Please update it in Settings → AI Providers.');
             if ($status === 429) throw new \RuntimeException('Gemini rate limit reached. Please wait and try again.');
-            if (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked')) {
-                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or splitting your prompt into smaller parts.');
+
+            // Content filter on stream — fall back to non-stream chat() which has its own retry
+            if ($status === 400 && (str_contains($apiMsg, 'content filtering') || str_contains($apiMsg, 'Output blocked'))) {
+                $result = $this->chat($messages, $options);
+                if (!empty($result['content'])) {
+                    $callback($result['content']);
+                    return;
+                }
+                throw new \RuntimeException('Gemini blocked this request due to content policy. Try rephrasing or breaking your prompt into smaller parts.');
             }
+
             throw new \RuntimeException('Gemini API Error: ' . $apiMsg);
         }
 
@@ -192,13 +229,14 @@ class GeminiProvider implements AIProviderInterface
 
     private static function codeSafetySettings(): array
     {
-        // Relax to BLOCK_ONLY_HIGH for all categories — code generation prompts
-        // (security systems, auth, SQL, injection examples) trigger false positives at default thresholds.
+        // BLOCK_NONE: disable all safety filtering for code generation.
+        // Code prompts (auth systems, SQL, security patterns, injection prevention)
+        // trigger false positives even at BLOCK_ONLY_HIGH — BLOCK_NONE is required.
         return [
-            ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_ONLY_HIGH'],
-            ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_ONLY_HIGH'],
-            ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_ONLY_HIGH'],
-            ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_HARASSMENT',        'threshold' => 'BLOCK_NONE'],
+            ['category' => 'HARM_CATEGORY_HATE_SPEECH',       'threshold' => 'BLOCK_NONE'],
+            ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_NONE'],
+            ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_NONE'],
         ];
     }
 }
