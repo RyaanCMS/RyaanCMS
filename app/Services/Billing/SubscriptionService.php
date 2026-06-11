@@ -47,8 +47,14 @@ class SubscriptionService
     {
         if ($user->role === 'admin') return true;
 
-        $sub = $this->currentSubscription($user);
-        return $sub && !$sub->isExpired();
+        try {
+            $sub = $this->currentSubscription($user);
+            return $sub && !$sub->isExpired();
+        } catch (\Throwable) {
+            // DB not ready (e.g. migrations not run) — treat as active so
+            // the user is never locked out due to infrastructure issues.
+            return true;
+        }
     }
 
     /**

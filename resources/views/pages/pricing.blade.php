@@ -17,7 +17,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
             @php
-            $plans = \App\Models\Plan::active()->get();
+            try { $plans = \App\Models\Plan::active()->get(); } catch (\Throwable) { $plans = collect(); }
             $highlights = [
                 'free_trial' => ['color' => 'gray',   'badge' => '14 Days Free'],
                 'starter'    => ['color' => 'sky',    'badge' => 'Most Popular'],

@@ -19,18 +19,31 @@ class CheckSubscription
             return redirect()->route('login');
         }
 
-        // Admins always pass
+        // Admins always pass through
         if ($user->role === 'admin') {
             return $next($request);
         }
 
-        // Active trial or paid subscription → pass through
-        if ($this->subscriptionService->isActive($user)) {
+        // Always allow billing and logout routes to avoid redirect loops
+        if ($request->routeIs('billing.*') || $request->routeIs('logout')) {
             return $next($request);
         }
 
-        // Expired → redirect to upgrade (allow billing routes to avoid loop)
-        if ($request->routeIs('billing.*') || $request->routeIs('logout')) {
+        try {
+            // If user has no subscription at all (pre-existing user from before
+            // the SaaS system was added), auto-start a free trial for them now.
+            $sub = $this->subscriptionService->currentSubscription($user);
+            if (!$sub) {
+                $this->subscriptionService->startTrial($user);
+                return $next($request);
+            }
+
+            if ($this->subscriptionService->isActive($user)) {
+                return $next($request);
+            }
+        } catch (\Throwable) {
+            // DB not migrated yet or any other error — let the request through
+            // rather than locking every user out of the app.
             return $next($request);
         }
 

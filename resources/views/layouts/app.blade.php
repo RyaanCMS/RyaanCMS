@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 @php
+    // Ensure $errors is always defined — guard against exception-path rendering
+    // where ShareErrorsFromSession may not have run (e.g. custom error pages).
+    if (!isset($errors)) {
+        $errors = new \Illuminate\Support\ViewErrorBag();
+    }
     $userId      = auth()->id();
     $brandColor  = \App\Models\Setting::get('branding.primary_color', '#6366f1', $userId);
     $fontFamily  = \App\Models\Setting::get('branding.font_family',   'Inter',   $userId);
