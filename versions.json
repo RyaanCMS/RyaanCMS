@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.68",
+    "latest": "1.1.69",
     "versions": [
         {
             "version": "1.0.0",
@@ -851,6 +851,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.67",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.69",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: create project page mobile responsive\n\n- backdrop: reduced padding, align-items flex-start on mobile so card doesn't clip\n- card: smaller border-radius, tighter header padding on <580px\n- row-name-type: single column stack on mobile (was forced 1fr 1fr)\n- type-grid: 2 columns on mobile (was 3 — too cramped)\n- card-footer: stacks vertically on mobile, hint hidden, buttons full-width aligned right\n- card-body: reduced padding on small screens\n- suggest-chip, prompt-area: smaller font/padding on mobile\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.69/ryaancms-v1.1.69-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.68",
             "critical": false,
             "file_count": null
         }
