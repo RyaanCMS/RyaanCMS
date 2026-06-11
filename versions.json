@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.53",
+    "latest": "1.1.54",
     "versions": [
         {
             "version": "1.0.0",
@@ -671,6 +671,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.52",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.54",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: menu delete stays deleted + remove internal ryaancms template\n\nMenu delete bug (root cause fixed):\n- app.blade.php was calling ensureForUser() on EVERY page load with condition\n  'count < 9' — so deleting any menu triggered a full re-seed on next refresh\n- Removed the auto-seed from layout entirely; seeding now only happens on\n  registration and install (which was always the correct design)\n- Removed redundant ensureForUser() calls from MenuController and MenuCategoryController\n- Cleaned up unused DefaultSidebarMenuImporter imports\n\nRyaanCMS template removed (internal — not for public distribution):\n- Deleted resources/views/templates/ryaancms.blade.php\n- Removed from TemplateRegistry\n- DEFAULT_TEMPLATE in TemplateController → template.saas\n\nDownload link: still points to GitHub releases via versions.json (correct)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.54/ryaancms-v1.1.54-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.53",
             "critical": false,
             "file_count": null
         }
