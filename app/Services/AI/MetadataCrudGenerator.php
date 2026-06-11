@@ -1348,6 +1348,552 @@ HTML;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Realistic dummy data — deterministic counts per entity type + domain
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function realisticCount(string $entityName, string $domain): array
+    {
+        $n = strtolower($entityName);
+
+        $ranges = [
+            'patient'      => [1200, 3800, 'admitted today'],
+            'doctor'       => [48,   180,  'on duty'],
+            'nurse'        => [120,  420,  'on shift'],
+            'appointment'  => [280,  840,  'today'],
+            'ward'         => [12,   32,   'in use'],
+            'bed'          => [80,   280,  'occupied'],
+            'medicine'     => [820,  3200, 'in stock'],
+            'prescription' => [320,  980,  'issued today'],
+            'surgery'      => [4,    18,   'scheduled today'],
+            'lab'          => [28,   120,  'pending'],
+            'diagnosis'    => [45,   280,  'this week'],
+            'product'      => [1200, 8400, 'active'],
+            'order'        => [340,  2400, 'today'],
+            'customer'     => [2800, 18000,'new this week'],
+            'category'     => [12,   64,   'active'],
+            'inventory'    => [840,  4200, 'SKUs'],
+            'supplier'     => [18,   120,  'active'],
+            'vendor'       => [18,   120,  'active'],
+            'student'      => [1200, 4800, 'enrolled'],
+            'teacher'      => [42,   240,  'active'],
+            'course'       => [38,   180,  'offered'],
+            'class'        => [32,   140,  'in session'],
+            'grade'        => [840,  3200, 'submitted'],
+            'exam'         => [18,   84,   'scheduled'],
+            'table'        => [18,   80,   'occupied'],
+            'reservation'  => [38,   280,  'tonight'],
+            'menu'         => [28,   120,  'items'],
+            'room'         => [24,   280,  'occupied'],
+            'booking'      => [48,   420,  'this week'],
+            'guest'        => [120,  840,  'checked in'],
+            'account'      => [1200, 12000,'active'],
+            'transaction'  => [2400, 24000,'today'],
+            'loan'         => [240,  2800, 'active'],
+            'invoice'      => [480,  4800, 'issued'],
+            'payment'      => [840,  8400, 'processed'],
+            'payroll'      => [120,  840,  'processed'],
+            'employee'     => [120,  1200, 'active'],
+            'staff'        => [80,   800,  'active'],
+            'leave'        => [18,   84,   'requests'],
+            'recruitment'  => [12,   64,   'open positions'],
+            'lead'         => [240,  1800, 'in pipeline'],
+            'deal'         => [48,   480,  'active'],
+            'campaign'     => [8,    48,   'running'],
+            'shipment'     => [48,   840,  'in transit'],
+            'vehicle'      => [12,   84,   'available'],
+            'driver'       => [18,   120,  'on route'],
+            'ticket'       => [48,   840,  'open'],
+            'task'         => [84,   840,  'pending'],
+            'project'      => [12,   84,   'active'],
+            'department'   => [6,    24,   'teams'],
+            'role'         => [4,    18,   'configured'],
+            'user'         => [24,   480,  'active'],
+            'report'       => [24,   280,  'generated'],
+            'property'     => [18,   240,  'listed'],
+            'tenant'       => [80,   840,  'active'],
+        ];
+
+        foreach ($ranges as $keyword => [$min, $max, $label]) {
+            if (str_contains($n, $keyword)) {
+                $seed  = (crc32($entityName) & 0x7FFFFFFF) % ($max - $min);
+                $count = $min + $seed;
+                $delta = max(1, (int)($count * 0.014));
+                return ['count' => $count, 'trend' => "+{$delta} {$label}"];
+            }
+        }
+
+        $fallback = match ($domain) {
+            'hospital'   => [200,  1200],
+            'ecommerce'  => [400,  2400],
+            'education'  => [100,  800],
+            'restaurant' => [20,   200],
+            'hotel'      => [20,   200],
+            'finance'    => [400,  3200],
+            'hr'         => [50,   400],
+            'crm'        => [100,  1200],
+            'inventory'  => [200,  2400],
+            default      => [80,   800],
+        };
+        $seed  = (crc32($entityName) & 0x7FFFFFFF) % ($fallback[1] - $fallback[0]);
+        $count = $fallback[0] + $seed;
+        return ['count' => $count, 'trend' => '+' . max(1, (int)($count * 0.02)) . ' this week'];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Settings HTML builder — for preview.html (PHP-built, JS-injected)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildSettingsHtml(string $appName, string $userName, string $userRole, string $userInitials, string $brand): string
+    {
+        $h  = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES);
+        $js = fn($s) => addslashes((string)$s);
+
+        $sField = function (string $lbl, string $type, string $val, string $ph = '') use ($h): string {
+            return '<div style="margin-bottom:16px">'
+                . '<label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">' . $h($lbl) . '</label>'
+                . '<input type="' . $type . '" value="' . $h($val) . '"' . ($ph ? ' placeholder="' . $h($ph) . '"' : '')
+                . ' style="width:100%;border:1px solid #e2e8f0;border-radius:9px;padding:10px 13px;font-size:14px;color:#0f172a;outline:none" '
+                . 'onfocus="this.style.borderColor=\'var(--brand)\'" onblur="this.style.borderColor=\'#e2e8f0\'">'
+                . '</div>';
+        };
+
+        $sSelect = function (string $lbl, array $opts) use ($h): string {
+            $options = implode('', array_map(fn($o) => '<option>' . $h($o) . '</option>', $opts));
+            return '<div style="margin-bottom:16px">'
+                . '<label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">' . $h($lbl) . '</label>'
+                . '<select style="width:100%;border:1px solid #e2e8f0;border-radius:9px;padding:10px 13px;font-size:14px;color:#0f172a;outline:none;background:#fff">' . $options . '</select>'
+                . '</div>';
+        };
+
+        $card = fn(string $title, string $body): string =>
+            '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:28px;margin-bottom:20px">'
+            . '<h3 style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:20px">' . $h($title) . '</h3>'
+            . $body . '</div>';
+
+        $saveBtn = fn(string $lbl): string =>
+            '<button onclick="alert(\'' . $js($lbl) . ' — saved! ✅\')" '
+            . 'style="background:var(--brand);border:none;padding:11px 28px;border-radius:9px;color:#fff;font-size:14px;font-weight:700;cursor:pointer">'
+            . $h($lbl) . '</button>';
+
+        $tabs =
+            '<div style="display:flex;gap:4px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:4px;width:fit-content;margin-bottom:24px">'
+            . '<button class="stab" onclick="switchTab(this,\'t-profile\')" style="padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff">👤 Profile</button>'
+            . '<button class="stab" onclick="switchTab(this,\'t-brand\')" style="padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">🎨 Branding</button>'
+            . '<button class="stab" onclick="switchTab(this,\'t-email\')" style="padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">📧 Email / SMTP</button>'
+            . '<button class="stab" onclick="switchTab(this,\'t-system\')" style="padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">⚙️ System</button>'
+            . '</div>';
+
+        $profileTab =
+            '<div id="t-profile">'
+            . '<div style="display:grid;grid-template-columns:240px 1fr;gap:20px">'
+            . $card('Avatar & Identity',
+                '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0">'
+                . '<div style="width:88px;height:88px;background:linear-gradient(135deg,' . $h($brand) . ',#8b5cf6);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.12)">' . $h($userInitials) . '</div>'
+                . '<div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#0f172a">' . $h($userName) . '</div>'
+                . '<div style="font-size:12px;color:#64748b">' . $h($userRole) . '</div></div>'
+                . '<button onclick="alert(\'Avatar upload available in production\')" style="width:100%;background:#f8fafc;border:1px solid #e2e8f0;padding:9px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;color:#64748b">📷 Upload Avatar</button>'
+                . '</div>'
+            )
+            . $card('Personal Information',
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+                . $sField('Full Name', 'text', $userName)
+                . $sField('Email Address', 'email', 'admin@example.com')
+                . '</div>'
+                . '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+                . $sField('Job Title', 'text', $userRole)
+                . $sField('Phone', 'tel', '', '+1 (555) 000-0000')
+                . '</div>'
+                . $saveBtn('Save Profile')
+            )
+            . '</div>'
+            . $card('Change Password',
+                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
+                . $sField('Current Password', 'password', '', '••••••••')
+                . $sField('New Password', 'password', '', 'Min. 8 characters')
+                . $sField('Confirm Password', 'password', '', 'Repeat new password')
+                . '</div>'
+                . $saveBtn('Update Password')
+            )
+            . '</div>';
+
+        $brandingTab =
+            '<div id="t-brand" style="display:none">'
+            . $card('Application Identity',
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+                . $sField('Application Name', 'text', $appName)
+                . $sField('Tagline', 'text', 'Enterprise Management Platform')
+                . '</div>'
+                . '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
+                . '<div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Brand Color</label>'
+                . '<div style="display:flex;gap:8px;align-items:center"><input type="color" value="' . $h($brand) . '" style="width:48px;height:40px;border:1px solid #e2e8f0;border-radius:9px;padding:2px;cursor:pointer">'
+                . '<input type="text" value="' . $h($brand) . '" style="flex:1;border:1px solid #e2e8f0;border-radius:9px;padding:10px 13px;font-size:14px;color:#0f172a;outline:none"></div></div>'
+                . $sField('Support Email', 'email', 'support@example.com')
+                . $sField('Footer Text', 'text', '© 2026 ' . $appName . '. All rights reserved.')
+                . '</div>'
+                . $saveBtn('Save Branding')
+            )
+            . $card('Logo & Favicon',
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">'
+                . '<div style="border:2px dashed #e2e8f0;border-radius:12px;padding:28px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor=\'var(--brand)\'" onmouseout="this.style.borderColor=\'#e2e8f0\'">'
+                . '<div style="font-size:36px;margin-bottom:8px">🖼️</div><div style="font-weight:700;color:#0f172a;margin-bottom:4px">App Logo</div>'
+                . '<div style="font-size:12px;color:#64748b">PNG, SVG · max 2MB · 200×60px</div></div>'
+                . '<div style="border:2px dashed #e2e8f0;border-radius:12px;padding:28px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor=\'var(--brand)\'" onmouseout="this.style.borderColor=\'#e2e8f0\'">'
+                . '<div style="font-size:36px;margin-bottom:8px">🔖</div><div style="font-weight:700;color:#0f172a;margin-bottom:4px">Favicon</div>'
+                . '<div style="font-size:12px;color:#64748b">ICO, PNG · max 512KB · 32×32px</div></div>'
+                . '</div>'
+                . '<div style="margin-top:16px">' . $saveBtn('Upload Assets') . '</div>'
+            )
+            . '</div>';
+
+        $emailTab =
+            '<div id="t-email" style="display:none">'
+            . $card('SMTP Configuration',
+                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
+                . $sField('SMTP Host', 'text', 'smtp.mailtrap.io')
+                . $sField('SMTP Port', 'number', '587')
+                . $sSelect('Encryption', ['TLS', 'SSL', 'None'])
+                . '</div>'
+                . '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+                . $sField('Username', 'text', 'your-smtp-username')
+                . $sField('Password', 'password', '', '••••••••••••')
+                . '</div>'
+                . '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+                . $sField('From Name', 'text', $appName)
+                . $sField('From Email', 'email', 'noreply@example.com')
+                . '</div>'
+                . '<div style="display:flex;gap:10px">'
+                . $saveBtn('Save Configuration')
+                . '<button onclick="alert(\'Test email sent to admin@example.com ✅\')" style="background:#fff;border:1px solid #e2e8f0;padding:11px 24px;border-radius:9px;color:#64748b;font-size:14px;font-weight:700;cursor:pointer">📨 Send Test Email</button>'
+                . '</div>'
+            )
+            . '</div>';
+
+        $systemTab =
+            '<div id="t-system" style="display:none">'
+            . $card('Regional Settings',
+                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
+                . $sSelect('Timezone', ['UTC', 'America/New_York', 'America/Los_Angeles', 'Europe/London', 'Asia/Dubai', 'Asia/Dhaka', 'Asia/Kolkata', 'Asia/Singapore', 'Asia/Tokyo'])
+                . $sSelect('Language', ['English', 'বাংলা (Bangla)', 'हिंदी (Hindi)', 'العربية (Arabic)', 'Français', 'Español', 'Türkçe'])
+                . $sSelect('Date Format', ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'D MMMM YYYY'])
+                . '</div>'
+                . $sSelect('Currency', ['USD ($)', 'EUR (€)', 'GBP (£)', 'BDT (৳)', 'INR (₹)', 'AED (د.إ)', 'SAR (﷼)', 'JPY (¥)'])
+                . $saveBtn('Save Regional')
+            )
+            . $card('System Maintenance',
+                '<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">'
+                . '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:10px">'
+                . '<div><div style="font-weight:600;color:#0f172a;font-size:14px">Maintenance Mode</div><div style="font-size:12px;color:#64748b;margin-top:2px">Take the application offline for maintenance</div></div>'
+                . '<div onclick="this.style.background=this.getAttribute(\'data-on\')===\'1\'?(this.setAttribute(\'data-on\',\'0\'),\'#e2e8f0\'):(this.setAttribute(\'data-on\',\'1\'),\'var(--brand)\')" data-on="0" style="width:44px;height:24px;background:#e2e8f0;border-radius:34px;cursor:pointer;transition:background .25s"></div>'
+                . '</div>'
+                . '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:10px">'
+                . '<div><div style="font-weight:600;color:#0f172a;font-size:14px">Debug Mode</div><div style="font-size:12px;color:#64748b;margin-top:2px">Enable detailed error logging and stack traces</div></div>'
+                . '<div onclick="this.style.background=this.getAttribute(\'data-on\')===\'1\'?(this.setAttribute(\'data-on\',\'0\'),\'#e2e8f0\'):(this.setAttribute(\'data-on\',\'1\'),\'var(--brand)\')" data-on="0" style="width:44px;height:24px;background:#e2e8f0;border-radius:34px;cursor:pointer;transition:background .25s"></div>'
+                . '</div>'
+                . '</div>'
+                . '<div style="display:flex;flex-wrap:wrap;gap:10px">'
+                . '<button onclick="alert(\'Cache cleared! ✅\')" style="background:#fff;border:1px solid #e2e8f0;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">🗑️ Clear Cache</button>'
+                . '<button onclick="alert(\'All systems operational ✅\')" style="background:#fff;border:1px solid #e2e8f0;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">💚 System Health</button>'
+                . '<button onclick="alert(\'Backup started! ✅\')" style="background:#fff;border:1px solid #e2e8f0;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">💾 Backup Now</button>'
+                . '<button onclick="alert(\'Logs exported! ✅\')" style="background:#fff;border:1px solid #e2e8f0;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">📋 Export Logs</button>'
+                . '</div>'
+            )
+            . '</div>';
+
+        return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
+            . '<div><h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px;color:#0f172a">Settings</h2>'
+            . '<p style="font-size:13px;color:#64748b;margin-top:3px">Configure your application preferences</p></div>'
+            . '</div>'
+            . $tabs . $profileTab . $brandingTab . $emailTab . $systemTab;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Settings — real Laravel controller + Blade view
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function shellSettingsController(): string
+    {
+        return <<<'PHP'
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class SettingsController extends Controller
+{
+    public function index()
+    {
+        return view('settings.index');
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function updateBranding(Request $request)
+    {
+        $request->validate([
+            'app_name'    => 'required|string|max:255',
+            'tagline'     => 'nullable|string|max:255',
+            'brand_color' => 'nullable|string|max:20',
+        ]);
+        return back()->with('success', 'Branding settings saved.');
+    }
+
+    public function updateEmail(Request $request)
+    {
+        $request->validate([
+            'smtp_host' => 'required|string|max:255',
+            'smtp_port' => 'required|integer|min:1|max:65535',
+            'from_email'=> 'required|email',
+        ]);
+        return back()->with('success', 'Email settings saved.');
+    }
+
+    public function updateSystem(Request $request)
+    {
+        $request->validate([
+            'timezone'    => 'nullable|string|max:100',
+            'date_format' => 'nullable|string|max:30',
+        ]);
+        return back()->with('success', 'System settings saved.');
+    }
+}
+PHP;
+    }
+
+    private function shellSettingsView(string $appName): string
+    {
+        return <<<BLADE
+@extends('layouts.app')
+@section('title', 'Settings')
+
+@section('content')
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Configure your application preferences</p>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- Tab nav --}}
+    <div class="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit mb-6">
+        <a href="#profile" onclick="showTab('profile')" id="tab-profile"
+           class="px-5 py-2 text-sm font-semibold rounded-lg transition-colors bg-indigo-600 text-white">
+            👤 Profile
+        </a>
+        <a href="#branding" onclick="showTab('branding')" id="tab-branding"
+           class="px-5 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-500 hover:text-gray-800">
+            🎨 Branding
+        </a>
+        <a href="#email" onclick="showTab('email')" id="tab-email"
+           class="px-5 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-500 hover:text-gray-800">
+            📧 Email / SMTP
+        </a>
+        <a href="#system" onclick="showTab('system')" id="tab-system"
+           class="px-5 py-2 text-sm font-semibold rounded-lg transition-colors text-gray-500 hover:text-gray-800">
+            ⚙️ System
+        </a>
+    </div>
+
+    {{-- Profile --}}
+    <div id="pane-profile">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center gap-4">
+                <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl font-black text-white">AD</div>
+                <div class="text-center">
+                    <div class="font-bold text-gray-900">Admin User</div>
+                    <div class="text-xs text-gray-500">Super Admin</div>
+                </div>
+                <button class="w-full py-2 text-sm font-semibold bg-gray-50 border border-gray-200 rounded-xl text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors">📷 Upload Avatar</button>
+            </div>
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
+                <h2 class="text-base font-bold text-gray-900 mb-5">Personal Information</h2>
+                <form method="POST" action="{{ route('settings.profile') }}" class="space-y-4">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Full Name</label>
+                            <input type="text" name="name" value="Admin User" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email Address</label>
+                            <input type="email" name="email" value="admin@example.com" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors">Save Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Branding --}}
+    <div id="pane-branding" style="display:none">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h2 class="text-base font-bold text-gray-900 mb-5">🎨 Application Branding</h2>
+            <form method="POST" action="{{ route('settings.branding') }}" class="space-y-4" enctype="multipart/form-data">
+                @csrf
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Application Name</label>
+                        <input type="text" name="app_name" value="{$appName}" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Tagline</label>
+                        <input type="text" name="tagline" value="Enterprise Management Platform" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Brand Color</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="color" name="brand_color" value="#6366f1" class="w-12 h-10 border border-gray-300 rounded-xl p-1 cursor-pointer">
+                            <input type="text" value="#6366f1" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">App Logo</label>
+                        <label class="flex flex-col items-center justify-center h-10 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-400 transition-colors">
+                            <span class="text-xs text-gray-500">📷 Upload PNG/SVG</span>
+                            <input type="file" name="logo" accept=".png,.svg,.jpg" class="hidden">
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Favicon</label>
+                        <label class="flex flex-col items-center justify-center h-10 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-400 transition-colors">
+                            <span class="text-xs text-gray-500">🔖 Upload ICO/PNG</span>
+                            <input type="file" name="favicon" accept=".ico,.png" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors">Save Branding</button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Email / SMTP --}}
+    <div id="pane-email" style="display:none">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h2 class="text-base font-bold text-gray-900 mb-5">📧 Email / SMTP Configuration</h2>
+            <form method="POST" action="{{ route('settings.email') }}" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">SMTP Host</label>
+                        <input type="text" name="smtp_host" value="smtp.mailtrap.io" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">SMTP Port</label>
+                        <input type="number" name="smtp_port" value="587" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Encryption</label>
+                        <select name="encryption" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option selected>TLS</option><option>SSL</option><option>None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">SMTP Username</label>
+                        <input type="text" name="smtp_user" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">SMTP Password</label>
+                        <input type="password" name="smtp_pass" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">From Name</label>
+                        <input type="text" name="from_name" value="{$appName}" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">From Email</label>
+                        <input type="email" name="from_email" value="noreply@example.com" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors">Save Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- System --}}
+    <div id="pane-system" style="display:none">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h2 class="text-base font-bold text-gray-900 mb-5">⚙️ System Configuration</h2>
+            <form method="POST" action="{{ route('settings.system') }}" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Timezone</label>
+                        <select name="timezone" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option>UTC</option><option>America/New_York</option><option>Europe/London</option>
+                            <option>Asia/Dubai</option><option selected>Asia/Dhaka</option><option>Asia/Kolkata</option><option>Asia/Singapore</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Language</label>
+                        <select name="language" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option selected>English</option><option>বাংলা (Bangla)</option><option>हिंदी (Hindi)</option><option>العربية</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Date Format</label>
+                        <select name="date_format" class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors">Save Settings</button>
+            </form>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="text-base font-bold text-gray-900 mb-5">System Maintenance</h2>
+            <div class="flex flex-wrap gap-3">
+                <button onclick="if(confirm('Clear all application cache?')) location.reload()" class="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:border-indigo-400 hover:text-indigo-600 transition-colors">🗑️ Clear Cache</button>
+                <button onclick="alert('All systems operational ✅')" class="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:border-green-400 hover:text-green-600 transition-colors">💚 System Health</button>
+                <button onclick="alert('Backup started!')" class="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors">💾 Backup Now</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showTab(name){
+  ['profile','branding','email','system'].forEach(function(t){
+    document.getElementById('pane-'+t).style.display=(t===name)?'block':'none';
+    var tab=document.getElementById('tab-'+t);
+    if(tab){
+      if(t===name){tab.className=tab.className.replace('text-gray-500','');tab.style.cssText='background:#4f46e5;color:#fff;padding:8px 20px;font-size:14px;font-weight:600;border-radius:8px';}
+      else{tab.style.cssText='padding:8px 20px;font-size:14px;font-weight:600;border-radius:8px;color:#6b7280;background:transparent';}
+    }
+  });
+  return false;
+}
+</script>
+@endsection
+BLADE;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Domain intelligence — detects business domain and returns design tokens
     // ─────────────────────────────────────────────────────────────────────────
 
