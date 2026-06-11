@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.76",
+    "latest": "1.1.77",
     "versions": [
         {
             "version": "1.0.0",
@@ -947,6 +947,18 @@
             "requires_migration": false,
             "min_php": "8.2",
             "min_from_version": "1.1.75",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.77",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: version badge not updating after successful update run (v1.1.76)\n\nThree root-cause fixes:\n\n1. readEnvVersion() sync-back bug — when .env had an old APP_VERSION,\n   the function overwrote storage/app/.app_version with that stale value\n   on every page load, reverting the version permanently. Now reads both\n   sources independently and returns the newer of the two.\n\n2. OPcache stale bytecode — clearCaches() now calls opcache_reset()\n   before artisan commands so cPanel/LiteSpeed loads newly-copied PHP\n   files immediately instead of serving stale bytecode.\n\n3. HTTP-cached page reload — window.location.reload() returned the\n   cached page (old version badge) on LiteSpeed/CloudFlare. Changed to\n   a cache-busting URL redirect (?_v=newVersion) so the server always\n   renders a fresh response after the update loop completes.",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.77/ryaancms-v1.1.77-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.76",
             "critical": false,
             "file_count": null
         }
