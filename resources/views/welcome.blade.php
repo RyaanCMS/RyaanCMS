@@ -370,17 +370,17 @@
 
         <!-- Subheadline -->
         <p class="text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto" style="color:#4b5563;">
-            Not just code generation — an AI that accumulates wisdom, remembers every decision,
-            and gets smarter with every project it builds.
+            100+ ready blueprints generate 95% of any enterprise application at zero AI cost.
+            No API key needed to start — add one only for the 5% that truly needs intelligence.
         </p>
 
         <!-- Stat Pills -->
         <div class="flex flex-wrap justify-center gap-2.5 mb-10">
-            <span class="stat-pill">⚡ 21 Knowledge Bases</span>
-            <span class="stat-pill">🤖 10 AI Agents</span>
-            <span class="stat-pill">📐 Unlimited Domains</span>
-            <span class="stat-pill">💰 70%+ AI Cost Reduction</span>
-            <span class="stat-pill">🛡️ Senior Dev Intelligence</span>
+            <span class="stat-pill">🚀 No API Key to Start</span>
+            <span class="stat-pill">⚡ 95% Zero-Token Generation</span>
+            <span class="stat-pill">🤖 10 Autonomous AI Agents</span>
+            <span class="stat-pill">📐 100+ Ready Blueprints</span>
+            <span class="stat-pill">💰 95%+ AI Cost Eliminated</span>
         </div>
 
         <!-- CTAs -->
@@ -403,27 +403,28 @@
                 <div class="t-dot" style="background:#ff5f57;"></div>
                 <div class="t-dot" style="background:#febc2e;"></div>
                 <div class="t-dot" style="background:#28c840;"></div>
-                <span class="ml-3 text-xs font-mono" style="color:#64748b;">ryaancms — ai builder</span>
+                <span class="ml-3 text-xs font-mono" style="color:#64748b;">ryaancms — blueprint mode — no api key required</span>
                 <span class="ml-auto text-xs font-mono px-2 py-0.5 rounded"
                       style="background:rgba(255,255,255,0.05); color:#475569;">v2.0</span>
             </div>
             <div class="terminal-body">
                 <p style="color:#64748b;">$ ryaan build <span style="color:#a78bfa;">"hospital management system for Bangladesh"</span></p>
-                <p class="mt-2" style="color:#475569;">  Analyzing prompt...</p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Domain detected:</span> <span style="color:#f1f5f9; font-weight:600;">hospital</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Country pack:</span> <span style="color:#f1f5f9; font-weight:600;">Bangladesh (bKash · Nagad · SSLCommerz)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Blueprint:</span> <span style="color:#f1f5f9; font-weight:600;">hospital_v2</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens used)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Business rules:</span> <span style="color:#f1f5f9; font-weight:600;">patient_privacy · prescription_by_doctor_only</span></p>
+                <p class="mt-2" style="color:#475569;">  Detecting domain...</p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Blueprint matched:</span> <span style="color:#f1f5f9; font-weight:600;">Hospital Management</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Country pack:</span> <span style="color:#f1f5f9; font-weight:600;">Bangladesh (bKash · Nagad · SSLCommerz)</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Modules loaded:</span> <span style="color:#f1f5f9; font-weight:600;">auth · rbac · billing · appointments · pharmacy</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">CRUD generated:</span> <span style="color:#f1f5f9; font-weight:600;">patients · doctors · appointments · billing · EMR</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Business rules:</span> <span style="color:#f1f5f9; font-weight:600;">patient_privacy · prescription_by_doctor_only</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
                 <p style="color:#4ade80;">✓ <span style="color:#475569;">Security:</span> <span style="color:#f1f5f9; font-weight:600;">HIPAA-equivalent + OWASP Top 10 enforced</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">28 files generated</span> <span style="color:#f1f5f9; font-weight:600;">in 47 seconds</span></p>
+                <p style="color:#4ade80; font-weight:700;">✓ <span style="color:#f1f5f9;">32 files generated in 41 seconds</span></p>
                 <div class="mt-4 pt-4 flex items-center gap-3 flex-wrap"
                      style="border-top:1px solid rgba(255,255,255,0.06);">
-                    <span style="color:#475569;">AI cost:</span>
+                    <span style="color:#475569;">AI API cost:</span>
                     <span style="color:#475569; text-decoration:line-through; opacity:.6;">$4.20</span>
                     <span style="color:#475569;">→</span>
-                    <span style="color:#4ade80; font-weight:800; font-size:15px;">$0.31</span>
+                    <span style="color:#4ade80; font-weight:800; font-size:16px;">$0.00</span>
                     <span class="px-2 py-0.5 rounded text-xs font-bold"
-                          style="background:rgba(34,211,238,0.12); color:#22d3ee;">93% savings</span>
+                          style="background:rgba(74,222,128,0.12); color:#4ade80;">Blueprint Mode — No API Key Used</span>
                 </div>
             </div>
         </div>
@@ -493,12 +494,12 @@
                 </div>
                 <ul class="space-y-3 text-sm">
                     @foreach([
-                        'Blueprint Assembly — reuses proven structures instantly',
+                        'Start immediately — no API key required',
+                        '100+ blueprints — 95% of any app generated at zero AI cost',
                         'Any business domain — blueprints with full module/table/role knowledge',
-                        'Decision Cache — reuses prior decisions automatically',
                         'Business Rules Engine — immutable accounting & payroll rules',
                         '6-layer Senior Dev Knowledge — security, anti-patterns, performance',
-                        '70%+ AI cost reduction through intelligent routing',
+                        'Add AI only for the 5% that truly needs it — BYOK',
                         'Gets smarter with every project through Organizational Memory',
                     ] as $item)
                     <li class="flex items-start gap-3">
@@ -508,6 +509,117 @@
                     @endforeach
                 </ul>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     TWO MODES
+══════════════════════════════════════════ -->
+<section class="relative py-24 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-14">
+            <div class="section-label">Zero Barrier to Entry</div>
+            <h2 class="display-2 mb-4">
+                Start Without an API Key.<br>
+                <span class="g-text">Add One Only If You Need It.</span>
+            </h2>
+            <p class="text-lg max-w-2xl mx-auto" style="color:#6b7280;">
+                95% of your application is generated from blueprints, knowledge bases, and rule engines — no AI API call needed.
+                The remaining 5% is only where AI fills truly novel gaps.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-12">
+            <!-- Blueprint Mode -->
+            <div class="card p-8" style="background:linear-gradient(135deg,#f0fdf4,#f5fff7); border-color:#bbf7d0;">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                         style="background:rgba(5,150,105,0.12);">🚀</div>
+                    <div>
+                        <div class="font-bold text-sm" style="color:#065f46;">Blueprint Mode</div>
+                        <div class="text-xs font-semibold mt-0.5 px-2 py-0.5 rounded-full inline-block"
+                             style="background:rgba(5,150,105,0.1); color:#059669;">No API Key Required</div>
+                    </div>
+                </div>
+                <p class="text-sm mb-5" style="color:#374151;">
+                    RyaanCMS selects a pre-built blueprint, loads all modules, generates all CRUD operations,
+                    and applies business rules — entirely without any AI API call.
+                </p>
+                <ul class="space-y-2.5 text-sm">
+                    @foreach([
+                        '100+ pre-built domain blueprints',
+                        'All standard CRUD — generated by rule engine',
+                        'Auth, RBAC, payments, notifications — installed automatically',
+                        'Business rules applied (accounting, payroll, medical)',
+                        'Country-specific payment gateways wired in',
+                        'Dashboards, reports, and KPIs pre-configured',
+                        '95% of your app — fully deployable, zero API cost',
+                    ] as $item)
+                    <li class="flex items-start gap-2.5">
+                        <span class="flex-shrink-0 font-bold mt-0.5" style="color:#059669;">✓</span>
+                        <span style="color:#374151;">{{ $item }}</span>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            <!-- AI Mode -->
+            <div class="card p-8" style="background:linear-gradient(135deg,#faf5ff,#f0f4ff); border-color:#ddd6fe;">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                         style="background:rgba(109,40,217,0.10);">✦</div>
+                    <div>
+                        <div class="font-bold text-sm" style="color:#4c1d95;">AI Mode</div>
+                        <div class="text-xs font-semibold mt-0.5 px-2 py-0.5 rounded-full inline-block"
+                             style="background:rgba(109,40,217,0.08); color:#6d28d9;">API Key — Only for the 5%</div>
+                    </div>
+                </div>
+                <p class="text-sm mb-5" style="color:#374151;">
+                    Add your own API key only when you need truly custom logic, novel workflows,
+                    or AI-powered features that no pre-built blueprint covers.
+                </p>
+                <ul class="space-y-2.5 text-sm">
+                    @foreach([
+                        'Custom business logic outside any blueprint',
+                        'Novel workflows unique to your domain',
+                        'AI features inside the built app (chatbot, recommendations)',
+                        'Complex multi-system integrations',
+                        'Autonomous 10-agent pipeline for full-stack generation',
+                        'Bring your own key — Claude, OpenAI, Gemini, or Ollama',
+                        'Pay only for what AI actually had to think about',
+                    ] as $item)
+                    <li class="flex items-start gap-2.5">
+                        <span class="flex-shrink-0 font-bold mt-0.5" style="color:#7c3aed;">✦</span>
+                        <span style="color:#374151;">{{ $item }}</span>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+
+        <!-- Flow diagram -->
+        <div class="card p-6 text-center" style="background:#f9fafb;">
+            <p class="text-xs font-bold uppercase tracking-widest mb-5" style="color:#9ca3af;">How the Decision Works</p>
+            <div class="flex flex-wrap justify-center items-center gap-2">
+                @foreach([
+                    ['Your Prompt','#ede9fe','#6d28d9'],
+                    ['Domain Detected','#dbeafe','#1d4ed8'],
+                    ['Blueprint Found?','#fef3c7','#b45309'],
+                    ['95% Generated — $0.00','#dcfce7','#15803d'],
+                    ['Novel Gap?','#fef3c7','#b45309'],
+                    ['AI Fills the 5%','#ede9fe','#6d28d9'],
+                    ['✓ Full App Ready','#d1fae5','#065f46'],
+                ] as $step)
+                <span class="p-step" style="background:{{ $step[1] }}; color:{{ $step[2] }};">{{ $step[0] }}</span>
+                @if(!$loop->last)
+                <span style="color:#d1d5db; font-weight:bold;">›</span>
+                @endif
+                @endforeach
+            </div>
+            <p class="text-xs mt-4" style="color:#9ca3af;">
+                For 95% of business applications, the entire build completes with zero AI API cost.
+            </p>
         </div>
     </div>
 </section>
@@ -593,13 +705,14 @@
             </h2>
         </div>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
             @php
             $steps = [
-                ['01','Describe Your Idea','Tell RyaanCMS what you want to build in plain language. Bengali, English, or any language.','#6d28d9','#faf5ff'],
-                ['02','Intelligence Applied','Domain detected → Blueprint selected → 21 KB files loaded → Senior Dev Brief injected. All in milliseconds.','#0891b2','#ecfeff'],
-                ['03','Assembled, Not Generated','CRUD generated by rule engine (0 AI tokens). Business logic by knowledge base. Only novel parts use AI.','#059669','#f0fdf4'],
-                ['04','Your Code, Your Server','Full Laravel source code. Deploy anywhere. No subscription, no lock-in. Own everything forever.','#d97706','#fffbeb'],
+                ['01','Describe Your Idea','Type what you want to build in any language — English, Bengali, Arabic, or Hindi. No technical knowledge required.','#6d28d9','#faf5ff'],
+                ['02','Blueprint Matched Instantly','Domain detected → pre-built blueprint loaded → modules selected → business rules applied. Zero AI tokens. Zero cost.','#0891b2','#ecfeff'],
+                ['03','95% Built Without AI','CRUD, dashboards, reports, auth, payments — all generated by the rule engine from the blueprint. No API key consumed.','#059669','#f0fdf4'],
+                ['04','AI Fills Only the Gaps','Novel custom logic? Add your own API key (Claude, OpenAI, Gemini, or Ollama). AI works on the remaining 5% only.','#7c3aed','#faf5ff'],
+                ['05','Your Code, Your Server','Full Laravel source code. Deploy on cPanel, VPS, or cloud. No subscription, no lock-in. Own everything forever.','#d97706','#fffbeb'],
             ];
             @endphp
             @foreach($steps as $step)
@@ -780,15 +893,15 @@
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @php
             $features = [
-                ['🏗️','Blueprint Assembly','#6d28d9','#faf5ff','Proven app structures assembled in seconds — CRM, Hospital, School, SaaS — pre-researched tables, roles, and modules ready to go.'],
-                ['🧠','Organizational Memory','#4f46e5','#eef2ff','Decisions, patterns, and lessons accumulate across projects. The platform gets smarter every time you build.'],
-                ['🛡️','Senior Dev Security','#dc2626','#fef2f2','OWASP Top 10 auto-applied. Authorization enforced. SQL injection, XSS, mass assignment — blocked automatically.'],
-                ['⚡','Zero-AI CRUD','#059669','#f0fdf4','Standard CRUD generated by rule engine — 0 AI tokens. 70%+ of typical generation cost eliminated through intelligent routing.'],
+                ['🚀','No API Key to Start','#059669','#f0fdf4','Start building immediately — no API key, no credit card, no setup. 95% of your application is generated from pre-built blueprints at zero cost.'],
+                ['🏗️','100+ Ready Blueprints','#6d28d9','#faf5ff','eCommerce, Hospital, School, CRM, ERP, SaaS, Restaurant, POS — 100 pre-researched blueprints with tables, roles, modules, and business rules pre-loaded.'],
+                ['⚡','Zero-AI CRUD Generation','#0891b2','#ecfeff','All standard CRUD generated by rule engine — 0 AI tokens. Models, controllers, views, routes, migrations — done in seconds without any API cost.'],
+                ['🛡️','Senior Dev Security','#dc2626','#fef2f2','OWASP Top 10 auto-applied. Authorization enforced. SQL injection, XSS, mass assignment — blocked automatically on every file generated.'],
                 ['📊','Business KPI Dashboards','#d97706','#fffbeb','Domain-specific KPIs pre-configured. eCommerce AOV, SaaS MRR/churn, CRM win rate — not generic "total records" pages.'],
-                ['🏠','Self-Hosted & Open Source','#0891b2','#ecfeff','Full Laravel source code. Your server, your cloud, your country. No vendor lock-in. No monthly tax. Own it forever.'],
-                ['💡','Smart Question Engine','#1d4ed8','#eff6ff','AI asks the right questions before building — multi-tenant? Payment gateway? Country? Prevents 80% of rework.'],
+                ['🧠','Organizational Memory','#4f46e5','#eef2ff','Decisions, patterns, and lessons accumulate across projects. The platform gets smarter every time you build — with or without AI.'],
+                ['🔑','BYOK — Bring Your Own Key','#7c3aed','#faf5ff','Use Claude, OpenAI, Gemini, or local Ollama. Add your key only when you need the 5% — custom logic AI actually has to think about.'],
                 ['⚠️','Risk Detection','#ea580c','#fff7ed','15 critical technical risks auto-flagged — missing transactions, no pagination, no authorization — caught before damage.'],
-                ['🔄','Upgrade Path Intelligence','#0d9488','#f0fdfa','Monolith → Modular → Microservices. MySQL → PostgreSQL. Manual → CI/CD. Clear evolution paths built in.'],
+                ['🏠','Self-Hosted & Open Source','#0d9488','#f0fdfa','Full Laravel source code. Your server, your cloud, your country. No vendor lock-in. No monthly tax. Own it forever.'],
             ];
             @endphp
             @foreach($features as $f)
@@ -809,13 +922,14 @@
 ══════════════════════════════════════════ -->
 <section class="relative py-20 px-6 section-alt">
     <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             @foreach([
-                ['21',   'Knowledge Base Files','#6d28d9'],
-                ['10',   'Autonomous AI Agents','#4f46e5'],
-                ['12',   'Domain Blueprints',   '#0891b2'],
-                ['70%+', 'AI Cost Reduction',   '#059669'],
-                ['330+', 'Wisdom Patterns',     '#d97706'],
+                ['100+', 'Ready Blueprints',       '#6d28d9'],
+                ['95%',  'Zero-Token Generation',  '#059669'],
+                ['10',   'Autonomous AI Agents',   '#4f46e5'],
+                ['21',   'Knowledge Base Files',   '#0891b2'],
+                ['$0',   'Cost to Start Building', '#065f46'],
+                ['330+', 'Wisdom Patterns',        '#d97706'],
             ] as $n)
             <div class="card p-6 text-center">
                 <div class="text-4xl font-black mb-1.5 g-text">{{ $n[0] }}</div>
@@ -892,7 +1006,7 @@
         </div>
 
         <div class="flex flex-wrap justify-center gap-6 text-sm" style="color:#6b7280;">
-            @foreach(['No credit card required','Deploy on your own server','Keep all source code','No vendor lock-in'] as $item)
+            @foreach(['No API key to start','No credit card required','Deploy on your own server','Keep all source code','No vendor lock-in'] as $item)
             <span class="flex items-center gap-1.5">
                 <span style="color:#059669; font-weight:700;">✓</span> {{ $item }}
             </span>
