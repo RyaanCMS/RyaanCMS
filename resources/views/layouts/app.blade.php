@@ -1137,9 +1137,17 @@
             $userSidebarMenus = $loadSidebarMenus('user');
             $devSidebarMenus  = $loadSidebarMenus('developer');
 
-            // Developer menus are seeded once on registration — never re-seeded on page load.
-            // Deleted menus stay deleted. New menu items added in future versions are
-            // handled via database migrations or php artisan ryaan:seed-menus.
+            // Auto-heal: if developer menus are empty (install edge case — e.g. stale route
+            // cache on cPanel caused seeding to fail silently), re-seed them on first page load.
+            // firstOrCreate inside ensureForUser makes this fully idempotent.
+            if (auth()->check() && $devSidebarMenus->isEmpty()) {
+                try {
+                    app(\App\Services\Menu\DefaultSidebarMenuImporter::class)->ensureForUser(auth()->user());
+                    $devSidebarMenus = $loadSidebarMenus('developer');
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Sidebar auto-heal failed: ' . $e->getMessage());
+                }
+            }
         @endphp
 
         <nav style="flex:1;display:flex;flex-direction:column;overflow:hidden;" aria-label="Main navigation">

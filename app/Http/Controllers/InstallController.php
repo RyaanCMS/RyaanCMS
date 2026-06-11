@@ -96,8 +96,18 @@ class InstallController extends Controller
             'role'     => 'admin',
         ]);
 
-        // Seed default sidebar menus so Developer section is populated on first login
-        app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
+        // Clear any stale route/config cache before seeding menus (cPanel installs
+        // sometimes ship with a cached route file that causes route() to fail)
+        try { Artisan::call('route:clear'); } catch (\Throwable) {}
+        try { Artisan::call('config:clear'); } catch (\Throwable) {}
+
+        // Seed default sidebar menus — wrapped in try/catch so a route cache issue
+        // never blocks the install; the layout auto-heals on first login if this fails.
+        try {
+            app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Install: sidebar menu seeding failed — ' . $e->getMessage());
+        }
 
         // Seed global platform settings (branding, appearance, AI defaults)
         app(\Database\Seeders\SettingsSeeder::class)->run();
