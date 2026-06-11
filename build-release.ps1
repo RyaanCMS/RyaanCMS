@@ -307,7 +307,7 @@ if (-not $release) {
         name             = "RyaanCMS v$Version"
         draft            = $false
         prerelease       = $false
-        body             = "## RyaanCMS v$Version`n`n$Changelog`n`n### cPanel Installation`n1. Download **$zipName** below`n2. Upload to ``/home/username/`` via File Manager`n3. Extract, move ``public_html/`` contents + ``ryaancms/`` folder`n4. ``chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache```n5. Visit yourdomain.com - install wizard starts!"
+        body             = "## RyaanCMS v$Version`n`n$Changelog`n`n### cPanel Installation`n1. Download **$zipName** below`n2. Upload it into your domain document root, usually ``public_html```n3. Extract the ZIP there so ``index.php``, ``vendor``, ``app``, ``bootstrap``, and ``storage`` are in the same folder`n4. Set ``storage`` and ``bootstrap/cache`` writable if your host requires it`n5. Visit your domain - the installer starts automatically"
     } | ConvertTo-Json -Depth 3
 
     $release = Invoke-RestMethod -Uri "$apiBase/repos/$RepoPath/releases" `

@@ -6,6 +6,7 @@ use App\Models\UpdateHistory;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
 class UpdateService
 {
@@ -65,7 +66,14 @@ class UpdateService
 
     public function getCurrentVersion(): string
     {
-        return config('version.current', '1.0.0');
+        $envVersion = $this->readEnvVersion();
+        if ($envVersion !== null) {
+            return $envVersion;
+        }
+
+        $configured = trim((string) config('version.current', ''));
+
+        return $this->getBundledVersion() ?? ($configured !== '' ? $configured : '1.0.0');
     }
 
     public function getLatestVersion(): string
@@ -88,11 +96,10 @@ class UpdateService
         $current ??= $this->getCurrentVersion();
         $manifest  = $this->getManifest();
 
-        return collect($manifest['versions'])
+        return $this->sortVersions(collect($manifest['versions'])
             ->filter(fn($v) => version_compare($v['version'], $current, '>'))
-            ->sortBy('version')
             ->values()
-            ->toArray();
+            ->toArray());
     }
 
     /** Versions between $from (exclusive) and $to (inclusive), sorted ascending. */
@@ -100,14 +107,13 @@ class UpdateService
     {
         $manifest = $this->getManifest();
 
-        return collect($manifest['versions'])
+        return $this->sortVersions(collect($manifest['versions'])
             ->filter(fn($v) =>
                 version_compare($v['version'], $from, '>') &&
                 version_compare($v['version'], $to,   '<=')
             )
-            ->sortBy('version')
             ->values()
-            ->toArray();
+            ->toArray());
     }
 
     // ──────────────────────────────────────────────
@@ -125,11 +131,10 @@ class UpdateService
         $info = $this->getPluginVersions($pluginKey);
         if (empty($info['versions'])) return [];
 
-        return collect($info['versions'])
+        return $this->sortVersions(collect($info['versions'])
             ->filter(fn($v) => version_compare($v['version'], $currentVersion, '>'))
-            ->sortBy('version')
             ->values()
-            ->toArray();
+            ->toArray());
     }
 
     // ──────────────────────────────────────────────
@@ -150,51 +155,47 @@ class UpdateService
             mkdir($this->updatesDir, 0755, true);
         }
 
-        $record = UpdateHistory::updateOrCreate(
-            ['version' => $version, 'type' => $type, 'package_key' => $packageKey],
-            [
-                'status'     => 'downloading',
-                'changelog'  => $versionInfo['changelog'] ?? '',
-                'started_at' => now(),
-                'error_message' => null,
-                'completed_at'  => null,
-            ]
-        );
+        $record = $this->startUpdateRecord($version, $type, $packageKey, $versionInfo['changelog'] ?? '');
 
         try {
             // 1. Download
             $this->downloadZip($versionInfo['download_url'], $zipPath);
 
-            $record->update(['status' => 'extracting']);
+            $this->markUpdateRecord($record, ['status' => 'extracting']);
 
             // 2. Extract
             $this->extractZip($zipPath, $extractPath);
 
-            $record->update(['status' => 'applying']);
+            $this->markUpdateRecord($record, ['status' => 'applying']);
 
             // 3. Copy files (preserve .env, storage, vendor, .git)
-            $this->copyFiles($extractPath);
+            [$appSource, $publicSource] = $this->resolvePackageSources($extractPath);
+            $this->copyFiles($appSource, base_path());
 
-            $record->update(['status' => 'migrating']);
+            if ($publicSource !== null) {
+                $this->copyFiles($publicSource, $this->detectPublicRoot(), ['storage']);
+            }
+
+            $this->markUpdateRecord($record, ['status' => 'migrating']);
 
             // 4. Migrate
             if ($versionInfo['requires_migration'] ?? true) {
                 Artisan::call('migrate', ['--force' => true]);
             }
 
-            // 5. Clear caches
-            $this->clearCaches();
-
-            // 6. Bump version in .env
+            // 5. Bump version in .env before clearing cached config
             $this->updateEnvVersion($version);
 
-            $record->update([
+            // 6. Clear caches
+            $this->clearCaches();
+
+            $this->markUpdateRecord($record, [
                 'status'       => 'success',
                 'completed_at' => now(),
             ]);
 
         } catch (\Throwable $e) {
-            $record->update([
+            $this->markUpdateRecord($record, [
                 'status'        => 'failed',
                 'error_message' => $e->getMessage(),
                 'completed_at'  => now(),
@@ -278,10 +279,42 @@ class UpdateService
         }
     }
 
-    private function copyFiles(string $sourcePath): void
+    private function resolvePackageSources(string $extractPath): array
+    {
+        $legacyApp = $extractPath . DIRECTORY_SEPARATOR . 'ryaancms';
+        $legacyPublic = $extractPath . DIRECTORY_SEPARATOR . 'public_html';
+
+        if (is_dir($legacyApp) && file_exists($legacyApp . DIRECTORY_SEPARATOR . 'artisan')) {
+            return [$legacyApp, is_dir($legacyPublic) ? $legacyPublic : null];
+        }
+
+        if (file_exists($extractPath . DIRECTORY_SEPARATOR . 'artisan')) {
+            return [$extractPath, null];
+        }
+
+        throw new \RuntimeException('Invalid update package: Laravel app root was not found.');
+    }
+
+    private function detectPublicRoot(): string
+    {
+        $base = base_path();
+
+        if (file_exists($base . DIRECTORY_SEPARATOR . 'index.php')) {
+            return $base;
+        }
+
+        $siblingPublicHtml = dirname($base) . DIRECTORY_SEPARATOR . 'public_html';
+        if (is_dir($siblingPublicHtml)) {
+            return $siblingPublicHtml;
+        }
+
+        return public_path();
+    }
+
+    private function copyFiles(string $sourcePath, string $destRoot, array $extraSkips = []): void
     {
         // Never overwrite these — user data / env config
-        $neverOverwrite = ['.env', 'vendor', 'storage/app', 'storage/logs', '.git', 'node_modules'];
+        $neverOverwrite = array_merge(['.env', 'vendor', 'storage/app', 'storage/logs', '.git', 'node_modules'], $extraSkips);
 
         $iter = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($sourcePath, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -297,7 +330,7 @@ class UpdateService
                 }
             }
 
-            $dest = base_path($relative);
+            $dest = $destRoot . DIRECTORY_SEPARATOR . $relative;
 
             if ($item->isDir()) {
                 if (!is_dir($dest)) mkdir($dest, 0755, true);
@@ -316,15 +349,85 @@ class UpdateService
         }
     }
 
+    private function sortVersions(array $versions): array
+    {
+        usort($versions, fn($a, $b) => version_compare($a['version'] ?? '0.0.0', $b['version'] ?? '0.0.0'));
+
+        return array_values($versions);
+    }
+
+    private function readEnvVersion(): ?string
+    {
+        $envPath = base_path('.env');
+        if (!is_file($envPath)) {
+            return null;
+        }
+
+        if (preg_match('/^APP_VERSION=(.+)$/m', (string) file_get_contents($envPath), $matches) !== 1) {
+            return null;
+        }
+
+        $version = trim($matches[1], " \t\n\r\0\x0B\"'");
+
+        return $version !== '' ? $version : null;
+    }
+
+    private function getBundledVersion(): ?string
+    {
+        $versionsFile = base_path('versions.json');
+        if (!is_file($versionsFile)) {
+            return null;
+        }
+
+        $data = json_decode((string) file_get_contents($versionsFile), true);
+
+        return is_array($data) && !empty($data['latest']) ? (string) $data['latest'] : null;
+    }
+
+    private function startUpdateRecord(string $version, string $type, ?string $packageKey, string $changelog): ?UpdateHistory
+    {
+        try {
+            if (!Schema::hasTable('update_history')) {
+                return null;
+            }
+
+            return UpdateHistory::updateOrCreate(
+                ['version' => $version, 'type' => $type, 'package_key' => $packageKey],
+                [
+                    'status'     => 'downloading',
+                    'changelog'  => $changelog,
+                    'started_at' => now(),
+                    'error_message' => null,
+                    'completed_at'  => null,
+                ]
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function markUpdateRecord(?UpdateHistory $record, array $values): void
+    {
+        if ($record === null) {
+            return;
+        }
+
+        try {
+            $record->update($values);
+        } catch (\Throwable) {
+            //
+        }
+    }
+
     private function updateEnvVersion(string $version): void
     {
         $envPath = base_path('.env');
-        $content = file_get_contents($envPath);
+        $content = file_exists($envPath) ? file_get_contents($envPath) : '';
 
         if (str_contains($content, 'APP_VERSION=')) {
             $content = preg_replace('/^APP_VERSION=.*/m', "APP_VERSION={$version}", $content);
         } else {
-            $content .= "\nAPP_VERSION={$version}";
+            $content = rtrim($content) . "\nAPP_VERSION={$version}\n";
         }
 
         file_put_contents($envPath, $content);

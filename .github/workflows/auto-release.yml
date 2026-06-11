@@ -39,6 +39,35 @@ jobs:
           echo "new=$NEW"         >> $GITHUB_OUTPUT
           echo "$CURRENT -> $NEW"
 
+      - name: Update versions.json
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          NEW_VERSION: ${{ steps.ver.outputs.new }}
+          OLD_VERSION: ${{ steps.ver.outputs.current }}
+          REPO: ${{ github.repository }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const v = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
+            const ver = process.env.NEW_VERSION;
+            const repo = process.env.REPO;
+            v.versions.push({
+              version: ver,
+              type: 'feature',
+              released_at: new Date().toISOString().slice(0,10),
+              changelog: process.env.COMMIT_MSG,
+              download_url: 'https://github.com/' + repo + '/releases/download/v' + ver + '/ryaancms-v' + ver + '-cpanel.zip',
+              requires_migration: true,
+              min_php: '8.2',
+              min_from_version: process.env.OLD_VERSION,
+              critical: false,
+              file_count: null
+            });
+            v.latest = ver;
+            fs.writeFileSync('versions.json', JSON.stringify(v, null, 4) + '\n');
+            console.log('versions.json updated -> v' + ver);
+          "
+
       - name: Composer install (production)
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
@@ -91,35 +120,6 @@ jobs:
           cd ..
           echo "ZIP: ryaancms-v${VERSION}-cpanel.zip  ($(du -sh ryaancms-v${VERSION}-cpanel.zip | cut -f1))"
 
-      - name: Update versions.json
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          NEW_VERSION: ${{ steps.ver.outputs.new }}
-          OLD_VERSION: ${{ steps.ver.outputs.current }}
-          REPO: ${{ github.repository }}
-        run: |
-          node -e "
-            const fs = require('fs');
-            const v = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
-            const ver = process.env.NEW_VERSION;
-            const repo = process.env.REPO;
-            v.versions.push({
-              version: ver,
-              type: 'feature',
-              released_at: new Date().toISOString().slice(0,10),
-              changelog: process.env.COMMIT_MSG,
-              download_url: 'https://github.com/' + repo + '/releases/download/v' + ver + '/ryaancms-v' + ver + '-cpanel.zip',
-              requires_migration: true,
-              min_php: '8.2',
-              min_from_version: process.env.OLD_VERSION,
-              critical: false,
-              file_count: null
-            });
-            v.latest = ver;
-            fs.writeFileSync('versions.json', JSON.stringify(v, null, 4) + '\n');
-            console.log('versions.json updated -> v' + ver);
-          "
-
       - name: Commit version bump
         run: |
           git config user.name "RyaanCMS Bot"
@@ -134,7 +134,7 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           VERSION="${{ steps.ver.outputs.new }}"
-          printf "## RyaanCMS v%s\n\n%s\n\n### cPanel Installation\n1. Download ryaancms-v%s-cpanel.zip below\n2. Upload to /home/username/ via File Manager\n3. Extract - place public_html/ contents and ryaancms/ folder correctly\n4. chmod -R 775 ryaancms/storage ryaancms/bootstrap/cache\n5. Visit your domain - install wizard starts automatically!" \
+          printf "## RyaanCMS v%s\n\n%s\n\n### cPanel Installation\n1. Download ryaancms-v%s-cpanel.zip below\n2. Upload it into your domain document root, usually public_html\n3. Extract the ZIP there so index.php, vendor, app, bootstrap, and storage are in the same folder\n4. Set storage and bootstrap/cache writable if your host requires it\n5. Visit your domain - the installer starts automatically" \
             "${VERSION}" "${COMMIT_MSG}" "${VERSION}" > release-notes.md
           gh release create "v${VERSION}" \
             --title "RyaanCMS v${VERSION}" \

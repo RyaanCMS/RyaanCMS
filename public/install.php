@@ -8,7 +8,7 @@
 // Auto-detect: flat cPanel (vendor/ next to install.php) or traditional structure
 define('BASE_PATH', is_dir(__DIR__ . '/vendor') ? __DIR__ : dirname(__DIR__));
 define('INSTALLED_FLAG', BASE_PATH . '/storage/app/.installed');
-define('INSTALLER_VERSION', '1.0.0');
+define('INSTALLER_VERSION', getBundledVersion());
 
 // ── Already installed? ────────────────────────────────────────────────────────
 if (file_exists(INSTALLED_FLAG)) {
@@ -183,6 +183,7 @@ function runInstall(array $data): array
 
     $envValues = [
         'APP_NAME'     => '"' . str_replace('"', '', $appName) . '"',
+        'APP_VERSION'  => getBundledVersion(),
         'APP_ENV'      => $env,
         'APP_DEBUG'    => $env === 'local' ? 'true' : 'false',
         'APP_URL'      => $appUrl,
@@ -279,6 +280,19 @@ function runInstall(array $data): array
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function getBundledVersion(): string
+{
+    $versionsFile = BASE_PATH . '/versions.json';
+    if (is_file($versionsFile)) {
+        $data = json_decode((string) file_get_contents($versionsFile), true);
+        if (is_array($data) && !empty($data['latest'])) {
+            return (string) $data['latest'];
+        }
+    }
+
+    return '1.0.0';
+}
+
 function writeEnvValues(array $values): void
 {
     $envPath = BASE_PATH . '/.env';
@@ -297,8 +311,11 @@ function writeEnvValues(array $values): void
 
 function generateMinimalEnv(): string
 {
+    $version = getBundledVersion();
+
     return <<<ENV
 APP_NAME="RyaanCMS"
+APP_VERSION={$version}
 APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
