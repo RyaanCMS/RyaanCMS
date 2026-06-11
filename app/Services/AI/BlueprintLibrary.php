@@ -596,10 +596,231 @@ class BlueprintLibrary
     // PART 3 — HOSPITALITY, REAL ESTATE, FINANCE & LOGISTICS
     // ═════════════════════════════════════════════════════════════════════
 
-    private function hospitalityBlueprints(): array { return []; }
-    private function realEstateBlueprints(): array  { return []; }
-    private function financeBlueprints(): array     { return []; }
-    private function logisticsBlueprints(): array   { return []; }
+    private function hospitalityBlueprints(): array
+    {
+        return [
+
+            // ── Restaurant ───────────────────────────────────────────────
+            'restaurant' => [
+                'name'             => 'Restaurant Management System',
+                'icon'             => '🍽️',
+                'category'         => 'hospitality',
+                'industry'         => 'restaurant',
+                'problem_solved'   => 'Manage dine-in orders, kitchen, delivery, and billing',
+                'target_users'     => ['admin', 'waiter', 'kitchen', 'cashier', 'customer'],
+                'keywords'         => ['restaurant', 'food', 'cafe', 'dining', 'menu', 'order food', 'kitchen', 'dine in', 'takeaway', 'রেস্টুরেন্ট', 'مطعم', 'restaurante'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'qr_menu', 'delivery_module', 'loyalty', 'kitchen_display'],
+                'key_entities'     => ['MenuItem', 'Category', 'Table', 'Order', 'OrderItem', 'KitchenTicket', 'Bill', 'Payment', 'Reservation', 'Customer', 'Coupon', 'Staff'],
+                'workflows'        => ['table_reservation', 'order_taking', 'kitchen_dispatch', 'food_preparation', 'serving', 'billing', 'delivery'],
+                'reports'          => ['daily_sales', 'top_items', 'table_turnover', 'kitchen_efficiency', 'waste_report', 'delivery_report'],
+                'pages'            => ['dashboard', 'menu_management', 'table_map', 'order_entry', 'kitchen_display', 'billing', 'reservations', 'delivery', 'reports'],
+                'permissions'      => ['take_orders', 'manage_menu', 'manage_kitchen', 'process_payment', 'manage_reservations', 'view_reports'],
+                'questions_to_ask' => ['Dine-in only or delivery as well?', 'QR code menu for self-ordering?', 'Kitchen Display System (KDS) integration?', 'Multiple outlets?'],
+                'business_rules'   => ['order_to_kitchen_before_preparation', 'bill_generated_on_order_complete', 'table_released_after_payment', 'delivery_assigned_before_dispatch'],
+                'integrations'     => ['bkash', 'nagad', 'pathao_food', 'shohoz_food', 'sms', 'thermal_printer'],
+                'ai_fallback_areas'=> ['demand_forecasting', 'menu_optimisation', 'waste_reduction'],
+            ],
+
+            // ── Hotel ────────────────────────────────────────────────────
+            'hotel' => [
+                'name'             => 'Hotel & Hospitality Management',
+                'icon'             => '🏨',
+                'category'         => 'hospitality',
+                'industry'         => 'hotel_hospitality',
+                'problem_solved'   => 'Manage room bookings, check-in/out, housekeeping, and billing',
+                'target_users'     => ['admin', 'receptionist', 'housekeeping', 'guest', 'manager'],
+                'keywords'         => ['hotel', 'resort', 'hospitality', 'room booking', 'check in', 'check-in', 'checkout', 'hostel', 'guest house', 'হোটেল', 'فندق', 'hotel'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'channel_manager', 'restaurant_module', 'spa', 'loyalty'],
+                'key_entities'     => ['Room', 'RoomType', 'Booking', 'Guest', 'CheckIn', 'CheckOut', 'Bill', 'HousekeepingTask', 'Amenity', 'RatePlan', 'Invoice'],
+                'workflows'        => ['online_booking', 'walk_in_booking', 'check_in', 'room_service_request', 'housekeeping_assignment', 'check_out', 'billing'],
+                'reports'          => ['occupancy_rate', 'revenue_per_room', 'booking_source', 'housekeeping_status', 'monthly_revenue'],
+                'pages'            => ['dashboard', 'room_management', 'bookings', 'front_desk', 'housekeeping', 'billing', 'guest_history', 'reports'],
+                'permissions'      => ['manage_bookings', 'check_in_out', 'manage_rooms', 'housekeeping_assign', 'process_payment', 'view_reports'],
+                'questions_to_ask' => ['Online booking portal needed?', 'OTA channel manager (Booking.com, Agoda)?', 'Restaurant and spa integration?', 'Corporate billing?'],
+                'business_rules'   => ['room_not_double_booked', 'payment_before_check_in', 'housekeeping_after_check_out', 'late_checkout_surcharge'],
+                'integrations'     => ['stripe', 'booking_com_api', 'agoda_api', 'sms', 'bkash'],
+                'ai_fallback_areas'=> ['dynamic_pricing', 'occupancy_forecast', 'guest_preference_personalisation'],
+            ],
+
+            // ── Food Delivery ─────────────────────────────────────────────
+            'food_delivery' => [
+                'name'             => 'Food Delivery Platform',
+                'icon'             => '🛵',
+                'category'         => 'hospitality',
+                'industry'         => 'restaurant',
+                'problem_solved'   => 'Online food ordering with multi-restaurant and delivery tracking',
+                'target_users'     => ['admin', 'restaurant_owner', 'delivery_rider', 'customer'],
+                'keywords'         => ['food delivery', 'online food order', 'foodpanda', 'shohoz', 'pathao food', 'delivery platform', 'food app', 'খাবার ডেলিভারি'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'live_tracking', 'loyalty', 'push_notification'],
+                'key_entities'     => ['Restaurant', 'MenuItem', 'Category', 'Order', 'OrderItem', 'DeliveryRider', 'Tracking', 'Review', 'Customer', 'Zone', 'Coupon'],
+                'workflows'        => ['restaurant_onboarding', 'menu_setup', 'customer_order', 'restaurant_acceptance', 'rider_assignment', 'delivery_tracking', 'rating_review'],
+                'reports'          => ['platform_revenue', 'restaurant_performance', 'rider_earnings', 'delivery_time_analysis', 'top_areas'],
+                'pages'            => ['home', 'restaurant_list', 'menu', 'cart', 'checkout', 'tracking', 'restaurant_dashboard', 'rider_app', 'admin_dashboard'],
+                'permissions'      => ['manage_restaurants', 'accept_orders', 'assign_riders', 'track_delivery', 'manage_platform'],
+                'questions_to_ask' => ['Real-time GPS tracking for riders?', 'Commission model?', 'Multi-zone delivery areas?'],
+                'business_rules'   => ['restaurant_must_accept_within_timeout', 'rider_assigned_by_proximity', 'commission_auto_deducted'],
+                'integrations'     => ['google_maps', 'bkash', 'nagad', 'sslcommerz', 'push_notification', 'sms'],
+                'ai_fallback_areas'=> ['delivery_eta_prediction', 'dynamic_delivery_fee', 'smart_rider_dispatch'],
+            ],
+
+        ]; // end hospitalityBlueprints
+    }
+
+    private function realEstateBlueprints(): array
+    {
+        return [
+
+            // ── Real Estate CRM ───────────────────────────────────────────
+            'real_estate' => [
+                'name'             => 'Real Estate CRM & Listing',
+                'icon'             => '🏠',
+                'category'         => 'real_estate',
+                'industry'         => 'real_estate',
+                'problem_solved'   => 'Manage property listings, leads, agents, and transactions',
+                'target_users'     => ['admin', 'agent', 'buyer', 'seller'],
+                'keywords'         => ['real estate', 'property', 'housing', 'land', 'apartment', 'flat', 'broker', 'realty', 'property sale', 'রিয়েল এস্টেট', 'عقارات'],
+                'required_modules' => ['auth', 'rbac', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'map_integration', 'crm_module', 'mortgage_calculator'],
+                'key_entities'     => ['Property', 'PropertyType', 'Lead', 'Agent', 'Client', 'Viewing', 'Offer', 'Deal', 'Transaction', 'Commission', 'Document', 'Location'],
+                'workflows'        => ['property_listing', 'lead_capture', 'viewing_scheduling', 'offer_submission', 'negotiation', 'deal_closing', 'commission_settlement'],
+                'reports'          => ['listing_performance', 'agent_performance', 'sales_pipeline', 'revenue_report', 'lead_conversion'],
+                'pages'            => ['home', 'property_listing', 'property_detail', 'search_filter', 'agent_profile', 'dashboard', 'leads', 'deals', 'reports'],
+                'permissions'      => ['manage_listings', 'manage_leads', 'schedule_viewing', 'close_deal', 'view_commission'],
+                'questions_to_ask' => ['Sale, rent, or both?', 'Residential, commercial, or land?', 'Google Maps integration?', 'Mortgage/EMI calculator?'],
+                'business_rules'   => ['listing_requires_approval', 'commission_on_closed_deal_only', 'exclusive_listing_one_agent'],
+                'integrations'     => ['google_maps', 'sms_gateway', 'email', 'bkash', 'facebook_ads'],
+                'ai_fallback_areas'=> ['property_valuation', 'lead_scoring', 'demand_heatmap'],
+            ],
+
+            // ── Property Rental ───────────────────────────────────────────
+            'property_rental' => [
+                'name'             => 'Property Rental Management',
+                'icon'             => '🏢',
+                'category'         => 'real_estate',
+                'industry'         => 'real_estate',
+                'problem_solved'   => 'Manage rental properties, tenants, leases, and rent collection',
+                'target_users'     => ['admin', 'property_manager', 'tenant', 'owner'],
+                'keywords'         => ['rental', 'rent', 'tenant', 'lease', 'property rental', 'landlord', 'ভাড়া', 'আবাসন', 'إيجار', 'alquiler'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'maintenance_module', 'document_manager', 'online_portal'],
+                'key_entities'     => ['Property', 'Unit', 'Tenant', 'Lease', 'RentPayment', 'MaintenanceRequest', 'Inspection', 'Document', 'Owner', 'Utility'],
+                'workflows'        => ['tenant_application', 'lease_signing', 'rent_collection', 'maintenance_request', 'lease_renewal', 'tenant_eviction'],
+                'reports'          => ['rent_collection_report', 'occupancy_report', 'maintenance_history', 'income_report', 'overdue_payments'],
+                'pages'            => ['dashboard', 'properties', 'tenants', 'leases', 'rent_payments', 'maintenance', 'documents', 'reports'],
+                'permissions'      => ['manage_properties', 'manage_tenants', 'collect_rent', 'approve_maintenance', 'view_reports'],
+                'questions_to_ask' => ['Residential or commercial properties?', 'Utility bill management?', 'Online tenant portal for rent payment?', 'Maintenance contractor management?'],
+                'business_rules'   => ['lease_signed_before_move_in', 'rent_due_date_auto_alert', 'security_deposit_tracked_separately', 'maintenance_sla_enforced'],
+                'integrations'     => ['bkash', 'nagad', 'bank_transfer', 'sms_gateway', 'email'],
+                'ai_fallback_areas'=> ['rent_pricing_optimisation', 'tenant_risk_scoring'],
+            ],
+
+        ]; // end realEstateBlueprints
+    }
+
+    private function financeBlueprints(): array
+    {
+        return [
+
+            // ── Microfinance ──────────────────────────────────────────────
+            'microfinance' => [
+                'name'             => 'Microfinance / Cooperative MIS',
+                'icon'             => '🏦',
+                'category'         => 'finance',
+                'industry'         => 'microfinance',
+                'problem_solved'   => 'Manage loan disbursement, collections, savings, and member accounts',
+                'target_users'     => ['admin', 'loan_officer', 'collector', 'member', 'accountant'],
+                'keywords'         => ['microfinance', 'ngo finance', 'cooperative', 'loan', 'savings', 'credit', 'mfi', 'ক্ষুদ্রঋণ', 'সমবায়', 'تمويل أصغر'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'field_collection', 'sms', 'passbook'],
+                'key_entities'     => ['Member', 'LoanProduct', 'LoanApplication', 'Loan', 'Repayment', 'Savings', 'SavingsTransaction', 'Group', 'CollectionSheet', 'Officer', 'Branch'],
+                'workflows'        => ['member_registration', 'loan_application', 'credit_appraisal', 'loan_approval', 'disbursement', 'weekly_collection', 'savings_deposit', 'loan_closure'],
+                'reports'          => ['portfolio_at_risk', 'collection_sheet', 'disbursement_report', 'savings_summary', 'npl_report', 'branch_performance'],
+                'pages'            => ['dashboard', 'members', 'loan_applications', 'active_loans', 'collections', 'savings', 'groups', 'branches', 'reports'],
+                'permissions'      => ['register_member', 'approve_loan', 'disburse_loan', 'collect_repayment', 'manage_savings', 'view_reports'],
+                'questions_to_ask' => ['Group lending or individual?', 'Weekly/monthly collection?', 'Bangladesh MRA compliance needed?', 'Field officer mobile app?'],
+                'business_rules'   => ['loan_approval_chain', 'no_disbursement_without_approval', 'par_calculation_daily', 'penalty_on_late_repayment'],
+                'integrations'     => ['bkash', 'nagad', 'sms_gateway', 'mra_reporting'],
+                'ai_fallback_areas'=> ['credit_scoring', 'default_prediction', 'smart_collection_routing'],
+            ],
+
+            // ── Insurance ─────────────────────────────────────────────────
+            'insurance' => [
+                'name'             => 'Insurance Management System',
+                'icon'             => '🛡️',
+                'category'         => 'finance',
+                'industry'         => 'finance',
+                'problem_solved'   => 'Manage policies, premiums, claims, and agent commissions',
+                'target_users'     => ['admin', 'agent', 'policyholder', 'claims_officer'],
+                'keywords'         => ['insurance', 'policy', 'premium', 'claim', 'insurer', 'life insurance', 'general insurance', 'বীমা', 'تأمين'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'document_manager', 'agent_portal', 'customer_portal'],
+                'key_entities'     => ['Policy', 'PolicyType', 'Policyholder', 'Agent', 'Premium', 'Claim', 'ClaimItem', 'Document', 'Commission', 'Renewal'],
+                'workflows'        => ['policy_issuance', 'premium_collection', 'claim_registration', 'claim_investigation', 'claim_settlement', 'policy_renewal', 'agent_commission'],
+                'reports'          => ['policy_report', 'premium_income', 'claims_ratio', 'agent_performance', 'renewal_due_list'],
+                'pages'            => ['dashboard', 'policies', 'policyholders', 'premiums', 'claims', 'agents', 'renewals', 'reports'],
+                'permissions'      => ['issue_policy', 'collect_premium', 'register_claim', 'approve_claim', 'pay_commission'],
+                'questions_to_ask' => ['Life, general, or health insurance?', 'Agent portal needed?', 'IDRA (Bangladesh) compliance?'],
+                'business_rules'   => ['no_claim_without_active_policy', 'premium_paid_before_coverage', 'claim_investigation_sla', 'commission_after_policy_activation'],
+                'integrations'     => ['bkash', 'bank_transfer', 'sms_gateway', 'idra_portal'],
+                'ai_fallback_areas'=> ['fraud_detection', 'risk_assessment', 'claim_prediction'],
+            ],
+
+        ]; // end financeBlueprints
+    }
+
+    private function logisticsBlueprints(): array
+    {
+        return [
+
+            // ── Courier / Delivery ────────────────────────────────────────
+            'courier' => [
+                'name'             => 'Courier & Delivery Management',
+                'icon'             => '📦',
+                'category'         => 'logistics',
+                'industry'         => 'logistics',
+                'problem_solved'   => 'Manage parcel booking, dispatch, tracking, delivery, and COD collection',
+                'target_users'     => ['admin', 'agent', 'rider', 'customer'],
+                'keywords'         => ['courier', 'delivery', 'parcel', 'logistics', 'shipping', 'dispatch', 'tracking', 'cod', 'কুরিয়ার', 'ডেলিভারি', 'شحن'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'live_tracking', 'sms', 'cod_management'],
+                'key_entities'     => ['Parcel', 'Merchant', 'Rider', 'Hub', 'Route', 'TrackingEvent', 'CodCollection', 'Invoice', 'Zone'],
+                'workflows'        => ['parcel_booking', 'pickup_assignment', 'hub_processing', 'rider_dispatch', 'delivery_attempt', 'cod_collection', 'merchant_settlement'],
+                'reports'          => ['delivery_performance', 'cod_report', 'rider_performance', 'hub_throughput', 'merchant_billing'],
+                'pages'            => ['dashboard', 'parcel_booking', 'tracking', 'rider_management', 'hub_management', 'merchant_portal', 'cod_management', 'reports'],
+                'permissions'      => ['book_parcel', 'assign_rider', 'update_tracking', 'collect_cod', 'settle_merchant'],
+                'questions_to_ask' => ['Own fleet or third-party riders?', 'COD collection model?', 'Merchant API integration?', 'Multiple hubs/branches?'],
+                'business_rules'   => ['parcel_barcode_on_booking', 'cod_collected_before_delivery_complete', 'failed_delivery_auto_return', 'settlement_after_delivery_confirm'],
+                'integrations'     => ['google_maps', 'bkash', 'nagad', 'sms_gateway', 'merchant_api'],
+                'ai_fallback_areas'=> ['route_optimisation', 'delivery_eta_prediction', 'fraud_detection'],
+            ],
+
+            // ── Warehouse ─────────────────────────────────────────────────
+            'warehouse' => [
+                'name'             => 'Warehouse Management System (WMS)',
+                'icon'             => '🏭',
+                'category'         => 'logistics',
+                'industry'         => 'logistics',
+                'problem_solved'   => 'Manage receiving, putaway, picking, packing, and shipping',
+                'target_users'     => ['admin', 'warehouse_manager', 'picker', 'receiver'],
+                'keywords'         => ['warehouse', 'wms', 'storage', 'fulfilment', 'fulfillment', 'picking', 'packing', 'গুদাম', 'مستودع'],
+                'required_modules' => ['auth', 'rbac', 'notifications'],
+                'optional_modules' => ['reports', 'barcode', 'rfid', 'multi_warehouse'],
+                'key_entities'     => ['Warehouse', 'Zone', 'Location', 'Product', 'Stock', 'GoodsReceipt', 'Putaway', 'PickOrder', 'PackOrder', 'ShipOrder', 'StockCount'],
+                'workflows'        => ['goods_receipt', 'putaway', 'pick_order', 'packing', 'shipping', 'stock_count', 'stock_transfer'],
+                'reports'          => ['stock_report', 'receiving_report', 'shipping_report', 'accuracy_report', 'space_utilisation'],
+                'pages'            => ['dashboard', 'receiving', 'putaway', 'picking', 'packing', 'shipping', 'stock', 'locations', 'reports'],
+                'permissions'      => ['receive_goods', 'putaway', 'pick_orders', 'pack_orders', 'ship_orders', 'manage_stock'],
+                'questions_to_ask' => ['Barcode or RFID scanning?', 'Multi-client 3PL warehouse?', 'ERP integration needed?'],
+                'business_rules'   => ['putaway_after_grn', 'pick_fifo_enforced', 'stock_count_freezes_movements', 'shipping_requires_packed_confirmation'],
+                'integrations'     => ['barcode_scanner', 'rfid', 'erp_api', 'courier_api'],
+                'ai_fallback_areas'=> ['slotting_optimisation', 'demand_forecasting', 'pick_path_optimisation'],
+            ],
+
+        ]; // end logisticsBlueprints
+    }
 
     // ═════════════════════════════════════════════════════════════════════
     // PART 4 — MEDIA, SAAS & NICHE
