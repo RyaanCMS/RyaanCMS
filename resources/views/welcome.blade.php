@@ -308,6 +308,7 @@
             <a href="#how-it-works" class="nav-link">How It Works</a>
             <a href="#domains"      class="nav-link">Domains</a>
             <a href="#features"     class="nav-link">Features</a>
+            <a href="#pricing"      class="nav-link" style="color:#7c3aed;font-weight:700;">Pricing</a>
         </div>
 
         <!-- Actions -->
@@ -332,7 +333,7 @@
                 v{{ $latestVer }}
             </a>
             <a href="{{ route('login') }}" class="btn-secondary hidden sm:inline-flex" style="padding:9px 18px;font-size:14px;">Sign In</a>
-            <a href="{{ route('register') }}" class="btn-primary" style="padding:9px 20px;font-size:14px;">Get Started Free →</a>
+            <a href="#pricing" class="btn-primary" style="padding:9px 20px;font-size:14px;">Pro — 1 Month Free →</a>
         </div>
     </nav>
 
@@ -342,6 +343,7 @@
         <a href="#how-it-works" class="mobile-nav-link" @click="mobileMenuOpen = false">How It Works</a>
         <a href="#domains"      class="mobile-nav-link" @click="mobileMenuOpen = false">Domains</a>
         <a href="#features"     class="mobile-nav-link" @click="mobileMenuOpen = false">Features</a>
+        <a href="#pricing"      class="mobile-nav-link" @click="mobileMenuOpen = false" style="color:#7c3aed;font-weight:700;">Pricing</a>
         <div style="border-top:1px solid #e5e7eb; margin:10px 0;"></div>
         <a href="{{ route('login') }}"    class="mobile-nav-link">Sign In</a>
         <a href="{{ route('register') }}" class="mobile-nav-link" style="color:#6d28d9; font-weight:600;">Get Started Free →</a>
@@ -971,6 +973,189 @@
         <a href="{{ route('register') }}" class="btn-primary" style="padding:15px 32px;font-size:15px;">
             Join the Marketplace →
         </a>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     PRICING
+══════════════════════════════════════════ -->
+<section class="relative py-24 px-6" id="pricing" style="background:#0f172a; overflow:hidden;">
+
+    {{-- Background glow --}}
+    <div style="position:absolute;inset:0;pointer-events:none;">
+        <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(109,40,217,0.18) 0%,transparent 70%);"></div>
+        <div style="position:absolute;bottom:-80px;left:20%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(5,150,105,0.12) 0%,transparent 70%);"></div>
+    </div>
+
+    <div class="relative z-10 max-w-6xl mx-auto">
+
+        {{-- Header --}}
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6"
+                 style="background:rgba(109,40,217,0.15);border:1px solid rgba(109,40,217,0.3);color:#a78bfa;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>
+                Simple Pricing
+            </div>
+            <h2 style="font-size:clamp(30px,4vw,52px);font-weight:800;line-height:1.1;letter-spacing:-0.03em;color:#fff;margin-bottom:16px;">
+                95% of your AI costs — <span style="background:linear-gradient(135deg,#a78bfa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">already saved.</span>
+            </h2>
+            <p style="font-size:18px;color:#94a3b8;max-width:560px;margin:0 auto;line-height:1.6;">
+                The 5% you do spend? We help cover that too — <strong style="color:#34d399;">first month free,</strong> then a small flat fee to keep the intelligence running.
+            </p>
+        </div>
+
+        {{-- Cost comparison bar --}}
+        <div style="max-width:680px;margin:0 auto 56px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px 28px;">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:14px;">What you actually pay in AI costs</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <div style="font-size:12px;color:#94a3b8;width:90px;flex-shrink:0;">Traditional</div>
+                <div style="flex:1;height:10px;border-radius:99px;background:rgba(239,68,68,0.2);overflow:hidden;">
+                    <div style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316);border-radius:99px;"></div>
+                </div>
+                <div style="font-size:12px;font-weight:700;color:#f87171;width:50px;text-align:right;">100%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:12px;color:#94a3b8;width:90px;flex-shrink:0;">RyaanCMS</div>
+                <div style="flex:1;height:10px;border-radius:99px;background:rgba(52,211,153,0.12);overflow:hidden;">
+                    <div style="height:100%;width:5%;background:linear-gradient(90deg,#34d399,#10b981);border-radius:99px;"></div>
+                </div>
+                <div style="font-size:12px;font-weight:800;color:#34d399;width:50px;text-align:right;">~5%</div>
+            </div>
+            <div style="margin-top:14px;font-size:12px;color:#475569;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                95% of app generation is blueprints + CRUD + rules — <strong style="color:#64748b;">zero AI tokens.</strong> Only truly novel logic ever hits the AI.
+            </div>
+        </div>
+
+        {{-- Plan cards --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
+
+            {{-- Free / Community --}}
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;">
+                <div>
+                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(100,116,139,0.15);border:1px solid rgba(100,116,139,0.2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.06em;margin-bottom:14px;">COMMUNITY</div>
+                    <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">$0<span style="font-size:16px;font-weight:500;color:#64748b;">/mo</span></div>
+                    <div style="font-size:14px;color:#64748b;margin-top:4px;">Self-hosted forever. No expiry.</div>
+                </div>
+                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
+                    @foreach([
+                        '100+ Blueprint Library',
+                        '95% Zero-Token Generation',
+                        'Full CRUD Generator',
+                        'No API key to start',
+                        '12 Domain Modules',
+                        'Community Question Packs',
+                        'Self-hosted (your server)',
+                        'Full source code',
+                    ] as $f)
+                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94a3b8;">
+                        <span style="width:16px;height:16px;border-radius:50%;background:rgba(100,116,139,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg style="width:9px;height:9px;stroke:#64748b" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        {{ $f }}
+                    </li>
+                    @endforeach
+                </ul>
+                <a href="{{ route('register') }}" style="display:block;text-align:center;padding:13px;border-radius:12px;font-size:14px;font-weight:700;color:#94a3b8;border:1.5px solid rgba(255,255,255,0.1);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#94a3b8'">
+                    Get Started Free →
+                </a>
+            </div>
+
+            {{-- Pro — featured --}}
+            <div style="background:linear-gradient(145deg,rgba(109,40,217,0.25),rgba(79,70,229,0.15));border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;position:relative;box-shadow:0 0 60px rgba(109,40,217,0.2);">
+
+                {{-- Popular badge --}}
+                <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:99px;padding:4px 16px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.06em;white-space:nowrap;box-shadow:0 4px 14px rgba(109,40,217,0.4);">
+                    ★ MOST POPULAR
+                </div>
+
+                <div>
+                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.06em;margin-bottom:14px;">PRO</div>
+
+                    {{-- Pricing with promo --}}
+                    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+                        <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">$9<span style="font-size:16px;font-weight:500;color:#a78bfa;">/mo</span></div>
+                        <div style="background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800;color:#34d399;">1st month FREE</div>
+                    </div>
+                    <div style="font-size:13px;color:#7c3aed;margin-top:6px;background:rgba(167,139,250,0.1);border-radius:8px;padding:6px 10px;display:inline-block;">
+                        You save 95% in AI costs. We take $9. <strong style="color:#a78bfa;">Net savings: massive.</strong>
+                    </div>
+                </div>
+
+                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
+                    @foreach([
+                        ['Everything in Community', false],
+                        ['Premium Question Packs', true],
+                        ['Country-specific Packs (BD, IN, US…)', true],
+                        ['Priority Registry Sync', true],
+                        ['AI Mode — BYOK (your API key)', false],
+                        ['Blueprint Pack Updates', true],
+                        ['Industry Brain Packs', true],
+                        ['Email support', false],
+                    ] as [$f, $premium])
+                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:{{ $premium ? '#e2e8f0' : '#94a3b8' }};">
+                        <span style="width:16px;height:16px;border-radius:50%;background:{{ $premium ? 'rgba(167,139,250,0.25)' : 'rgba(100,116,139,0.15)' }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg style="width:9px;height:9px;stroke:{{ $premium ? '#a78bfa' : '#64748b' }}" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        {{ $f }}
+                        @if($premium)<span style="font-size:10px;background:rgba(167,139,250,0.15);color:#a78bfa;border-radius:4px;padding:1px 5px;margin-left:2px;">PRO</span>@endif
+                    </li>
+                    @endforeach
+                </ul>
+
+                <div>
+                    <a href="{{ route('register') }}" style="display:block;text-align:center;padding:14px;border-radius:12px;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#7c3aed,#6366f1);text-decoration:none;box-shadow:0 4px 20px rgba(109,40,217,0.4);letter-spacing:.01em;">
+                        Claim 1 Month Free →
+                    </a>
+                    <div style="text-align:center;font-size:11.5px;color:#64748b;margin-top:8px;">No credit card needed to start. Cancel anytime.</div>
+                </div>
+            </div>
+
+            {{-- Enterprise --}}
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;">
+                <div>
+                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#fbbf24;letter-spacing:.06em;margin-bottom:14px;">ENTERPRISE</div>
+                    <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">Custom</div>
+                    <div style="font-size:14px;color:#64748b;margin-top:4px;">Agencies, SaaS builders, white-label.</div>
+                </div>
+                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
+                    @foreach([
+                        'Everything in Pro',
+                        'White-label branding',
+                        'Custom domain packs',
+                        'Dedicated registry instance',
+                        'Multi-team / multi-tenant',
+                        'Custom module development',
+                        'SLA + priority support',
+                        'On-premise registry option',
+                    ] as $f)
+                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94a3b8;">
+                        <span style="width:16px;height:16px;border-radius:50%;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg style="width:9px;height:9px;stroke:#fbbf24" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        {{ $f }}
+                    </li>
+                    @endforeach
+                </ul>
+                <a href="mailto:hello@ryaancms.com" style="display:block;text-align:center;padding:13px;border-radius:12px;font-size:14px;font-weight:700;color:#fbbf24;border:1.5px solid rgba(245,158,11,0.25);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='rgba(245,158,11,0.5)';this.style.background='rgba(245,158,11,0.07)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.25)';this.style.background='transparent'">
+                    Contact Us →
+                </a>
+            </div>
+
+        </div>
+
+        {{-- Bottom trust note --}}
+        <div style="text-align:center;margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:24px;">
+            @foreach([
+                '✓ No credit card to start',
+                '✓ Self-hosted — your server, your data',
+                '✓ Cancel Pro anytime',
+                '✓ Open source — always',
+                '✓ 95% AI cost saved',
+            ] as $note)
+            <span style="font-size:13px;color:#475569;">{{ $note }}</span>
+            @endforeach
+        </div>
+
     </div>
 </section>
 
