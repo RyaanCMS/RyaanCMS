@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.43",
+    "latest": "1.1.44",
     "versions": [
         {
             "version": "1.0.0",
@@ -551,6 +551,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.42",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.44",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: auto-update 2026-06-11 11:03 - app/Services/AI/WisdomEngine.php, config/ai.php, config/kb.php",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.44/ryaancms-v1.1.44-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.43",
             "critical": false,
             "file_count": null
         }
