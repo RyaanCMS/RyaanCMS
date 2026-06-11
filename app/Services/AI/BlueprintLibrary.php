@@ -358,8 +358,239 @@ class BlueprintLibrary
     // PART 2 — HEALTHCARE & EDUCATION  (populated in next step)
     // ═════════════════════════════════════════════════════════════════════
 
-    private function healthcareBlueprints(): array { return []; }
-    private function educationBlueprints(): array  { return []; }
+    private function healthcareBlueprints(): array
+    {
+        return [
+
+            // ── Hospital ─────────────────────────────────────────────────
+            'hospital' => [
+                'name'             => 'Hospital Management System',
+                'icon'             => '🏥',
+                'category'         => 'healthcare',
+                'industry'         => 'hospital',
+                'problem_solved'   => 'Manage patients, doctors, appointments, EMR, billing, and pharmacy',
+                'target_users'     => ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'patient'],
+                'keywords'         => ['hospital', 'hospital management', 'hms', 'patient management', 'doctor', 'nurse', 'ward', 'icu', 'emergency', 'হাসপাতাল', 'مستشفى', 'अस्पताल'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'telemedicine', 'pharmacy_module', 'lab_module', 'insurance'],
+                'key_entities'     => ['Patient', 'Doctor', 'Appointment', 'MedicalRecord', 'Prescription', 'Medicine', 'Ward', 'Bed', 'Admission', 'Discharge', 'Bill', 'LabTest', 'LabResult', 'Department'],
+                'workflows'        => ['patient_registration', 'appointment_booking', 'doctor_consultation', 'prescription_writing', 'lab_order', 'pharmacy_dispensing', 'billing', 'discharge'],
+                'reports'          => ['daily_opd_report', 'patient_history', 'revenue_report', 'doctor_performance', 'bed_occupancy', 'pharmacy_stock', 'lab_test_summary'],
+                'pages'            => ['dashboard', 'patient_registration', 'appointments', 'opd', 'ipd', 'pharmacy', 'laboratory', 'billing', 'doctor_schedule', 'reports'],
+                'permissions'      => ['register_patient', 'book_appointment', 'write_prescription', 'order_lab_test', 'dispense_medicine', 'create_bill', 'view_patient_history'],
+                'questions_to_ask' => ['OPD only or IPD (inpatient) as well?', 'Pharmacy and lab modules needed?', 'Insurance/panel billing required?', 'Bangladesh DGDA compliance needed?'],
+                'business_rules'   => ['prescription_by_registered_doctor_only', 'patient_data_privacy', 'controlled_drug_double_approval', 'lab_result_linked_to_prescription'],
+                'integrations'     => ['bkash', 'sslcommerz', 'sms_gateway', 'lab_equipment_api', 'insurance_portal'],
+                'ai_fallback_areas'=> ['diagnosis_suggestion', 'drug_interaction_check', 'patient_risk_scoring'],
+            ],
+
+            // ── Clinic ───────────────────────────────────────────────────
+            'clinic' => [
+                'name'             => 'Clinic / Diagnostic Center',
+                'icon'             => '🩺',
+                'category'         => 'healthcare',
+                'industry'         => 'hospital',
+                'problem_solved'   => 'Manage appointments, doctor consultations, and diagnostic reports',
+                'target_users'     => ['admin', 'doctor', 'receptionist', 'patient'],
+                'keywords'         => ['clinic', 'diagnostic', 'diagnostic center', 'chamber', 'health center', 'doctor chamber', 'ক্লিনিক', 'ডায়াগনস্টিক', 'عيادة'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'online_booking', 'sms', 'lab_module'],
+                'key_entities'     => ['Patient', 'Doctor', 'Appointment', 'Consultation', 'Prescription', 'LabTest', 'LabResult', 'Bill', 'Service'],
+                'workflows'        => ['appointment_booking', 'patient_check_in', 'consultation', 'lab_test_order', 'result_delivery', 'billing'],
+                'reports'          => ['daily_appointments', 'doctor_income', 'test_frequency', 'revenue_by_service', 'patient_followup'],
+                'pages'            => ['dashboard', 'appointments', 'patients', 'consultations', 'lab_tests', 'billing', 'doctor_schedule'],
+                'permissions'      => ['book_appointment', 'view_patient', 'write_prescription', 'order_lab', 'process_payment'],
+                'questions_to_ask' => ['Single doctor or multi-doctor clinic?', 'Lab tests in-house or referral?', 'Online appointment booking needed?', 'SMS reminders for appointments?'],
+                'business_rules'   => ['appointment_slot_no_double_booking', 'prescription_only_by_doctor', 'lab_result_confidential'],
+                'integrations'     => ['sms_gateway', 'bkash', 'nagad', 'email', 'whatsapp'],
+                'ai_fallback_areas'=> ['symptom_triage', 'appointment_no_show_prediction'],
+            ],
+
+            // ── Pharmacy ─────────────────────────────────────────────────
+            'pharmacy' => [
+                'name'             => 'Pharmacy Management System',
+                'icon'             => '💊',
+                'category'         => 'healthcare',
+                'industry'         => 'pharmacy',
+                'problem_solved'   => 'Manage medicine stock, sales, prescriptions, and supplier orders',
+                'target_users'     => ['admin', 'pharmacist', 'cashier'],
+                'keywords'         => ['pharmacy', 'medicine', 'drug store', 'pharma', 'ফার্মেসি', 'ওষুধ', 'صيدلية', 'farmacia'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'barcode', 'supplier_portal', 'pos'],
+                'key_entities'     => ['Medicine', 'Category', 'Supplier', 'Purchase', 'Sale', 'SaleItem', 'Prescription', 'Stock', 'Batch', 'Expiry', 'Customer'],
+                'workflows'        => ['medicine_purchase', 'prescription_verification', 'medicine_dispensing', 'stock_expiry_check', 'reorder_alert', 'supplier_payment'],
+                'reports'          => ['daily_sales', 'stock_expiry_report', 'purchase_report', 'profit_margin', 'top_selling_medicines', 'low_stock_alert'],
+                'pages'            => ['pos_counter', 'stock_management', 'purchases', 'prescriptions', 'suppliers', 'expiry_management', 'reports'],
+                'permissions'      => ['sell_medicine', 'manage_stock', 'create_purchase', 'view_reports', 'manage_suppliers'],
+                'questions_to_ask' => ['Controlled drug management (narcotics register)?', 'Prescription required for all medicines?', 'Expiry date FIFO tracking?', 'Multiple branches?'],
+                'business_rules'   => ['controlled_drug_requires_prescription', 'negative_stock_blocked', 'expiry_fifo_enforced', 'dgda_schedule_compliance'],
+                'integrations'     => ['barcode_scanner', 'bkash', 'supplier_portal', 'sms'],
+                'ai_fallback_areas'=> ['drug_interaction_alert', 'demand_forecasting', 'expiry_optimisation'],
+            ],
+
+            // ── Telemedicine ─────────────────────────────────────────────
+            'telemedicine' => [
+                'name'             => 'Telemedicine Platform',
+                'icon'             => '📱',
+                'category'         => 'healthcare',
+                'industry'         => 'hospital',
+                'problem_solved'   => 'Online doctor consultations via video, chat, and prescription delivery',
+                'target_users'     => ['admin', 'doctor', 'patient'],
+                'keywords'         => ['telemedicine', 'telehealth', 'virtual clinic', 'online doctor', 'video consultation', 'online consultation', 'digital health', 'টেলিমেডিসিন'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'video_call', 'chat', 'prescription_delivery'],
+                'key_entities'     => ['Patient', 'Doctor', 'Consultation', 'Appointment', 'Prescription', 'Payment', 'Review', 'Availability'],
+                'workflows'        => ['patient_registration', 'doctor_search', 'slot_booking', 'video_consultation', 'prescription_issuance', 'payment', 'follow_up'],
+                'reports'          => ['consultations_per_day', 'doctor_revenue', 'top_specialties', 'patient_retention'],
+                'pages'            => ['home', 'find_doctor', 'doctor_profile', 'booking', 'consultation_room', 'my_consultations', 'prescription', 'doctor_dashboard'],
+                'permissions'      => ['book_consultation', 'start_video_call', 'write_prescription', 'view_patient_history'],
+                'questions_to_ask' => ['Video call via WebRTC or Zoom API?', 'Prescription home delivery integration?', 'Insurance claim support?'],
+                'business_rules'   => ['prescription_only_after_consultation', 'doctor_verified_before_listing', 'payment_held_until_consultation_complete'],
+                'integrations'     => ['zoom_api', 'webrtc', 'bkash', 'sslcommerz', 'sms', 'whatsapp'],
+                'ai_fallback_areas'=> ['symptom_checker', 'specialty_recommendation', 'health_risk_assessment'],
+            ],
+
+            // ── Dental Clinic ─────────────────────────────────────────────
+            'dental' => [
+                'name'             => 'Dental Clinic Management',
+                'icon'             => '🦷',
+                'category'         => 'healthcare',
+                'industry'         => 'hospital',
+                'problem_solved'   => 'Manage dental appointments, treatment plans, and billing',
+                'target_users'     => ['admin', 'dentist', 'receptionist', 'patient'],
+                'keywords'         => ['dental', 'dentist', 'dental clinic', 'teeth', 'orthodontic', 'ডেন্টাল', 'দাঁতের ক্লিনিক', 'عيادة أسنان'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'online_booking', 'sms', 'media'],
+                'key_entities'     => ['Patient', 'Dentist', 'Appointment', 'TreatmentPlan', 'Treatment', 'ToothChart', 'Bill', 'Payment', 'MedicalHistory'],
+                'workflows'        => ['appointment_booking', 'patient_check_in', 'tooth_examination', 'treatment_planning', 'treatment_execution', 'billing', 'follow_up'],
+                'reports'          => ['daily_appointments', 'treatment_revenue', 'dentist_performance', 'pending_treatments'],
+                'pages'            => ['dashboard', 'appointments', 'patients', 'tooth_chart', 'treatment_plans', 'billing', 'reports'],
+                'permissions'      => ['book_appointment', 'create_treatment_plan', 'update_tooth_chart', 'process_payment'],
+                'questions_to_ask' => ['Tooth chart / odontogram needed?', 'Multiple dentists?', 'X-ray image upload?'],
+                'business_rules'   => ['treatment_plan_before_procedure', 'informed_consent_required', 'appointment_no_double_booking'],
+                'integrations'     => ['sms_gateway', 'bkash', 'email', 'media_storage'],
+                'ai_fallback_areas'=> ['treatment_cost_estimation', 'x_ray_analysis'],
+            ],
+
+            // ── Laboratory ───────────────────────────────────────────────
+            'laboratory' => [
+                'name'             => 'Medical Laboratory System',
+                'icon'             => '🔬',
+                'category'         => 'healthcare',
+                'industry'         => 'hospital',
+                'problem_solved'   => 'Manage lab test orders, sample collection, results, and reporting',
+                'target_users'     => ['admin', 'lab_technician', 'doctor', 'patient'],
+                'keywords'         => ['laboratory', 'lab', 'medical lab', 'pathology', 'blood test', 'lab test', 'diagnostic lab', 'ল্যাবরেটরি', 'مختبر طبي'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'barcode', 'equipment_api', 'sms'],
+                'key_entities'     => ['Patient', 'TestOrder', 'TestItem', 'Sample', 'Result', 'ReferenceRange', 'Bill', 'Doctor', 'Equipment'],
+                'workflows'        => ['test_order', 'sample_collection', 'sample_processing', 'result_entry', 'result_validation', 'report_delivery', 'billing'],
+                'reports'          => ['daily_test_report', 'revenue_report', 'pending_results', 'test_frequency_analysis'],
+                'pages'            => ['dashboard', 'test_orders', 'sample_collection', 'result_entry', 'reports', 'billing', 'settings'],
+                'permissions'      => ['create_test_order', 'collect_sample', 'enter_results', 'validate_results', 'deliver_report'],
+                'questions_to_ask' => ['Equipment interface (HL7/ASTM) integration?', 'SMS/email result delivery to patients?', 'Doctor referral tracking?'],
+                'business_rules'   => ['result_validated_before_delivery', 'critical_values_auto_alert', 'sample_barcode_tracking'],
+                'integrations'     => ['lab_equipment_hl7', 'sms_gateway', 'email', 'bkash'],
+                'ai_fallback_areas'=> ['result_interpretation', 'abnormal_value_flagging'],
+            ],
+
+        ]; // end healthcareBlueprints
+    }
+
+    private function educationBlueprints(): array
+    {
+        return [
+
+            // ── School ERP ───────────────────────────────────────────────
+            'school' => [
+                'name'             => 'School / College ERP',
+                'icon'             => '🎓',
+                'category'         => 'education',
+                'industry'         => 'school',
+                'problem_solved'   => 'Manage students, classes, exams, fees, attendance, and parent portal',
+                'target_users'     => ['admin', 'teacher', 'student', 'parent', 'accountant'],
+                'keywords'         => ['school', 'college', 'school management', 'student management', 'school erp', 'education management', 'ক্লাস', 'বিদ্যালয়', 'مدرسة', 'escuela'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'sms', 'library', 'transport', 'hostel'],
+                'key_entities'     => ['Student', 'Class', 'Section', 'Teacher', 'Subject', 'Attendance', 'Exam', 'ExamResult', 'Fee', 'FeePayment', 'Parent', 'Notice', 'Assignment'],
+                'workflows'        => ['student_admission', 'class_assignment', 'attendance_marking', 'exam_scheduling', 'result_publication', 'fee_collection', 'notice_publishing'],
+                'reports'          => ['attendance_report', 'exam_result', 'fee_collection_report', 'class_progress', 'student_performance', 'defaulter_list'],
+                'pages'            => ['dashboard', 'students', 'classes', 'attendance', 'exams', 'results', 'fees', 'notices', 'teachers', 'parent_portal', 'reports'],
+                'permissions'      => ['manage_students', 'mark_attendance', 'manage_exams', 'collect_fees', 'publish_results', 'view_reports', 'parent_view'],
+                'questions_to_ask' => ['Primary, secondary, or higher secondary?', 'Hostel and transport management needed?', 'Online exam or paper-based?', 'SMS to parents on fees/results?'],
+                'business_rules'   => ['attendance_marked_before_class_ends', 'result_published_after_moderation', 'fee_receipt_on_payment', 'admission_number_unique'],
+                'integrations'     => ['sms_gateway', 'bkash', 'nagad', 'email'],
+                'ai_fallback_areas'=> ['student_performance_prediction', 'personalised_learning'],
+            ],
+
+            // ── University ───────────────────────────────────────────────
+            'university' => [
+                'name'             => 'University Management System',
+                'icon'             => '🏛️',
+                'category'         => 'education',
+                'industry'         => 'school',
+                'problem_solved'   => 'Manage university admissions, courses, departments, credits, and research',
+                'target_users'     => ['admin', 'faculty', 'student', 'registrar', 'department_head'],
+                'keywords'         => ['university', 'varsity', 'higher education', 'college erp', 'university management', 'বিশ্ববিদ্যালয়', 'جامعة'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'library', 'hostel', 'lms_module', 'research_portal'],
+                'key_entities'     => ['Student', 'Faculty', 'Department', 'Course', 'Semester', 'Enrollment', 'Grade', 'Credit', 'Thesis', 'Research', 'Scholarship', 'Fee'],
+                'workflows'        => ['student_admission', 'course_enrollment', 'class_scheduling', 'grading', 'semester_close', 'graduation'],
+                'reports'          => ['enrollment_report', 'cgpa_summary', 'faculty_workload', 'scholarship_report', 'fee_collection'],
+                'pages'            => ['dashboard', 'admissions', 'students', 'faculty', 'courses', 'schedule', 'grades', 'fees', 'library', 'reports'],
+                'permissions'      => ['manage_admissions', 'submit_grades', 'manage_courses', 'approve_thesis', 'view_department_reports'],
+                'questions_to_ask' => ['Credit-based or year-based system?', 'Online admission portal?', 'Research and thesis management?', 'UGC/university regulatory compliance?'],
+                'business_rules'   => ['credit_minimum_for_graduation', 'gpa_calculated_on_credit_weight', 'course_prerequisite_enforced', 'grade_change_requires_approval'],
+                'integrations'     => ['national_student_id', 'bank_portal', 'sms_gateway', 'email'],
+                'ai_fallback_areas'=> ['course_recommendation', 'at_risk_student_detection', 'research_topic_suggestion'],
+            ],
+
+            // ── LMS ──────────────────────────────────────────────────────
+            'lms' => [
+                'name'             => 'Learning Management System (LMS)',
+                'icon'             => '💻',
+                'category'         => 'education',
+                'industry'         => 'school',
+                'problem_solved'   => 'Create and sell online courses with video lessons and quizzes',
+                'target_users'     => ['admin', 'instructor', 'student'],
+                'keywords'         => ['lms', 'online course', 'e-learning', 'elearning', 'course platform', 'udemy clone', 'video course', 'quiz', 'learning management', 'অনলাইন কোর্স', 'منصة تعليمية'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'media', 'notifications'],
+                'optional_modules' => ['reports', 'certificate', 'live_class', 'forum', 'affiliate'],
+                'key_entities'     => ['Course', 'Module', 'Lesson', 'Quiz', 'Question', 'Enrollment', 'Progress', 'Certificate', 'Review', 'Instructor', 'Category', 'Coupon'],
+                'workflows'        => ['course_creation', 'course_publishing', 'student_enrollment', 'lesson_progression', 'quiz_attempt', 'certificate_issuance', 'instructor_payout'],
+                'reports'          => ['enrollment_stats', 'course_completion_rate', 'revenue_by_course', 'instructor_earnings', 'quiz_performance'],
+                'pages'            => ['home', 'course_catalog', 'course_detail', 'checkout', 'my_courses', 'lesson_player', 'quiz', 'certificate', 'instructor_dashboard', 'admin_dashboard'],
+                'permissions'      => ['create_course', 'publish_course', 'manage_students', 'grade_quiz', 'issue_certificate', 'view_reports'],
+                'questions_to_ask' => ['Video hosting — own server or YouTube/Vimeo?', 'Live class integration (Zoom)?', 'Certificate generation on completion?', 'Affiliate program for instructors?'],
+                'business_rules'   => ['video_drm_protection', 'certificate_after_100_percent_completion', 'instructor_payout_after_refund_window', 'course_must_be_approved_before_publish'],
+                'integrations'     => ['youtube_api', 'vimeo', 'zoom', 'stripe', 'bkash', 'cloudflare_stream'],
+                'ai_fallback_areas'=> ['personalised_learning_path', 'quiz_auto_generation', 'content_recommendation'],
+            ],
+
+            // ── Coaching Center ───────────────────────────────────────────
+            'coaching_center' => [
+                'name'             => 'Coaching Center Management',
+                'icon'             => '📚',
+                'category'         => 'education',
+                'industry'         => 'school',
+                'problem_solved'   => 'Manage batches, teachers, student fees, and exam results for coaching institutes',
+                'target_users'     => ['admin', 'teacher', 'student', 'parent'],
+                'keywords'         => ['coaching', 'coaching center', 'tuition', 'tutorial', 'coaching institute', 'batch', 'কোচিং', 'کوچنگ'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'sms', 'online_test', 'attendance'],
+                'key_entities'     => ['Student', 'Teacher', 'Batch', 'Subject', 'Schedule', 'Attendance', 'Fee', 'FeePayment', 'Exam', 'Result', 'Notice'],
+                'workflows'        => ['student_enrollment', 'batch_assignment', 'class_scheduling', 'attendance_marking', 'fee_collection', 'exam_conduct', 'result_entry'],
+                'reports'          => ['attendance_report', 'fee_collection', 'exam_results', 'batch_performance'],
+                'pages'            => ['dashboard', 'students', 'batches', 'teachers', 'attendance', 'fees', 'exams', 'results', 'sms_notices'],
+                'permissions'      => ['manage_students', 'manage_batches', 'collect_fees', 'mark_attendance', 'enter_results'],
+                'questions_to_ask' => ['Multiple subjects / departments?', 'Online test module needed?', 'SMS fee reminders?'],
+                'business_rules'   => ['batch_capacity_limit', 'fee_due_date_auto_alert', 'attendance_sms_to_parent'],
+                'integrations'     => ['sms_gateway', 'bkash', 'nagad'],
+                'ai_fallback_areas'=> ['weak_student_detection', 'study_plan_generation'],
+            ],
+
+        ]; // end educationBlueprints
+    }
 
     // ═════════════════════════════════════════════════════════════════════
     // PART 3 — HOSPITALITY, REAL ESTATE, FINANCE & LOGISTICS
