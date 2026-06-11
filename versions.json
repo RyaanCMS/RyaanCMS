@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.39",
+    "latest": "1.1.40",
     "versions": [
         {
             "version": "1.0.0",
@@ -503,6 +503,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.38",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.40",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: handle Gemini SSE array-format error body + mid-stream error detection\n\nSSE endpoint returns 400 errors as JSON array [{\"error\":{...}}] — plain-object\naccess $body['error'] returned null so content-filter check was missed.\n\nAlso detect errors embedded in 200 OK stream body and broaden content-filter\ndetection to raw body string as fallback.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.40/ryaancms-v1.1.40-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.39",
             "critical": false,
             "file_count": null
         }
