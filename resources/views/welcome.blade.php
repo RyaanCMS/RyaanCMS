@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="RyaanCMS — The World's First AI Business Operating System Builder. 21 Knowledge Bases, 10 AI Agents, Blueprint Assembly. Build smarter. Ship faster.">
+    <meta name="description" content="RyaanCMS — The World's First AI Business Operating System Builder. Build enterprise apps at almost zero AI cost. Self-hosted, open source, no API key to start.">
     <title>RyaanCMS — AI Business Operating System Builder</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -372,16 +372,16 @@
 
         <!-- Subheadline -->
         <p class="text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto" style="color:#4b5563;">
-            100+ ready blueprints generate 95% of any enterprise application at zero AI cost.
-            No API key needed to start — add one only for the 5% that truly needs intelligence.
+            95% of any enterprise application generates at <strong style="color:#059669;">almost zero AI cost.</strong>
+            No API key needed to start — credits only spent on the 5% that truly needs intelligence.
         </p>
 
         <!-- Stat Pills -->
         <div class="flex flex-wrap justify-center gap-2.5 mb-10">
             <span class="stat-pill">🚀 No API Key to Start</span>
-            <span class="stat-pill">⚡ 95% Zero-Token Generation</span>
+            <span class="stat-pill">⚡ 95% Almost Zero Cost</span>
             <span class="stat-pill">🤖 10 Autonomous AI Agents</span>
-            <span class="stat-pill">📐 100+ Ready Blueprints</span>
+            <span class="stat-pill">💸 Start Free — Pay Almost Nothing</span>
             <span class="stat-pill">💰 95%+ AI Cost Eliminated</span>
         </div>
 
@@ -405,28 +405,28 @@
                 <div class="t-dot" style="background:#ff5f57;"></div>
                 <div class="t-dot" style="background:#febc2e;"></div>
                 <div class="t-dot" style="background:#28c840;"></div>
-                <span class="ml-3 text-xs font-mono" style="color:#64748b;">ryaancms — blueprint mode — no api key required</span>
+                <span class="ml-3 text-xs font-mono" style="color:#64748b;">ryaancms — zero-cost mode — no api key required</span>
                 <span class="ml-auto text-xs font-mono px-2 py-0.5 rounded"
                       style="background:rgba(255,255,255,0.05); color:#475569;">v2.0</span>
             </div>
             <div class="terminal-body">
                 <p style="color:#64748b;">$ ryaan build <span style="color:#a78bfa;">"hospital management system for Bangladesh"</span></p>
                 <p class="mt-2" style="color:#475569;">  Detecting domain...</p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Blueprint matched:</span> <span style="color:#f1f5f9; font-weight:600;">Hospital Management</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Country pack:</span> <span style="color:#f1f5f9; font-weight:600;">Bangladesh (bKash · Nagad · SSLCommerz)</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Modules loaded:</span> <span style="color:#f1f5f9; font-weight:600;">auth · rbac · billing · appointments · pharmacy</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">CRUD generated:</span> <span style="color:#f1f5f9; font-weight:600;">patients · doctors · appointments · billing · EMR</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
-                <p style="color:#4ade80;">✓ <span style="color:#475569;">Business rules:</span> <span style="color:#f1f5f9; font-weight:600;">patient_privacy · prescription_by_doctor_only</span> <span style="color:#7c3aed; font-weight:700;">(0 AI tokens)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Domain detected:</span> <span style="color:#f1f5f9; font-weight:600;">Hospital Management System</span> <span style="color:#7c3aed; font-weight:700;">(0 credits)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Country context:</span> <span style="color:#f1f5f9; font-weight:600;">Bangladesh (bKash · Nagad · SSLCommerz)</span> <span style="color:#7c3aed; font-weight:700;">(0 credits)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Modules generated:</span> <span style="color:#f1f5f9; font-weight:600;">auth · rbac · billing · appointments · pharmacy</span> <span style="color:#7c3aed; font-weight:700;">(0 credits)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">CRUD generated:</span> <span style="color:#f1f5f9; font-weight:600;">patients · doctors · appointments · billing · EMR</span> <span style="color:#7c3aed; font-weight:700;">(0 credits)</span></p>
+                <p style="color:#4ade80;">✓ <span style="color:#475569;">Business rules:</span> <span style="color:#f1f5f9; font-weight:600;">patient_privacy · prescription_by_doctor_only</span> <span style="color:#7c3aed; font-weight:700;">(0 credits)</span></p>
                 <p style="color:#4ade80;">✓ <span style="color:#475569;">Security:</span> <span style="color:#f1f5f9; font-weight:600;">HIPAA-equivalent + OWASP Top 10 enforced</span></p>
                 <p style="color:#4ade80; font-weight:700;">✓ <span style="color:#f1f5f9;">32 files generated in 41 seconds</span></p>
                 <div class="mt-4 pt-4 flex items-center gap-3 flex-wrap"
                      style="border-top:1px solid rgba(255,255,255,0.06);">
-                    <span style="color:#475569;">AI API cost:</span>
-                    <span style="color:#475569; text-decoration:line-through; opacity:.6;">$4.20</span>
+                    <span style="color:#475569;">Credits used:</span>
+                    <span style="color:#475569; text-decoration:line-through; opacity:.6;">traditional: $4.20</span>
                     <span style="color:#475569;">→</span>
-                    <span style="color:#4ade80; font-weight:800; font-size:16px;">$0.00</span>
+                    <span style="color:#4ade80; font-weight:800; font-size:16px;">0 credits — $0.00</span>
                     <span class="px-2 py-0.5 rounded text-xs font-bold"
-                          style="background:rgba(74,222,128,0.12); color:#4ade80;">Blueprint Mode — No API Key Used</span>
+                          style="background:rgba(74,222,128,0.12); color:#4ade80;">Zero-Cost Mode — No API Key Used</span>
                 </div>
             </div>
         </div>
@@ -496,12 +496,12 @@
                 </div>
                 <ul class="space-y-3 text-sm">
                     @foreach([
-                        'Start immediately — no API key required',
-                        '100+ blueprints — 95% of any app generated at zero AI cost',
-                        'Any business domain — blueprints with full module/table/role knowledge',
+                        'Start immediately — no API key, no credits required',
+                        '95% of any enterprise app generates at almost zero cost',
+                        'Any business domain — full module, table, role, and rule knowledge built-in',
                         'Business Rules Engine — immutable accounting & payroll rules',
                         '6-layer Senior Dev Knowledge — security, anti-patterns, performance',
-                        'Add AI only for the 5% that truly needs it — BYOK',
+                        'Add AI credits only for the 5% that truly needs intelligence — BYOK',
                         'Gets smarter with every project through Organizational Memory',
                     ] as $item)
                     <li class="flex items-start gap-3">
@@ -527,36 +527,36 @@
                 <span class="g-text">Add One Only If You Need It.</span>
             </h2>
             <p class="text-lg max-w-2xl mx-auto" style="color:#6b7280;">
-                95% of your application is generated from blueprints, knowledge bases, and rule engines — no AI API call needed.
-                The remaining 5% is only where AI fills truly novel gaps.
+                95% of your application is generated by the intelligence engine at almost zero cost — no AI API call needed.
+                Credits are only spent on the 5% where AI truly needs to think.
             </p>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6 mb-12">
-            <!-- Blueprint Mode -->
+            <!-- Zero-Cost Mode -->
             <div class="card p-8" style="background:linear-gradient(135deg,#f0fdf4,#f5fff7); border-color:#bbf7d0;">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
                          style="background:rgba(5,150,105,0.12);">🚀</div>
                     <div>
-                        <div class="font-bold text-sm" style="color:#065f46;">Blueprint Mode</div>
+                        <div class="font-bold text-sm" style="color:#065f46;">Zero-Cost Mode</div>
                         <div class="text-xs font-semibold mt-0.5 px-2 py-0.5 rounded-full inline-block"
-                             style="background:rgba(5,150,105,0.1); color:#059669;">No API Key Required</div>
+                             style="background:rgba(5,150,105,0.1); color:#059669;">No API Key · No Credits Used</div>
                     </div>
                 </div>
                 <p class="text-sm mb-5" style="color:#374151;">
-                    RyaanCMS selects a pre-built blueprint, loads all modules, generates all CRUD operations,
-                    and applies business rules — entirely without any AI API call.
+                    RyaanCMS uses its built-in intelligence engine to detect your domain, load all modules,
+                    generate all CRUD operations, and apply business rules — entirely without any AI API call.
                 </p>
                 <ul class="space-y-2.5 text-sm">
                     @foreach([
-                        '100+ pre-built domain blueprints',
-                        'All standard CRUD — generated by rule engine',
-                        'Auth, RBAC, payments, notifications — installed automatically',
+                        'Domain intelligence built-in — no AI call needed',
+                        'All standard CRUD — generated by rule engine (0 credits)',
+                        'Auth, RBAC, payments, notifications — auto-installed',
                         'Business rules applied (accounting, payroll, medical)',
                         'Country-specific payment gateways wired in',
                         'Dashboards, reports, and KPIs pre-configured',
-                        '95% of your app — fully deployable, zero API cost',
+                        '95% of your app — fully deployable, zero cost',
                     ] as $item)
                     <li class="flex items-start gap-2.5">
                         <span class="flex-shrink-0 font-bold mt-0.5" style="color:#059669;">✓</span>
@@ -574,22 +574,22 @@
                     <div>
                         <div class="font-bold text-sm" style="color:#4c1d95;">AI Mode</div>
                         <div class="text-xs font-semibold mt-0.5 px-2 py-0.5 rounded-full inline-block"
-                             style="background:rgba(109,40,217,0.08); color:#6d28d9;">API Key — Only for the 5%</div>
+                             style="background:rgba(109,40,217,0.08); color:#6d28d9;">Credits — Only for the 5%</div>
                     </div>
                 </div>
                 <p class="text-sm mb-5" style="color:#374151;">
-                    Add your own API key only when you need truly custom logic, novel workflows,
-                    or AI-powered features that no pre-built blueprint covers.
+                    Use credits only when you need truly custom logic, novel workflows,
+                    or intelligent features unique to your business. Most apps spend under 20 credits.
                 </p>
                 <ul class="space-y-2.5 text-sm">
                     @foreach([
-                        'Custom business logic outside any blueprint',
-                        'Novel workflows unique to your domain',
-                        'AI features inside the built app (chatbot, recommendations)',
+                        'Custom business logic unique to your domain',
+                        'Novel workflows the system hasn\'t seen before',
+                        'AI features inside the app (chatbot, recommendations)',
                         'Complex multi-system integrations',
                         'Autonomous 10-agent pipeline for full-stack generation',
                         'Bring your own key — Claude, OpenAI, Gemini, or Ollama',
-                        'Pay only for what AI actually had to think about',
+                        'Pay credits only for what AI actually had to think about',
                     ] as $item)
                     <li class="flex items-start gap-2.5">
                         <span class="flex-shrink-0 font-bold mt-0.5" style="color:#7c3aed;">✦</span>
@@ -606,11 +606,10 @@
             <div class="flex flex-wrap justify-center items-center gap-2">
                 @foreach([
                     ['Your Prompt','#ede9fe','#6d28d9'],
-                    ['Domain Detected','#dbeafe','#1d4ed8'],
-                    ['Blueprint Found?','#fef3c7','#b45309'],
-                    ['95% Generated — $0.00','#dcfce7','#15803d'],
-                    ['Novel Gap?','#fef3c7','#b45309'],
-                    ['AI Fills the 5%','#ede9fe','#6d28d9'],
+                    ['Domain Analyzed','#dbeafe','#1d4ed8'],
+                    ['95% Generated Free','#dcfce7','#15803d'],
+                    ['Novel Logic?','#fef3c7','#b45309'],
+                    ['Use Credits (5%)','#ede9fe','#6d28d9'],
                     ['✓ Full App Ready','#d1fae5','#065f46'],
                 ] as $step)
                 <span class="p-step" style="background:{{ $step[1] }}; color:{{ $step[2] }};">{{ $step[0] }}</span>
@@ -648,7 +647,7 @@
                 $levels = [
                     ['L6','Experience','Anti-patterns · Estimation · Risk · Outcomes','#f59e0b','#fffbeb','w-full'],
                     ['L5','Decision','Build vs Buy · Trade-offs · Architecture · Upgrade Paths','#7c3aed','#faf5ff','w-[90%]'],
-                    ['L4','Product','KPIs · MVP Blueprints · UX Patterns · Smart Questions','#3b82f6','#eff6ff','w-[80%]'],
+                    ['L4','Product','KPIs · UX Patterns · Smart Questions · Business Scope','#3b82f6','#eff6ff','w-[80%]'],
                     ['L3','Business','Domain Workflows · Business Rules · Country Knowledge','#0d9488','#f0fdfa','w-[70%]'],
                     ['L2','Architecture','Security · Performance · Caching · API Design','#10b981','#f0fdf4','w-[60%]'],
                     ['L1','Code','SOLID · DRY · KISS · Laravel Conventions · Eloquent','#64748b','#f8fafc','w-[50%]'],
@@ -685,7 +684,7 @@
 
         <!-- Stats -->
         <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            @foreach([['21','Knowledge Base Files','#6d28d9'],['330+','Wisdom Patterns','#0891b2'],['70%+','AI Cost Eliminated','#059669'],['∞','Domain Blueprints','#d97706']] as $s)
+            @foreach([['21','Knowledge Base Files','#6d28d9'],['330+','Wisdom Patterns','#0891b2'],['95%','Almost Zero Cost','#059669'],['~$0','Average App Cost','#d97706']] as $s)
             <div class="card p-5 text-center">
                 <div class="text-3xl font-black mb-1.5" style="color:{{ $s[2] }};">{{ $s[0] }}</div>
                 <div class="text-xs font-medium" style="color:#6b7280;">{{ $s[1] }}</div>
@@ -711,9 +710,9 @@
             @php
             $steps = [
                 ['01','Describe Your Idea','Type what you want to build in any language — English, Bengali, Arabic, or Hindi. No technical knowledge required.','#6d28d9','#faf5ff'],
-                ['02','Blueprint Matched Instantly','Domain detected → pre-built blueprint loaded → modules selected → business rules applied. Zero AI tokens. Zero cost.','#0891b2','#ecfeff'],
-                ['03','95% Built Without AI','CRUD, dashboards, reports, auth, payments — all generated by the rule engine from the blueprint. No API key consumed.','#059669','#f0fdf4'],
-                ['04','AI Fills Only the Gaps','Novel custom logic? Add your own API key (Claude, OpenAI, Gemini, or Ollama). AI works on the remaining 5% only.','#7c3aed','#faf5ff'],
+                ['02','Intelligence Kicks In','Domain analyzed → modules selected → business rules loaded → country context applied. Zero cost. No AI call made.','#0891b2','#ecfeff'],
+                ['03','95% Generated Free','CRUD, dashboards, reports, auth, payments — all generated by the intelligence engine. No API key, no credits consumed.','#059669','#f0fdf4'],
+                ['04','Credits for the 5%','Need custom logic, novel workflows, or AI features? Use credits (BYOK — Claude, OpenAI, Gemini, Ollama). Most apps: under 20 credits.','#7c3aed','#faf5ff'],
                 ['05','Your Code, Your Server','Full Laravel source code. Deploy on cPanel, VPS, or cloud. No subscription, no lock-in. Own everything forever.','#d97706','#fffbeb'],
             ];
             @endphp
@@ -895,9 +894,9 @@
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @php
             $features = [
-                ['🚀','No API Key to Start','#059669','#f0fdf4','Start building immediately — no API key, no credit card, no setup. 95% of your application is generated from pre-built blueprints at zero cost.'],
-                ['🏗️','100+ Ready Blueprints','#6d28d9','#faf5ff','eCommerce, Hospital, School, CRM, ERP, SaaS, Restaurant, POS — 100 pre-researched blueprints with tables, roles, modules, and business rules pre-loaded.'],
-                ['⚡','Zero-AI CRUD Generation','#0891b2','#ecfeff','All standard CRUD generated by rule engine — 0 AI tokens. Models, controllers, views, routes, migrations — done in seconds without any API cost.'],
+                ['🚀','No API Key to Start','#059669','#f0fdf4','Start building immediately — no API key, no credits, no setup. 95% of your application is generated by the intelligence engine at almost zero cost.'],
+                ['💸','Credit System — Pay Almost Nothing','#6d28d9','#faf5ff','Credits only consumed for the 5% that truly needs AI. Most enterprise apps cost less than $1 in total credits. Start free, top up when needed.'],
+                ['⚡','Zero-Cost CRUD Generation','#0891b2','#ecfeff','All standard CRUD generated by the rule engine — 0 credits. Models, controllers, views, routes, migrations — done in seconds without any API cost.'],
                 ['🛡️','Senior Dev Security','#dc2626','#fef2f2','OWASP Top 10 auto-applied. Authorization enforced. SQL injection, XSS, mass assignment — blocked automatically on every file generated.'],
                 ['📊','Business KPI Dashboards','#d97706','#fffbeb','Domain-specific KPIs pre-configured. eCommerce AOV, SaaS MRR/churn, CRM win rate — not generic "total records" pages.'],
                 ['🧠','Organizational Memory','#4f46e5','#eef2ff','Decisions, patterns, and lessons accumulate across projects. The platform gets smarter every time you build — with or without AI.'],
@@ -926,8 +925,8 @@
     <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             @foreach([
-                ['100+', 'Ready Blueprints',       '#6d28d9'],
-                ['95%',  'Zero-Token Generation',  '#059669'],
+                ['95%',  'Almost Zero AI Cost',    '#059669'],
+                ['~$1',  'Average App Build Cost', '#6d28d9'],
                 ['10',   'Autonomous AI Agents',   '#4f46e5'],
                 ['21',   'Knowledge Base Files',   '#0891b2'],
                 ['$0',   'Cost to Start Building', '#065f46'],
@@ -958,7 +957,7 @@
 
         <div class="grid sm:grid-cols-3 gap-5 mb-10">
             @foreach([
-                ['📦','Blueprint Marketplace','Publish complete domain blueprints. Developers install your proven app structure instantly.'],
+                ['📦','App Template Marketplace','Publish complete app templates. Developers install your proven app structure and configuration instantly.'],
                 ['🔌','Module Marketplace','One-click module installation. ZIP packages with manifest, licensing, and domain activation.'],
                 ['🏢','Agency Directory','Certified agencies who build with RyaanCMS. Quality scores, delivery history, and reviews.'],
             ] as $m)
@@ -977,182 +976,153 @@
 </section>
 
 <!-- ══════════════════════════════════════════
-     PRICING
+     CREDITS
 ══════════════════════════════════════════ -->
 <section class="relative py-24 px-6" id="pricing" style="background:#0f172a; overflow:hidden;">
 
-    {{-- Background glow --}}
     <div style="position:absolute;inset:0;pointer-events:none;">
         <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(109,40,217,0.18) 0%,transparent 70%);"></div>
-        <div style="position:absolute;bottom:-80px;left:20%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(5,150,105,0.12) 0%,transparent 70%);"></div>
+        <div style="position:absolute;bottom:-60px;right:10%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(5,150,105,0.1) 0%,transparent 70%);"></div>
     </div>
 
-    <div class="relative z-10 max-w-6xl mx-auto">
+    <div class="relative z-10 max-w-5xl mx-auto">
 
         {{-- Header --}}
-        <div class="text-center mb-16">
+        <div class="text-center mb-14">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6"
                  style="background:rgba(109,40,217,0.15);border:1px solid rgba(109,40,217,0.3);color:#a78bfa;">
                 <span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>
-                Simple Pricing
+                Credit System
             </div>
             <h2 style="font-size:clamp(30px,4vw,52px);font-weight:800;line-height:1.1;letter-spacing:-0.03em;color:#fff;margin-bottom:16px;">
-                95% of your AI costs — <span style="background:linear-gradient(135deg,#a78bfa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">already saved.</span>
+                Build for <span style="background:linear-gradient(135deg,#34d399,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">almost nothing.</span><br>Pay only for intelligence.
             </h2>
-            <p style="font-size:18px;color:#94a3b8;max-width:560px;margin:0 auto;line-height:1.6;">
-                The 5% you do spend? We help cover that too — <strong style="color:#34d399;">first month free,</strong> then a small flat fee to keep the intelligence running.
+            <p style="font-size:17px;color:#94a3b8;max-width:520px;margin:0 auto;line-height:1.7;">
+                95% of your app costs <strong style="color:#34d399;">zero credits.</strong><br>
+                Top up only when you need custom AI logic. Most apps never exceed $1.
             </p>
         </div>
 
-        {{-- Cost comparison bar --}}
-        <div style="max-width:680px;margin:0 auto 56px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px 28px;">
-            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:14px;">What you actually pay in AI costs</div>
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-                <div style="font-size:12px;color:#94a3b8;width:90px;flex-shrink:0;">Traditional</div>
-                <div style="flex:1;height:10px;border-radius:99px;background:rgba(239,68,68,0.2);overflow:hidden;">
+        {{-- Cost comparison --}}
+        <div style="max-width:620px;margin:0 auto 52px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px 26px;">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#475569;margin-bottom:14px;">Real cost comparison — building a Hospital ERP</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <div style="font-size:12px;color:#64748b;width:110px;flex-shrink:0;">Other AI tools</div>
+                <div style="flex:1;height:9px;border-radius:99px;overflow:hidden;background:rgba(239,68,68,0.15);">
                     <div style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316);border-radius:99px;"></div>
                 </div>
-                <div style="font-size:12px;font-weight:700;color:#f87171;width:50px;text-align:right;">100%</div>
+                <div style="font-size:12px;font-weight:700;color:#f87171;width:44px;text-align:right;">~$40</div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-                <div style="font-size:12px;color:#94a3b8;width:90px;flex-shrink:0;">RyaanCMS</div>
-                <div style="flex:1;height:10px;border-radius:99px;background:rgba(52,211,153,0.12);overflow:hidden;">
-                    <div style="height:100%;width:5%;background:linear-gradient(90deg,#34d399,#10b981);border-radius:99px;"></div>
+                <div style="font-size:12px;color:#64748b;width:110px;flex-shrink:0;">RyaanCMS</div>
+                <div style="flex:1;height:9px;border-radius:99px;overflow:hidden;background:rgba(52,211,153,0.1);">
+                    <div style="height:100%;width:3%;background:linear-gradient(90deg,#34d399,#10b981);border-radius:99px;"></div>
                 </div>
-                <div style="font-size:12px;font-weight:800;color:#34d399;width:50px;text-align:right;">~5%</div>
+                <div style="font-size:12px;font-weight:800;color:#34d399;width:44px;text-align:right;">~$1</div>
             </div>
-            <div style="margin-top:14px;font-size:12px;color:#475569;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
-                95% of app generation is blueprints + CRUD + rules — <strong style="color:#64748b;">zero AI tokens.</strong> Only truly novel logic ever hits the AI.
+            <div style="margin-top:12px;font-size:11.5px;color:#334155;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                95% generated at zero cost — only novel custom logic uses credits.
             </div>
         </div>
 
-        {{-- Plan cards --}}
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
+        {{-- Credit packs --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:40px;">
 
-            {{-- Free / Community --}}
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;">
+            {{-- Starter --}}
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;">
                 <div>
-                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(100,116,139,0.15);border:1px solid rgba(100,116,139,0.2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.06em;margin-bottom:14px;">COMMUNITY</div>
-                    <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">$0<span style="font-size:16px;font-weight:500;color:#64748b;">/mo</span></div>
-                    <div style="font-size:14px;color:#64748b;margin-top:4px;">Self-hosted forever. No expiry.</div>
+                    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:10px;">Starter</div>
+                    <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1;">Free</div>
+                    <div style="font-size:13px;color:#475569;margin-top:6px;">100 credits on signup</div>
                 </div>
-                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
-                    @foreach([
-                        '100+ Blueprint Library',
-                        '95% Zero-Token Generation',
-                        'Full CRUD Generator',
-                        'No API key to start',
-                        '12 Domain Modules',
-                        'Community Question Packs',
-                        'Self-hosted (your server)',
-                        'Full source code',
-                    ] as $f)
-                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94a3b8;">
-                        <span style="width:16px;height:16px;border-radius:50%;background:rgba(100,116,139,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg style="width:9px;height:9px;stroke:#64748b" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        {{ $f }}
-                    </li>
-                    @endforeach
-                </ul>
-                <a href="{{ route('register') }}" style="display:block;text-align:center;padding:13px;border-radius:12px;font-size:14px;font-weight:700;color:#94a3b8;border:1.5px solid rgba(255,255,255,0.1);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='#94a3b8'">
-                    Get Started Free →
+                <div style="font-size:13px;color:#64748b;line-height:1.6;">Enough to build and fully customise most standard apps. No credit card ever.</div>
+                <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size:11px;color:#475569;">1 credit ≈ 1 AI generation call</div>
+                    <div style="font-size:11px;color:#34d399;margin-top:2px;">95% of actions = 0 credits</div>
+                </div>
+                <a href="{{ route('register') }}" style="display:block;text-align:center;padding:11px;border-radius:10px;font-size:13px;font-weight:700;color:#94a3b8;border:1.5px solid rgba(255,255,255,0.1);text-decoration:none;" onmouseover="this.style.color='#fff';this.style.borderColor='rgba(255,255,255,0.25)'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='rgba(255,255,255,0.1)'">
+                    Start Free →
+                </a>
+            </div>
+
+            {{-- Basic --}}
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;">
+                <div>
+                    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:10px;">Basic</div>
+                    <div style="display:flex;align-items:baseline;gap:4px;">
+                        <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1;">$5</div>
+                    </div>
+                    <div style="font-size:13px;color:#475569;margin-top:6px;">500 credits · never expire</div>
+                </div>
+                <div style="font-size:13px;color:#64748b;line-height:1.6;">Build 5–8 full apps with custom logic. One-time top up, no subscription.</div>
+                <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size:11px;color:#475569;">$0.01 per credit</div>
+                    <div style="font-size:11px;color:#a78bfa;margin-top:2px;">Most apps use 50–80 credits</div>
+                </div>
+                <a href="{{ route('register') }}" style="display:block;text-align:center;padding:11px;border-radius:10px;font-size:13px;font-weight:700;color:#94a3b8;border:1.5px solid rgba(255,255,255,0.1);text-decoration:none;" onmouseover="this.style.color='#fff';this.style.borderColor='rgba(255,255,255,0.25)'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='rgba(255,255,255,0.1)'">
+                    Top Up →
                 </a>
             </div>
 
             {{-- Pro — featured --}}
-            <div style="background:linear-gradient(145deg,rgba(109,40,217,0.25),rgba(79,70,229,0.15));border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;position:relative;box-shadow:0 0 60px rgba(109,40,217,0.2);">
-
-                {{-- Popular badge --}}
-                <div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:99px;padding:4px 16px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.06em;white-space:nowrap;box-shadow:0 4px 14px rgba(109,40,217,0.4);">
-                    ★ MOST POPULAR
-                </div>
-
+            <div style="background:linear-gradient(145deg,rgba(109,40,217,0.3),rgba(79,70,229,0.18));border:2px solid rgba(167,139,250,0.4);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;position:relative;box-shadow:0 0 50px rgba(109,40,217,0.18);">
+                <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:99px;padding:3px 14px;font-size:10px;font-weight:800;color:#fff;letter-spacing:.06em;white-space:nowrap;">★ BEST VALUE</div>
                 <div>
-                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.06em;margin-bottom:14px;">PRO</div>
-
-                    {{-- Pricing with promo --}}
-                    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-                        <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">$9<span style="font-size:16px;font-weight:500;color:#a78bfa;">/mo</span></div>
-                        <div style="background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800;color:#34d399;">1st month FREE</div>
+                    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#a78bfa;margin-bottom:10px;">Pro Pack</div>
+                    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1;">$15</div>
+                        <div style="background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);border-radius:99px;padding:2px 9px;font-size:11px;font-weight:800;color:#34d399;">First pack FREE</div>
                     </div>
-                    <div style="font-size:13px;color:#7c3aed;margin-top:6px;background:rgba(167,139,250,0.1);border-radius:8px;padding:6px 10px;display:inline-block;">
-                        You save 95% in AI costs. We take $9. <strong style="color:#a78bfa;">Net savings: massive.</strong>
-                    </div>
+                    <div style="font-size:13px;color:#7c3aed;margin-top:6px;">2,000 credits · never expire</div>
                 </div>
-
-                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
-                    @foreach([
-                        ['Everything in Community', false],
-                        ['Premium Question Packs', true],
-                        ['Country-specific Packs (BD, IN, US…)', true],
-                        ['Priority Registry Sync', true],
-                        ['AI Mode — BYOK (your API key)', false],
-                        ['Blueprint Pack Updates', true],
-                        ['Industry Brain Packs', true],
-                        ['Email support', false],
-                    ] as [$f, $premium])
-                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:{{ $premium ? '#e2e8f0' : '#94a3b8' }};">
-                        <span style="width:16px;height:16px;border-radius:50%;background:{{ $premium ? 'rgba(167,139,250,0.25)' : 'rgba(100,116,139,0.15)' }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg style="width:9px;height:9px;stroke:{{ $premium ? '#a78bfa' : '#64748b' }}" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        {{ $f }}
-                        @if($premium)<span style="font-size:10px;background:rgba(167,139,250,0.15);color:#a78bfa;border-radius:4px;padding:1px 5px;margin-left:2px;">PRO</span>@endif
-                    </li>
-                    @endforeach
-                </ul>
-
-                <div>
-                    <a href="{{ route('register') }}" style="display:block;text-align:center;padding:14px;border-radius:12px;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#7c3aed,#6366f1);text-decoration:none;box-shadow:0 4px 20px rgba(109,40,217,0.4);letter-spacing:.01em;">
-                        Claim 1 Month Free →
-                    </a>
-                    <div style="text-align:center;font-size:11.5px;color:#64748b;margin-top:8px;">No credit card needed to start. Cancel anytime.</div>
+                <div style="font-size:13px;color:#94a3b8;line-height:1.6;">Build 20–30 full enterprise apps. Enough for a dev agency's monthly workload.</div>
+                <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.08);">
+                    <div style="font-size:11px;color:#64748b;">$0.0075 per credit — 25% cheaper</div>
+                    <div style="font-size:11px;color:#34d399;margin-top:2px;">+ Priority intelligence pack updates</div>
                 </div>
+                <a href="{{ route('register') }}" style="display:block;text-align:center;padding:12px;border-radius:10px;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,#7c3aed,#6366f1);text-decoration:none;box-shadow:0 4px 16px rgba(109,40,217,0.35);">
+                    Claim Free Pro Pack →
+                </a>
             </div>
 
-            {{-- Enterprise --}}
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:20px;">
+            {{-- Agency --}}
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;">
                 <div>
-                    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;color:#fbbf24;letter-spacing:.06em;margin-bottom:14px;">ENTERPRISE</div>
-                    <div style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.03em;">Custom</div>
-                    <div style="font-size:14px;color:#64748b;margin-top:4px;">Agencies, SaaS builders, white-label.</div>
+                    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fbbf24;margin-bottom:10px;">Agency</div>
+                    <div style="font-size:38px;font-weight:900;color:#fff;letter-spacing:-0.04em;line-height:1;">$40</div>
+                    <div style="font-size:13px;color:#475569;margin-top:6px;">7,000 credits · never expire</div>
                 </div>
-                <ul style="display:flex;flex-direction:column;gap:10px;list-style:none;padding:0;margin:0;flex:1;">
-                    @foreach([
-                        'Everything in Pro',
-                        'White-label branding',
-                        'Custom domain packs',
-                        'Dedicated registry instance',
-                        'Multi-team / multi-tenant',
-                        'Custom module development',
-                        'SLA + priority support',
-                        'On-premise registry option',
-                    ] as $f)
-                    <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:#94a3b8;">
-                        <span style="width:16px;height:16px;border-radius:50%;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <svg style="width:9px;height:9px;stroke:#fbbf24" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        {{ $f }}
-                    </li>
-                    @endforeach
-                </ul>
-                <a href="mailto:hello@ryaancms.com" style="display:block;text-align:center;padding:13px;border-radius:12px;font-size:14px;font-weight:700;color:#fbbf24;border:1.5px solid rgba(245,158,11,0.25);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='rgba(245,158,11,0.5)';this.style.background='rgba(245,158,11,0.07)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.25)';this.style.background='transparent'">
+                <div style="font-size:13px;color:#64748b;line-height:1.6;">For teams and agencies building dozens of client apps per month.</div>
+                <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size:11px;color:#475569;">$0.0057 per credit — best rate</div>
+                    <div style="font-size:11px;color:#fbbf24;margin-top:2px;">+ White-label & team credits</div>
+                </div>
+                <a href="mailto:hello@ryaancms.com" style="display:block;text-align:center;padding:11px;border-radius:10px;font-size:13px;font-weight:700;color:#fbbf24;border:1.5px solid rgba(245,158,11,0.25);text-decoration:none;" onmouseover="this.style.borderColor='rgba(245,158,11,0.5)';this.style.background='rgba(245,158,11,0.06)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.25)';this.style.background='transparent'">
                     Contact Us →
                 </a>
             </div>
 
         </div>
 
-        {{-- Bottom trust note --}}
-        <div style="text-align:center;margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:24px;">
+        {{-- FAQ row --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:36px;">
             @foreach([
-                '✓ No credit card to start',
-                '✓ Self-hosted — your server, your data',
-                '✓ Cancel Pro anytime',
-                '✓ Open source — always',
-                '✓ 95% AI cost saved',
-            ] as $note)
-            <span style="font-size:13px;color:#475569;">{{ $note }}</span>
+                ['What is 1 credit?', 'One AI generation call — custom logic, novel workflow, or intelligent feature. Standard CRUD, modules, and business rules are always free.'],
+                ['Do credits expire?', 'Never. Top up once, use whenever you need. No monthly subscriptions, no forced renewals.'],
+                ['What if I run out?', 'The 95% zero-cost engine keeps working. Only novel AI calls pause — top up anytime to resume.'],
+                ['BYOK support?', 'Yes — bring your own Claude, OpenAI, Gemini, or Ollama key. Use your own credits at provider cost.'],
+            ] as [$q, $a])
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 18px;">
+                <div style="font-size:12.5px;font-weight:700;color:#e2e8f0;margin-bottom:6px;">{{ $q }}</div>
+                <div style="font-size:12px;color:#64748b;line-height:1.55;">{{ $a }}</div>
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Trust strip --}}
+        <div style="text-align:center;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;">
+            @foreach(['✓ Start free — 100 credits on signup','✓ Credits never expire','✓ No subscription ever','✓ BYOK — use your own AI key','✓ Self-hosted & open source'] as $note)
+            <span style="font-size:12.5px;color:#475569;">{{ $note }}</span>
             @endforeach
         </div>
 
@@ -1191,7 +1161,7 @@
         </div>
 
         <div class="flex flex-wrap justify-center gap-6 text-sm" style="color:#6b7280;">
-            @foreach(['No API key to start','No credit card required','Deploy on your own server','Keep all source code','No vendor lock-in'] as $item)
+            @foreach(['No API key to start','100 free credits on signup','Deploy on your own server','Keep all source code','No vendor lock-in'] as $item)
             <span class="flex items-center gap-1.5">
                 <span style="color:#059669; font-weight:700;">✓</span> {{ $item }}
             </span>
