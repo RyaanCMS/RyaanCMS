@@ -530,6 +530,14 @@ FLD;
                 'path'    => 'resources/views/settings/index.blade.php',
                 'content' => $this->shellSettingsView($appName),
             ],
+            [
+                'path'    => 'app/Http/Controllers/LandingController.php',
+                'content' => $this->shellLandingController($appName),
+            ],
+            [
+                'path'    => 'resources/views/landing.blade.php',
+                'content' => $this->shellLandingView($appName, array_values($validEntities)),
+            ],
         ];
     }
 
@@ -548,7 +556,9 @@ FLD;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\LandingController;
 
+Route::get('/landing', [LandingController::class, 'index'])->name('landing');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
 Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
@@ -1607,6 +1617,257 @@ HTML;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Landing page — editable Blade with all content in a @php block at the top
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function shellLandingController(string $appName): string
+    {
+        $class = 'LandingController';
+        return <<<PHP
+<?php
+
+namespace App\Http\Controllers;
+
+class {$class} extends Controller
+{
+    public function index()
+    {
+        return view('landing');
+    }
+}
+PHP;
+    }
+
+    private function shellLandingView(string $appName, array $entities): string
+    {
+        $profile   = $this->domainProfile($appName, $entities);
+        $brand     = $profile['brand'];
+        $brandDk   = $profile['brandDk'];
+        $gradient  = $profile['gradient'];
+        $heroTag   = $profile['heroTag'];
+        $heroSub   = $profile['heroSub'];
+        $userRole  = $profile['userRole'];
+
+        // Build editable metrics list as PHP array literal
+        $metricsPhp = '';
+        foreach ($profile['metrics'] as $m) {
+            $n = addslashes($m['num']);
+            $l = addslashes($m['lbl']);
+            $metricsPhp .= "    ['num' => '{$n}', 'lbl' => '{$l}'],\n";
+        }
+
+        // Build editable features list
+        $featPhp = '';
+        $featSuffix = $profile['featSuffix'];
+        foreach ($entities as $i => $e) {
+            $icon  = $this->entityIcon($e['name']);
+            $title = ucwords(str_replace('_', ' ', $e['name'])) . ' Management';
+            $desc  = "Manage all {$e['name']} records {$featSuffix}";
+            $featPhp .= "    ['icon' => '{$icon}', 'title' => '" . addslashes($title) . "', 'desc' => '" . addslashes($desc) . "'],\n";
+        }
+        if (!$featPhp) {
+            $featPhp = "    ['icon' => '⚡', 'title' => 'Fast & Reliable', 'desc' => 'Built for performance and scale {$featSuffix}'],\n";
+        }
+
+        $appInitial = strtoupper(substr($appName, 0, 1));
+        $year       = date('Y');
+
+        return <<<BLADE
+{{--
+  Landing Page — {$appName}
+  ════════════════════════════════════════════════════════════════
+  All editable content is in the @php block below.
+  Change text, colors, nav links, metrics, features — no AI needed.
+  ════════════════════════════════════════════════════════════════
+--}}
+@php
+// ┌─────────────────────────────────────────────────────────────┐
+// │  EDITABLE CONTENT — change anything here without touching   │
+// │  the HTML below. No AI, no rebuild, just edit and refresh.  │
+// └─────────────────────────────────────────────────────────────┘
+
+\$page = [
+
+    // ── Brand ────────────────────────────────────────────────────
+    'appName'    => '{$appName}',
+    'appInitial' => '{$appInitial}',
+    'tagline'    => 'Smarter. Faster. Built for your team.',
+
+    // ── Colors (CSS hex) ─────────────────────────────────────────
+    'brand'      => '{$brand}',
+    'brandDk'    => '{$brandDk}',
+    'gradient'   => 'linear-gradient(160deg,{$gradient})',
+
+    // ── Hero section ─────────────────────────────────────────────
+    'heroEyebrow' => '{$heroTag}',
+    'heroTitle'   => '{$appName}',
+    'heroSub'     => '{$heroSub}',
+    'heroCta'     => 'Get Started Free',
+    'heroCtaHref' => '/register',
+    'heroCtaAlt'  => 'Live Demo',
+    'heroCtaAltHref' => '/demo',
+
+    // ── Metrics strip ─────────────────────────────────────────────
+    // Each item: ['num' => '...', 'lbl' => '...']
+    'metrics' => [
+{$metricsPhp}    ],
+
+    // ── Nav links ─────────────────────────────────────────────────
+    // Each item: ['label' => '...', 'href' => '...']
+    'navLinks' => [
+        ['label' => 'Features',  'href' => '#features'],
+        ['label' => 'Pricing',   'href' => '#pricing'],
+        ['label' => 'About',     'href' => '#about'],
+        ['label' => 'Contact',   'href' => '#contact'],
+    ],
+    'navCta'     => 'Sign In',
+    'navCtaHref' => '/login',
+
+    // ── Features section ─────────────────────────────────────────
+    'featuresTitle' => 'Everything you need, nothing you don\'t',
+    'featuresSub'   => 'A complete platform purpose-built for {$userRole}s and their teams.',
+    // Each item: ['icon' => '...', 'title' => '...', 'desc' => '...']
+    'features' => [
+{$featPhp}    ],
+
+    // ── CTA banner ────────────────────────────────────────────────
+    'ctaTitle'    => 'Ready to transform your operations?',
+    'ctaSub'      => 'Join thousands of teams already using {$appName}.',
+    'ctaBtn'      => 'Start for Free',
+    'ctaBtnHref'  => '/register',
+
+    // ── Footer ────────────────────────────────────────────────────
+    'footerCopy'  => '© {$year} {$appName}. All rights reserved.',
+    'footerLinks' => [
+        ['label' => 'Privacy Policy', 'href' => '/privacy'],
+        ['label' => 'Terms of Service', 'href' => '/terms'],
+        ['label' => 'Support', 'href' => '/support'],
+    ],
+];
+@endphp
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ \$page['appName'] }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --brand: {{ \$page['brand'] }}; --brand-dk: {{ \$page['brandDk'] }}; }
+  body  { font-family:'Inter',system-ui,sans-serif; background:#0a0a0f; color:#e2e8f0; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dk));
+    color:#fff; padding:14px 36px; border-radius:12px; font-weight:700;
+    font-size:15px; text-decoration:none; display:inline-block; transition:.2s;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.5); }
+  .btn-ghost {
+    border:1px solid rgba(255,255,255,.18); color:#e2e8f0; padding:14px 36px;
+    border-radius:12px; font-weight:600; font-size:15px; text-decoration:none;
+    display:inline-block; transition:.2s; backdrop-filter:blur(6px);
+  }
+  .btn-ghost:hover { background:rgba(255,255,255,.07); }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; transition:.2s; }
+  .card:hover { background:rgba(255,255,255,.07); border-color:var(--brand); transform:translateY(-3px); }
+  .metric-val { font-size:2.2rem; font-weight:800; background:linear-gradient(135deg,var(--brand),#fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  nav a { color:#94a3b8; text-decoration:none; font-size:14px; font-weight:500; transition:.15s; }
+  nav a:hover { color:#e2e8f0; }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); }
+</style>
+</head>
+<body>
+
+{{-- ── NAV ───────────────────────────────────────────────────────── --}}
+<nav style="position:sticky;top:0;z-index:100;background:rgba(10,10,15,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.07);padding:0 5%;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;height:64px;gap:32px;">
+    <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#f1f5f9;">
+      <div style="width:32px;height:32px;background:var(--brand);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;">{{ \$page['appInitial'] }}</div>
+      {{ \$page['appName'] }}
+    </div>
+    <div style="display:flex;gap:28px;margin-left:auto;align-items:center;">
+      @foreach(\$page['navLinks'] as \$link)
+        <a href="{{ \$link['href'] }}">{{ \$link['label'] }}</a>
+      @endforeach
+      <a href="{{ \$page['navCtaHref'] }}" class="btn-primary" style="padding:9px 22px;font-size:13px;">{{ \$page['navCta'] }}</a>
+    </div>
+  </div>
+</nav>
+
+{{-- ── HERO ─────────────────────────────────────────────────────── --}}
+<section style="background:{{ \$page['gradient'] }};padding:100px 5% 80px;text-align:center;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(var(--brand),0.12),transparent);pointer-events:none;"></div>
+  <div style="max-width:820px;margin:0 auto;position:relative;">
+    <div class="eyebrow" style="margin-bottom:20px;">{{ \$page['heroEyebrow'] }}</div>
+    <h1 style="font-size:clamp(2.4rem,6vw,4rem);font-weight:900;line-height:1.1;margin:0 0 20px;color:#f8fafc;">
+      {{ \$page['heroTitle'] }}
+    </h1>
+    <p style="font-size:clamp(1rem,2.5vw,1.2rem);color:#94a3b8;line-height:1.7;margin:0 0 40px;">
+      {{ \$page['heroSub'] }}
+    </p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="{{ \$page['heroCta'] !== '' ? \$page['heroCtaHref'] : '#' }}" class="btn-primary">{{ \$page['heroCta'] }}</a>
+      <a href="{{ \$page['heroCtaAltHref'] }}" class="btn-ghost">{{ \$page['heroCtaAlt'] }}</a>
+    </div>
+  </div>
+</section>
+
+{{-- ── METRICS STRIP ────────────────────────────────────────────── --}}
+<section style="border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);padding:40px 5%;background:rgba(255,255,255,.02);">
+  <div style="max-width:1000px;margin:0 auto;display:flex;justify-content:center;gap:60px;flex-wrap:wrap;text-align:center;">
+    @foreach(\$page['metrics'] as \$m)
+      <div>
+        <div class="metric-val">{{ \$m['num'] }}</div>
+        <div style="font-size:13px;color:#64748b;margin-top:4px;">{{ \$m['lbl'] }}</div>
+      </div>
+    @endforeach
+  </div>
+</section>
+
+{{-- ── FEATURES ─────────────────────────────────────────────────── --}}
+<section id="features" style="padding:90px 5%;">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="eyebrow" style="margin-bottom:12px;">Features</div>
+      <h2 style="font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:#f1f5f9;margin:0 0 14px;">{{ \$page['featuresTitle'] }}</h2>
+      <p style="color:#64748b;font-size:16px;max-width:560px;margin:0 auto;">{{ \$page['featuresSub'] }}</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+      @foreach(\$page['features'] as \$feat)
+        <div class="card">
+          <div style="font-size:2rem;margin-bottom:12px;">{{ \$feat['icon'] }}</div>
+          <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin:0 0 8px;">{{ \$feat['title'] }}</h3>
+          <p style="font-size:13.5px;color:#64748b;line-height:1.6;margin:0;">{{ \$feat['desc'] }}</p>
+        </div>
+      @endforeach
+    </div>
+  </div>
+</section>
+
+{{-- ── CTA BANNER ───────────────────────────────────────────────── --}}
+<section style="padding:80px 5%;background:linear-gradient(135deg,rgba(var(--brand),.12),rgba(var(--brand-dk),.08));border-top:1px solid rgba(255,255,255,.07);">
+  <div style="max-width:700px;margin:0 auto;text-align:center;">
+    <h2 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;color:#f1f5f9;margin:0 0 14px;">{{ \$page['ctaTitle'] }}</h2>
+    <p style="font-size:16px;color:#94a3b8;margin:0 0 36px;">{{ \$page['ctaSub'] }}</p>
+    <a href="{{ \$page['ctaBtnHref'] }}" class="btn-primary">{{ \$page['ctaBtn'] }}</a>
+  </div>
+</section>
+
+{{-- ── FOOTER ───────────────────────────────────────────────────── --}}
+<footer style="border-top:1px solid rgba(255,255,255,.07);padding:32px 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <span style="font-size:13px;color:#475569;">{{ \$page['footerCopy'] }}</span>
+  <div style="display:flex;gap:20px;">
+    @foreach(\$page['footerLinks'] as \$fl)
+      <a href="{{ \$fl['href'] }}" style="font-size:13px;color:#475569;text-decoration:none;">{{ \$fl['label'] }}</a>
+    @endforeach
+  </div>
+</footer>
+
+</body>
+</html>
+BLADE;
+    }
+
     // Settings — real Laravel controller + Blade view
     // ─────────────────────────────────────────────────────────────────────────
 
