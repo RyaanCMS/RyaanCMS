@@ -11,10 +11,23 @@ class RyaanCreditsService
 {
     public function getBalance(User $user): CreditBalance
     {
-        return CreditBalance::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0, 'lifetime_earned' => 0, 'lifetime_used' => 0, 'tier' => 'byok']
-        );
+        try {
+            return CreditBalance::firstOrCreate(
+                ['user_id' => $user->id],
+                ['balance' => 0, 'lifetime_earned' => 0, 'lifetime_used' => 0, 'tier' => 'byok']
+            );
+        } catch (\Throwable) {
+            // Table doesn't exist yet (migration not run) — return safe BYOK default
+            $default = new CreditBalance();
+            $default->user_id = $user->id;
+            $default->balance = 0;
+            $default->lifetime_earned = 0;
+            $default->lifetime_used = 0;
+            $default->tier = 'byok';
+            $default->tier_expires_at = null;
+            $default->exists = false;
+            return $default;
+        }
     }
 
     public function getBalanceAmount(User $user): int
