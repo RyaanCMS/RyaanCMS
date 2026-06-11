@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.49",
+    "latest": "1.1.50",
     "versions": [
         {
             "version": "1.0.0",
@@ -623,6 +623,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.48",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.50",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: Central Registry + Local Question Pack sync system\n\n- LocalQuestionPack model with bestMatch() lookup (blueprint+country+language priority)\n- RegistrySyncLog model for audit trail with static record() helper\n- RegistrySyncService: fetch manifest, version-check, download packs, license verification\n- RegistryController: central server APIs (manifest, full pack, updates diff, license verify)\n- LocalQuestionPackSeeder: migrates config/kb/question_intelligence.php → DB table\n- SyncRegistryCommand: php artisan ryaan:sync-registry [--force]\n- SeniorDevKnowledgeBase::getSmartQuestions() now checks DB first, config fallback\n- Settings > Question Packs tab: sync button, pack count, license key activation\n- config/registry.php: REGISTRY_MODE, REGISTRY_URL, REGISTRY_LICENSE_KEY, REGISTRY_AUTO_SYNC\n- Central registry routes gated behind REGISTRY_MODE=registry (customer installs not exposed)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.50/ryaancms-v1.1.50-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.49",
             "critical": false,
             "file_count": null
         }
