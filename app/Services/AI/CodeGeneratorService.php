@@ -2566,6 +2566,11 @@ HTML;
             [['role' => 'user', 'content' => $enrichedPrompt]]
         );
 
+        if (!$aiProvider) {
+            $onEvent(['type' => 'error', 'message' => 'No AI provider configured. Go to Settings → AI Providers and add an API key to use the AI builder.']);
+            return;
+        }
+
         $onEvent(['type' => 'activity', 'icon' => '🔍', 'text' => 'Reading project context & existing files']);
         $onEvent(['type' => 'activity', 'icon' => '🧠', 'text' => 'Analyzing requirements & planning changes']);
         $onEvent(['type' => 'activity', 'icon' => '⚡', 'text' => 'Writing production-quality code']);

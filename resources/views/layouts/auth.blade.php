@@ -1,4 +1,5 @@
 @php
+    if (!isset($errors)) { $errors = new \Illuminate\Support\ViewErrorBag(); }
     $brandColor = \App\Models\Setting::get('branding.primary_color', '#6366f1');
     $fontFamily = \App\Models\Setting::get('branding.font_family',   'Inter');
     $fontSlug   = strtolower(str_replace(' ', '+', $fontFamily));
