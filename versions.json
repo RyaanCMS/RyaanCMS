@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.50",
+    "latest": "1.1.51",
     "versions": [
         {
             "version": "1.0.0",
@@ -635,6 +635,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.49",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.51",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: add pricing section to landing page\n\n- 3-tier pricing: Community (free forever), Pro ($9/mo, 1st month free), Enterprise (custom)\n- Cost comparison bar showing 100% traditional vs ~5% RyaanCMS AI spend\n- Pro plan hero: \"95% saved, we take $9, net savings massive\"\n- Pricing nav link (purple, weighted) in desktop + mobile nav\n- Navbar CTA updated to \"Pro — 1 Month Free →\"\n- Trust badges: no credit card, self-hosted, cancel anytime, open source\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.51/ryaancms-v1.1.51-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.50",
             "critical": false,
             "file_count": null
         }
