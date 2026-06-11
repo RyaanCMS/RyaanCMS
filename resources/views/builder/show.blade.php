@@ -162,7 +162,7 @@
             <!-- Discovery section -->
             <div class="p-3 border-b border-gray-200" style="background:#fff;">
                 <div class="text-xs font-bold text-gray-700 mb-2">Phase 1 — Discovery Engine</div>
-                <div class="text-xs text-gray-500 mb-2">Describe your app. AI extracts a blueprint (~300 tokens), then generates code for free.</div>
+                <div class="text-xs text-gray-500 mb-2">Describe what you want to build. RyaanCMS will plan the structure automatically.</div>
                 <textarea x-model="discoveryText" rows="3" placeholder="e.g. Create a laundry marketplace like Uber — customers book services, providers accept jobs, admin manages everything..."
                           class="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
                 <button @click="runDiscovery()"
@@ -584,7 +584,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                     Components
-                    <span class="text-xs px-1 rounded" style="background:#7c3aed20;color:#7c3aed">0 tokens</span>
+                    <span class="text-xs px-1 rounded" style="background:#7c3aed20;color:#7c3aed">Ready</span>
                 </button>
             </div>
 
@@ -613,15 +613,18 @@
             <!-- Component Registry Panel -->
             <div x-show="smartPanel === 'components'" x-transition class="px-3 pb-3">
                 <div class="rounded-xl border overflow-hidden" style="border-color:#e5e7eb;background:#fff">
-                    <div class="flex items-center gap-2 px-3 py-2 border-b" style="border-color:#e5e7eb;background:#f9fafb">
+                    <style>#componentRegistryHeader > span:not(.component-public-label){display:none}</style>
+                    <div id="componentRegistryHeader" class="flex items-center gap-2 px-3 py-2 border-b" style="border-color:#e5e7eb;background:#f9fafb">
                         <input type="search" x-model="componentSearch"
                                @input.debounce.300="loadComponents(componentSearch)"
                                placeholder="Search components…"
                                class="flex-1 text-xs rounded-lg px-2.5 py-1.5 border outline-none"
                                style="border-color:#d1d5db;background:#fff;color:#374151">
+                        <span class="component-public-label text-xs font-semibold" style="color:#7c3aed">Reusable blocks</span>
                         <span class="text-xs font-semibold" style="color:#7c3aed">⚡ Zero tokens</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-0 divide-x divide-y" style="divide-color:#f3f4f6;max-height:220px;overflow-y:auto">
+                    <style>#componentRegistryList span[x-text*="tokens_saved"]{display:none}</style>
+                    <div id="componentRegistryList" class="grid grid-cols-2 gap-0 divide-x divide-y" style="divide-color:#f3f4f6;max-height:220px;overflow-y:auto">
                         <template x-for="c in components" :key="c.key">
                             <button @click="insertComponent(c.key, c.label)"
                                     class="text-left p-3 transition-colors hover:bg-violet-50 group">
@@ -839,8 +842,8 @@
                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.md,.mdx,.json,.xml,.html,.htm,.php,.js,.ts,.jsx,.tsx,.css,.scss,.sass,.py,.java,.rb,.go,.rs,.sql,.env,.yaml,.yml,.toml,.sh,.bat,.ini,.conf,.log"
                    @change="handleFiles($event)" class="hidden">
 
-            <!-- Cost stats widget -->
-            <div class="mt-2 rounded-lg px-3 py-2" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+            <!-- Internal usage diagnostics (hidden from normal builder UI) -->
+            <div class="hidden mt-2 rounded-lg px-3 py-2" style="background:#f0fdf4;border:1px solid #bbf7d0;">
                 <div class="flex items-center justify-between text-xs mb-1">
                     <span style="color:#15803d;font-weight:600;">Token Usage</span>
                     <span x-show="cacheHits > 0"

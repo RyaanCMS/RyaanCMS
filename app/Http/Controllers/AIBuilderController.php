@@ -982,7 +982,7 @@ HTML;
 
         return response()->json([
             'success'      => true,
-            'message'      => $message,
+            'message'      => "**{$component['label']}** is ready.\n\n```blade\n{$component['template']}\n```\n\n_Customize the field names, route targets, and variable names to match your models._",
             'component'    => $key,
             'tokens_saved' => $saved,
         ]);

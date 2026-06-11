@@ -129,13 +129,15 @@ class BlueprintService
         $forms    = $this->summarizeList($bp['forms'] ?? []);
         $reports  = $this->summarizeList($bp['reports'] ?? []);
         $flows    = $this->summarizeList($bp['workflows'] ?? []);
+        $domain   = $bp['business_domain'] ?? $bp['industry'] ?? '';
+        $level    = $bp['blueprint_level'] ?? 'professional';
 
         return <<<CTX
 PROJECT BLUEPRINT:
   App Type   : {$bp['app_type']}
   Name       : {$bp['name']}
-  Domain     : {$bp['business_domain']}
-  Level      : {$bp['blueprint_level']}
+  Domain     : {$domain}
+  Level      : {$level}
   Outputs    : {$outputs}
   Platform   : {$this->join($bp['platform'] ?? [])}
   Users      : {$this->join($bp['users'] ?? [])}
