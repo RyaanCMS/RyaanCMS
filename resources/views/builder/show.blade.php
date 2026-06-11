@@ -1206,18 +1206,39 @@ function builderApp() {
         cleanResponse(text) {
             if (!text) return '';
             let clean = text;
-            // Strip fenced code blocks (complete or partial streaming)
+
+            // Strip fenced code blocks (complete or partial)
             clean = clean.replace(/```[\w]*[\s\S]*?```/g, '');
-            // Strip complete JSON objects containing "files":
-            clean = clean.replace(/\{[\s\S]*?"files"\s*:[\s\S]*?\}/g, '');
-            // Strip partial/streaming JSON that starts with { and has "files": (not yet closed)
-            clean = clean.replace(/\{[\s\S]*?"files"\s*:[\s\S]*/g, '');
-            // Strip "Next steps" block with npm/composer/localhost lines
+
+            // Strip JSON with "files" key (lazy regex misses nested JSON — detect greedily)
+            // Greedy version: from first { containing "files": to end of string
+            clean = clean.replace(/\{[^]*?"files"\s*:[^]*/g, '');
+
+            // Strip JSON file arrays: any [ or leading , followed by {"path":...} objects
+            // Detect by counting "path": keys — ≥2 means it's file output JSON
+            const pathMatches = (clean.match(/"path"\s*:/g) || []).length;
+            if (pathMatches >= 2) {
+                // Find where the JSON starts (first [{ or ,{ before "path":)
+                const jsonStart = clean.search(/[,\[]\s*\{[^]*?"path"\s*:/);
+                if (jsonStart >= 0) {
+                    clean = clean.slice(0, jsonStart).trim();
+                } else {
+                    // The whole thing is a JSON array/object — check for intro text
+                    const objStart = clean.search(/\{[^]*?"path"\s*:/);
+                    clean = objStart > 10 ? clean.slice(0, objStart).trim() : '';
+                }
+            }
+            // Strip stray file JSON fragments that survived
+            clean = clean.replace(/,\s*\{\s*"path"\s*:[^]*/g, '');
+            clean = clean.replace(/\[\s*\{\s*"path"\s*:[^]*/g, '');
+
+            // Strip "Next steps" / setup instructions block
             clean = clean.replace(/\n{0,2}(Next steps?|Setup instructions?|Getting started|To (get started|run|launch)):?[\s\S]*$/i, '');
             clean = clean.replace(/[\n\r]?\s*[•\-]\s*Run `npm [^`\n]*`[^\n]*/gi, '');
             clean = clean.replace(/[\n\r]?\s*[•\-]\s*Run `composer [^`\n]*`[^\n]*/gi, '');
             clean = clean.replace(/[\n\r]?\s*[•\-]\s*Run `?php artisan[^`\n]*`?[^\n]*/gi, '');
             clean = clean.replace(/[\n\r]?[^\n]*(http:\/\/localhost:\d+)[^\n]*/gi, '');
+
             // Collapse multiple blank lines
             clean = clean.replace(/\n{3,}/g, '\n\n').trim();
             return clean || '';
@@ -1688,6 +1709,13 @@ window.addEventListener('unhandledrejection', function(e) {
             // Switch to split so preview becomes visible immediately
             if (this.viewMode === 'editor') this.viewMode = 'split';
 
+            // React / JSX project: render inline immediately when components have content
+            const jsxFiles = allFs.filter(f => /\.(jsx|tsx)$/i.test(f.name || '') && f.content);
+            if (jsxFiles.length >= 2) {
+                this.buildReactInlinePreview(allFs);
+                return;
+            }
+
             // Priority: preview.html → index.html → any .html → build card
             const order = ['preview.html', 'index.html', 'welcome.html', 'app.html'];
             let target = null;
@@ -1701,7 +1729,6 @@ window.addEventListener('unhandledrejection', function(e) {
             }
 
             if (target) {
-                // HTML content available — render directly (no server round-trip)
                 this.renderPreview(target.content, target.path || target.name);
             }
             // PHP/Blade projects: no HTML to render — keep existing preview unchanged
@@ -2069,9 +2096,16 @@ window.addEventListener('unhandledrejection', function(e) {
                     this.openFile(allFiles[0]);
                 }
 
-                // Always refresh preview after build completes, switch to preview if in editor-only mode
+                // After build: switch to preview mode and render
                 this.$nextTick(() => {
-                    if (this.viewMode === 'editor') this.viewMode = 'split';
+                    const hasJsx = this.files.some(f => /\.(jsx|tsx)$/i.test(f.name || '') && f.content);
+                    const hasHtml = this.files.some(f => /\.(html|htm)$/i.test(f.name || '') && f.content);
+                    // Switch to full preview for React apps, split for code-heavy apps
+                    if (hasJsx || hasHtml) {
+                        this.viewMode = 'preview';
+                    } else if (this.viewMode === 'editor') {
+                        this.viewMode = 'split';
+                    }
                     this.autoPreview();
                 });
 
