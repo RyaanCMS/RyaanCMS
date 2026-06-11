@@ -100,6 +100,10 @@ class ZeroCostFeatureGenerator
                 'path'    => 'routes/_analytics.txt',
                 'content' => "// Add to routes/web.php:\nuse App\\Http\\Controllers\\AnalyticsController;\nRoute::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');",
             ],
+            [
+                'path'    => 'preview.html',
+                'content' => $this->analyticsPreviewHtml($entities, $appName),
+            ],
         ];
     }
 
@@ -331,6 +335,10 @@ BLADE;
             'path'    => 'routes/_reports.txt',
             'content' => $this->reportRoutes($entities),
         ];
+        $files[] = [
+            'path'    => 'preview.html',
+            'content' => $this->reportsPreviewHtml($entities, $appName),
+        ];
         return $files;
     }
 
@@ -510,6 +518,10 @@ BLADE;
                 'path'    => 'routes/_calendar.txt',
                 'content' => "// Add to routes/web.php:\nuse App\\Http\\Controllers\\CalendarController;\nRoute::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');\nRoute::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');",
             ],
+            [
+                'path'    => 'preview.html',
+                'content' => $this->calendarPreviewHtml($appName),
+            ],
         ];
     }
 
@@ -645,6 +657,10 @@ BLADE;
                 'path'    => 'routes/_kanban.txt',
                 'content' => "// Add to routes/web.php:\nuse App\\Http\\Controllers\\KanbanController;\nRoute::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');\nRoute::patch('/kanban/{id}/status', [KanbanController::class, 'updateStatus'])->name('kanban.status');",
             ],
+            [
+                'path'    => 'preview.html',
+                'content' => $this->kanbanPreviewHtml($name, $statusValues, $appName),
+            ],
         ];
     }
 
@@ -772,5 +788,340 @@ function kanban() {
 </script>
 @endsection
 BLADE;
+    }
+
+    // ── Preview HTML generators (standalone — no PHP server needed) ──────────
+
+    private function analyticsPreviewHtml(array $entities, string $appName): string
+    {
+        $colors = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+        $kpiCards = '';
+        $labels   = [];
+        $datasets = [];
+        $i = 0;
+        foreach ($entities as $e) {
+            if (empty($e['name'])) continue;
+            $label  = Str::title(str_replace('_', ' ', Str::plural(Str::snake($e['name']))));
+            $count  = rand(42, 980);
+            $color  = $colors[$i % count($colors)];
+            $i++;
+            $kpiCards .= <<<HTML
+<div class="kpi" style="--c:{$color}">
+  <div class="kpi-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+  <div class="kpi-num">{$count}</div>
+  <div class="kpi-label">Total {$label}</div>
+</div>
+HTML;
+            $data = [];
+            for ($d = 29; $d >= 0; $d--) {
+                $data[] = rand(2, 40);
+                if ($i === 1) {
+                    $ts = strtotime("-{$d} days");
+                    $labels[] = '"' . date('M d', $ts) . '"';
+                }
+            }
+            $dataJs = implode(',', $data);
+            $datasets[] = "{label:'{$label}',data:[{$dataJs}],borderColor:'{$color}',backgroundColor:'{$color}22',tension:.4,fill:true,pointRadius:2}";
+        }
+        $labelsJs  = implode(',', $labels ?: ['"Jan 1"']);
+        $datasetsJs = implode(',', $datasets ?: ['{label:"Data",data:[],borderColor:"#6366f1"}']);
+
+        return <<<HTML
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{$appName} — Analytics</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:16px;text-align:center;transition:.2s}
+.kpi:hover{border-color:var(--c);box-shadow:0 6px 20px color-mix(in srgb,var(--c) 15%,transparent)}
+.kpi-icon{width:38px;height:38px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,#fff);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:var(--c)}
+.kpi-icon svg{width:18px;height:18px}
+.kpi-num{font-size:24px;font-weight:800;color:#1e293b}
+.kpi-label{font-size:11px;font-weight:600;color:#64748b;margin-top:3px}
+.card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:18px}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media(max-width:640px){.charts-row{grid-template-columns:1fr}}
+</style>
+</head><body>
+<div style="padding:20px">
+  <div style="margin-bottom:18px">
+    <h1 style="font-size:18px;font-weight:700;color:#1e293b">{$appName} — Analytics</h1>
+    <p style="font-size:12px;color:#64748b;margin-top:3px">Last 30 days overview · Sample data</p>
+  </div>
+
+  <div class="kpi-grid">{$kpiCards}</div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Activity Trend — Last 30 Days</div>
+      <canvas id="trendChart" height="90"></canvas>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Distribution</div>
+      <canvas id="donutChart" height="180"></canvas>
+    </div>
+  </div>
+</div>
+<script>
+new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:[{$labelsJs}],datasets:[{$datasetsJs}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'#f1f5f9'}}}}});
+const dColors=[{$this->jsColorArray($colors)}];
+const dLabels=[{$this->jsEntityLabels($entities)}];
+const dData=dLabels.map(()=>Math.floor(Math.random()*60)+10);
+new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:dLabels,datasets:[{data:dData,backgroundColor:dColors,borderWidth:2}]},options:{responsive:true,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+</script>
+</body></html>
+HTML;
+    }
+
+    private function reportsPreviewHtml(array $entities, string $appName): string
+    {
+        $entityName = '';
+        $columns    = ['ID', 'Name', 'Created At', 'Status'];
+        foreach ($entities as $e) {
+            if (!empty($e['name'])) {
+                $entityName = Str::title(str_replace('_', ' ', Str::plural(Str::snake($e['name']))));
+                $cols = ['ID'];
+                foreach (array_slice($e['fields'] ?? [], 0, 4) as $f) {
+                    $cols[] = Str::title(str_replace('_', ' ', $f['name']));
+                }
+                $cols[] = 'Created At';
+                $columns = $cols;
+                break;
+            }
+        }
+        if (!$entityName) $entityName = 'Records';
+
+        $headerCells = implode('', array_map(fn($c) => "<th>{$c}</th>", $columns));
+        $rows = '';
+        $statuses = ['Active','Pending','Confirmed','Completed'];
+        for ($r = 1; $r <= 8; $r++) {
+            $cells = '';
+            foreach ($columns as $ci => $col) {
+                if ($ci === 0) { $cells .= "<td style='font-weight:600;color:#6366f1'>#{$r}</td>"; }
+                elseif (stripos($col, 'status') !== false) {
+                    $s = $statuses[array_rand($statuses)];
+                    $cells .= "<td><span class='badge'>{$s}</span></td>";
+                } elseif (stripos($col, 'created') !== false || stripos($col, 'date') !== false) {
+                    $cells .= "<td>" . date('Y-m-d', strtotime("-" . rand(1,90) . " days")) . "</td>";
+                } elseif (stripos($col, 'amount') !== false || stripos($col, 'price') !== false || stripos($col, 'total') !== false) {
+                    $cells .= "<td style='font-weight:600'>\$" . number_format(rand(100,5000), 2) . "</td>";
+                } else {
+                    $cells .= "<td>Sample " . $col . " {$r}</td>";
+                }
+            }
+            $rows .= "<tr>{$cells}</tr>";
+        }
+
+        return <<<HTML
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{$appName} — Reports</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0;padding:20px}
+.card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;overflow:hidden}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #f1f5f9}
+input,select{border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;color:#374151}
+.btn{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-out{background:#f8fafc;color:#374151;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e2e8f0}
+td{padding:10px 14px;font-size:12px;color:#374151;border-bottom:1px solid #f8fafc}
+tr:hover td{background:#f9fafb}
+.badge{background:#ede9fe;color:#6d28d9;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600}
+.pagination{display:flex;align-items:center;justify-content:between;padding:12px 18px;font-size:12px;color:#6b7280}
+</style></head><body>
+<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <h1 style="font-size:18px;font-weight:700;color:#1e293b">{$appName} — Reports</h1>
+    <p style="font-size:12px;color:#64748b;margin-top:2px">{$entityName} report · Sample data</p>
+  </div>
+  <button class="btn btn-out" onclick="window.print()">🖨 Print</button>
+</div>
+<div class="card">
+  <div class="filters">
+    <div style="font-size:12px;font-weight:600;color:#374151">Filter:</div>
+    <input type="date" value="2024-01-01">
+    <span style="font-size:12px;color:#9ca3af">to</span>
+    <input type="date" value="2024-12-31">
+    <select><option>All Status</option><option>Active</option><option>Pending</option><option>Completed</option></select>
+    <button class="btn">Apply</button>
+    <button class="btn btn-out">Export CSV</button>
+  </div>
+  <table>
+    <thead><tr>{$headerCells}</tr></thead>
+    <tbody>{$rows}</tbody>
+  </table>
+  <div class="pagination">
+    <span>Showing 1–8 of 128 records</span>
+    <div style="margin-left:auto;display:flex;gap:4px">
+      <button class="btn btn-out" style="padding:4px 10px">‹ Prev</button>
+      <button class="btn" style="padding:4px 10px">Next ›</button>
+    </div>
+  </div>
+</div>
+</body></html>
+HTML;
+    }
+
+    private function calendarPreviewHtml(string $appName): string
+    {
+        $today   = date('j');
+        $month   = date('F Y');
+        $weekday = (int) date('N', strtotime(date('Y-m-01'))) % 7;
+        $days    = (int) date('t');
+
+        $cells = str_repeat('<td></td>', $weekday);
+        for ($d = 1; $d <= $days; $d++) {
+            $isToday = $d === (int) $today ? ' today' : '';
+            $events  = '';
+            if (in_array($d % 7, [1,3,5])) {
+                $labels = ['Room Booking','Check-in','Check-out','Meeting','Service'];
+                $colors = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6'];
+                $idx    = $d % 5;
+                $events = "<div class='ev' style='background:{$colors[$idx]}'>{$labels[$idx]}</div>";
+            }
+            $cells .= "<td class='day{$isToday}'><span class='dnum'>{$d}</span>{$events}</td>";
+        }
+        $totalCells = $weekday + $days;
+        $remainder  = (7 - ($totalCells % 7)) % 7;
+        $cells     .= str_repeat('<td></td>', $remainder);
+
+        return <<<HTML
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{$appName} — Calendar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0;padding:20px}
+.card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;overflow:hidden}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #f1f5f9}
+.btn{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-ghost{background:#f8fafc;color:#374151;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse}
+th{padding:8px;text-align:center;font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;border-bottom:1px solid #f1f5f9}
+td{padding:6px;vertical-align:top;border:1px solid #f1f5f9;height:72px;width:14.28%}
+td:empty{background:#fafafa}
+.dnum{font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:2px}
+.today .dnum{background:#6366f1;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px}
+.ev{background:#6366f1;color:#fff;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style></head><body>
+<div style="margin-bottom:16px">
+  <h1 style="font-size:18px;font-weight:700;color:#1e293b">{$appName} — Calendar</h1>
+  <p style="font-size:12px;color:#64748b;margin-top:2px">Booking &amp; schedule view · Sample data</p>
+</div>
+<div class="card">
+  <div class="cal-header">
+    <button class="btn btn-ghost">‹ Prev</button>
+    <span style="font-size:14px;font-weight:700;color:#1e293b">{$month}</span>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-ghost">Next ›</button>
+      <button class="btn">+ Add Event</button>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr></thead>
+    <tbody id="cal"></tbody>
+  </table>
+</div>
+<script>
+const cells=`{$cells}`.trim();
+let html='',count=0;
+cells.split('</td>').forEach((c,i)=>{
+  if(!c.trim()&&i===cells.split('</td>').length-1)return;
+  if(count%7===0)html+='<tr>';
+  html+=c+'</td>';
+  count++;
+  if(count%7===0)html+='</tr>';
+});
+document.getElementById('cal').innerHTML=html;
+</script>
+</body></html>
+HTML;
+    }
+
+    private function kanbanPreviewHtml(string $entityName, array $statuses, string $appName): string
+    {
+        if (empty($statuses)) $statuses = ['pending', 'in_progress', 'done'];
+        $colors  = ['#f59e0b','#6366f1','#10b981','#ef4444','#8b5cf6','#0ea5e9'];
+        $columns = '';
+        foreach ($statuses as $idx => $status) {
+            $label   = Str::title(str_replace('_', ' ', $status));
+            $color   = $colors[$idx % count($colors)];
+            $count   = rand(2, 5);
+            $cards   = '';
+            for ($c = 1; $c <= $count; $c++) {
+                $prio   = ['Low','Medium','High'][array_rand(['Low','Medium','High'])];
+                $pColor = $prio === 'High' ? '#ef4444' : ($prio === 'Medium' ? '#f59e0b' : '#10b981');
+                $cards .= <<<CARD
+<div class="kcard">
+  <div style="font-size:12px;font-weight:600;color:#1e293b;margin-bottom:6px">{$entityName} #{$c} — {$label}</div>
+  <div style="font-size:11px;color:#64748b;margin-bottom:8px">Assigned to Team Member {$c}</div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:10px;font-weight:600;color:{$pColor};background:color-mix(in srgb,{$pColor} 12%,#fff);border-radius:20px;padding:2px 8px">{$prio}</span>
+    <span style="font-size:10px;color:#94a3b8">{$idx}/{$count}</span>
+  </div>
+</div>
+CARD;
+            }
+            $columns .= <<<COL
+<div class="kcol">
+  <div class="col-header" style="--c:{$color}">
+    <span>{$label}</span>
+    <span class="col-count">{$count}</span>
+  </div>
+  <div class="col-body">{$cards}
+    <button class="add-card">+ Add {$entityName}</button>
+  </div>
+</div>
+COL;
+        }
+
+        return <<<HTML
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{$appName} — Kanban</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0;padding:20px}
+.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;min-height:70vh}
+.kcol{flex:0 0 260px;display:flex;flex-direction:column}
+.col-header{border-radius:10px 10px 0 0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:color-mix(in srgb,var(--c) 12%,#fff);border:1px solid color-mix(in srgb,var(--c) 20%,transparent);font-size:13px;font-weight:700;color:#1e293b}
+.col-count{background:var(--c);color:#fff;border-radius:20px;padding:1px 8px;font-size:11px}
+.col-body{flex:1;background:#f1f5f9;border-radius:0 0 10px 10px;padding:10px;border:1px solid #e2e8f0;border-top:none;display:flex;flex-direction:column;gap:8px}
+.kcard{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:12px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.15s}
+.kcard:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-1px)}
+.add-card{background:none;border:1px dashed #cbd5e1;border-radius:8px;padding:7px;font-size:11px;color:#94a3b8;cursor:pointer;width:100%;transition:.15s}
+.add-card:hover{border-color:#6366f1;color:#6366f1;background:#f5f3ff}
+</style></head><body>
+<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <h1 style="font-size:18px;font-weight:700;color:#1e293b">{$appName} — Kanban Board</h1>
+    <p style="font-size:12px;color:#64748b;margin-top:2px">{$entityName} workflow · Sample data</p>
+  </div>
+  <button style="background:#6366f1;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer">+ New {$entityName}</button>
+</div>
+<div class="board">{$columns}</div>
+</body></html>
+HTML;
+    }
+
+    private function jsColorArray(array $colors): string
+    {
+        return implode(',', array_map(fn($c) => "'{$c}'", $colors));
+    }
+
+    private function jsEntityLabels(array $entities): string
+    {
+        $labels = [];
+        foreach ($entities as $e) {
+            if (!empty($e['name'])) {
+                $labels[] = "'" . Str::title(str_replace('_', ' ', Str::plural(Str::snake($e['name'])))) . "'";
+            }
+        }
+        return $labels ? implode(',', $labels) : "'Items'";
     }
 }
