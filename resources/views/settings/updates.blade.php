@@ -335,64 +335,82 @@
                     <svg style="width:15px;height:15px;stroke:#f59e0b" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <div>
-                    <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">SSL Fix — ERR_SSL_VERSION_OR_CIPHER_MISMATCH</div>
-                    <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">How to fix HTTPS on shared hosting</div>
+                    <div style="font-size:13.5px;font-weight:700;color:var(--text-1);">HTTPS Troubleshooting Guide</div>
+                    <div style="font-size:11.5px;color:var(--text-3);margin-top:1px;">Reference guide — only follow steps relevant to your situation</div>
                 </div>
             </div>
             <div class="ucard-body" style="display:flex;flex-direction:column;gap:14px;">
-                <div style="padding:12px 14px;border-radius:10px;background:#fef3c7;border:1px solid #fde68a;font-size:12.5px;color:#92400e;">
-                    <strong>Root cause:</strong> Your domain has no valid SSL certificate installed, or the hosting server only supports old TLS 1.0/1.1 which modern browsers reject.
+                <div style="padding:12px 14px;border-radius:10px;background:#f0f9ff;border:1px solid #bae6fd;font-size:12.5px;color:#0c4a6e;">
+                    <strong>Common causes of HTTPS errors</strong> — one or more may apply to your setup:
+                    <ul style="margin:6px 0 0;padding-left:18px;line-height:2;">
+                        <li><strong>APP_URL is http://</strong> — most common when SSL is already active (fix below)</li>
+                        <li>SSL certificate not yet installed or expired on the hosting server</li>
+                        <li>Cloudflare SSL mode mismatch (wrong mode for your setup)</li>
+                        <li>Host only supports old TLS 1.0/1.1 which browsers reject</li>
+                    </ul>
                 </div>
 
-                {{-- Option 1: cPanel AutoSSL --}}
+                {{-- Option 1: APP_URL fix --}}
                 <div>
                     <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:8px;">
                         <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;margin-right:6px;">1</span>
-                        Fix via cPanel AutoSSL (Recommended — Free)
+                        Fix APP_URL in .env <span style="font-weight:400;color:var(--text-3);font-size:11.5px;">(do this first if SSL is already active)</span>
+                    </div>
+                    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">If your SSL certificate is installed but the site still has mixed-content or redirect errors, your <code>.env</code> is likely still pointing to <code>http://</code>:</div>
+                    <pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;font-size:11.5px;overflow-x:auto;line-height:1.8;"># Change this line in your .env file:
+APP_URL=https://yourdomain.com   ← must be https://, not http://</pre>
+                    <div style="font-size:11.5px;color:var(--text-3);margin-top:6px;">After saving, run <code>php artisan config:clear</code> (or use the Clear Cache button above).</div>
+                </div>
+
+                <div style="height:1px;background:var(--border);"></div>
+
+                {{-- Option 2: cPanel AutoSSL --}}
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:8px;">
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:#10b981;color:#fff;font-size:11px;font-weight:800;margin-right:6px;">2</span>
+                        Install SSL via cPanel AutoSSL (Free)
                     </div>
                     <ol style="font-size:12.5px;color:var(--text-2);line-height:2;padding-left:20px;">
                         <li>Login to your <strong>cPanel</strong></li>
-                        <li>Go to <strong>Security → SSL/TLS</strong></li>
-                        <li>Click <strong>"Manage SSL Sites"</strong> → Check if your domain has a certificate</li>
-                        <li>If not: go back → <strong>"SSL/TLS Status"</strong> → Click <strong>"Run AutoSSL"</strong></li>
+                        <li>Go to <strong>Security → SSL/TLS Status</strong></li>
+                        <li>Click <strong>"Run AutoSSL"</strong> to issue a free Let's Encrypt certificate</li>
                         <li>Wait 2–5 minutes, then refresh your site</li>
                     </ol>
-                    <div style="font-size:11.5px;color:var(--text-3);">Most cPanel hosts (Hostinger, Namecheap, Bluehost etc.) offer free Let's Encrypt via AutoSSL.</div>
+                    <div style="font-size:11.5px;color:var(--text-3);">Most cPanel hosts (Hostinger, Namecheap, Bluehost etc.) include AutoSSL for free.</div>
                 </div>
 
                 <div style="height:1px;background:var(--border);"></div>
 
-                {{-- Option 2: Cloudflare --}}
+                {{-- Option 3: Cloudflare --}}
                 <div>
                     <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:8px;">
-                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:#f59e0b;color:#fff;font-size:11px;font-weight:800;margin-right:6px;">2</span>
-                        Fix via Cloudflare (Free — works even without host SSL)
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:#f59e0b;color:#fff;font-size:11px;font-weight:800;margin-right:6px;">3</span>
+                        Fix Cloudflare SSL Mode
                     </div>
-                    <ol style="font-size:12.5px;color:var(--text-2);line-height:2;padding-left:20px;">
-                        <li>Create a free account at <strong>cloudflare.com</strong></li>
-                        <li>Add your domain → Cloudflare gives you two nameservers</li>
-                        <li>In your domain registrar, replace existing nameservers with Cloudflare's</li>
-                        <li>In Cloudflare Dashboard → <strong>SSL/TLS → Overview</strong> → Set mode to <strong>"Flexible"</strong></li>
-                        <li>Wait up to 24h for DNS propagation — then HTTPS works automatically</li>
-                    </ol>
-                    <div style="font-size:11.5px;color:var(--text-3);">Cloudflare handles TLS at the edge, bypassing your host's old cipher suites entirely.</div>
+                    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">If your site is behind Cloudflare, the SSL mode must match whether your host has a certificate:</div>
+                    <ul style="font-size:12.5px;color:var(--text-2);line-height:2;padding-left:20px;">
+                        <li><strong>Host HAS an SSL certificate</strong> → Set Cloudflare to <strong>"Full"</strong> or <strong>"Full (Strict)"</strong></li>
+                        <li><strong>Host has NO SSL certificate</strong> → Set Cloudflare to <strong>"Flexible"</strong></li>
+                    </ul>
+                    <div style="font-size:11.5px;color:var(--text-3);margin-top:4px;">Using "Flexible" when your host already has SSL causes redirect loops. Using "Full" when it doesn't causes connection errors.</div>
                 </div>
 
                 <div style="height:1px;background:var(--border);"></div>
 
-                {{-- Option 3: .htaccess --}}
+                {{-- Option 4: .htaccess --}}
                 <div>
                     <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:8px;">
-                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:#6366f1;color:#fff;font-size:11px;font-weight:800;margin-right:6px;">3</span>
-                        After SSL is fixed — force HTTPS in .htaccess
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:99px;background:#6366f1;color:#fff;font-size:11px;font-weight:800;margin-right:6px;">4</span>
+                        Force HTTPS in .htaccess
                     </div>
-                    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">Once your certificate is active, add this to <code>public/.htaccess</code> to force HTTPS for all visitors:</div>
+                    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">Once SSL is working, add this to <code>public/.htaccess</code> to redirect all HTTP visitors to HTTPS:</div>
                     <pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;font-size:11.5px;overflow-x:auto;line-height:1.8;"># Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # HSTS (tells browsers to always use HTTPS)
 Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"</pre>
+                    <div style="font-size:11.5px;color:var(--text-3);margin-top:6px;">Skip this if you're using Cloudflare — it handles HTTPS redirection for you.</div>
                 </div>
             </div>
         </div>
