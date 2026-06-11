@@ -244,7 +244,8 @@ class CodeGeneratorService
         }
 
         $isBusinessProblem = $this->isBusinessProblemRequest($prompt);
-        $isTiny     = !$isBusinessProblem && $this->isTinyEdit($prompt);
+        $isDebugRequest    = $this->isDebugRequest($rawPrompt);
+        $isTiny     = !$isBusinessProblem && !$isDebugRequest && $this->isTinyEdit($prompt);
         $isTemplateCustomization = str_contains(strtolower($prompt), 'ryaan template customization context');
 
         // AIRouter: classify task and resolve model tier + token budget
@@ -587,6 +588,44 @@ TINY;
 
         // Greetings / how are you / good morning etc.
         return "I'm great, thanks for asking! Ready to build something amazing for you. 🚀\n\nJust tell me what application you need — describe your idea in one line and I'll generate the entire system for you.\n\n**Examples:**\n- *\"Create a Hotel Management System\"*\n- *\"Build a School ERP with attendance and fees\"*\n- *\"Make an eCommerce store\"*\n\nWhat would you like to build today?";
+    }
+
+    private function isDebugRequest(string $prompt): bool
+    {
+        $lower = strtolower($prompt);
+
+        $debugSignals = [
+            // "X not working / not loading / not showing / not saving"
+            'not working', 'not loading', 'not showing', 'not saving', 'not rendering',
+            'not displaying', 'not opening', 'not closing', 'not clicking', 'not submitting',
+            'doesn\'t work', 'dont work', 'does not work', 'wont work', "won't work",
+            'not responding', 'not updating', 'not refreshing', 'not redirecting',
+            // Broken
+            'broken', 'broke', 'stopped working', 'suddenly stopped',
+            // Error / bug
+            'error', 'bug', 'exception', '500', '404', '403', 'crash', 'fatal',
+            // Debugging keywords
+            'fix', 'debug', 'troubleshoot', 'diagnose', 'investigate',
+            'why is', 'why isn\'t', 'why doesn\'t', 'why can\'t', 'why won\'t',
+            'how to fix', 'how do i fix', 'what\'s wrong', 'whats wrong', 'what is wrong',
+            // "X issue / X problem" (UI-level, not business-level)
+            'menu issue', 'form issue', 'button issue', 'page issue', 'link issue',
+            'menu problem', 'form problem', 'button problem', 'style problem', 'layout problem',
+            'sidebar issue', 'sidebar problem', 'navbar issue', 'navbar problem',
+            'login issue', 'login problem', 'logout issue',
+            // Failed / failing
+            'failed', 'failing', 'keeps failing', 'always fails',
+            // Bangla transliterated
+            'kaj kore na', 'kaj korche na', 'error diche', 'error ase', 'kaj hocche na',
+            'thik koro', 'thik kor', 'solve koro', 'solve kor', 'direct koro',
+            'dekhte pacchi na', 'dekte pacchi na', 'click hocche na',
+        ];
+
+        foreach ($debugSignals as $signal) {
+            if (str_contains($lower, $signal)) return true;
+        }
+
+        return false;
     }
 
     private function isBusinessProblemRequest(string $prompt): bool
