@@ -622,8 +622,8 @@ BLADE;
         body { background:#f8fafc; font-family: system-ui, -apple-system, sans-serif; }
         .sidebar { width:240px; min-height:100vh; background:#1e1b4b; flex-shrink:0; }
         .nav-link { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px;
-                    color:#c7d2fe; text-decoration:none; font-size:13.5px; font-weight:500; transition:.15s; }
-        .nav-link:hover, .nav-link.active { background:rgba(99,102,241,.25); color:#fff; }
+                    color:#94a3b8; text-decoration:none; font-size:13.5px; font-weight:500; transition:.15s; }
+        .nav-link:hover, .nav-link.active { background:rgba(99,102,241,.25); color:#e2e8f0; }
         .nav-icon { width:16px; height:16px; flex-shrink:0; }
         .main-content { flex:1; overflow-auto; }
         .topbar { background:#fff; border-bottom:1px solid #e2e8f0; padding:0 24px; height:56px;
