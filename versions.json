@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.64",
+    "latest": "1.1.65",
     "versions": [
         {
             "version": "1.0.0",
@@ -803,6 +803,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.63",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.65",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: restore RyaanCMS template — register in TemplateRegistry + dark-themed landing page\n\n- TemplateRegistry: add template.ryaancms entry (Platform & CMS category, indigo color)\n- resources/views/templates/ryaancms.blade.php: full dark-themed AI-powered CMS showcase\n  - Hero with gradient headline + 4 stats (10 agents, 12 domains, 30+ KB, 70+ integrations)\n  - Animated marquee of 15 industry types\n  - How It Works 3-step grid\n  - 6-card feature grid\n  - 12 domain pack cards\n  - Tech stack pill cloud\n  - 3-tier pricing cards\n  - CTA section + footer\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.65/ryaancms-v1.1.65-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.64",
             "critical": false,
             "file_count": null
         }
