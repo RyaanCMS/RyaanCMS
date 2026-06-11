@@ -742,257 +742,519 @@ BLADE;
                            . "</button>\n";
         }
 
-        // Stat cards
+        // Stat cards for dashboard
+        $samples  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
+        $trends   = ['+14.2%','+8.7%','+5.1%','+22.3%','+3.8%','+11.6%','+6.4%','+9.2%'];
         $cards = '';
-        $samples = [847, 1203, 342, 56, 2891, 127, 438, 73, 19, 512, 284, 96];
         foreach ($entities as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
-            $color = $colors[$i % count($colors)];
+            $color = $palette[$i % count($palette)];
             $icon  = $icons[$i % count($icons)];
-            $count = $samples[$i % count($samples)];
-            $trend = $i % 3 === 0 ? '+12%' : ($i % 3 === 1 ? '+8%' : '+5%');
+            $count = number_format($samples[$i % count($samples)]);
+            $trend = $trends[$i % count($trends)];
+            $bgLight = $color . '18';
             $cards .= <<<HTML
-<div class="stat-card" style="--c:{$color}" onclick="showModule('{$e['name']}',document.querySelector('.nav-link'))" style="cursor:pointer">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start">
-    <div>
-      <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">{$label}</div>
-      <div style="font-size:32px;font-weight:800;color:#0f172a;margin:6px 0">{$count}</div>
-      <div style="font-size:12px;color:#10b981;font-weight:600">{$trend} this month</div>
-    </div>
-    <div style="font-size:32px;opacity:.8">{$icon}</div>
+<div class="kpi-card" onclick="navTo('{$e['name']}','{$label}',document.getElementById('nav-{$e['name']}'))">
+  <div class="kpi-top">
+    <div class="kpi-icon" style="background:{$bgLight};color:{$color}">{$icon}</div>
+    <span class="kpi-trend">▲ {$trend}</span>
   </div>
+  <div class="kpi-value">{$count}</div>
+  <div class="kpi-label">{$label}</div>
 </div>
 HTML;
         }
 
-        // Chart labels & data
-        $chartLabels = implode(',', array_map(fn($e) => '"' . Str::title(str_replace('_',' ',Str::snake($e['name']))) . '"', array_slice($entities, 0, 6)));
-        $chartData   = implode(',', array_map(fn($i) => $samples[$i % count($samples)], range(0, min(5, count($entities) - 1))));
-        $chartBg     = implode(',', array_map(fn($i) => '"' . $colors[$i % count($colors)] . '"', range(0, min(5, count($entities) - 1))));
+        // Chart data (first 8 entities)
+        $chartSlice  = array_slice($entities, 0, 8);
+        $chartLabels = implode(',', array_map(fn($e) => '"' . Str::title(str_replace('_',' ',Str::snake($e['name']))) . '"', $chartSlice));
+        $chartData   = implode(',', array_map(fn($i) => $samples[$i % count($samples)], range(0, count($chartSlice) - 1)));
+        $chartBg     = implode(',', array_map(fn($i) => '"' . $palette[$i % count($palette)] . '"', range(0, count($chartSlice) - 1)));
 
-        // Table rows for first entity
-        $firstLabel = !empty($entities[0]) ? Str::title(str_replace('_', ' ', Str::snake($entities[0]['name']))) : 'Record';
-        $tableRows  = '';
-        $statuses   = ['Active','Pending','Completed','Review'];
-        for ($r = 1; $r <= 6; $r++) {
-            $status = $statuses[($r - 1) % 4];
-            $badge  = match($status) { 'Active' => '#10b981', 'Completed' => '#6366f1', 'Pending' => '#f59e0b', default => '#64748b' };
-            $tableRows .= "<tr><td>{$firstLabel} #{$r}00{$r}</td><td>2026-06-{$r}{$r}</td><td><span style=\"background:{$badge};color:#fff;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600\">{$status}</span></td><td style='text-align:right'><button style='background:#6366f1;color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer'>View</button></td></tr>\n";
-        }
-
-        $entityCount = count($entities);
-        $year        = date('Y');
-
-        // Landing page feature cards (first 6 entities)
+        // Feature cards for landing (first 6 entities)
         $featureCards = '';
         foreach (array_slice($entities, 0, 6) as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
             $icon  = $icons[$i % count($icons)];
-            $color = $colors[$i % count($colors)];
+            $color = $palette[$i % count($palette)];
+            $bgL   = $color . '22';
             $featureCards .= <<<HTML
-<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;transition:transform .2s" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
-  <div style="font-size:36px;margin-bottom:12px">{$icon}</div>
-  <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">{$label} Management</div>
-  <div style="font-size:13px;color:#94a3b8;line-height:1.5">Complete {$label} module with full CRUD, search, filters and reporting.</div>
+<div class="feat-card">
+  <div class="feat-icon" style="background:{$bgL};color:{$color}">{$icon}</div>
+  <div class="feat-title">{$label} Management</div>
+  <div class="feat-desc">Complete CRUD operations, search, filters, reports and data export.</div>
 </div>
 HTML;
         }
+
+        // Entities JSON for JS module renderer
+        $entitiesJson = json_encode(array_values(array_map(fn($e) => [
+            'name'  => $e['name'],
+            'label' => Str::title(str_replace('_', ' ', Str::snake($e['name']))),
+        ], $entities)));
+
+        $entityCount = count($entities);
+        $year        = date('Y');
+        $firstLabel  = !empty($entities[0]) ? Str::title(str_replace('_', ' ', Str::snake($entities[0]['name']))) : 'Record';
 
         return <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{$appName}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#0f172a;color:#fff;min-height:100vh}
+:root{--brand:#6366f1;--brand-dark:#4f46e5;--brand-light:#eef2ff;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--sidebar:#0f172a;--surface:#ffffff;--bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--subtle:#f1f5f9}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,sans-serif}
+/* ── screens ── */
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex}
-/* ── Landing ── */
-#screen-landing{flex-direction:column;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)}
-.land-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 60px;border-bottom:1px solid rgba(255,255,255,.08)}
-.land-logo{font-size:20px;font-weight:800;color:#fff}
-.land-nav-btns{display:flex;gap:12px}
-.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
-.btn-primary{background:#6366f1;border:none;color:#fff;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
-.btn-primary:hover{background:#4f46e5}
-.land-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 40px 40px}
-.hero-badge{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:24px}
-.hero-title{font-size:52px;font-weight:900;line-height:1.1;margin-bottom:20px;background:linear-gradient(135deg,#fff 0%,#a5b4fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:18px;color:#94a3b8;max-width:560px;line-height:1.6;margin-bottom:40px}
-.hero-btns{display:flex;gap:16px;margin-bottom:60px}
-.btn-lg-primary{background:#6366f1;border:none;color:#fff;padding:14px 32px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700}
-.btn-lg-ghost{background:transparent;border:2px solid rgba(255,255,255,.2);color:#fff;padding:14px 32px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700}
-.hero-stats{display:flex;gap:40px;margin-bottom:60px}
-.hero-stat-num{font-size:28px;font-weight:800;color:#fff}
-.hero-stat-lbl{font-size:12px;color:#64748b;margin-top:2px}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;width:100%}
-/* ── Login ── */
-#screen-login{align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)}
-.login-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:48px;width:400px;backdrop-filter:blur(10px)}
-.login-logo{text-align:center;font-size:18px;font-weight:800;color:#fff;margin-bottom:8px}
-.login-sub{text-align:center;font-size:13px;color:#64748b;margin-bottom:32px}
-.form-group{margin-bottom:18px}
-.form-label{display:block;font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.form-input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;outline:none}
-.form-input:focus{border-color:#6366f1}
-.btn-login{width:100%;background:#6366f1;border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
-.back-link{display:block;text-align:center;margin-top:20px;color:#64748b;font-size:13px;cursor:pointer}
-.back-link:hover{color:#a5b4fc}
-/* ── Dashboard ── */
-#screen-dashboard{background:#f1f5f9;color:#0f172a}
-.sidebar{width:240px;background:#0f172a;color:#fff;display:flex;flex-direction:column;flex-shrink:0}
-.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-title{font-size:15px;font-weight:800;color:#fff}
-.sidebar-sub{font-size:11px;color:#64748b;margin-top:2px}
-.nav-sec{padding:12px 12px 4px;font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;color:#94a3b8;font-size:13px;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
-.nav-link:hover,.nav-link.active{background:rgba(99,102,241,.2);color:#fff}
-.dash-main{flex:1;display:flex;flex-direction:column;overflow:auto}
-.topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
-.topbar-title{font-size:17px;font-weight:700}
-.topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:#64748b}
-.avatar{width:32px;height:32px;background:#6366f1;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
-.content{padding:24px;flex:1;overflow:auto}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;border-top:4px solid var(--c)}
-.stat-label{font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase}
-.stat-value{font-size:30px;font-weight:800;margin:6px 0}
-.stat-trend{font-size:12px;color:#10b981;font-weight:600}
-.charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:24px}
-.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px}
-.card-title{font-size:14px;font-weight:700;margin-bottom:16px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f8fafc}
-tr:hover td{background:#f8fafc}
+/* ═══════════════ LANDING ═══════════════ */
+#screen-landing{flex-direction:column;background:linear-gradient(160deg,#0a0f1e 0%,#0f172a 40%,#1a1040 100%)}
+.land-nav{display:flex;justify-content:space-between;align-items:center;padding:18px 64px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;backdrop-filter:blur(12px);background:rgba(10,15,30,.7);z-index:10}
+.land-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.land-logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%;display:inline-block}
+.land-pills{display:flex;gap:28px}
+.land-pill{color:#94a3b8;font-size:14px;font-weight:500;cursor:pointer;background:none;border:none;transition:color .15s}
+.land-pill:hover{color:#fff}
+.land-actions{display:flex;gap:10px}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.18);color:#e2e8f0;padding:9px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.btn-outline:hover{background:rgba(255,255,255,.08)}
+.btn-solid{background:var(--brand);border:none;color:#fff;padding:9px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;box-shadow:0 0 20px rgba(99,102,241,.4)}
+.btn-solid:hover{background:var(--brand-dark)}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;flex:1}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);color:#a5b4fc;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px}
+.hero-h1{font-size:60px;font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:24px;background:linear-gradient(130deg,#fff 20%,#c7d2fe 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:17px;color:#94a3b8;max-width:580px;line-height:1.7;margin-bottom:44px}
+.hero-ctas{display:flex;gap:14px;margin-bottom:64px}
+.btn-cta-primary{background:var(--brand);border:none;color:#fff;padding:15px 36px;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;box-shadow:0 4px 24px rgba(99,102,241,.5);transition:all .2s}
+.btn-cta-primary:hover{transform:translateY(-1px);box-shadow:0 6px 32px rgba(99,102,241,.6)}
+.btn-cta-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#e2e8f0;padding:15px 36px;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s}
+.btn-cta-ghost:hover{background:rgba(255,255,255,.1)}
+.hero-metrics{display:flex;gap:56px;margin-bottom:72px}
+.metric-num{font-size:36px;font-weight:900;color:#fff;letter-spacing:-1px}
+.metric-lbl{font-size:12px;color:#475569;margin-top:4px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;width:100%}
+.feat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 24px;transition:all .2s;cursor:default}
+.feat-card:hover{background:rgba(255,255,255,.07);border-color:rgba(99,102,241,.3);transform:translateY(-3px)}
+.feat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.feat-title{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:6px}
+.feat-desc{font-size:13px;color:#64748b;line-height:1.5}
+/* ═══════════════ LOGIN ═══════════════ */
+#screen-login{align-items:center;justify-content:center;background:linear-gradient(160deg,#0a0f1e 0%,#0f172a 50%,#1a1040 100%)}
+.login-wrap{width:420px}
+.login-brand{text-align:center;margin-bottom:32px}
+.login-brand-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.login-brand-sub{font-size:13px;color:#475569;margin-top:4px}
+.login-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:36px;backdrop-filter:blur(20px)}
+.login-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
+.login-hint{font-size:13px;color:#475569;margin-bottom:28px}
+.field{margin-bottom:16px}
+.field-label{display:block;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.field-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#f8fafc;padding:12px 14px;border-radius:10px;font-size:14px;outline:none;transition:border .15s}
+.field-input:focus{border-color:var(--brand);background:rgba(99,102,241,.08)}
+.btn-signin{width:100%;background:var(--brand);border:none;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;box-shadow:0 2px 12px rgba(99,102,241,.4);transition:all .15s}
+.btn-signin:hover{background:var(--brand-dark)}
+.login-back{display:block;text-align:center;margin-top:20px;color:#475569;font-size:13px;cursor:pointer;transition:color .15s}
+.login-back:hover{color:#a5b4fc}
+/* ═══════════════ DASHBOARD ═══════════════ */
+#screen-dashboard{background:var(--bg);color:var(--text);overflow:hidden}
+/* Sidebar */
+.sidebar{width:256px;background:var(--sidebar);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-logo-name{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px}
+.sb-logo-tag{font-size:11px;color:#334155;margin-top:2px;font-weight:500}
+.sb-search{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-search input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#94a3b8;padding:8px 12px 8px 32px;border-radius:8px;font-size:12px;outline:none}
+.sb-search{position:relative}
+.sb-search::before{content:'🔍';position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
+.sb-section{padding:16px 16px 6px;font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:#64748b;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .15s;border-radius:0;position:relative}
+.nav-item:hover{background:rgba(255,255,255,.04);color:#cbd5e1}
+.nav-item.active{background:rgba(99,102,241,.12);color:#fff}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand);border-radius:0 2px 2px 0}
+.nav-icon{width:20px;text-align:center;font-size:14px;flex-shrink:0}
+.nav-label{flex:1}
+.nav-badge{background:rgba(255,255,255,.08);color:#64748b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.nav-item.active .nav-badge{background:rgba(99,102,241,.3);color:#a5b4fc}
+.sb-user{padding:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:auto;display:flex;align-items:center;gap:10px}
+.sb-user-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;flex-shrink:0}
+.sb-user-name{font-size:13px;font-weight:600;color:#e2e8f0}
+.sb-user-role{font-size:11px;color:#475569}
+.sb-logout{background:none;border:none;color:#334155;cursor:pointer;font-size:11px;margin-left:auto;padding:4px 8px;border-radius:6px;transition:all .15s}
+.sb-logout:hover{color:#ef4444;background:rgba(239,68,68,.1)}
+/* Main */
+.dash-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);flex:1}
+.breadcrumb-sep{color:#d1d5db}
+.breadcrumb-cur{color:var(--text);font-weight:600}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:7px 14px;width:240px}
+.topbar-search input{background:none;border:none;outline:none;font-size:13px;color:var(--text);width:100%}
+.topbar-search input::placeholder{color:#94a3b8}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.notif-btn{background:none;border:none;cursor:pointer;font-size:18px;position:relative;padding:4px}
+.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:1.5px solid #fff}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--subtle);border:1px solid var(--border);border-radius:8px;cursor:pointer}
+.user-chip-avatar{width:24px;height:24px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800}
+.user-chip-name{font-size:12px;font-weight:600;color:var(--text)}
+/* Content */
+.content-area{flex:1;overflow-y:auto;padding:24px 28px}
+/* KPI cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:#fff;border-radius:14px;padding:20px;border:1px solid var(--border);cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.kpi-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+.kpi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.kpi-trend{font-size:11px;font-weight:700;color:var(--success);background:#ecfdf5;padding:3px 8px;border-radius:20px}
+.kpi-value{font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--text);margin-bottom:4px}
+.kpi-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+/* Charts */
+.chart-row{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;margin-bottom:24px}
+.chart-card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.chart-title{font-size:14px;font-weight:700;color:var(--text)}
+.chart-period{font-size:11px;color:var(--muted);background:var(--subtle);padding:4px 10px;border-radius:6px;font-weight:500}
+/* Table card */
+.table-card{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.table-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--border)}
+.table-title{font-size:14px;font-weight:700;color:var(--text)}
+.table-actions{display:flex;gap:8px}
+.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-sm-outline{background:#fff;border:1px solid var(--border)!important;color:var(--muted)}
+.btn-sm-outline:hover{border-color:var(--brand)!important;color:var(--brand)}
+.btn-sm-primary{background:var(--brand);color:#fff}
+.btn-sm-primary:hover{background:var(--brand-dark)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;padding:11px 20px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;background:var(--subtle);border-bottom:1px solid var(--border)}
+.data-table td{padding:13px 20px;font-size:13px;color:#334155;border-bottom:1px solid #f8fafc;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#fafbfc}
+.status-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.pill-green{background:#ecfdf5;color:#059669}
+.pill-blue{background:#eff6ff;color:#2563eb}
+.pill-amber{background:#fffbeb;color:#d97706}
+.pill-gray{background:var(--subtle);color:var(--muted)}
+.pill-red{background:#fef2f2;color:#dc2626}
+.action-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.action-btn:hover{border-color:var(--brand);color:var(--brand)}
+.tbl-pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border)}
+.pg-info{font-size:12px;color:var(--muted)}
+.pg-btns{display:flex;gap:4px}
+.pg-btn{background:#fff;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pg-btn:hover{border-color:var(--brand);color:var(--brand)}
+.pg-btn.cur{background:var(--brand);border-color:var(--brand);color:#fff}
+/* Module list search bar */
+.list-toolbar{display:flex;gap:10px;margin-bottom:20px}
+.search-box{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+.search-box input{background:none;border:none;outline:none;font-size:13px;color:var(--text);width:100%}
+.filter-btn{background:#fff;border:1px solid var(--border);color:var(--muted);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px}
+.filter-btn:hover{border-color:var(--brand);color:var(--brand)}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ SCREEN 1: LANDING ══════════════ -->
+<!-- ════════════════════════════════════
+     SCREEN 1 — LANDING
+════════════════════════════════════ -->
 <div id="screen-landing" class="screen active">
   <nav class="land-nav">
-    <div class="land-logo">🏥 {$appName}</div>
-    <div class="land-nav-btns">
-      <button class="btn-ghost" onclick="go('login')">Login</button>
-      <button class="btn-primary" onclick="go('login')">Get Started</button>
+    <div class="land-logo">
+      <span style="background:var(--brand);color:#fff;width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900">R</span>
+      {$appName}
+    </div>
+    <div class="land-pills">
+      <button class="land-pill">Features</button>
+      <button class="land-pill">Modules</button>
+      <button class="land-pill">About</button>
+    </div>
+    <div class="land-actions">
+      <button class="btn-outline" onclick="go('login')">Sign In</button>
+      <button class="btn-solid" onclick="go('login')">Get Started →</button>
     </div>
   </nav>
-  <div class="land-hero">
-    <div class="hero-badge">Enterprise Application · {$entityCount} Modules</div>
-    <h1 class="hero-title">{$appName}</h1>
-    <p class="hero-sub">A complete enterprise management platform. Streamline operations, manage all modules, and make data-driven decisions from one unified system.</p>
-    <div class="hero-btns">
-      <button class="btn-lg-primary" onclick="go('login')">🚀 Get Started Free</button>
-      <button class="btn-lg-ghost" onclick="go('login')">🔑 Login to Dashboard</button>
+  <div class="hero">
+    <div class="hero-eyebrow">✦ Enterprise Platform &nbsp;·&nbsp; {$entityCount} Modules &nbsp;·&nbsp; Production Ready</div>
+    <h1 class="hero-h1">{$appName}</h1>
+    <p class="hero-sub">The complete enterprise management platform your business needs. Manage all operations, teams, and workflows from one intelligent system.</p>
+    <div class="hero-ctas">
+      <button class="btn-cta-primary" onclick="go('login')">🚀 Start for Free</button>
+      <button class="btn-cta-ghost" onclick="go('login')">View Dashboard →</button>
     </div>
-    <div class="hero-stats">
-      <div style="text-align:center"><div class="hero-stat-num">{$entityCount}</div><div class="hero-stat-lbl">Modules Ready</div></div>
-      <div style="text-align:center"><div class="hero-stat-num">100%</div><div class="hero-stat-lbl">Zero AI Cost</div></div>
-      <div style="text-align:center"><div class="hero-stat-num">∞</div><div class="hero-stat-lbl">Records Supported</div></div>
+    <div class="hero-metrics">
+      <div style="text-align:center"><div class="metric-num">{$entityCount}</div><div class="metric-lbl">Modules Ready</div></div>
+      <div style="width:1px;background:rgba(255,255,255,.08)"></div>
+      <div style="text-align:center"><div class="metric-num">100%</div><div class="metric-lbl">No AI Cost</div></div>
+      <div style="width:1px;background:rgba(255,255,255,.08)"></div>
+      <div style="text-align:center"><div class="metric-num">∞</div><div class="metric-lbl">Records</div></div>
     </div>
-    <div class="features-grid">{$featureCards}</div>
+    <div class="feat-grid">{$featureCards}</div>
   </div>
 </div>
 
-<!-- ══════════════ SCREEN 2: LOGIN ══════════════ -->
+<!-- ════════════════════════════════════
+     SCREEN 2 — LOGIN
+════════════════════════════════════ -->
 <div id="screen-login" class="screen">
-  <div class="login-card">
-    <div class="login-logo">🏥 {$appName}</div>
-    <div class="login-sub">Sign in to your account</div>
-    <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <input class="form-input" type="email" value="admin@example.com" placeholder="admin@example.com">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;margin:0 auto 14px">R</div>
+      <div class="login-brand-name">{$appName}</div>
+      <div class="login-brand-sub">Sign in to your workspace</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="form-input" type="password" value="password" placeholder="••••••••">
+    <div class="login-card">
+      <div class="login-title">Welcome back 👋</div>
+      <div class="login-hint">Enter your credentials to continue</div>
+      <div class="field">
+        <label class="field-label">Email Address</label>
+        <input class="field-input" type="email" value="admin@example.com">
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" value="password">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;cursor:pointer">
+          <input type="checkbox" checked style="accent-color:var(--brand)"> Remember me
+        </label>
+        <a style="font-size:12px;color:var(--brand);cursor:pointer">Forgot password?</a>
+      </div>
+      <button class="btn-signin" onclick="go('dashboard')">Sign In →</button>
     </div>
-    <button class="btn-login" onclick="go('dashboard')">Sign In →</button>
-    <span class="back-link" onclick="go('landing')">← Back to Home</span>
+    <div class="login-back" onclick="go('landing')">← Back to home</div>
   </div>
 </div>
 
-<!-- ══════════════ SCREEN 3: DASHBOARD ══════════════ -->
+<!-- ════════════════════════════════════
+     SCREEN 3 — DASHBOARD
+════════════════════════════════════ -->
 <div id="screen-dashboard" class="screen">
+
+  <!-- Sidebar -->
   <div class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-title">🏥 {$appName}</div>
-      <div class="sidebar-sub">{$entityCount} modules</div>
+    <div class="sb-logo">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--brand),#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0">R</div>
+        <div>
+          <div class="sb-logo-name">{$appName}</div>
+          <div class="sb-logo-tag">Admin Panel</div>
+        </div>
+      </div>
     </div>
-    <div class="nav-sec">Overview</div>
-    <button class="nav-link active" onclick="showDash(this)">📊 Dashboard</button>
-    <div class="nav-sec">Modules</div>
+    <div class="sb-search">
+      <input placeholder="Search modules..." id="sb-search-input">
+    </div>
+    <div class="sb-section">Overview</div>
+    <button class="nav-item active" id="nav-dashboard" onclick="showDashboard(this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <div class="sb-section">Modules</div>
     {$sidebarLinks}
-    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)">
-      <button class="nav-link" style="color:#ef4444" onclick="go('landing')">🚪 Logout</button>
+    <div class="sb-user">
+      <div class="sb-user-avatar">AD</div>
+      <div>
+        <div class="sb-user-name">Admin User</div>
+        <div class="sb-user-role">Super Admin</div>
+      </div>
+      <button class="sb-logout" onclick="go('landing')" title="Logout">⏻</button>
     </div>
   </div>
+
+  <!-- Main area -->
   <div class="dash-main">
+    <!-- Top bar -->
     <div class="topbar">
-      <div class="topbar-title" id="dash-title">Dashboard</div>
-      <div class="topbar-user"><span>Admin User</span><div class="avatar">A</div></div>
+      <div class="breadcrumb">
+        <span style="color:var(--muted)">{$appName}</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-cur" id="breadcrumb-cur">Dashboard</span>
+      </div>
+      <div class="topbar-search">
+        <span style="color:#94a3b8;font-size:13px">🔍</span>
+        <input placeholder="Search anything...">
+      </div>
+      <div class="topbar-actions">
+        <button class="notif-btn">🔔<span class="notif-dot"></span></button>
+        <div class="user-chip">
+          <div class="user-chip-avatar">AD</div>
+          <span class="user-chip-name">Admin</span>
+          <span style="color:#94a3b8;font-size:10px">▾</span>
+        </div>
+      </div>
     </div>
-    <div class="content" id="dash-content">
-      <div class="stats-grid">{$cards}</div>
-      <div class="charts-row">
-        <div class="card">
-          <div class="card-title">📈 Module Overview</div>
-          <canvas id="barChart" height="180"></canvas>
+
+    <!-- Content -->
+    <div class="content-area" id="dash-content">
+      <!-- KPI Grid -->
+      <div class="kpi-grid">{$cards}</div>
+      <!-- Charts -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">📈 Records Overview</span>
+            <span class="chart-period">Last 30 days</span>
+          </div>
+          <canvas id="barChart" height="160"></canvas>
         </div>
-        <div class="card">
-          <div class="card-title">🥧 Distribution</div>
-          <canvas id="doughChart" height="180"></canvas>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">🥧 Distribution</span>
+            <span class="chart-period">All time</span>
+          </div>
+          <canvas id="doughChart" height="160"></canvas>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">📋 Recent {$firstLabel} Records</div>
-        <table>
-          <thead><tr><th>Name</th><th>Date</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
-          <tbody>{$tableRows}</tbody>
-        </table>
-      </div>
+      <!-- Recent records table -->
+      <div class="table-card" id="recent-table"></div>
     </div>
   </div>
 </div>
 
 <script>
-function go(screen){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
-  if(screen==='dashboard') initCharts();
+const ENTITIES = {$entitiesJson};
+const PALETTE  = [{$chartBg}];
+const SAMPLES  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
+const STATUSES = [
+  {label:'Active',    cls:'pill-green'},
+  {label:'Pending',   cls:'pill-amber'},
+  {label:'Completed', cls:'pill-blue'},
+  {label:'Inactive',  cls:'pill-gray'},
+  {label:'Cancelled', cls:'pill-red'}
+];
+
+/* ── Screen switching ── */
+function go(s){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  if(s==='dashboard'){ initCharts(); renderRecentTable(ENTITIES[0]); }
 }
-let chartsInit=false;
+
+/* ── Charts ── */
+let chartsInited=false;
 function initCharts(){
-  if(chartsInit)return; chartsInit=true;
-  const colors=[{$chartBg}];
+  if(chartsInited)return; chartsInited=true;
+  const labels=[{$chartLabels}];
+  const data=[{$chartData}];
   new Chart(document.getElementById('barChart'),{
     type:'bar',
-    data:{labels:[{$chartLabels}],datasets:[{label:'Records',data:[{$chartData}],backgroundColor:colors,borderRadius:6}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}},maintainAspectRatio:false}
+    data:{labels,datasets:[{data,backgroundColor:PALETTE,borderRadius:8,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f8fafc'},ticks:{font:{size:11},color:'#94a3b8'}},x:{grid:{display:false},ticks:{font:{size:11},color:'#94a3b8'}}},maintainAspectRatio:false}
   });
   new Chart(document.getElementById('doughChart'),{
     type:'doughnut',
-    data:{labels:[{$chartLabels}],datasets:[{data:[{$chartData}],backgroundColor:colors,borderWidth:0}]},
-    options:{plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},cutout:'65%',maintainAspectRatio:false}
+    data:{labels,datasets:[{data,backgroundColor:PALETTE,borderWidth:3,borderColor:'#fff'}]},
+    options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,color:'#64748b'}}},cutout:'68%',maintainAspectRatio:false}
   });
 }
-function showDash(el){
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('dash-title').textContent='Dashboard';
-  document.getElementById('dash-content').innerHTML=document.getElementById('dash-content').innerHTML;
-  location.reload();
+
+/* ── Recent table ── */
+function renderRecentTable(entity){
+  if(!entity)return;
+  var rows='';
+  var fnames=['James Wilson','Maria Garcia','Chen Wei','Aisha Patel','Lucas Costa','Sophie Martin','Omar Hassan','Yuki Tanaka','Carlos Silva','Emma Brown'];
+  var dates=['2026-06-11','2026-06-10','2026-06-09','2026-06-08','2026-06-07','2026-06-06'];
+  for(var r=0;r<8;r++){
+    var s=STATUSES[r%STATUSES.length];
+    rows+='<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#64748b;flex-shrink:0">'+(r+1)+'</div><div><div style="font-weight:600;color:#0f172a">'+entity.label+' #'+(1001+r)+'</div><div style="font-size:11px;color:#94a3b8">ID-'+(10000+r*7)+'</div></div></div></td>'
+      +'<td style="color:#64748b">'+fnames[r%fnames.length]+'</td>'
+      +'<td><span class="status-pill '+s.cls+'">'+s.label+'</span></td>'
+      +'<td style="color:#94a3b8;font-size:12px">'+dates[r%dates.length]+'</td>'
+      +'<td><button class="action-btn" onclick="showForm(\''+entity.name+'\',\''+entity.label+'\')">View</button> <button class="action-btn">Edit</button></td>'
+    +'</tr>';
+  }
+  document.getElementById('recent-table').innerHTML=
+    '<div class="table-header">'
+    +'<div class="table-title">📋 Recent '+entity.label+' Records</div>'
+    +'<div class="table-actions"><button class="btn-sm btn-sm-outline" style="border:1px solid var(--border)">Export</button><button class="btn-sm btn-sm-primary" onclick="showForm(\''+entity.name+'\',\''+entity.label+'\')">+ Add New</button></div>'
+    +'</div>'
+    +'<table class="data-table"><thead><tr><th>Record</th><th>Name</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="tbl-pagination"><span class="pg-info">Showing 1–8 of 247 records</span><div class="pg-btns"><button class="pg-btn">‹</button><button class="pg-btn cur">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button><button class="pg-btn">›</button></div></div>';
 }
-function showModule(name,el){
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('dash-title').textContent=name.replace(/_/g,' ');
-  document.getElementById('dash-content').innerHTML='<div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:48px;text-align:center"><div style="font-size:52px;margin-bottom:16px">📋</div><h2 style="font-size:22px;font-weight:800;margin-bottom:8px">'+name.replace(/_/g,' ')+' Module</h2><p style="color:#64748b;margin-bottom:28px;font-size:14px">Full CRUD interface — list, create, edit, delete records with search and filters.</p><div style="display:flex;gap:12px;justify-content:center"><button onclick="go(\'dashboard\')" style="background:#f1f5f9;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">← Dashboard</button><button style="background:#6366f1;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">+ Add New</button></div></div>';
+
+/* ── Dashboard home ── */
+function showDashboard(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('breadcrumb-cur').textContent='Dashboard';
+  document.getElementById('dash-content').innerHTML=
+    '<div class="kpi-grid">'+document.querySelector('.kpi-grid').innerHTML+'</div>'
+    +'<div class="chart-row"><div class="chart-card"><div class="chart-header"><span class="chart-title">📈 Records Overview</span><span class="chart-period">Last 30 days</span></div><canvas id="barChart" height="160"></canvas></div><div class="chart-card"><div class="chart-header"><span class="chart-title">🥧 Distribution</span><span class="chart-period">All time</span></div><canvas id="doughChart" height="160"></canvas></div></div>'
+    +'<div class="table-card" id="recent-table"></div>';
+  chartsInited=false; initCharts(); renderRecentTable(ENTITIES[0]);
 }
+
+/* ── Module list view ── */
+function navTo(name,label,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('breadcrumb-cur').textContent=label;
+  var rows='';
+  var fnames=['James Wilson','Maria Garcia','Chen Wei','Aisha Patel','Lucas Costa','Sophie Martin','Omar Hassan','Yuki Tanaka','Carlos Silva','Emma Brown','David Kim','Sara Johnson'];
+  var emails=['james@example.com','maria@example.com','chen@example.com','aisha@example.com','lucas@example.com','sophie@example.com','omar@example.com','yuki@example.com','carlos@example.com','emma@example.com'];
+  for(var r=0;r<10;r++){
+    var s=STATUSES[r%STATUSES.length];
+    var val=Math.floor(Math.random()*9000+1000);
+    rows+='<tr>'
+      +'<td><input type="checkbox" style="accent-color:var(--brand)"></td>'
+      +'<td><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;background:linear-gradient(135deg,'+PALETTE[r%PALETTE.length]+','+PALETTE[(r+2)%PALETTE.length]+');border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0">'+(r+1)+'</div><div><div style="font-weight:600;color:#0f172a">'+label+' #'+(1001+r)+'</div><div style="font-size:11px;color:#94a3b8">'+emails[r%emails.length]+'</div></div></div></td>'
+      +'<td style="font-weight:500">'+fnames[r%fnames.length]+'</td>'
+      +'<td><span class="status-pill '+s.cls+'">'+s.label+'</span></td>'
+      +'<td style="font-weight:600;color:#0f172a">$'+val.toLocaleString()+'</td>'
+      +'<td style="color:#94a3b8;font-size:12px">2026-06-'+(String(11-r).padStart(2,'0'))+'</td>'
+      +'<td><button class="action-btn" onclick="showForm(\''+name+'\',\''+label+'\')">View</button> <button class="action-btn">Edit</button> <button class="action-btn" style="color:#ef4444" onclick="if(confirm(\'Delete this record?\'))this.closest(\'tr\').remove()">Del</button></td>'
+    +'</tr>';
+  }
+  document.getElementById('dash-content').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">'
+    +'<div><h2 style="font-size:20px;font-weight:800;letter-spacing:-.3px">'+label+'</h2><p style="font-size:13px;color:var(--muted);margin-top:3px">Manage all '+label.toLowerCase()+' records</p></div>'
+    +'<div style="display:flex;gap:10px"><button class="btn-sm btn-sm-outline" style="border:1px solid var(--border)">📥 Import</button><button class="btn-sm btn-sm-outline" style="border:1px solid var(--border)">📤 Export</button><button class="btn-sm btn-sm-primary" onclick="showForm(\''+name+'\',\''+label+'\')">+ Add New '+label+'</button></div>'
+    +'</div>'
+    +'<div class="list-toolbar">'
+    +'<div class="search-box"><span style="color:#94a3b8">🔍</span><input placeholder="Search '+label.toLowerCase()+'..."></div>'
+    +'<button class="filter-btn">⚡ Filter</button>'
+    +'<button class="filter-btn">📅 Date Range</button>'
+    +'<button class="filter-btn">↕ Sort</button>'
+    +'</div>'
+    +'<div class="table-card">'
+    +'<table class="data-table"><thead><tr><th style="width:36px"><input type="checkbox" style="accent-color:var(--brand)"></th><th>Record</th><th>Name</th><th>Status</th><th>Value</th><th>Date</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="tbl-pagination"><span class="pg-info">Showing 1–10 of 247 records</span><div class="pg-btns"><button class="pg-btn">‹</button><button class="pg-btn cur">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button><button class="pg-btn">⋯</button><button class="pg-btn">25</button><button class="pg-btn">›</button></div></div>'
+    +'</div>';
+}
+
+/* ── Add / View form ── */
+function showForm(name,label){
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML='<div style="background:#fff;border-radius:20px;width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">'
+    +'<div style="padding:24px 28px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:17px;font-weight:800;color:#0f172a">Add New '+label+'</div><div style="font-size:12px;color:#64748b;margin-top:2px">Fill in the details below</div></div>'
+    +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:#f1f5f9;border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;color:#64748b">✕</button>'
+    +'</div>'
+    +'<div style="padding:24px 28px">'
+    +'<div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Name</label><input style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:11px 14px;font-size:14px;outline:none;color:#0f172a" placeholder="Enter name"></div>'
+    +'<div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Status</label><select style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:11px 14px;font-size:14px;outline:none;color:#0f172a;background:#fff"><option>Active</option><option>Pending</option><option>Inactive</option></select></div>'
+    +'<div style="margin-bottom:16px"><label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Email</label><input type="email" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:11px 14px;font-size:14px;outline:none;color:#0f172a" placeholder="email@example.com"></div>'
+    +'<div style="margin-bottom:24px"><label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Notes</label><textarea style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:11px 14px;font-size:14px;outline:none;color:#0f172a;resize:vertical;min-height:80px" placeholder="Optional notes..."></textarea></div>'
+    +'<div style="display:flex;gap:10px"><button onclick="this.closest(\'div[style*=fixed]\').remove()" style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:#64748b">Cancel</button><button style="flex:1;background:var(--brand);border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;color:#fff" onclick="alert(\'Record saved!\');this.closest(\'div[style*=fixed]\').remove()">Save Record</button></div>'
+    +'</div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+}
+
+/* Sidebar search filter */
+document.getElementById('sb-search-input').addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  document.querySelectorAll('.nav-item').forEach(function(el){
+    if(!el.id||el.id==='nav-dashboard')return;
+    el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
+  });
+});
 </script>
 </body>
 </html>
