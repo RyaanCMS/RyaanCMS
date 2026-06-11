@@ -894,18 +894,27 @@ TINY;
             [['role' => 'user', 'content' => $reducedPrompt]]
         );
 
-        $startTime    = microtime(true);
-        $response     = $this->chatWithFallback(
-            $messages,
-            array_merge($model ? ['model' => $model] : [], ['max_tokens' => 14000]),
-            $provider,
-            $user
-        );
-        $responseTime = (int) ((microtime(true) - $startTime) * 1000);
-        $totalTokens += $response['tokens_used'];
-
-        $parsed = $this->parseResponse($response['content'], $project);
-        foreach ($parsed['files'] as $f) { $allFiles[] = $f; }
+        try {
+            $startTime    = microtime(true);
+            $response     = $this->chatWithFallback(
+                $messages,
+                array_merge($model ? ['model' => $model] : [], ['max_tokens' => 14000]),
+                $provider,
+                $user
+            );
+            $responseTime = (int) ((microtime(true) - $startTime) * 1000);
+            $totalTokens += $response['tokens_used'];
+            $parsed = $this->parseResponse($response['content'], $project);
+            foreach ($parsed['files'] as $f) { $allFiles[] = $f; }
+        } catch (\Throwable $e) {
+            // Step 3 AI failed — return Step 2 CRUD files and explain what's missing
+            $errMsg  = $this->humanizeAIError($e);
+            $partial = "✅ **{$project->name} core modules ready** — " . count($allFiles) . " files built.\n\n⚠️ Dashboard and advanced features could not be generated: {$errMsg}\n\nOnce your API key is working, ask me to **'add the dashboard'** to complete the app.";
+            $conversation->addMessage('assistant', $partial, ['tokens_used' => 0, 'model' => 'partial', 'generated_files' => array_column($allFiles, 'path')]);
+            $project->increment('ai_tokens_used', 0);
+            return ['message' => $partial, 'files_generated' => $allFiles, 'tokens_used' => 0, 'model' => 'partial'];
+        }
+        $response ??= ['model' => 'ai', 'tokens_used' => 0, 'content' => ''];
 
         // ── Save conversation record ──────────────────────────────────────────
         $conversation->addMessage('assistant', $response['content'], [
@@ -1017,7 +1026,12 @@ TINY;
                 array_merge($model ? ['model' => $model] : [], ['max_tokens' => 14000])
             );
         } catch (\Throwable $e) {
-            $onEvent(['type' => 'error', 'message' => 'AI error: ' . $this->humanizeAIError($e)]);
+            // Step 3 AI failed — deliver Step 2 CRUD files and explain what's missing
+            $errMsg  = $this->humanizeAIError($e);
+            $partial = "✅ **{$blueprint['name']} core modules ready** — " . count($allFiles) . " files built.\n\n⚠️ Dashboard and advanced features could not be generated: {$errMsg}\n\nOnce your API key is working, ask me to **'add the dashboard'** to complete the app.";
+            $conversation->addMessage('assistant', $partial, ['tokens_used' => 0, 'model' => 'partial', 'generated_files' => array_column($allFiles, 'path')]);
+            $project->increment('ai_tokens_used', 0);
+            $onEvent(['type' => 'done', 'message' => $partial, 'model' => 'partial', 'files' => $allFiles, 'tokens_used' => 0]);
             return;
         }
 
