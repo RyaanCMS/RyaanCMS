@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.70",
+    "latest": "1.1.71",
     "versions": [
         {
             "version": "1.0.0",
@@ -875,6 +875,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.69",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.71",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: storage:link in install + show defaults in branding settings\n\n- Run storage:link during install wizard so uploaded logos/favicons\n  are accessible via web URL on cPanel fresh installs\n- Branding settings: show gradient R icon when no logo uploaded (instead\n  of blank upload zone), show default favicon.svg when no favicon set",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.71/ryaancms-v1.1.71-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.70",
             "critical": false,
             "file_count": null
         }
