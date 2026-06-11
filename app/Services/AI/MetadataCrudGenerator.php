@@ -718,4 +718,17 @@ BLADE;
 @endsection
 BLADE;
     }
+
+    private function enumInput(string $name, array $opts, ?string $var, string $required): string
+    {
+        $options = "<option value=\"\">-- Select --</option>\n";
+        foreach ($opts as $opt) {
+            $selected = $var
+                ? "{{ old('{$name}', \${$var}->{$name}) === '{$opt}' ? 'selected' : '' }}"
+                : "{{ old('{$name}') === '{$opt}' ? 'selected' : '' }}";
+            $optLabel = Str::title(str_replace('_', ' ', $opt));
+            $options .= "                       <option value=\"{$opt}\" {$selected}>{$optLabel}</option>\n";
+        }
+        return "<select name=\"{$name}\" id=\"{$name}\" {$required} class=\"w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('{$name}') border-red-400 @enderror\">\n                       {$options}                   </select>";
+    }
 }
