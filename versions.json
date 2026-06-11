@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.54",
+    "latest": "1.1.55",
     "versions": [
         {
             "version": "1.0.0",
@@ -683,6 +683,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.53",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.55",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: protect getBalance() against missing credit_balances table\n\nWraps CreditBalance::firstOrCreate() in try/catch so app generation\nworks even before php artisan migrate has been run. Falls back to an\nunsaved BYOK CreditBalance instance with zero balance and byok tier,\nallowing the IntelligenceGate to proceed normally.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.55/ryaancms-v1.1.55-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.54",
             "critical": false,
             "file_count": null
         }
