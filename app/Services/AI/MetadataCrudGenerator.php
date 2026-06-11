@@ -758,35 +758,33 @@ BLADE;
 
     private function shellPreviewHtml(string $appName, array $entities): string
     {
-        $profile     = $this->domainProfile($appName, $entities);
-        $brand       = $profile['brand'];
-        $brandDk     = $profile['brandDk'];
-        $brandLight  = $profile['brandLight'];
-        $gradient    = $profile['gradient'];
-        $heroTag     = $profile['heroTag'];
-        $heroSub     = $profile['heroSub'];
-        $userRole    = $profile['userRole'];
-        $userName    = $profile['userName'];
-        $sbSection   = $profile['sbSection'];
-        $featSfx     = $profile['featSuffix'];
-        $appInitial  = strtoupper(mb_substr($appName, 0, 1));
+        $profile      = $this->domainProfile($appName, $entities);
+        $extras       = $this->domainExtras($profile['domain'], $appName);
+        $brand        = $profile['brand'];
+        $brandDk      = $profile['brandDk'];
+        $brandLight   = $profile['brandLight'];
+        $heroTag      = $profile['heroTag'];
+        $heroSub      = $profile['heroSub'];
+        $userRole     = $profile['userRole'];
+        $userName     = $profile['userName'];
+        $sbSection    = $profile['sbSection'];
+        $featSfx      = $profile['featSuffix'];
+        $appInitial   = strtoupper(mb_substr($appName, 0, 1));
         $userInitials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', str_replace(' ', '', $userName)), 0, 2));
+        $year         = date('Y');
 
-        $palette = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
-        $samples = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72];
-        $trends  = ['+14.2%','+8.7%','+5.1%','+22.3%','+3.8%','+11.6%','+6.4%','+9.2%'];
-        $counts  = [1203,847,342,2891,127,438,73,512,284,96,156,631,89,447,238,72,319,184];
+        // Palette for KPI / feature card accent colors (light bg tint + dark text/icon)
+        $palette  = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
+        $trends   = ['+12.4%','+8.7%','+5.1%','+18.3%','+3.8%','+9.6%','+6.4%','+11.2%'];
+        $counts   = [1847,84,18,342,2891,127,438,73,512,284,96,156,631,89,447,238];
 
-        // Hero metrics HTML
+        // ── Hero metrics strip ─────────────────────────────────────────────
         $metricsHtml = '';
-        foreach ($profile['metrics'] as $idx => $m) {
-            if ($idx > 0) {
-                $metricsHtml .= '<div style="width:1px;background:rgba(255,255,255,.08)"></div>';
-            }
-            $metricsHtml .= '<div style="text-align:center"><div class="metric-num">' . $m['num'] . '</div><div class="metric-lbl">' . $m['lbl'] . '</div></div>';
+        foreach ($profile['metrics'] as $m) {
+            $metricsHtml .= '<div class="hero-stat"><div class="hero-stat-num">' . $m['num'] . '</div><div class="hero-stat-lbl">' . $m['lbl'] . '</div></div>';
         }
 
-        // Sidebar nav links with domain-specific entity icons
+        // ── Sidebar nav links ───────────────────────────────────────────────
         $sidebarLinks = '';
         foreach ($entities as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
@@ -799,63 +797,126 @@ BLADE;
                            . "</button>\n";
         }
 
-        // KPI stat cards with domain-prefixed labels
+        // ── Mobile bottom nav (top 5 items) ────────────────────────────────
+        $mobileNavItems = '';
+        $mobileSlice = array_slice($entities, 0, 4);
+        foreach ($mobileSlice as $i => $e) {
+            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $icon  = $this->entityIcon($e['name']);
+            $mobileNavItems .= "<button class=\"mob-nav-btn\" onclick=\"navTo('{$e['name']}','{$label}',document.getElementById('nav-{$e['name']}'))\">"
+                             . "<span>{$icon}</span><span class=\"mob-nav-lbl\">{$label}</span></button>\n";
+        }
+        $mobileNavItems .= "<button class=\"mob-nav-btn\" onclick=\"showSettings()\"><span>⚙️</span><span class=\"mob-nav-lbl\">Settings</span></button>\n";
+
+        // ── KPI cards ───────────────────────────────────────────────────────
         $cards = '';
         foreach ($entities as $i => $e) {
-            $label   = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
-            $color   = $palette[$i % count($palette)];
-            $icon    = $this->entityIcon($e['name']);
-            $rc      = $this->realisticCount($e['name'], $profile['domain']);
-            $count   = number_format($rc['count']);
-            $trend   = $rc['trend'];
-            $bgLight = $color . '18';
-            $kpiPfx  = $profile['kpiPfx'][$i % 8];
-            $kpiLbl  = $kpiPfx . ' ' . $label;
-            $cards  .= <<<HTML
+            $label  = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $color  = $palette[$i % count($palette)];
+            $icon   = $this->entityIcon($e['name']);
+            $rc     = $this->realisticCount($e['name'], $profile['domain']);
+            $count  = number_format($rc['count']);
+            $trend  = $rc['trend'];
+            $bgL    = $color . '15';
+            $kpiLbl = $profile['kpiPfx'][$i % 8] . ' ' . $label;
+            $trendColor = '#10b981';
+            $cards .= <<<CARD
 <div class="kpi-card" onclick="navTo('{$e['name']}','{$label}',document.getElementById('nav-{$e['name']}'))">
-  <div class="kpi-top">
-    <div class="kpi-icon" style="background:{$bgLight};color:{$color}">{$icon}</div>
-    <span class="kpi-trend">▲ {$trend}</span>
+  <div class="kpi-head">
+    <div class="kpi-icon" style="background:{$bgL};color:{$color}">{$icon}</div>
+    <span class="kpi-badge" style="color:{$trendColor};background:{$trendColor}18">▲ {$trend}</span>
   </div>
-  <div class="kpi-value">{$count}</div>
-  <div class="kpi-label">{$kpiLbl}</div>
+  <div class="kpi-num" style="color:{$color}">{$count}</div>
+  <div class="kpi-lbl">{$kpiLbl}</div>
 </div>
-HTML;
+CARD;
         }
 
-        // Feature cards for landing (first 6 entities) with domain copy
+        // ── Feature cards (landing) ─────────────────────────────────────────
         $featureCards = '';
         foreach (array_slice($entities, 0, 6) as $i => $e) {
             $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
             $icon  = $this->entityIcon($e['name']);
             $color = $palette[$i % count($palette)];
-            $bgL   = $color . '22';
-            $featureCards .= <<<HTML
+            $bgL   = $color . '18';
+            $featureCards .= <<<FEAT
 <div class="feat-card">
   <div class="feat-icon" style="background:{$bgL};color:{$color}">{$icon}</div>
-  <div class="feat-title">{$label} Management</div>
+  <div class="feat-name">{$label} Management</div>
   <div class="feat-desc">Complete {$label} records {$featSfx}</div>
 </div>
-HTML;
+FEAT;
         }
 
-        // Chart data (first 8 entities)
+        // ── Testimonials (from extras) ──────────────────────────────────────
+        $testiHtml = '';
+        foreach (array_slice($extras['testimonials'], 0, 3) as $t) {
+            $testiHtml .= <<<TESTI
+<div class="testi-card">
+  <div class="testi-stars">★★★★★</div>
+  <p class="testi-quote">"{$t['quote']}"</p>
+  <div class="testi-person">
+    <div class="testi-avatar">{$t['init']}</div>
+    <div><div class="testi-name">{$t['name']}</div><div class="testi-role">{$t['role']}, {$t['company']}</div></div>
+  </div>
+</div>
+TESTI;
+        }
+
+        // ── Chart data ──────────────────────────────────────────────────────
         $chartSlice  = array_slice($entities, 0, 8);
         $chartLabels = implode(',', array_map(fn($e) => '"' . Str::title(str_replace('_',' ',Str::snake($e['name']))) . '"', $chartSlice));
-        $chartData   = implode(',', array_map(fn($i) => $samples[$i % count($samples)], range(0, count($chartSlice) - 1)));
+        $chartData   = implode(',', array_map(fn($i) => $counts[$i % count($counts)], range(0, count($chartSlice) - 1)));
         $chartBg     = implode(',', array_map(fn($i) => '"' . $palette[$i % count($palette)] . '"', range(0, count($chartSlice) - 1)));
 
-        // Entities JSON for JS module renderer
+        // ── Entities JSON for CRUD renderer ────────────────────────────────
         $entitiesJson = json_encode(array_values(array_map(fn($e) => [
             'name'  => $e['name'],
             'label' => Str::title(str_replace('_', ' ', Str::snake($e['name']))),
         ], $entities)));
 
-        // Settings screen HTML (PHP-built, JSON-passed to JS)
+        // ── Settings HTML (built in PHP, injected as JS constant) ──────────
         $settingsHtmlJson = json_encode($this->buildSettingsHtml($appName, $userName, $userRole, $userInitials, $brand));
+        $entityCount      = count($entities);
 
-        $entityCount = count($entities);
-        $year        = date('Y');
+        // ── Trusted logos strip ─────────────────────────────────────────────
+        $trustedHtml = '';
+        foreach (array_slice($extras['trustedBy'], 0, 5) as $org) {
+            $trustedHtml .= "<span class=\"trusted-logo\">{$org}</span>";
+        }
+
+        // ── Landing pricing (first 2 plans) ────────────────────────────────
+        $pricingHtml = '';
+        foreach (array_slice($extras['pricing'], 0, 3) as $p) {
+            $hlClass = $p['highlight'] ? ' pricing-highlight' : '';
+            $badge   = $p['highlight'] ? '<div class="pricing-badge">Most Popular</div>' : '';
+            $feats   = '';
+            foreach (array_slice($p['features'], 0, 4) as $f) {
+                $feats .= "<div class=\"pricing-feat\">✓ {$f}</div>";
+            }
+            $pricingHtml .= <<<PRICING
+<div class="pricing-card{$hlClass}">
+  {$badge}
+  <div class="pricing-plan">{$p['name']}</div>
+  <div class="pricing-price">{$p['price']}<span class="pricing-period">{$p['period']}</span></div>
+  <div class="pricing-desc">{$p['desc']}</div>
+  <div class="pricing-feats">{$feats}</div>
+  <button class="pricing-btn" onclick="showDash()">{$p['cta']}</button>
+</div>
+PRICING;
+        }
+
+        // ── FAQ (first 4 items) ─────────────────────────────────────────────
+        $faqHtml = '';
+        foreach (array_slice($extras['faq'], 0, 4) as $idx => $f) {
+            $id = "faq{$idx}";
+            $faqHtml .= <<<FAQ
+<details class="faq-item">
+  <summary class="faq-q">{$f['q']}</summary>
+  <div class="faq-a">{$f['a']}</div>
+</details>
+FAQ;
+        }
 
         return <<<HTML
 <!DOCTYPE html>
