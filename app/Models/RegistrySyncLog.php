@@ -28,6 +28,10 @@ class RegistrySyncLog extends Model
         array $details = [],
         ?int $durationMs = null
     ): self {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('registry_sync_logs')) {
+            return new self();
+        }
+
         return self::create([
             'registry_url'   => $registryUrl,
             'action'         => $action,
@@ -44,6 +48,10 @@ class RegistrySyncLog extends Model
 
     public static function lastSync(): ?self
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('registry_sync_logs')) {
+            return null;
+        }
+
         return self::where('action', 'sync')->where('success', true)->latest('synced_at')->first();
     }
 }

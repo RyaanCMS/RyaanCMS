@@ -2098,7 +2098,7 @@
                 autoSync: {{ config('registry.auto_sync') ? 'true' : 'false' }},
                 registryUrl: '{{ config('registry.url') }}',
                 lastSync: '{{ \App\Models\RegistrySyncLog::lastSync()?->synced_at?->diffForHumans() ?? 'Never' }}',
-                packCount: {{ \App\Models\LocalQuestionPack::active()->count() }},
+                packCount: {{ \App\Models\LocalQuestionPack::safeCount() }},
                 async runSync(force) {
                     this.syncLoading = true; this.syncResult = null;
                     const r = await fetch('{{ route('settings.registry.sync') }}', {

@@ -70,6 +70,14 @@ class LocalQuestionPack extends Model
         return $this->central_pack_uuid !== null;
     }
 
+    public static function safeCount(): int
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('local_question_packs')) {
+            return 0;
+        }
+        return self::active()->count();
+    }
+
     // ── Static lookup ─────────────────────────────────────────────────────
 
     /**
