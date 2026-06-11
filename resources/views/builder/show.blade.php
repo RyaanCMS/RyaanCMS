@@ -574,6 +574,28 @@
                                           x-text="'+' + (turn.files.length - 8) + ' more'"></span>
                                 </div>
 
+                                <!-- SRS document card -->
+                                <div x-show="turn.srsContent"
+                                     style="border-top:1px solid #e5e7eb;">
+                                    <div style="background:#f8faff;border-bottom:1px solid #e0e7ff;">
+                                        <button @click="turn.srsExpanded = !turn.srsExpanded"
+                                                class="w-full flex items-center gap-2 px-3 py-2.5 text-left">
+                                            <span style="font-size:15px;">📋</span>
+                                            <span class="text-xs font-semibold flex-1" style="color:#4338ca;">Software Requirements Specification (SRS)</span>
+                                            <svg class="w-3.5 h-3.5 transition-transform duration-200" style="color:#6366f1"
+                                                 :class="turn.srsExpanded !== false ? 'rotate-180' : ''"
+                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div x-show="turn.srsExpanded !== false"
+                                         class="px-3 py-3"
+                                         style="background:#fff;max-height:420px;overflow-y:auto;">
+                                        <div class="text-xs leading-relaxed whitespace-pre-wrap break-words" style="color:#374151;font-family:inherit;" x-text="turn.srsContent"></div>
+                                    </div>
+                                </div>
+
                                 <!-- AI response -->
                                 <div x-show="turn.response"
                                      class="px-3 py-3"
@@ -1965,7 +1987,7 @@ window.addEventListener('unhandledrejection', function(e) {
             const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             this.turns.push({
                 id: turnId, prompt, time,
-                status: 'running', activities: [], files: [], response: '', model: '', expanded: true,
+                status: 'running', activities: [], files: [], response: '', model: '', expanded: true, srsContent: '', srsExpanded: true,
             });
             this.scrollChat();
         },
@@ -2115,6 +2137,9 @@ window.addEventListener('unhandledrejection', function(e) {
                     }
                     this.autoPreview();
                 });
+
+            } else if (event.type === 'srs') {
+                t.srsContent = event.content || '';
 
             } else if (event.type === 'error') {
                 this.completeCurrentTurn('❌ ' + (event.message || 'Something went wrong.'), '', [], true);

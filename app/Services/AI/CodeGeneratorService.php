@@ -532,6 +532,147 @@ TINY;
         return true;
     }
 
+    private function buildSRS(array $blueprint, array $entities): string
+    {
+        $appName  = $blueprint['name'] ?? 'Application';
+        $appType  = $blueprint['app_type'] ?? 'enterprise';
+        $packs    = implode(', ', $blueprint['matched_packs'] ?? [$appType]);
+        $modCount = count($entities);
+
+        // Derive user roles from domain
+        $lower = strtolower($appName . ' ' . $appType);
+        $roles = match(true) {
+            str_contains($lower, 'hospital') || str_contains($lower, 'clinic') || str_contains($lower, 'health')
+                => ['Super Admin', 'Doctor', 'Nurse', 'Receptionist', 'Pharmacist', 'Lab Technician'],
+            str_contains($lower, 'school') || str_contains($lower, 'university') || str_contains($lower, 'college')
+                => ['Super Admin', 'Principal', 'Teacher', 'Student', 'Parent', 'Accountant'],
+            str_contains($lower, 'hotel') || str_contains($lower, 'resort')
+                => ['Super Admin', 'Manager', 'Front Desk', 'Housekeeping', 'F&B Staff', 'Accounts'],
+            str_contains($lower, 'ecommerce') || str_contains($lower, 'store') || str_contains($lower, 'shop')
+                => ['Super Admin', 'Store Manager', 'Inventory Staff', 'Customer Support', 'Finance'],
+            str_contains($lower, 'hr') || str_contains($lower, 'payroll') || str_contains($lower, 'hrms')
+                => ['Super Admin', 'HR Manager', 'Employee', 'Department Head', 'Payroll Officer'],
+            str_contains($lower, 'restaurant') || str_contains($lower, 'cafe')
+                => ['Super Admin', 'Manager', 'Cashier', 'Waiter', 'Kitchen Staff'],
+            default
+                => ['Super Admin', 'Manager', 'Staff', 'Viewer'],
+        };
+
+        // Module table rows
+        $moduleRows = '';
+        $fileCounts = [];
+        foreach ($entities as $i => $e) {
+            $label   = \Illuminate\Support\Str::title(str_replace('_', ' ', \Illuminate\Support\Str::snake($e['name'])));
+            $purpose = $this->entityPurpose($e['name']);
+            $moduleRows .= "| {$label} | {$purpose} | 7 |\n";
+            $fileCounts[] = $label;
+        }
+
+        $totalFiles   = $modCount * 7 + 4;
+        $rolesFormatted = implode(', ', $roles);
+
+        $moduleList = implode(', ', array_map(
+            fn($e) => \Illuminate\Support\Str::title(str_replace('_', ' ', \Illuminate\Support\Str::snake($e['name']))),
+            $entities
+        ));
+
+        return <<<SRS
+## 📋 Software Requirements Specification (SRS)
+
+**Project:** {$appName}
+**Type:** {$appType}
+**Domain Packs:** {$packs}
+**Total Modules:** {$modCount}
+**Generated Files:** ~{$totalFiles}
+
+---
+
+### 1. Project Overview
+{$appName} is a complete enterprise-grade application covering {$modCount} core modules. The system provides full CRUD operations, role-based access control, search & filtering, data export, and an analytics dashboard for all modules.
+
+### 2. Modules & Scope
+
+| Module | Purpose | Files |
+|--------|---------|-------|
+{$moduleRows}
+
+### 3. User Roles & Permissions
+
+**Roles:** {$rolesFormatted}
+
+| Role | Access Level |
+|------|-------------|
+| Super Admin | Full access — all modules, settings, user management |
+| Manager | Read/write all modules, no system settings |
+| Staff | Read/write assigned modules only |
+| Viewer | Read-only access |
+
+### 4. Functional Requirements
+
+Each module delivers:
+- ✅ **Create** — Add new records with validation
+- ✅ **Read** — List view with search, filter, sort & pagination
+- ✅ **Update** — Edit records with change tracking
+- ✅ **Delete** — Soft delete with confirmation
+- ✅ **Export** — CSV/PDF data export
+- ✅ **Audit Log** — Track who changed what and when
+
+### 5. Non-Functional Requirements
+
+| Requirement | Specification |
+|-------------|---------------|
+| Performance | < 200ms response, < 2s page load |
+| Security | RBAC, CSRF protection, SQL injection prevention, encrypted passwords |
+| Scalability | Supports 100+ concurrent users |
+| Data Integrity | Foreign key constraints, soft deletes, audit trails |
+| Availability | 99.9% uptime target |
+
+### 6. Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Laravel 11 (PHP 8.3) |
+| Frontend | Blade + Tailwind CSS + Alpine.js |
+| Database | MySQL / PostgreSQL |
+| Authentication | Laravel Breeze / Sanctum |
+| File Storage | Local / S3 compatible |
+
+---
+
+*Building {$modCount} modules: {$moduleList}...*
+SRS;
+    }
+
+    private function entityPurpose(string $name): string
+    {
+        $n = strtolower($name);
+        return match(true) {
+            str_contains($n, 'patient')     => 'Register & manage patient records, medical history',
+            str_contains($n, 'doctor')      => 'Physician profiles, specializations, schedules',
+            str_contains($n, 'appointment') => 'Schedule & track appointments',
+            str_contains($n, 'ward')        => 'Ward allocation and bed management',
+            str_contains($n, 'billing')     => 'Invoice generation and payment tracking',
+            str_contains($n, 'pharmacy')    => 'Medicine inventory and dispensing',
+            str_contains($n, 'product')     => 'Product catalog, pricing, inventory tracking',
+            str_contains($n, 'order')       => 'Order lifecycle management and fulfillment',
+            str_contains($n, 'category')    => 'Hierarchical category and classification system',
+            str_contains($n, 'customer')    => 'Customer profiles, history and segmentation',
+            str_contains($n, 'inventory')   => 'Stock levels, reorder alerts, warehouse tracking',
+            str_contains($n, 'payment')     => 'Payment processing and transaction records',
+            str_contains($n, 'user')        => 'System user accounts and authentication',
+            str_contains($n, 'role')        => 'Role definitions and permission management',
+            str_contains($n, 'employee')    => 'Employee profiles, contracts, HR records',
+            str_contains($n, 'department')  => 'Organizational departments and hierarchies',
+            str_contains($n, 'student')     => 'Student enrollment, academic records',
+            str_contains($n, 'course')      => 'Course catalog, schedules and curriculum',
+            str_contains($n, 'room')        => 'Room inventory, availability and booking',
+            str_contains($n, 'booking')     => 'Reservation management and check-in/out',
+            str_contains($n, 'report')      => 'Analytics, reporting and data visualization',
+            str_contains($n, 'supplier')    => 'Vendor management and procurement tracking',
+            default                         => ucfirst(str_replace('_', ' ', $n)) . ' management and tracking',
+        };
+    }
+
     private function isConversationalMessage(string $prompt): bool
     {
         $t = trim(strtolower($prompt));
@@ -1130,6 +1271,10 @@ TINY;
 
         $onEvent(['type' => 'activity', 'icon' => '🗺️', 'text' => "Planning {$blueprint['name']} architecture"]);
 
+        // ── SRS: emit requirements document before building ──────────────────
+        $entities = $blueprint['suggested_entities'] ?? $blueprint['entities'] ?? [];
+        $onEvent(['type' => 'srs', 'content' => $this->buildSRS($blueprint, $entities)]);
+
         if ($isLibraryMatch) {
             $sleep(8);
             $onEvent(['type' => 'activity', 'icon' => '🗄️', 'text' => 'Designing database schema and relationships']);
@@ -1139,7 +1284,6 @@ TINY;
         }
 
         // ── Step 2: Auto-CRUD (zero AI) ───────────────────────────────────────
-        $entities      = $blueprint['suggested_entities'] ?? $blueprint['entities'] ?? [];
         $autoGenerated = [];
         foreach ($entities as $entity) {
             if (empty($entity['name'])) continue;
