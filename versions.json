@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.41",
+    "latest": "1.1.42",
     "versions": [
         {
             "version": "1.0.0",
@@ -527,6 +527,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.40",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.42",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: Intelligence Credits system — BUSL license, credits engine, gate, sidebar widget\n\nCore architecture:\n- BUSL-1.1 LICENSE + composer.json updated (prevents commercial SaaS forks)\n- 4 DB migrations: credit_packages, credit_balances, credit_transactions, ai_usage_logs\n- 4 Eloquent models with relations, scopes, helper methods\n- RyaanCreditsService: balance, deduct (atomic), add, history, monthly usage\n- CreditPricingService: outcome-based pricing ($10=1000cr), token→credit fallback\n- LicenseService: api.ryaancms.com validation with 6h cache + 7-day offline grace\n- IntelligenceGate: tier resolution, feature gates, asset filtering, operation checks\n- CodeGeneratorService: pre-flight credit check + post-gen deduction + usage logging\n- AIServiceProvider: wired all 4 new services + injected gate/credits/pricing into CGS\n- Sidebar Credits widget: BYOK mode or credits balance + tier badge\n\nTier matrix: byok (free, own keys) | starter/pro/enterprise (Ryaan Credits)\nBYOK users always pass the gate; Credits users are checked before each generation.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.42/ryaancms-v1.1.42-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.41",
             "critical": false,
             "file_count": null
         }
