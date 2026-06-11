@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.44",
+    "latest": "1.1.45",
     "versions": [
         {
             "version": "1.0.0",
@@ -563,6 +563,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.43",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.45",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: Blueprint Genome System — 500+ industries, multilingual intent, zero-token assembly\n\n- config/genome/industries.php: 40+ industries with functions, roles, workflows, integrations, KPIs\n- config/genome/functions.php: 80+ business functions with modules, fields, workflows, KPIs\n- config/genome/intent_patterns.php: multilingual patterns (EN/BN/HI/AR/FR/ES/PT/MS/TR/ZH)\n- IntentEngine: maps ANY prompt (any language) to structured genome intent — zero AI tokens\n- BlueprintGenomeEngine: assembles genome components into rich blueprint context — zero AI tokens\n- BlueprintService: genome pre-enriches AI discovery call → better accuracy, fewer tokens\n- KnowledgeBaseService: genome-first matchAppType + enrichWithGenome() method\n- AIServiceProvider: registers IntentEngine, BlueprintGenomeEngine, wires into all services\n\nFormula: 500 industries × 1000 functions × patterns = billions of possible blueprints on demand\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.45/ryaancms-v1.1.45-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.44",
             "critical": false,
             "file_count": null
         }
