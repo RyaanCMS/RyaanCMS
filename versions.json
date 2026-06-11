@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.71",
+    "latest": "1.1.72",
     "versions": [
         {
             "version": "1.0.0",
@@ -887,6 +887,18 @@
             "requires_migration": false,
             "min_php": "8.2",
             "min_from_version": "1.1.70",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.72",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: update system one-step-per-request + branding assets in public/uploads\n\nUpdate system:\n- UpdateController: apply ONE version step per request to prevent PHP\n  max_execution_time timeout on cPanel shared hosting\n- updates.blade.php: JS loop calls /apply repeatedly until remaining===0,\n  shows per-step progress (Downloading step 1 of 7...)\n- set_time_limit(0) added as safety net for slow connections\n- versions.json: 1.1.64-1.1.70 download_url changed to main branch\n  archive (GitHub Release ZIPs were never published for these versions)\n\nBranding assets (logo/favicon):\n- SettingsController: store uploaded files directly in public/uploads/\n  branding/{userId}/ — no storage:link symlink needed on cPanel\n- app.blade.php + settings/index.blade.php: path-aware URL resolver —\n  new 'uploads/' paths use asset(), old paths fall back to Storage::url()",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.72/ryaancms-v1.1.72-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.71",
             "critical": false,
             "file_count": null
         }
