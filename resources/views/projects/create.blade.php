@@ -144,6 +144,32 @@
         .btn-create:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
         .spin { animation: spin .7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Mobile responsive ── */
+        @media (max-width: 580px) {
+            .backdrop { padding: 12px 10px; align-items: flex-start; }
+            .card { border-radius: 16px; }
+            .card-header { padding: 14px 16px 13px; gap: 10px; }
+            .hdr-icon { width: 38px; height: 38px; font-size: 17px; border-radius: 11px; }
+            .hdr-title { font-size: 14.5px; }
+            .hdr-sub   { font-size: 11px; }
+            .card-body { padding: 16px !important; gap: 15px !important; }
+            .row-name-type { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .type-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 7px; }
+            .type-chip { padding: 8px 10px; }
+            .type-chip .chip-text { font-size: 12px; }
+            .prompt-area { font-size: 13px; padding: 11px 13px; }
+            .suggest-chip { font-size: 11px; padding: 3px 9px; }
+            .card-footer { padding: 12px 16px 16px; flex-direction: column; align-items: stretch; gap: 10px; }
+            .footer-actions { justify-content: flex-end; }
+            .hint { display: none; }
+            .btn-cancel { padding: 8px 14px; }
+            .btn-create { padding: 10px 18px; justify-content: center; }
+        }
+        @media (max-width: 380px) {
+            .type-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .btn-cancel, .btn-create { font-size: 12.5px; }
+        }
     </style>
 </head>
 <body>
@@ -177,7 +203,7 @@
         <div class="card-body" style="display:flex; flex-direction:column; gap:20px;">
 
             {{-- Row 1: Name + Type --}}
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="row-name-type" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                 <div>
                     <label class="field-label">Project Name <span>*</span></label>
                     <input type="text" name="name" x-model="name" required
@@ -262,7 +288,7 @@
         {{-- Footer --}}
         <div class="card-footer">
             <p class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to create</p>
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div class="footer-actions" style="display:flex; align-items:center; gap:8px;">
                 <a href="{{ route('projects.index') }}" class="btn-cancel">Cancel</a>
                 <button type="submit" class="btn-create" :disabled="submitting || !name.trim() || !prompt.trim()">
                     <template x-if="!submitting">
