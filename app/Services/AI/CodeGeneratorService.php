@@ -227,6 +227,22 @@ class CodeGeneratorService
         $aiPromptRaw = $this->sanitizeUserPrompt($prompt);
         $rawPrompt   = $this->sanitizeUserPrompt($visiblePrompt ?? $prompt);
         $prompt      = $this->normalizer->enrichPrompt($aiPromptRaw);
+
+        // Conversational greeting — answer instantly, no AI call needed
+        if ($this->isConversationalMessage($rawPrompt)) {
+            $this->autoTitleConversation($conversation, $rawPrompt);
+            $conversation->addMessage('user', $rawPrompt);
+            $reply = $this->conversationalReply($rawPrompt);
+            $conversation->addMessage('assistant', $reply, ['tokens_used' => 0, 'model' => 'instant']);
+            return [
+                'message'         => $reply,
+                'files_generated' => [],
+                'tokens_used'     => 0,
+                'model'           => 'instant',
+                'task_type'       => 'conversational',
+            ];
+        }
+
         $isBusinessProblem = $this->isBusinessProblemRequest($prompt);
         $isTiny     = !$isBusinessProblem && $this->isTinyEdit($prompt);
         $isTemplateCustomization = str_contains(strtolower($prompt), 'ryaan template customization context');
@@ -513,6 +529,64 @@ TINY;
         // Everything else under 500 chars is a targeted edit
         // (add feature, fix bug, change style, click handler, redirect, rename, etc.)
         return true;
+    }
+
+    private function isConversationalMessage(string $prompt): bool
+    {
+        $t = trim(strtolower($prompt));
+
+        // Very short single-word greetings
+        $exact = ['hi','hey','hello','yo','sup','hola','salut','ciao','hallo','ola','salam','হ্যালো','হাই'];
+        if (in_array($t, $exact, true)) return true;
+
+        // Short phrases (under 60 chars) that are purely social
+        if (mb_strlen($t) < 60) {
+            $patterns = [
+                'how are you','how r you','how are u','hows it going','how\'s it going',
+                'what\'s up','whats up','wassup','good morning','good afternoon','good evening',
+                'good night','good day','nice to meet','pleased to meet',
+                'who are you','what are you','what can you do','what do you do',
+                'tell me about yourself','introduce yourself',
+                'thanks','thank you','thank u','thnx','thx','ty ',
+                'ok','okay','cool','great','awesome','nice','sure','alright','got it','noted',
+                'yes','no','nope','yep','yeah','yup',
+                'hello there','hi there','hey there',
+                'আপনি কেমন','কেমন আছেন','কেমন আছো','হ্যালো','ধন্যবাদ','শুভ সকাল',
+            ];
+            foreach ($patterns as $p) {
+                if (str_contains($t, $p)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function conversationalReply(string $prompt): string
+    {
+        $t = trim(strtolower($prompt));
+
+        // Thanks / acknowledgement
+        if (preg_match('/thank|thnx|thx|\bty\b/i', $t)) {
+            return "You're welcome! Ready whenever you need me. Just describe what you'd like to build next — I'll take care of the rest.";
+        }
+
+        // Acknowledgement words
+        if (preg_match('/^(ok|okay|cool|great|awesome|nice|sure|alright|got it|noted|yes|no|nope|yep|yeah|yup)$/i', $t)) {
+            return "Got it! Let me know whenever you're ready to build something — just describe your app and I'll generate it for you.";
+        }
+
+        // Who/what are you
+        if (preg_match('/who are you|what are you|introduce|tell me about/i', $t)) {
+            return "I'm your AI application builder. Describe any business app you need — like **\"create a Hotel Management System\"** or **\"build an eCommerce store\"** — and I'll generate the full application: database, backend logic, views, and all modules. No coding required from your side.";
+        }
+
+        // What can you do
+        if (preg_match('/what can you do|what do you do/i', $t)) {
+            return "I can build complete enterprise applications from a single description. Just tell me what you need:\n\n- **\"Create a Hospital Management System\"**\n- **\"Build an HR & Payroll platform\"**\n- **\"Make an eCommerce store with inventory\"**\n\nI'll generate all the files, database migrations, controllers, and views — ready to run. What would you like to build?";
+        }
+
+        // Greetings / how are you / good morning etc.
+        return "I'm great, thanks for asking! Ready to build something amazing for you. 🚀\n\nJust tell me what application you need — describe your idea in one line and I'll generate the entire system for you.\n\n**Examples:**\n- *\"Create a Hotel Management System\"*\n- *\"Build a School ERP with attendance and fees\"*\n- *\"Make an eCommerce store\"*\n\nWhat would you like to build today?";
     }
 
     private function isBusinessProblemRequest(string $prompt): bool
