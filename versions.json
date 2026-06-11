@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.40",
+    "latest": "1.1.41",
     "versions": [
         {
             "version": "1.0.0",
@@ -515,6 +515,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.39",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.41",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: Gemini content-filter — 3-tier model fallback + provider fallback\n\nBLOCK_NONE only disables safety filters; Gemini's content-filtering-policy\nis a separate Google-side layer that always blocks auth/SQL/security prompts.\n\nFix: when content filter triggers, automatically retry:\n  1) Same model, system instruction moved to user message\n  2) gemini-2.0-flash-exp (far less strict policy)\n  3) Flash model, no system instruction\n\nIf all Gemini attempts fail, CodeGeneratorService now falls back to the\nnext configured provider (OpenAI, Claude, etc.) via shouldFallbackForAIError.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.41/ryaancms-v1.1.41-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.40",
             "critical": false,
             "file_count": null
         }
