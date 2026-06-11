@@ -53,13 +53,23 @@ class AIBuilderController extends Controller
         $selectedTemplateKey = isset($templates[$requestedTemplateKey]) ? $requestedTemplateKey : null;
 
         // Load or create active conversation
-        $conversation = $project->conversations()->latest()->first()
-            ?? AIConversation::create([
-                'user_id'    => Auth::id(),
-                'project_id' => $project->id,
-                'provider'   => Auth::user()->getSetting('ai', 'default_provider', 'claude'),
-                'title'      => 'New Conversation',
-            ]);
+        try {
+            $defaultProvider = method_exists(Auth::user(), 'getSetting')
+                ? (Auth::user()->getSetting('ai', 'default_provider', 'claude') ?? 'claude')
+                : 'claude';
+            $conversation = $project->conversations()->latest()->first()
+                ?? AIConversation::create([
+                    'user_id'    => Auth::id(),
+                    'project_id' => $project->id,
+                    'provider'   => $defaultProvider,
+                    'title'      => 'New Conversation',
+                ]);
+        } catch (\Throwable $e) {
+            $conversation = $project->conversations()->latest()->first();
+            if (!$conversation) {
+                throw $e;
+            }
+        }
 
         $messages = $conversation->messages()->get();
 

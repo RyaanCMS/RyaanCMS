@@ -126,20 +126,6 @@
     </div>{{-- /.modal --}}
     </template>{{-- /.x-teleport --}}
     @endif
-    <a href="{{ route('pipeline.show', $project) }}"
-       class="ml-2 flex items-center space-x-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-       style="background:linear-gradient(135deg,#1e1b4b,#2e1065); color:#a78bfa; border:1px solid #4c1d95;">
-        <span>🤖</span>
-        <span>Auto Build</span>
-    </a>
-    <a href="{{ route('projects.package', $project) }}"
-       class="flex items-center space-x-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-       style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); color:#16a34a; border:1px solid #bbf7d0;">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-        </svg>
-        <span>Package</span>
-    </a>
 </div>
 @endsection
 
@@ -398,48 +384,16 @@
                 </button>
             </div>
 
-            <!-- Provider + model selector -->
             @php
                 $activeProviders = auth()->user()->aiProviders()->where('is_active', true)->get();
             @endphp
-
             @if($activeProviders->isEmpty() && !config('ai.providers.claude.api_key') && !config('ai.providers.openai.api_key'))
-            <div class="mx-3 mb-2 px-3 py-2 rounded-lg flex items-center gap-2"
+            <div class="mx-3 mb-2 px-3 py-2 rounded-xl flex items-start gap-2.5"
                  style="background:#fffbeb; border:1px solid #fde68a;">
-                <span class="text-sm flex-shrink-0">⚠️</span>
-                <span class="text-xs" style="color:#92400e;">No AI provider yet. <a href="{{ route('settings.index') }}#ai" class="font-semibold underline">Add an API key in Settings</a> to start building.</span>
+                <span class="text-base flex-shrink-0 mt-0.5">⚠️</span>
+                <span class="text-xs leading-relaxed" style="color:#92400e;">No AI provider configured. <a href="{{ route('settings.index') }}#ai" class="font-semibold underline">Add an API key in Settings</a> to unlock AI building.</span>
             </div>
             @endif
-
-            <div class="flex items-center gap-2">
-                <select x-model="selectedProvider"
-                        @change="onProviderChange()"
-                        class="text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-purple-300 flex-shrink-0"
-                        style="background:#faf5ff; border:1px solid #e9d5ff; color:#7e22ce; font-weight:600; max-width:140px;">
-                    @foreach($activeProviders as $ap)
-                        @if(config('ai.providers.'.$ap->provider))
-                        <option value="{{ $ap->provider }}">{{ $ap->name }}</option>
-                        @endif
-                    @endforeach
-                    @if($activeProviders->isEmpty())
-                    <option value="claude">Claude API</option>
-                    @endif
-                </select>
-                <select x-model="selectedModel"
-                        class="flex-1 text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-300"
-                        style="background:#f9fafb; border:1px solid #d1d5db; color:#374151;">
-                    @foreach($activeProviders as $ap)
-                        @foreach(config('ai.providers.'.$ap->provider.'.models', []) as $modelKey => $modelName)
-                        <option value="{{ $modelKey }}" data-provider="{{ $ap->provider }}">{{ $modelName }}</option>
-                        @endforeach
-                    @endforeach
-                    @if($activeProviders->isEmpty())
-                        @foreach(config('ai.providers.claude.models', []) as $modelKey => $modelName)
-                        <option value="{{ $modelKey }}" data-provider="claude">{{ $modelName }}</option>
-                        @endforeach
-                    @endif
-                </select>
-            </div>
         </div>
 
         <!-- Activity Feed -->
@@ -713,19 +667,77 @@
                 </div>
             </div>
 
+            <!-- Prompt queue (shown when AI is busy) -->
+            <div x-show="promptQueue.length > 0" class="mb-2 space-y-1.5" x-cloak>
+                <p class="text-xs font-semibold px-1" style="color:#6b7280;">Queued prompts</p>
+                <template x-for="(item, idx) in promptQueue" :key="item.id">
+                    <div class="flex items-start gap-2 rounded-xl px-3 py-2"
+                         :style="item.paused ? 'background:#f9fafb;border:1px solid #e5e7eb;opacity:.65' : 'background:#f0f9ff;border:1px solid #bae6fd;'">
+                        <span class="text-xs mt-0.5 flex-shrink-0" :title="item.paused ? 'Paused' : 'Queued'">
+                            <span x-show="!item.paused">⏳</span>
+                            <span x-show="item.paused">⏸</span>
+                        </span>
+                        <div class="flex-1 min-w-0">
+                            <template x-if="item.editing">
+                                <textarea x-model="item.editText" rows="2"
+                                          class="w-full text-xs outline-none rounded-lg px-2 py-1"
+                                          style="border:1px solid #93c5fd; color:#1e40af; resize:vertical; min-height:40px;"
+                                          @keydown.escape="item.editing=false; item.editText=item.text"
+                                          @keydown.enter.ctrl="item.text=item.editText; item.editing=false"></textarea>
+                            </template>
+                            <template x-if="!item.editing">
+                                <p class="text-xs leading-relaxed truncate" style="color:#374151;" x-text="item.text"></p>
+                            </template>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <template x-if="item.editing">
+                                <button @click="item.text=item.editText; item.editing=false"
+                                        class="text-xs px-2 py-0.5 rounded-lg font-medium"
+                                        style="background:#dbeafe;color:#1d4ed8;">Save</button>
+                            </template>
+                            <template x-if="!item.editing">
+                                <button @click="item.editing=true; item.editText=item.text"
+                                        title="Edit" class="p-1 rounded-lg transition-colors"
+                                        style="color:#9ca3af;"
+                                        onmouseover="this.style.color='#6366f1';this.style.background='#eef2ff'"
+                                        onmouseout="this.style.color='#9ca3af';this.style.background=''">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                            </template>
+                            <button @click="item.paused=!item.paused" :title="item.paused ? 'Resume' : 'Pause'"
+                                    class="p-1 rounded-lg transition-colors"
+                                    style="color:#9ca3af;"
+                                    onmouseover="this.style.color='#f59e0b';this.style.background='#fffbeb'"
+                                    onmouseout="this.style.color='#9ca3af';this.style.background=''">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <template x-if="!item.paused"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></template>
+                                    <template x-if="item.paused"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></template>
+                                </svg>
+                            </button>
+                            <button @click="promptQueue.splice(idx, 1)" title="Remove"
+                                    class="p-1 rounded-lg transition-colors"
+                                    style="color:#9ca3af;"
+                                    onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'"
+                                    onmouseout="this.style.color='#9ca3af';this.style.background=''">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
             <!-- Main textarea box -->
             <div class="rounded-2xl overflow-hidden transition-all"
-                 style="background:#fff; border:1.5px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,.06);"
-                 onfocusin="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,.12)'"
-                 onfocusout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='0 1px 3px rgba(0,0,0,.06)'">
+                 style="background:#fff; border:1.5px solid #e8eaf0; box-shadow:0 2px 8px rgba(99,102,241,.06);"
+                 onfocusin="this.style.borderColor='#a5b4fc'; this.style.boxShadow='0 0 0 4px rgba(99,102,241,.10)'"
+                 onfocusout="this.style.borderColor='#e8eaf0'; this.style.boxShadow='0 2px 8px rgba(99,102,241,.06)'">
                 <textarea x-model="chatInput"
-                          @keydown.enter.prevent="if(!$event.shiftKey) sendMessage()"
-                          :disabled="isThinking"
-                          :placeholder="isRecording ? '🎤 Listening… speak now in any language' : 'Describe what to build… (Enter to send, Shift+Enter for new line)'"
+                          @keydown="handleEnterKey($event)"
+                          :disabled="isThinking && promptQueue.length >= 10"
+                          :placeholder="isRecording ? '🎤 Listening… speak now' : isThinking ? 'AI is working… press Enter to queue your next prompt' : 'Describe what to build… (Enter to send, Shift+Enter for new line)'"
                           rows="3"
-                          class="w-full bg-transparent text-sm px-4 pt-3 resize-none outline-none disabled:opacity-50"
-                          style="color:#111827;"
-                          placeholder="Describe what to build…">
+                          class="w-full bg-transparent text-sm px-4 pt-3 outline-none"
+                          style="color:#1e293b; resize:vertical; min-height:72px; max-height:260px;">
                 </textarea>
 
                 <!-- Toolbar -->
@@ -751,10 +763,10 @@
                         </button>
                         <button @click="toggleVoice()" title="Voice input"
                                 class="p-2 rounded-xl transition-all"
-                                :style="isRecording ? 'color:#ef4444; background:#fef2f2;' : 'color:#9ca3af;'"
+                                :style="isRecording ? 'color:#ef4444; background:#fef2f2; animation:pulse 1.5s infinite;' : 'color:#9ca3af;'"
                                 :class="isRecording ? 'animate-pulse' : ''"
-                                onmouseover="this.style.color='var(--brand)'; this.style.background='color-mix(in srgb,var(--brand) 8%,#fff)';"
-                                onmouseout="if(!this.__rec) { this.style.color='#9ca3af'; this.style.background=''; }">
+                                @mouseenter="if(!isRecording){ $el.style.color='var(--brand)'; $el.style.background='color-mix(in srgb,var(--brand) 8%,#fff)'; }"
+                                @mouseleave="if(!isRecording){ $el.style.color='#9ca3af'; $el.style.background=''; }">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                             </svg>
@@ -775,24 +787,33 @@
                         </button>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span x-show="isRecording && !isThinking" class="text-xs font-medium" style="color:#ef4444;">● REC</span>
-                        <!-- Stop button — only visible while AI is generating -->
+                        <span x-show="isRecording" class="text-xs font-medium animate-pulse" style="color:#ef4444;">● REC</span>
+                        <!-- Queue badge -->
+                        <span x-show="promptQueue.length > 0" class="text-xs px-1.5 py-0.5 rounded-full font-semibold"
+                              style="background:#fef3c7;color:#92400e;" x-text="promptQueue.length + ' queued'"></span>
+                        <!-- Stop button — visible while AI is generating -->
                         <button x-show="isThinking" @click="stopGeneration()"
                                 class="rounded-xl px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 border"
-                                style="color:#ef4444;border-color:#fca5a5;background:#fff1f2;">
+                                style="color:#ef4444;border-color:#fca5a5;background:#fff5f5;">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                <rect x="4" y="4" width="16" height="16" rx="3"/>
                             </svg>
                             Stop
                         </button>
-                        <button x-show="!isThinking" @click="sendMessage()"
+                        <!-- Send / Queue button -->
+                        <button @click="sendMessage()"
                                 :disabled="!chatInput.trim() && !attachments.length && !urlPreview"
-                                class="text-white rounded-xl px-4 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                                style="background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                class="rounded-xl px-4 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                                :style="isThinking
+                                    ? 'background:#fef9c3;color:#a16207;border:1.5px solid #fde68a;'
+                                    : 'background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand);border:1.5px solid color-mix(in srgb,var(--brand) 25%,transparent);'">
+                            <svg x-show="!isThinking" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                             </svg>
-                            Send
+                            <svg x-show="isThinking" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span x-text="isThinking ? 'Queue' : 'Send'"></span>
                         </button>
                     </div>
                 </div>
@@ -1113,6 +1134,7 @@ function builderApp() {
         selectedModel: '{{ $initModel }}',
         providerModels: @json($providerModelsMap),
         providerDefaults: @json($providerDefaultsMap),
+        promptQueue: [],
         conversationId: {{ $conversation->id }},
         projectId: {{ $project->id }},
         projectName: @json($project->name),
@@ -1940,12 +1962,28 @@ window.addEventListener('unhandledrejection', function(e) {
             }
         },
 
+        handleEnterKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        },
+
         async sendMessage(text = null) {
             const message  = text || this.chatInput.trim();
             const hasFiles = this.attachments.length > 0;
             const hasUrl   = !!this.urlPreview;
             const hasTemplate = !!this.selectedTemplateKey;
-            if ((!message && !hasFiles && !hasUrl) || this.isThinking) return;
+            if (!message && !hasFiles && !hasUrl) return;
+
+            // If AI is busy, enqueue the prompt instead of dropping it
+            if (this.isThinking && message) {
+                this.promptQueue.push({ id: Date.now(), text: message, paused: false, editing: false, editText: message });
+                this.chatInput = '';
+                return;
+            }
+
+            if (this.isThinking) return;
 
             if (this.isRecording) { this.recognition?.stop(); this.isRecording = false; }
 
@@ -1976,6 +2014,17 @@ window.addEventListener('unhandledrejection', function(e) {
                 this._streamAbortCtrl = null;
                 this.isThinking = false;
                 this.scrollChat();
+                // Auto-process next non-paused queued prompt
+                this.$nextTick(() => this.processNextQueued());
+            }
+        },
+
+        processNextQueued() {
+            const idx = this.promptQueue.findIndex(q => !q.paused);
+            if (idx < 0) return;
+            const item = this.promptQueue.splice(idx, 1)[0];
+            if (item && item.text.trim()) {
+                this.$nextTick(() => this.sendMessage(item.text.trim()));
             }
         },
 
@@ -2221,13 +2270,21 @@ window.addEventListener('unhandledrejection', function(e) {
 
         toggleVoice() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) { alert('Voice input requires Chrome or Edge browser.'); return; }
-            if (this.isRecording) { this.recognition?.stop(); return; }
+            if (!SR) {
+                alert('Voice input is not supported in this browser.\nPlease use Chrome or Edge.');
+                return;
+            }
+            if (this.isRecording) {
+                this.recognition?.stop();
+                this.isRecording = false;
+                return;
+            }
             this.recognition                = new SR();
             this.recognition.continuous     = true;
             this.recognition.interimResults = true;
-            this.recognition.lang           = '';
+            this.recognition.lang           = navigator.language || '';
             let final = '';
+            this.recognition.onstart = () => { this.isRecording = true; };
             this.recognition.onresult = (e) => {
                 let interim = '';
                 for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -2237,9 +2294,22 @@ window.addEventListener('unhandledrejection', function(e) {
                 this.chatInput = final + interim;
             };
             this.recognition.onend   = () => { this.isRecording = false; };
-            this.recognition.onerror = (e) => { this.isRecording = false; };
-            this.recognition.start();
-            this.isRecording = true;
+            this.recognition.onerror = (e) => {
+                this.isRecording = false;
+                if (e.error === 'not-allowed') {
+                    alert('Microphone access denied. Please allow microphone access in your browser settings and try again.');
+                } else if (e.error === 'no-speech') {
+                    // silent — user simply didn't speak
+                } else {
+                    console.warn('Speech recognition error:', e.error);
+                }
+            };
+            try {
+                this.recognition.start();
+            } catch(err) {
+                this.isRecording = false;
+                console.warn('Could not start speech recognition:', err);
+            }
         },
 
         async createFile() {

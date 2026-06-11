@@ -99,6 +99,9 @@ class InstallController extends Controller
         // Seed default sidebar menus so Developer section is populated on first login
         app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
 
+        // Seed global platform settings (branding, appearance, AI defaults)
+        app(\Database\Seeders\SettingsSeeder::class)->run();
+
         // Set APP_NAME and baseline APP_VERSION (read from bundled versions.json)
         $installedVersion = $this->getInstalledVersion();
         $this->setEnvValues([
