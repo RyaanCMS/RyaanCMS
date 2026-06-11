@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.57",
+    "latest": "1.1.58",
     "versions": [
         {
             "version": "1.0.0",
@@ -719,6 +719,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.56",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.58",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: 95% zero-cost generation without AI provider\n\nBlueprint-driven generation now works without any AI API key:\n- Step 1: tryLibrary() first (zero tokens); AI discovery only for unknown domains\n- Step 2: MetadataCrudGenerator always zero-cost (unchanged)\n- Step 3: skipped when no provider configured — returns CRUD files + message\n  to add AI provider for dashboard/advanced features\n\nWhen user adds API key later, Step 3 runs on next prompt to build\ndashboard, navigation and business logic on top of the existing CRUD.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.58/ryaancms-v1.1.58-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.57",
             "critical": false,
             "file_count": null
         }
