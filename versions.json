@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.78",
+    "latest": "1.1.79",
     "versions": [
         {
             "version": "1.0.0",
@@ -971,6 +971,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.77",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.79",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: Undefined variable $errors + builder null provider crash\n\n- AppServiceProvider: View::share('errors', new ViewErrorBag()) as global\n  fallback — layout guard was too late (Blade captures sections before the\n  parent layout runs, so @php in app.blade.php never helped section content)\n- layouts/auth.blade.php: add isset() guard matching app.blade.php\n- CodeGeneratorService::streamSinglePhase(): guard against null $aiProvider\n  before calling ->stream(); returns a clear 'add API key' message instead\n  of a fatal TypeError when no provider is configured",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.79/ryaancms-v1.1.79-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.78",
             "critical": false,
             "file_count": null
         }
