@@ -184,6 +184,30 @@ class CodeGeneratorService
         return false;
     }
 
+    private function humanizeAIError(\Throwable $e): string
+    {
+        $msg = $e->getMessage();
+        $low = strtolower($msg);
+
+        if (str_contains($low, 'credit balance is too low') || str_contains($low, 'balance is too low')) {
+            return 'Your AI provider API credits are depleted. Please top up at your provider billing page (e.g. console.anthropic.com/settings/billing), then try again.';
+        }
+        if (str_contains($low, 'invalid x-api-key') || str_contains($low, 'authentication_error') || str_contains($low, 'invalid api key')) {
+            return 'Invalid API key. Check your AI provider key in Settings ' . chr(8594) . ' AI Providers.';
+        }
+        if (str_contains($low, 'context_length_exceeded') || str_contains($low, 'context window') || str_contains($low, 'maximum context')) {
+            return 'The project has too much context. Start a new chat to continue.';
+        }
+        if (str_contains($low, 'overloaded') || str_contains($low, '529')) {
+            return 'The AI provider is overloaded right now. Wait a moment and try again.';
+        }
+        if (str_contains($low, 'rate limit') || str_contains($low, 'rate_limit') || str_contains($low, 'too many requests')) {
+            return 'Rate limit reached. Wait a few seconds and try again.';
+        }
+
+        return $msg;
+    }
+
     public function generate(
         string $prompt,
         Project $project,
@@ -954,7 +978,7 @@ TINY;
                 array_merge($model ? ['model' => $model] : [], ['max_tokens' => 14000])
             );
         } catch (\Throwable $e) {
-            $onEvent(['type' => 'error', 'message' => 'AI error: ' . $e->getMessage()]);
+            $onEvent(['type' => 'error', 'message' => 'AI error: ' . $this->humanizeAIError($e)]);
             return;
         }
 
@@ -2071,7 +2095,7 @@ HTML;
             $this->recordUsageAfterStream($user, $project, $provider, $model, $isTiny, $isFullSystem, $startMs);
 
         } catch (\Throwable $e) {
-            $onEvent(['type' => 'error', 'message' => $e->getMessage()]);
+            $onEvent(['type' => 'error', 'message' => $this->humanizeAIError($e)]);
         }
     }
 
