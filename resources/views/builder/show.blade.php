@@ -1124,7 +1124,12 @@ function builderApp() {
             this.buildFileTree();
             if (!this.selectedTemplateKey && this.files.length > 0) this.openFile(this.files[0]);
             this.$watch('turns', () => this.scrollChat());
-            this.$watch('files', () => this.buildFileTree());
+            // Debounced — batches rapid file additions (e.g. 85-file build) into one tree rebuild
+            this._buildTreeDebounce = null;
+            this.$watch('files', () => {
+                clearTimeout(this._buildTreeDebounce);
+                this._buildTreeDebounce = setTimeout(() => this.buildFileTree(), 120);
+            });
             this.$watch('selectedTemplateKey', async (key) => {
                 await this.loadTemplateFiles(true);
                 key ? this.loadTemplatePreview() : this.autoPreview();
@@ -1829,12 +1834,14 @@ window.addEventListener('unhandledrejection', function(e) {
                     }
                 }
 
-                // File leaf node
+                // File leaf node — only store display metadata, NOT content (content stays in this.files)
                 tree.push({
-                    ...file,
-                    name:  filename,
-                    path:  fullPath,
-                    depth: parts.length - 1,
+                    id:          file.id,
+                    name:        filename,
+                    path:        fullPath,
+                    type:        file.type || 'file',
+                    language:    file.language,
+                    depth:       parts.length - 1,
                     _parentPath: parts.length > 1 ? parts.slice(0, -1).join('/') : null,
                 });
             }
