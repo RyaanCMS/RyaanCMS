@@ -616,4 +616,251 @@ return [
         'kpis'       => ['Batch Utilization', 'Completion Rate', 'Student Satisfaction'],
         'roles'      => ['admin', 'instructor', 'student'],
     ],
+
+    // ══════════════════════════════════════════════════════════════════════
+    // DIGITAL & PLATFORM FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════════
+
+    'loyalty_rewards' => [
+        'label'      => 'Loyalty & Rewards Program',
+        'modules'    => ['LoyaltyPoint', 'Tier', 'Redemption', 'Campaign', 'MemberCard'],
+        'fields'     => ['customer_id', 'points', 'tier', 'earned_from', 'redeemed_at', 'expiry_date'],
+        'workflows'  => ['earn_points', 'tier_upgrade', 'redeem_points', 'expire_points', 'send_reward'],
+        'kpis'       => ['Active Members', 'Redemption Rate', 'Points Liability', 'Retention Lift'],
+        'roles'      => ['admin', 'marketing_manager', 'customer'],
+    ],
+
+    'discount_voucher' => [
+        'label'      => 'Discount & Voucher Management',
+        'modules'    => ['Coupon', 'Voucher', 'Discount', 'PromoCode', 'UsageLog'],
+        'fields'     => ['code', 'type', 'value', 'min_order', 'max_uses', 'expiry', 'applicable_to', 'used_count'],
+        'workflows'  => ['create_voucher', 'distribute', 'apply_at_checkout', 'validate', 'expire'],
+        'kpis'       => ['Redemption Rate', 'Revenue Impact', 'Unique Users', 'Abuse Rate'],
+        'roles'      => ['admin', 'marketing_manager', 'customer'],
+    ],
+
+    'document_management' => [
+        'label'      => 'Document Management',
+        'modules'    => ['Document', 'Folder', 'Version', 'AccessControl', 'Signature'],
+        'fields'     => ['title', 'type', 'file_path', 'version', 'owner', 'access_level', 'expiry_date'],
+        'workflows'  => ['upload', 'classify', 'approve', 'share', 'archive', 'renew'],
+        'kpis'       => ['Storage Used', 'Expiry Alerts', 'Access Violations'],
+        'roles'      => ['admin', 'document_manager', 'staff'],
+    ],
+
+    'asset_management' => [
+        'label'      => 'Asset & Fixed Asset Management',
+        'modules'    => ['Asset', 'AssetCategory', 'Depreciation', 'Maintenance', 'Disposal'],
+        'fields'     => ['asset_code', 'name', 'category', 'purchase_date', 'cost', 'location', 'assigned_to', 'status'],
+        'workflows'  => ['asset_register', 'assign', 'maintain', 'depreciate', 'dispose'],
+        'kpis'       => ['Total Asset Value', 'Depreciation Amount', 'Asset Utilization'],
+        'roles'      => ['admin', 'asset_manager', 'finance_manager'],
+    ],
+
+    'budget_management' => [
+        'label'      => 'Budget Planning & Management',
+        'modules'    => ['Budget', 'BudgetLine', 'ActualVsBudget', 'BudgetRevision', 'Forecast'],
+        'fields'     => ['department', 'period', 'category', 'budgeted_amount', 'actual_amount', 'variance'],
+        'workflows'  => ['prepare_budget', 'submit_for_approval', 'approve', 'monitor_monthly', 'revise'],
+        'kpis'       => ['Budget Utilization', 'Variance %', 'Department Adherence'],
+        'roles'      => ['finance_manager', 'department_head', 'cfo'],
+    ],
+
+    'ticket_management' => [
+        'label'      => 'Ticketing / Issue Tracker',
+        'modules'    => ['Ticket', 'Category', 'Priority', 'SLA', 'EscalationRule'],
+        'fields'     => ['ticket_id', 'type', 'priority', 'status', 'assignee', 'requester', 'sla_deadline'],
+        'workflows'  => ['raise_ticket', 'auto_assign', 'work_on', 'escalate', 'resolve', 'close', 'reopen'],
+        'kpis'       => ['First Response Time', 'Resolution Time', 'SLA Breach Rate', 'Open Tickets'],
+        'roles'      => ['support_agent', 'support_manager', 'user'],
+    ],
+
+    'complaint_management' => [
+        'label'      => 'Complaint / Grievance Management',
+        'modules'    => ['Complaint', 'ComplaintCategory', 'Investigation', 'Resolution', 'Feedback'],
+        'fields'     => ['reference_no', 'complainant', 'category', 'description', 'status', 'resolution', 'closed_at'],
+        'workflows'  => ['file_complaint', 'acknowledge', 'investigate', 'resolve', 'notify_complainant', 'close'],
+        'kpis'       => ['Resolution Rate', 'Average Resolution Time', 'Recurrence Rate'],
+        'roles'      => ['customer', 'complaint_officer', 'manager'],
+    ],
+
+    'survey_feedback' => [
+        'label'      => 'Survey & Feedback Collection',
+        'modules'    => ['Survey', 'Question', 'Response', 'Analysis', 'NPS'],
+        'fields'     => ['title', 'type', 'target_audience', 'start_date', 'end_date', 'anonymous', 'responses'],
+        'workflows'  => ['design_survey', 'distribute', 'collect_responses', 'analyze', 'report'],
+        'kpis'       => ['Response Rate', 'NPS Score', 'Satisfaction Score', 'Completion Rate'],
+        'roles'      => ['admin', 'manager', 'customer', 'employee'],
+    ],
+
+    'quiz_assessment' => [
+        'label'      => 'Quiz & Assessment Engine',
+        'modules'    => ['Quiz', 'Question', 'Answer', 'Result', 'Leaderboard'],
+        'fields'     => ['quiz_title', 'time_limit', 'pass_mark', 'questions', 'attempts_allowed', 'shuffle'],
+        'workflows'  => ['create_quiz', 'assign', 'attempt', 'auto_grade', 'publish_result'],
+        'kpis'       => ['Attempt Rate', 'Pass Rate', 'Average Score', 'Completion Rate'],
+        'roles'      => ['instructor', 'admin', 'student'],
+    ],
+
+    'certificate_management' => [
+        'label'      => 'Certificate & Credential Management',
+        'modules'    => ['Certificate', 'Template', 'IssuedCertificate', 'VerificationLink'],
+        'fields'     => ['recipient', 'course', 'issue_date', 'expiry_date', 'verification_code', 'template_id'],
+        'workflows'  => ['trigger_certificate', 'generate', 'email_delivery', 'verify_online'],
+        'kpis'       => ['Certificates Issued', 'Verification Requests', 'Expired Rate'],
+        'roles'      => ['admin', 'instructor', 'student'],
+    ],
+
+    'map_tracking' => [
+        'label'      => 'GPS / Map Tracking',
+        'modules'    => ['TrackingDevice', 'LiveLocation', 'GeoFence', 'Route', 'Alert'],
+        'fields'     => ['device_id', 'entity_type', 'entity_id', 'lat', 'lng', 'speed', 'timestamp', 'geofence'],
+        'workflows'  => ['device_ping', 'live_track', 'geofence_alert', 'route_replay', 'report'],
+        'kpis'       => ['Coverage Rate', 'Alert Response Time', 'Geofence Violations'],
+        'roles'      => ['admin', 'dispatcher', 'driver', 'operations_manager'],
+    ],
+
+    'chat_messaging' => [
+        'label'      => 'In-App Chat / Messaging',
+        'modules'    => ['Conversation', 'Message', 'Attachment', 'Thread', 'Notification'],
+        'fields'     => ['sender_id', 'recipient_id', 'message', 'type', 'read_at', 'attachment_url'],
+        'workflows'  => ['start_conversation', 'send_message', 'mark_read', 'archive', 'delete'],
+        'kpis'       => ['Response Time', 'Message Volume', 'Resolution via Chat'],
+        'roles'      => ['user', 'support_agent', 'admin'],
+    ],
+
+    'audit_log' => [
+        'label'      => 'Audit Trail / Activity Log',
+        'modules'    => ['AuditLog', 'ActivityLog', 'SecurityEvent', 'ChangeHistory'],
+        'fields'     => ['user_id', 'action', 'model_type', 'model_id', 'old_values', 'new_values', 'ip', 'timestamp'],
+        'workflows'  => ['auto_capture_action', 'flag_suspicious', 'export_logs', 'alert_admin'],
+        'kpis'       => ['Actions per Day', 'Suspicious Events', 'Compliance Audit Pass Rate'],
+        'roles'      => ['admin', 'compliance_officer', 'security_officer'],
+    ],
+
+    'digital_signature' => [
+        'label'      => 'Digital Signature & e-Signing',
+        'modules'    => ['SignatureRequest', 'Document', 'Signer', 'SignatureLog', 'Certificate'],
+        'fields'     => ['document_id', 'signer_email', 'signed_at', 'ip_address', 'certificate', 'status'],
+        'workflows'  => ['prepare_document', 'send_for_signature', 'sign', 'countersign', 'finalize'],
+        'kpis'       => ['Sign Completion Rate', 'Time to Sign', 'Documents Executed'],
+        'roles'      => ['admin', 'contract_manager', 'signer'],
+    ],
+
+    'catalog' => [
+        'label'      => 'Product / Item Catalog',
+        'modules'    => ['Product', 'Category', 'Brand', 'Attribute', 'Variant', 'Image'],
+        'fields'     => ['sku', 'name', 'category', 'brand', 'description', 'price', 'variants', 'images', 'status'],
+        'workflows'  => ['add_product', 'set_variants', 'set_pricing', 'publish', 'archive'],
+        'kpis'       => ['Active Products', 'Out of Stock Rate', 'Catalog Coverage'],
+        'roles'      => ['admin', 'catalog_manager', 'vendor'],
+    ],
+
+    'booking_management' => [
+        'label'      => 'Booking / Reservation System',
+        'modules'    => ['Booking', 'Resource', 'Availability', 'Confirmation', 'Cancellation'],
+        'fields'     => ['resource_id', 'customer_id', 'date', 'time_slot', 'status', 'payment_status', 'notes'],
+        'workflows'  => ['check_availability', 'create_booking', 'send_confirmation', 'remind', 'complete', 'cancel'],
+        'kpis'       => ['Booking Rate', 'Cancellation Rate', 'No-Show Rate', 'Utilization'],
+        'roles'      => ['admin', 'staff', 'customer'],
+    ],
+
+    'helpdesk' => [
+        'label'      => 'Help Desk / IT Support',
+        'modules'    => ['Incident', 'ServiceRequest', 'CMDB', 'KnowledgeArticle', 'SLA'],
+        'fields'     => ['incident_id', 'category', 'priority', 'assigned_to', 'status', 'resolution'],
+        'workflows'  => ['log_incident', 'classify', 'assign', 'diagnose', 'resolve', 'post_mortem'],
+        'kpis'       => ['MTTR', 'First Call Resolution', 'SLA Compliance', 'Incident Backlog'],
+        'roles'      => ['user', 'it_support', 'it_manager'],
+    ],
+
+    'task_management' => [
+        'label'      => 'Task Management / To-Do',
+        'modules'    => ['Task', 'Subtask', 'Label', 'Checklist', 'Attachment', 'Comment'],
+        'fields'     => ['title', 'description', 'assignee', 'due_date', 'priority', 'status', 'tags'],
+        'workflows'  => ['create_task', 'assign', 'in_progress', 'review', 'complete', 'archive'],
+        'kpis'       => ['Task Completion Rate', 'Overdue Tasks', 'Cycle Time'],
+        'roles'      => ['admin', 'team_member', 'manager'],
+    ],
+
+    'kanban' => [
+        'label'      => 'Kanban / Visual Board',
+        'modules'    => ['Board', 'Column', 'Card', 'Label', 'WIPLimit'],
+        'fields'     => ['board_name', 'column_name', 'card_title', 'assignee', 'priority', 'due_date', 'wip_limit'],
+        'workflows'  => ['create_card', 'move_column', 'block', 'unblock', 'archive'],
+        'kpis'       => ['Throughput', 'Cycle Time', 'Lead Time', 'WIP Violations'],
+        'roles'      => ['admin', 'team_member', 'project_manager'],
+    ],
+
+    'multi_tenant' => [
+        'label'      => 'Multi-Tenant / SaaS Workspace',
+        'modules'    => ['Tenant', 'Workspace', 'TenantUser', 'Plan', 'TenantSetting'],
+        'fields'     => ['tenant_id', 'name', 'domain', 'plan', 'users', 'status', 'created_at'],
+        'workflows'  => ['tenant_signup', 'workspace_setup', 'invite_users', 'plan_upgrade', 'suspend'],
+        'kpis'       => ['Active Tenants', 'Revenue per Tenant', 'Churn Rate', 'Expansion MRR'],
+        'roles'      => ['super_admin', 'tenant_admin', 'tenant_user'],
+    ],
+
+    'product_catalog' => [
+        'label'      => 'Marketplace Product Listing',
+        'modules'    => ['Listing', 'Review', 'Rating', 'Flag', 'BuyerProtection'],
+        'fields'     => ['vendor_id', 'title', 'category', 'price', 'stock', 'rating', 'status'],
+        'workflows'  => ['submit_listing', 'review_listing', 'approve', 'publish', 'flag_report'],
+        'kpis'       => ['Listings per Vendor', 'Approval Rate', 'Average Rating', 'Conversion Rate'],
+        'roles'      => ['admin', 'vendor', 'buyer', 'moderator'],
+    ],
+
+    'stock_management' => [
+        'label'      => 'Stock Count / Physical Inventory',
+        'modules'    => ['StockCount', 'CountSheet', 'Variance', 'Adjustment', 'CountSchedule'],
+        'fields'     => ['location', 'product', 'system_qty', 'counted_qty', 'variance', 'approved_by', 'date'],
+        'workflows'  => ['schedule_count', 'assign_counters', 'count', 'variance_review', 'adjust', 'close'],
+        'kpis'       => ['Count Accuracy', 'Variance Value', 'Shrinkage Rate'],
+        'roles'      => ['warehouse_manager', 'stock_keeper', 'auditor'],
+    ],
+
+    'customer_portal' => [
+        'label'      => 'Customer Self-Service Portal',
+        'modules'    => ['Portal', 'Account', 'OrderHistory', 'InvoiceDownload', 'SupportTicket'],
+        'fields'     => ['customer_id', 'email', 'orders', 'invoices', 'tickets', 'profile', 'preferences'],
+        'workflows'  => ['portal_login', 'view_orders', 'download_invoice', 'raise_ticket', 'update_profile'],
+        'kpis'       => ['Portal Adoption Rate', 'Support Ticket Deflection', 'Self-Service Rate'],
+        'roles'      => ['customer', 'admin'],
+    ],
+
+    'barcode_qr' => [
+        'label'      => 'Barcode / QR Code Management',
+        'modules'    => ['Barcode', 'QRCode', 'ScanLog', 'Generator', 'Printer'],
+        'fields'     => ['code_type', 'value', 'entity_type', 'entity_id', 'generated_at', 'last_scanned'],
+        'workflows'  => ['generate', 'print', 'scan', 'validate', 'log_scan'],
+        'kpis'       => ['Codes Generated', 'Scan Accuracy', 'Error Rate'],
+        'roles'      => ['admin', 'warehouse_staff', 'cashier'],
+    ],
+
+    'valuation' => [
+        'label'      => 'Valuation / Appraisal',
+        'modules'    => ['ValuationRequest', 'Appraiser', 'Report', 'Certificate'],
+        'fields'     => ['item_type', 'description', 'appraiser_id', 'value', 'date', 'method', 'notes'],
+        'workflows'  => ['submit_request', 'assign_appraiser', 'inspect', 'calculate_value', 'issue_certificate'],
+        'kpis'       => ['Valuations per Month', 'Turnaround Time', 'Accuracy vs Market'],
+        'roles'      => ['admin', 'appraiser', 'client'],
+    ],
+
+    'gate_pass' => [
+        'label'      => 'Gate Pass / Visitor Management',
+        'modules'    => ['Visitor', 'GatePass', 'Host', 'Entry', 'Exit', 'Vehicle'],
+        'fields'     => ['visitor_name', 'id_type', 'host_id', 'purpose', 'entry_time', 'exit_time', 'badge_no'],
+        'workflows'  => ['visitor_registration', 'host_approval', 'badge_issue', 'entry', 'exit', 'report'],
+        'kpis'       => ['Visitors per Day', 'Average Visit Duration', 'Unauthorized Entry Rate'],
+        'roles'      => ['security', 'receptionist', 'admin', 'visitor', 'host'],
+    ],
+
+    'job_card' => [
+        'label'      => 'Job Card / Work Order',
+        'modules'    => ['JobCard', 'WorkOrder', 'Assignment', 'Parts', 'TimesheetEntry'],
+        'fields'     => ['job_no', 'description', 'assigned_to', 'priority', 'start_date', 'due_date', 'status', 'cost'],
+        'workflows'  => ['create_job', 'assign', 'start_work', 'log_materials', 'log_time', 'complete', 'invoice'],
+        'kpis'       => ['Job Completion Rate', 'On-Time Rate', 'Cost Variance'],
+        'roles'      => ['admin', 'supervisor', 'technician', 'client'],
+    ],
 ];
