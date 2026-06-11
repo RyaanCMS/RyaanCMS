@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.61",
+    "latest": "1.1.62",
     "versions": [
         {
             "version": "1.0.0",
@@ -767,6 +767,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.60",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.62",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: light colorful theme — professional responsive preview + layout\n\n- Replace dark heredoc in shellPreviewHtml() with full light-colorful design:\n  white/light backgrounds, brand-colored sidebar, domain-distinct per variant\n- 12-section landing: hero, trusted logos, features, testimonials, pricing, FAQ,\n  CTA banner, footer with all 5 columns\n- Dashboard: KPI cards with colored left-border accent, Chart.js bar chart,\n  recent activity feed\n- All CRUD module views: functional add/edit/delete with confirm dialogs,\n  search filter, pagination\n- Mobile bottom navigation (4 entity buttons + settings)\n- Fully responsive: sidebar drawer + bottom nav on <=768px\n- Update shellLayout(): brand-colored sidebar, Inter font, light bg,\n  mobile responsive with Alpine.js drawer + bottom nav (first 3 entities)\n- Remove duplicate leftover dark HTML that caused PHP parse error\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.62/ryaancms-v1.1.62-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.61",
             "critical": false,
             "file_count": null
         }
