@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.55",
+    "latest": "1.1.56",
     "versions": [
         {
             "version": "1.0.0",
@@ -695,6 +695,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.54",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.56",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: escape Alpine.js dollar signs in CONTEXT heredoc\n\n$watch, $store, $dispatch inside the <<<CONTEXT heredoc were\nbeing interpolated by PHP as undefined variables, causing a fatal\n'Undefined variable' error during app generation. Escaped all three\nwith backslash so they pass through to the AI as literal JS/Alpine text.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.56/ryaancms-v1.1.56-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.55",
             "critical": false,
             "file_count": null
         }
