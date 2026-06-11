@@ -1211,10 +1211,19 @@
         {{-- Ryaan Credits widget --}}
         @auth
         @php
-            $__creditsBalance = app(\App\Services\Credits\RyaanCreditsService::class)->getBalance(auth()->user());
-            $__creditsTier    = $__creditsBalance->tier;
-            $__creditsAmount  = number_format($__creditsBalance->balance);
-            $__isByok         = $__creditsTier === 'byok';
+            try {
+                $__creditsBalance = app(\App\Services\Credits\RyaanCreditsService::class)->getBalance(auth()->user());
+                $__creditsTier    = $__creditsBalance->tier;
+                $__creditsAmount  = number_format($__creditsBalance->balance);
+                $__isByok         = $__creditsTier === 'byok';
+                $__creditsOk      = true;
+            } catch (\Throwable) {
+                // Table may not exist yet (pre-migration) — show safe defaults
+                $__creditsTier   = 'byok';
+                $__creditsAmount = '0';
+                $__isByok        = true;
+                $__creditsOk     = false;
+            }
         @endphp
         <div class="sb-show-expanded" style="padding:0 8px 6px;flex-shrink:0;">
             <a href="{{ route('settings.index') }}"

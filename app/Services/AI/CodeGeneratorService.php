@@ -258,9 +258,18 @@ class CodeGeneratorService
         $historyTurns = $isTiny ? 1 : min(2, $route['history_turns']);
         $history      = $this->trimHistory($conversation->getMessagesForAPI(), $historyTurns);
 
+        // Intelligence Gate: pre-flight credit check (only fires for Credits-tier users)
+        $isMultiPhase = $this->isFullSystemRequest($prompt);
+        if ($this->gate && $this->pricing) {
+            $outcomeType = $this->pricing->outcomeFromTaskType('generation', $isTiny, $isMultiPhase);
+            $check       = $this->gate->checkOperation($user, $outcomeType, $this->pricing->costForOutcome($outcomeType));
+            if (!$check['allowed']) {
+                throw new \RuntimeException($check['reason']);
+            }
+        }
+
         // Route large "build a complete system" prompts through Blueprint-Driven generation
         // Blueprint runs invisibly: discover → auto-CRUD → AI for complex parts only
-        $isMultiPhase = $this->isFullSystemRequest($prompt);
         if ($isMultiPhase) {
             $this->autoTitleConversation($conversation, $rawPrompt);
             $conversation->addMessage('user', $rawPrompt);
@@ -1085,6 +1094,9 @@ YOUR JOB — generate ONLY what is NOT in the list above:
     system overview, actors/roles, module requirements, data dictionary,
     workflows, business rules, reports/KPIs, integrations, non-functional requirements,
     assumptions, and out-of-scope items
+13. For business problem or outcome prompts, docs/operating-plan.md:
+    root-cause hypothesis, confidence, assumptions, recommended actions,
+    implementation modules, monitoring KPIs, alerts, review cycle, and estimated impact
 
 VISIBILITY RULE:
 Never reveal internal blueprint, routing, token, cost, cache, or module-generation mechanics in user-facing copy or summaries.
@@ -2073,27 +2085,42 @@ HTML;
         $creditCost  = $this->pricing->costForOutcome($outcomeType);
         $responseMs  = (int) (microtime(true) * 1000) - $startMs;
 
+        $creditsDeducted = 0;
+
         // Deduct credits for Credits-tier users (BYOK users are not charged)
         if ($this->gate->isCreditsUser($user)) {
-            $this->credits->deduct(
+            $deducted = $this->credits->deduct(
                 $user, $creditCost,
                 "AI generation: {$outcomeType}",
                 Project::class, $project->id,
                 ['outcome' => $outcomeType, 'response_ms' => $responseMs]
             );
+            // Deduction can fail if balance dropped to zero between pre-flight and completion
+            // (race condition with concurrent requests). Log but don't throw — generation succeeded.
+            if ($deducted) {
+                $creditsDeducted = $creditCost;
+            } else {
+                \Illuminate\Support\Facades\Log::warning('RyaanCredits: deduction failed post-generation', [
+                    'user_id' => $user->id, 'cost' => $creditCost, 'outcome' => $outcomeType,
+                ]);
+            }
         }
 
         // Log usage for all users
-        AiUsageLog::create([
-            'user_id'          => $user->id,
-            'project_id'       => $project->id,
-            'provider'         => $provider ?? 'unknown',
-            'model'            => $model ?? 'default',
-            'task_type'        => 'generation',
-            'credits_used'     => $this->gate->isCreditsUser($user) ? $creditCost : 0,
-            'response_time_ms' => $responseMs,
-            'tier_at_time'     => $this->gate->tier($user),
-        ]);
+        try {
+            AiUsageLog::create([
+                'user_id'          => $user->id,
+                'project_id'       => $project->id,
+                'provider'         => $provider ?? 'unknown',
+                'model'            => $model ?? 'default',
+                'task_type'        => 'generation',
+                'credits_used'     => $creditsDeducted,
+                'response_time_ms' => $responseMs,
+                'tier_at_time'     => $this->gate->tier($user),
+            ]);
+        } catch (\Throwable) {
+            // Usage logging should never break the generation response
+        }
     }
 
     private function streamSinglePhase(
