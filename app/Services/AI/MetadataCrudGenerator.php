@@ -603,20 +603,31 @@ PHP;
 
     private function shellLayout(string $appName, array $entities, string $brandColor): string
     {
+        $initial = strtoupper(mb_substr($appName, 0, 1));
+
         $navLinks = '';
-        foreach ($entities as $e) {
-            $name      = Str::studly($e['name']);
-            $plural    = Str::plural(Str::snake($name));
-            $plurTitle = Str::title(str_replace('_', ' ', $plural));
+        $mobileNavLinks = '';
+        foreach ($entities as $idx => $e) {
+            $name      = \Illuminate\Support\Str::studly($e['name']);
+            $plural    = \Illuminate\Support\Str::plural(\Illuminate\Support\Str::snake($name));
+            $plurTitle = \Illuminate\Support\Str::title(str_replace('_', ' ', $plural));
             $icon      = $this->entityIcon($e['name']);
-            $navLinks .= <<<BLADE
+            $navLinks .= <<<BLADE2
 
                     <a href="{{ route('{$plural}.index') }}"
                        class="nav-link {{ request()->routeIs('{$plural}.*') ? 'active' : '' }}">
-                        <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">{$icon}</span>
+                        <span class="nav-icon">{$icon}</span>
                         {$plurTitle}
                     </a>
-BLADE;
+BLADE2;
+            if ($idx < 3) {
+                $mobileNavLinks .= <<<BLADE3
+
+    <a href="{{ route('{$plural}.index') }}" class="mob-nb {{ request()->routeIs('{$plural}.*') ? 'active' : '' }}">
+        <span>{$icon}</span><span class="mob-nbl">{$plurTitle}</span>
+    </a>
+BLADE3;
+            }
         }
 
         return <<<BLADE
@@ -626,66 +637,112 @@ BLADE;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', '{$appName}')</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        :root { --brand: {$brandColor}; }
-        body { background:#f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-        .sidebar { width:240px; min-height:100vh; background:#1e1b4b; flex-shrink:0; }
-        .nav-link { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px;
-                    color:#94a3b8; text-decoration:none; font-size:13.5px; font-weight:500; transition:.15s; }
-        .nav-link:hover, .nav-link.active { background:rgba(99,102,241,.25); color:#e2e8f0; }
-        .nav-icon { width:16px; height:16px; flex-shrink:0; }
-        .main-content { flex:1; overflow-auto; }
-        .topbar { background:#fff; border-bottom:1px solid #e2e8f0; padding:0 24px; height:56px;
-                  display:flex; align-items:center; justify-content:space-between; }
-        .page-body { padding:24px; }
+        :root{--brand:{$brandColor};--bg:#f1f5f9;--bdr:#e2e8f0;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--sbw:240px}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html,body{height:100%;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text)}
+        a{text-decoration:none;color:inherit}
+        .app-wrap{display:flex;height:100vh;overflow:hidden}
+        .sidebar{width:var(--sbw);background:var(--brand);color:#fff;display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto;overflow-x:hidden;z-index:50;transition:left .25s}
+        .sidebar::-webkit-scrollbar{width:3px}
+        .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:4px}
+        .sb-head{padding:18px 14px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.12)}
+        .sb-icon{width:33px;height:33px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
+        .sb-name{font-size:13.5px;font-weight:800;color:#fff}
+        .sb-sub{font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
+        .sb-section{padding:7px 14px 3px;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+        .nav-link{display:flex;align-items:center;gap:9px;padding:9px 13px;margin:2px 7px;border-radius:9px;color:rgba(255,255,255,.8);font-size:13px;font-weight:500;text-decoration:none;width:calc(100% - 14px);transition:.15s}
+        .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.18);color:#fff}
+        .nav-link.active{font-weight:700}
+        .nav-icon{font-size:15px;flex-shrink:0;width:19px;text-align:center}
+        .sb-footer{margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:9px}
+        .sb-av{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+        .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+        .topbar{background:#fff;border-bottom:1px solid var(--bdr);padding:0 22px;display:flex;align-items:center;height:56px;gap:14px;flex-shrink:0}
+        .topbar-menu{display:none;background:none;border:none;padding:5px;border-radius:7px;color:var(--text2);font-size:18px;cursor:pointer}
+        .topbar-title{font-size:14px;font-weight:700;color:var(--text)}
+        .topbar-date{font-size:12px;color:var(--text3);margin-left:auto}
+        .topbar-av{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-left:8px;flex-shrink:0}
+        .page-body{flex:1;overflow-y:auto;padding:22px;background:var(--bg)}
+        .page-body::-webkit-scrollbar{width:5px}
+        .page-body::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+        .alert-ok{background:#dcfce7;border:1px solid #86efac;color:#166534;padding:10px 16px;border-radius:10px;margin-bottom:16px;font-size:13px}
+        .alert-err{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 16px;border-radius:10px;margin-bottom:16px;font-size:13px}
+        .mob-bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);z-index:200;padding:5px 0}
+        .mob-nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:5px 3px;color:var(--text3);min-width:0;cursor:pointer;text-decoration:none;font-family:inherit}
+        .mob-nb.active{color:var(--brand)}
+        .mob-nb span:first-child{font-size:18px}
+        .mob-nbl{font-size:9.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        @media(max-width:768px){
+            .sidebar{position:fixed;left:calc(-1 * var(--sbw));top:0;bottom:0}
+            .sidebar.open{left:0;box-shadow:0 0 0 100vw rgba(0,0,0,.35)}
+            .topbar-menu{display:flex}
+            .mob-bnav{display:flex}
+            .page-body{padding:14px;padding-bottom:68px}
+        }
         @yield('styles')
     </style>
     @yield('head')
 </head>
 <body>
-<div style="display:flex;">
-
-    {{-- Sidebar --}}
-    <nav class="sidebar" x-data="{ open: true }">
-        <div style="padding:20px 16px; border-bottom:1px solid rgba(255,255,255,.08);">
-            <div style="font-size:16px; font-weight:700; color:#fff; letter-spacing:-.3px;">{$appName}</div>
-            <div style="font-size:11px; color:#818cf8; margin-top:2px;">Management System</div>
+<div class="app-wrap" x-data="{ sbOpen: false }">
+    <nav class="sidebar" :class="{ 'open': sbOpen }">
+        <div class="sb-head">
+            <div class="sb-icon">{$initial}</div>
+            <div><div class="sb-name">{$appName}</div><div class="sb-sub">Management System</div></div>
         </div>
-        <div style="padding:12px 8px;">
-            <a href="{{ route('dashboard') }}"
-               class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">📊</span>
-                Dashboard
+        <div style="padding:10px 8px 6px">
+            <div class="sb-section">Main</div>
+            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <span class="nav-icon">🏠</span> Dashboard
             </a>
+            <div class="sb-section" style="margin-top:8px">Modules</div>
 {$navLinks}
-            <div style="margin:8px 8px 4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em">System</div>
-            <a href="{{ route('settings') }}"
-               class="nav-link {{ request()->routeIs('settings*') ? 'active' : '' }}">
-                <span style="font-size:15px;line-height:1;width:18px;flex-shrink:0;text-align:center">⚙️</span>
-                Settings
+            <div style="margin:8px 8px 4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);padding-left:6px">System</div>
+            <a href="{{ route('settings') }}" class="nav-link {{ request()->routeIs('settings*') ? 'active' : '' }}">
+                <span class="nav-icon">⚙️</span> Settings
             </a>
+        </div>
+        <div class="sb-footer">
+            <div class="sb-av">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}</div>
+            <div><div style="font-size:12.5px;font-weight:600;color:#fff">{{ auth()->user()->name ?? 'Admin' }}</div><div style="font-size:10px;color:rgba(255,255,255,.6)">Administrator</div></div>
         </div>
     </nav>
-
-    {{-- Main --}}
     <div class="main-content">
         <div class="topbar">
-            <div style="font-size:14px; font-weight:600; color:#1e293b;">@yield('title', 'Dashboard')</div>
-            <div style="font-size:12px; color:#64748b;">{{ now()->format('D, d M Y') }}</div>
+            <button class="topbar-menu" @click="sbOpen = !sbOpen">☰</button>
+            <div class="topbar-title">@yield('title', 'Dashboard')</div>
+            <div class="topbar-date">{{ now()->format('D, d M Y') }}</div>
+            <div class="topbar-av">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}</div>
         </div>
         <div class="page-body">
             @if(session('success'))
-                <div style="background:#dcfce7; border:1px solid #86efac; color:#166534; padding:10px 16px; border-radius:10px; margin-bottom:16px; font-size:13px;">
-                    {{ session('success') }}
-                </div>
+                <div class="alert-ok">✓ {{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert-err">✕ {{ session('error') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="alert-err">@foreach($errors->all() as $error)<div>• {{ $error }}</div>@endforeach</div>
             @endif
             @yield('content')
         </div>
     </div>
-
+    <div x-show="sbOpen" @click="sbOpen=false" style="display:none;position:fixed;inset:0;z-index:49" x-bind:style="sbOpen ? 'display:block' : 'display:none'"></div>
 </div>
+<nav class="mob-bnav">
+    <a href="{{ route('dashboard') }}" class="mob-nb {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <span>🏠</span><span class="mob-nbl">Home</span>
+    </a>
+{$mobileNavLinks}
+    <a href="{{ route('settings') }}" class="mob-nb {{ request()->routeIs('settings*') ? 'active' : '' }}">
+        <span>⚙️</span><span class="mob-nbl">Settings</span>
+    </a>
+</nav>
 </body>
 </html>
 BLADE;
