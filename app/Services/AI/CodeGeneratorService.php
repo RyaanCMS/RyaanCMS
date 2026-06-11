@@ -990,6 +990,14 @@ TINY;
         $totalTokens = 0;
         $allFiles    = [];
 
+        // Heartbeat-aware sleep — sends ping every 1s so SSE connection stays alive
+        $sleep = function (int $seconds) use ($onEvent): void {
+            for ($i = 0; $i < $seconds; $i++) {
+                usleep(1000000);
+                $onEvent(['type' => 'ping']);
+            }
+        };
+
         // ── Step 1: Library lookup first (zero AI) — discover() only if no library match ──
         $onEvent(['type' => 'activity', 'icon' => '🔍', 'text' => 'Analyzing your request...']);
         $blueprint      = $this->blueprintService->tryLibrary($prompt);
@@ -1005,16 +1013,16 @@ TINY;
         $this->blueprintService->store($project, $blueprint);
         $totalTokens += $blueprint['tokens_used'] ?? 0;
 
-        if ($isLibraryMatch) { usleep(5000000); } // 5s — analyzing phase
+        if ($isLibraryMatch) { $sleep(5); } // 5s — analyzing phase
 
         $onEvent(['type' => 'activity', 'icon' => '🗺️', 'text' => "Planning {$blueprint['name']} architecture"]);
 
         if ($isLibraryMatch) {
-            usleep(8000000); // 8s
+            $sleep(8);
             $onEvent(['type' => 'activity', 'icon' => '🗄️', 'text' => 'Designing database schema and relationships']);
-            usleep(10000000); // 10s
+            $sleep(10);
             $onEvent(['type' => 'activity', 'icon' => '⚙️', 'text' => 'Configuring module system and permissions']);
-            usleep(8000000); // 8s
+            $sleep(8);
         }
 
         // ── Step 2: Auto-CRUD (zero AI) ───────────────────────────────────────
@@ -1024,7 +1032,7 @@ TINY;
             if (empty($entity['name'])) continue;
             $entityName = $entity['name'];
             $onEvent(['type' => 'activity', 'icon' => '⚡', 'text' => "Building {$entityName} module"]);
-            if ($isLibraryMatch) { usleep(8000000); } // 8s per entity
+            if ($isLibraryMatch) { $sleep(8); } // 8s per entity
             $files      = $this->crudGenerator->generate($entity);
             $savedBatch = [];
             foreach ($files as $f) {
@@ -1040,7 +1048,7 @@ TINY;
         // ── Step 2b: App shell — layout, sidebar, dashboard, routes (zero AI) ─────
         if ($isLibraryMatch) {
             $onEvent(['type' => 'activity', 'icon' => '🎨', 'text' => 'Assembling views and UI templates']);
-            usleep(10000000); // 10s
+            $sleep(10);
         }
         foreach ($this->crudGenerator->generateAppShell($entities, $project->name) as $f) {
             $saved = $this->saveFileToProject($project, $f['path'], $f['content']);
@@ -1054,9 +1062,9 @@ TINY;
         if ($aiProvider === null) {
             if ($isLibraryMatch) {
                 $onEvent(['type' => 'activity', 'icon' => '💾', 'text' => 'Writing project files to disk']);
-                usleep(8000000); // 8s
+                $sleep(8);
                 $onEvent(['type' => 'activity', 'icon' => '✨', 'text' => 'Finalizing application structure']);
-                usleep(5000000); // 5s
+                $sleep(5);
             }
             $fileCount = count($allFiles);
             $noAiMsg   = "✅ **{$blueprint['name']} core modules ready** — {$fileCount} files built. Add an AI provider in **Settings → AI Providers** to generate the dashboard, navigation and advanced business logic.";
