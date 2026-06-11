@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.59",
+    "latest": "1.1.60",
     "versions": [
         {
             "version": "1.0.0",
@@ -743,6 +743,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.58",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.60",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: generateAppShell — complete working app without AI key\n\nMetadataCrudGenerator.generateAppShell() now generates 4 zero-cost\napp structure files after all entity CRUDs:\n- routes/web.php — real consolidated resource routes + dashboard route\n- app/Http/Controllers/DashboardController.php — entity count queries\n- resources/views/layouts/app.blade.php — sidebar nav auto-built from entities\n- resources/views/dashboard.blade.php — stat cards per entity with colors\n\nBoth generateBlueprintDriven and streamBlueprintDriven call this in\nStep 2b. Hotel Management now generates a complete runnable app\n(migrations + CRUD + layout + dashboard + routing) with zero AI tokens.\nAI Step 3 only adds charts, advanced business logic, and integrations.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.60/ryaancms-v1.1.60-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.59",
             "critical": false,
             "file_count": null
         }
