@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.74",
+    "latest": "1.1.75",
     "versions": [
         {
             "version": "1.0.0",
@@ -923,6 +923,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.73",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.75",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: resolve Undefined variable errors and subscription lock-out\n\n- CheckSubscription: wrap DB queries in try/catch — if table missing or\n  query fails, let request through instead of crashing\n- CheckSubscription: auto-start a free trial for pre-existing users who\n  have no subscription record (registered before SaaS system was added)\n- SubscriptionService::isActive(): catch DB exceptions, return true on\n  failure so infrastructure issues never lock users out\n- layouts/app.blade.php: guard dollar-sign-errors with isset() fallback to\n  empty ViewErrorBag — fixes Undefined variable dollar-sign-errors in\n  exception-path rendering (custom error pages, early middleware failures)\n- install/wizard.blade.php: same dollar-sign-errors guard at top of file\n- pricing.blade.php: wrap Plan::active()->get() in try/catch so page\n  renders safely before migrations have been run",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.75/ryaancms-v1.1.75-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.74",
             "critical": false,
             "file_count": null
         }
