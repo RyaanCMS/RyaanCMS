@@ -448,14 +448,26 @@ class SeniorDevKnowledgeBase
 
     /**
      * Get smart clarifying questions for a given domain before building.
+     * Checks local_question_packs DB first; falls back to config file.
      */
     public function getSmartQuestions(string $domain): array
     {
+        // DB-backed pack (synced from central registry or locally seeded)
+        try {
+            $pack = \App\Models\LocalQuestionPack::bestMatch($domain);
+            if ($pack) {
+                $questions = $pack->questions();
+                usort($questions, fn($a, $b) => ($b['critical'] ?? false) <=> ($a['critical'] ?? false));
+                return array_slice($questions, 0, 7);
+            }
+        } catch (\Throwable) {
+            // DB unavailable during install — fall through to config
+        }
+
         $domainQs  = $this->questionIntelligence['by_domain'][$domain] ?? [];
         $generalQs = $this->questionIntelligence['by_domain']['general'] ?? [];
         $all       = array_merge($domainQs, $generalQs);
 
-        // Return critical questions first, max 7
         usort($all, fn($a, $b) => ($b['critical'] ?? false) <=> ($a['critical'] ?? false));
 
         return array_slice($all, 0, 7);

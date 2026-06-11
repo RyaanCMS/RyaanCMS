@@ -161,6 +161,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/updates/check',       [UpdateController::class, 'check'])->name('updates.check');
         Route::post('/updates/apply',       [UpdateController::class, 'apply'])->name('updates.apply');
         Route::post('/updates/plugin/{key}', [UpdateController::class, 'applyPlugin'])->name('updates.plugin');
+
+        // Question Pack Registry
+        Route::post('/registry/sync',    [SettingsController::class, 'registrySync'])->name('registry.sync');
+        Route::post('/registry/license', [SettingsController::class, 'registryLicense'])->name('registry.license');
     });
 
     // Menu Category Management

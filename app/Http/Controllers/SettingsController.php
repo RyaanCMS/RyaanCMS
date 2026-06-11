@@ -692,4 +692,37 @@ class SettingsController extends Controller
             return response()->json(['success' => false, 'message' => 'Error: '.$e->getMessage()]);
         }
     }
+
+    // ── Registry ──────────────────────────────────────────────────────────
+
+    public function registrySync(Request $request)
+    {
+        $force = (bool) $request->input('force', false);
+
+        $sync   = app(\App\Services\Registry\RegistrySyncService::class);
+        $result = $sync->sync($force);
+
+        return response()->json(array_merge($result, [
+            'pack_count' => \App\Models\LocalQuestionPack::active()->count(),
+        ]));
+    }
+
+    public function registryLicense(Request $request)
+    {
+        $request->validate(['license_key' => ['required', 'string', 'min:10']]);
+
+        $key  = $request->input('license_key');
+        $sync = app(\App\Services\Registry\RegistrySyncService::class);
+
+        $result = $sync->verifyLicense($key);
+
+        if (!$result['valid']) {
+            return response()->json(['success' => false, 'message' => 'Invalid license key. ' . ($result['error'] ?? '')]);
+        }
+
+        // Persist key to .env-adjacent config (stored as user setting for multi-tenant support)
+        Setting::set('registry.license_key', $key, Auth::id());
+
+        return response()->json(['success' => true, 'message' => 'License activated! Premium packs unlocked.', 'plan' => $result['plan']]);
+    }
 }

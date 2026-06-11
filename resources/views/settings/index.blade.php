@@ -168,7 +168,7 @@
         sysSaving: false,
         sysSaved: false,
         init() {
-            const valid = ['profile','ai','branding','system_config','notifications','integrations','team','danger'];
+            const valid = ['profile','ai','branding','system_config','notifications','integrations','team','registry','danger'];
             const resolveTab = h => ({ 'ai-providers': 'ai', 'ai_provider': 'ai', 'ai-provider': 'ai' }[h] || h);
             const hash = resolveTab(window.location.hash.replace('#', ''));
             if (hash && valid.includes(hash)) this.tab = hash;
@@ -306,6 +306,14 @@
                     </svg>
                 </div>
                 System Config
+            </button>
+            <button @click="tab='registry'" :class="tab==='registry' ? 'active' : ''" class="st-nav-item">
+                <div class="st-nav-ico">
+                    <svg style="width:14px;height:14px;stroke:#94a3b8" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                    </svg>
+                </div>
+                Question Packs
             </button>
 
             <div class="st-nav-sep"></div>
@@ -2080,6 +2088,165 @@
                 </div>
             </div>
         </div>
+
+        {{-- ══ REGISTRY / QUESTION PACKS PANEL ══ --}}
+        <div x-show="tab==='registry'" x-cloak class="st-panel"
+             x-data="{
+                licenseKey: '',
+                syncLoading: false,
+                syncResult: null,
+                autoSync: {{ config('registry.auto_sync') ? 'true' : 'false' }},
+                registryUrl: '{{ config('registry.url') }}',
+                lastSync: '{{ \App\Models\RegistrySyncLog::lastSync()?->synced_at?->diffForHumans() ?? 'Never' }}',
+                packCount: {{ \App\Models\LocalQuestionPack::active()->count() }},
+                async runSync(force) {
+                    this.syncLoading = true; this.syncResult = null;
+                    const r = await fetch('{{ route('settings.registry.sync') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                        body: JSON.stringify({ force: force || false })
+                    });
+                    const d = await r.json();
+                    this.syncLoading = false;
+                    this.syncResult = d;
+                    if (d.success) {
+                        this.packCount = d.pack_count ?? this.packCount;
+                        this.lastSync = 'Just now';
+                        window.dispatchEvent(new CustomEvent('toast', {detail:{type:'success',message:'Packs synced: ' + d.packs_updated + ' updated'}}));
+                    } else {
+                        window.dispatchEvent(new CustomEvent('toast', {detail:{type:'error',message:d.error || 'Sync failed'}}));
+                    }
+                },
+                async saveLicense() {
+                    if (!this.licenseKey) return;
+                    const r = await fetch('{{ route('settings.registry.license') }}', {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},
+                        body: JSON.stringify({license_key: this.licenseKey})
+                    });
+                    const d = await r.json();
+                    window.dispatchEvent(new CustomEvent('toast', {detail:{type: d.success ? 'success' : 'error', message: d.message}}));
+                }
+             }">
+
+            {{-- Status card --}}
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#6366f120;">
+                        <svg style="width:16px;height:16px;stroke:#6366f1" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:var(--text-1);">Question Pack Registry</div>
+                        <div style="font-size:11px;color:var(--text-3);">Sync domain question packs for AI-assisted app building</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+                        <div style="background:var(--hover-bg);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:22px;font-weight:800;color:var(--brand);" x-text="packCount">0</div>
+                            <div style="font-size:11px;color:var(--text-3);">Active Packs</div>
+                        </div>
+                        <div style="background:var(--hover-bg);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-1);" x-text="lastSync"></div>
+                            <div style="font-size:11px;color:var(--text-3);">Last Sync</div>
+                        </div>
+                        <div style="background:var(--hover-bg);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:13px;font-weight:700;color:{{ config('registry.license_key') ? '#10b981' : '#f59e0b' }};">
+                                {{ config('registry.license_key') ? 'Licensed' : 'Free' }}
+                            </div>
+                            <div style="font-size:11px;color:var(--text-3);">Plan</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                        <button class="sbtn-primary" @click="runSync(false)" :disabled="syncLoading">
+                            <svg style="width:13px;height:13px;stroke:currentColor;" fill="none" viewBox="0 0 24 24" :class="syncLoading ? 'animate-spin' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span x-text="syncLoading ? 'Syncing…' : 'Sync Now'">Sync Now</span>
+                        </button>
+                        <button class="sbtn-secondary" style="border:1px solid var(--border);background:var(--hover-bg);color:var(--text-2);" @click="runSync(true)" :disabled="syncLoading">
+                            Force Re-download All
+                        </button>
+                    </div>
+
+                    <template x-if="syncResult && syncResult.success">
+                        <div style="margin-top:12px;padding:10px 14px;border-radius:9px;background:#dcfce7;border:1px solid #86efac;font-size:12.5px;color:#166534;">
+                            Synced: <strong x-text="syncResult.packs_updated"></strong> updated,
+                            <span x-text="syncResult.packs_skipped"></span> unchanged —
+                            <span x-text="syncResult.duration_ms"></span>ms
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- License card --}}
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#f59e0b20;">
+                        <svg style="width:16px;height:16px;stroke:#f59e0b" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:var(--text-1);">License Key</div>
+                        <div style="font-size:11px;color:var(--text-3);">Unlocks premium packs with advanced industry-specific questions</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    @if(config('registry.license_key'))
+                        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:9px;background:#dcfce7;border:1px solid #86efac;">
+                            <svg style="width:14px;height:14px;stroke:#16a34a;flex-shrink:0" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span style="font-size:12.5px;font-weight:600;color:#166534;">License active — premium packs unlocked</span>
+                        </div>
+                    @else
+                        <div style="margin-bottom:12px;">
+                            <label class="slabel">Enter License Key</label>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" class="sfield" x-model="licenseKey"
+                                       placeholder="RYAAN-XXXX-XXXX-XXXX"
+                                       style="border:1.5px solid var(--border);background:var(--card-bg);color:var(--text-1);font-family:monospace;">
+                                <button class="sbtn-primary" @click="saveLicense()" style="white-space:nowrap;">Activate</button>
+                            </div>
+                        </div>
+                        <p style="font-size:11.5px;color:var(--text-3);margin:0;">
+                            Free packs cover all core industries. Premium packs add country-specific, niche, and compliance-aware question sets.
+                        </p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Registry URL info --}}
+            <div class="scard">
+                <div class="scard-hd">
+                    <div class="scard-hd-icon" style="background:#06b6d420;">
+                        <svg style="width:16px;height:16px;stroke:#06b6d4" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:var(--text-1);">Registry Source</div>
+                        <div style="font-size:11px;color:var(--text-3);">Where packs are fetched from</div>
+                    </div>
+                </div>
+                <div class="scard-body">
+                    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:9px;background:var(--hover-bg);border:1px solid var(--border);">
+                        <svg style="width:13px;height:13px;stroke:var(--text-3);flex-shrink:0" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                        </svg>
+                        <span style="font-size:12.5px;color:var(--text-2);font-family:monospace;">{{ config('registry.url') }}</span>
+                    </div>
+                    <p style="margin-top:10px;font-size:11.5px;color:var(--text-3);">
+                        To use a private or self-hosted registry, set <code style="background:var(--hover-bg);padding:1px 5px;border-radius:4px;">REGISTRY_URL</code> in your <code style="background:var(--hover-bg);padding:1px 5px;border-radius:4px;">.env</code> file.
+                    </p>
+                </div>
+            </div>
+
+        </div>{{-- /registry panel --}}
 
     </div>{{-- /content --}}
 </div>{{-- /st-wrap --}}
