@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.45",
+    "latest": "1.1.46",
     "versions": [
         {
             "version": "1.0.0",
@@ -575,6 +575,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.44",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.46",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: expand Blueprint Genome System — 101+ industries, 105+ functions, 25 languages\n\nIndustries (31 → 101+):\n  + Healthcare: dental, eye care, gym, veterinary, blood bank, rehab,\n    mental health, telemedicine, nursing home, ayurvedic, spa\n  + Education: LMS, library, kindergarten, language school, driving school, vocational\n  + Food: bakery, grocery, supermarket, food delivery, catering, fast food\n  + Retail: jewelry, electronics, furniture, clothing, hardware stores\n  + Services: beauty salon, barbershop, laundry, tailoring, photography,\n    event management, travel agency, car rental, auto repair, printing\n  + Professional: law firm, audit firm, recruitment, digital marketing, IT company,\n    cleaning service, security service, pest control\n  + Manufacturing: food processing, textile, cold storage, poultry, dairy, rice mill\n  + Finance: bank/NBFI, cooperative, money exchange, crowdfunding\n  + Transport: bus terminal, parking management\n  + Community: sports club, cinema, mosque, religious org, freelance platform, job portal\n\nFunctions (80 → 105+):\n  + loyalty_rewards, discount_voucher, document_management, asset_management\n  + budget_management, ticket_management, complaint_management, survey_feedback\n  + quiz_assessment, certificate_management, map_tracking, chat_messaging\n  + audit_log, digital_signature, catalog, booking_management, helpdesk\n  + task_management, kanban, multi_tenant, product_catalog, stock_management\n  + customer_portal, barcode_qr, valuation, gate_pass, job_card\n\nLanguages (10 → 25):\n  Added: Russian, German, Japanese, Korean, Urdu, Persian/Farsi,\n  Vietnamese, Thai, Italian, Dutch, Swahili, Tagalog, Tamil, Ukrainian, Polish\n\nfix: IntentEngine constructor — use require directly (config() fails for subdirs)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.46/ryaancms-v1.1.46-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.45",
             "critical": false,
             "file_count": null
         }
