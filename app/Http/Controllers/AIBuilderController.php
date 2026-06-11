@@ -803,26 +803,38 @@ HTML;
 
     /**
      * Phase 1 — Discovery Engine
-     * Tiny AI call (~300 tokens) extracts a structured blueprint from user description.
-     * No code generated — AI only plans.
+     *
+     * Library-first: 95% of common business types are resolved from the pre-built
+     * blueprint library with zero AI tokens — no API key required.
+     * Only falls through to an AI call for truly novel/unknown business types.
      */
     public function discover(Request $request, Project $project)
     {
         $this->authorize('update', $project);
         $request->validate(['description' => ['required', 'string', 'max:2000']]);
 
+        $description = $request->input('description');
+
         try {
-            $aiProvider = $this->aiManager->provider(
-                $request->input('provider'),
-                Auth::user()
-            );
-            $blueprint = $this->blueprintService->discover($request->input('description'), $aiProvider);
+            // Step 1: Library lookup — 0 AI tokens, no API key needed
+            $blueprint = $this->blueprintService->tryLibrary($description);
+
+            // Step 2: Fall back to AI only when library has no match
+            if (!$blueprint) {
+                $aiProvider = $this->aiManager->provider(
+                    $request->input('provider'),
+                    Auth::user()
+                );
+                $blueprint = $this->blueprintService->discover($description, $aiProvider);
+            }
+
             $this->blueprintService->store($project, $blueprint);
 
             return response()->json([
-                'success'      => true,
-                'blueprint'    => $blueprint,
-                'tokens_used'  => $blueprint['tokens_used'] ?? 0,
+                'success'     => true,
+                'blueprint'   => $blueprint,
+                'tokens_used' => $blueprint['tokens_used'] ?? 0,
+                'source'      => $blueprint['source'] ?? 'ai_discovery',
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 422);

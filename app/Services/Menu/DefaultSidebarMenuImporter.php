@@ -33,18 +33,21 @@ class DefaultSidebarMenuImporter
             ['name' => 'Settings',         'url' => route('settings.index'),          'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', 'sort_order' => 90],
         ];
 
-        // Full sync: wipe old developer menus (may have stale slugs/names from earlier versions)
-        Menu::where('user_id', $user->id)
-            ->where('category', self::DEVELOPER_MENU_CATEGORY)
-            ->delete();
-
+        // Only create menus that do not yet exist — never delete user-customised menus.
+        // A menu is identified by its slug (user-scoped). If a user deleted a menu,
+        // it stays deleted. New items added here are created for existing users on
+        // next page load.
         foreach ($items as $item) {
-            Menu::create(array_merge($item, [
-                'user_id'   => $user->id,
-                'slug'      => 'dev-' . Str::slug($item['name']) . '-' . $user->id,
-                'category'  => self::DEVELOPER_MENU_CATEGORY,
-                'is_active' => true,
-            ]));
+            $slug = 'dev-' . Str::slug($item['name']) . '-' . $user->id;
+            Menu::firstOrCreate(
+                ['slug' => $slug, 'user_id' => $user->id],
+                array_merge($item, [
+                    'user_id'   => $user->id,
+                    'slug'      => $slug,
+                    'category'  => self::DEVELOPER_MENU_CATEGORY,
+                    'is_active' => true,
+                ])
+            );
         }
     }
 }

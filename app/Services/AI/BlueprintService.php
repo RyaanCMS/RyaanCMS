@@ -250,6 +250,32 @@ class BlueprintService
     }
 
     /**
+     * Try to resolve a blueprint purely from the library — zero AI tokens.
+     * Returns null if no confident match so the caller can decide to fall back to AI.
+     * Safe to call even when no AI provider / API key is configured.
+     */
+    public function tryLibrary(string $description): ?array
+    {
+        // Problem mapper first (vague problem statements)
+        $mappedKey = $this->problemMapper->map($description);
+        if ($mappedKey) {
+            $lib = $this->library->findByKey($mappedKey);
+            if ($lib) {
+                return $this->buildFromLibrary($lib, $mappedKey, $description);
+            }
+        }
+
+        // Direct keyword match
+        $lib = $this->library->findByDescription($description);
+        if ($lib) {
+            $key = $lib['_key'] ?? 'custom';
+            return $this->buildFromLibrary($lib, $key, $description);
+        }
+
+        return null;
+    }
+
+    /**
      * Store blueprint as JSON on the project.
      */
     public function store(Project $project, array $blueprint): void
