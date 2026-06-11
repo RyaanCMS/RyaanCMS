@@ -499,7 +499,7 @@ FLD;
      */
     public function generateAppShell(array $entities, string $appName = 'My App', string $brandColor = '#6366f1'): array
     {
-        $validEntities = array_filter($entities, fn($e) => !empty($e['name']) && !empty($e['fields']));
+        $validEntities = array_filter($entities, fn($e) => !empty($e['name']));
 
         return [
             [
@@ -517,6 +517,10 @@ FLD;
             [
                 'path'    => 'resources/views/dashboard.blade.php',
                 'content' => $this->shellDashboardView($appName, $validEntities),
+            ],
+            [
+                'path'    => 'preview.html',
+                'content' => $this->shellPreviewHtml($appName, array_values($validEntities)),
             ],
         ];
     }
@@ -717,6 +721,157 @@ BLADE;
 </div>
 @endsection
 BLADE;
+    }
+
+    private function shellPreviewHtml(string $appName, array $entities): string
+    {
+        $colors  = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7'];
+        $icons   = ['📦','🛒','👥','💳','📊','🏷️','⭐','🎟️','🚚','❤️','🏢','📁','📋','🔧','💰','📅','🗂️','🔗'];
+
+        // Sidebar links
+        $sidebarLinks = '';
+        foreach ($entities as $i => $e) {
+            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $icon  = $icons[$i % count($icons)];
+            $sidebarLinks .= "<a href=\"#\" class=\"nav-link\" onclick=\"showSection('{$e['name']}')\">{$icon} {$label}</a>\n";
+        }
+
+        // Stat cards
+        $cards = '';
+        $samples = [847, 1203, 342, 56, 2891, 127, 438, 73, 19, 512, 284, 96];
+        foreach ($entities as $i => $e) {
+            $label = Str::title(str_replace('_', ' ', Str::snake($e['name'])));
+            $color = $colors[$i % count($colors)];
+            $icon  = $icons[$i % count($icons)];
+            $count = $samples[$i % count($samples)];
+            $trend = $i % 3 === 0 ? '+12%' : ($i % 3 === 1 ? '+8%' : '+5%');
+            $cards .= <<<HTML
+<div class="stat-card" onclick="showSection('{$e['name']}')" style="border-top:4px solid {$color}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">{$label}</div>
+      <div style="font-size:32px;font-weight:800;color:#0f172a;margin:6px 0">{$count}</div>
+      <div style="font-size:12px;color:#10b981;font-weight:600">{$trend} this month</div>
+    </div>
+    <div style="font-size:32px;opacity:.8">{$icon}</div>
+  </div>
+</div>
+HTML;
+        }
+
+        // Chart labels & data
+        $chartLabels = implode(',', array_map(fn($e) => '"' . Str::title(str_replace('_',' ',Str::snake($e['name']))) . '"', array_slice($entities, 0, 6)));
+        $chartData   = implode(',', array_map(fn($i) => $samples[$i % count($samples)], range(0, min(5, count($entities) - 1))));
+        $chartBg     = implode(',', array_map(fn($i) => '"' . $colors[$i % count($colors)] . '"', range(0, min(5, count($entities) - 1))));
+
+        // Table rows for first entity
+        $firstLabel = !empty($entities[0]) ? Str::title(str_replace('_', ' ', Str::snake($entities[0]['name']))) : 'Record';
+        $tableRows  = '';
+        $statuses   = ['Active','Pending','Completed','Review'];
+        for ($r = 1; $r <= 6; $r++) {
+            $status = $statuses[($r - 1) % 4];
+            $badge  = match($status) { 'Active' => '#10b981', 'Completed' => '#6366f1', 'Pending' => '#f59e0b', default => '#64748b' };
+            $tableRows .= "<tr><td>{$firstLabel} #{$r}00{$r}</td><td>2026-06-{$r}{$r}</td><td><span style=\"background:{$badge};color:#fff;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600\">{$status}</span></td><td style='text-align:right'><button style='background:#6366f1;color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer'>View</button></td></tr>\n";
+        }
+
+        $entityCount = count($entities);
+        $year = date('Y');
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{$appName}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a;display:flex;min-height:100vh}
+  .sidebar{width:240px;background:#0f172a;color:#fff;display:flex;flex-direction:column;flex-shrink:0;padding:0 0 16px}
+  .sidebar-header{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sidebar-title{font-size:16px;font-weight:800;color:#fff}
+  .sidebar-sub{font-size:11px;color:#64748b;margin-top:2px}
+  .nav-section{padding:12px 12px 4px;font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;color:#94a3b8;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s}
+  .nav-link:hover{background:rgba(99,102,241,.15);color:#fff}
+  .nav-link.active{background:rgba(99,102,241,.2);color:#fff;border-right:3px solid #6366f1}
+  .main{flex:1;display:flex;flex-direction:column;overflow:auto}
+  .topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
+  .topbar-title{font-size:18px;font-weight:700;color:#0f172a}
+  .badge{background:#6366f1;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .content{padding:28px;flex:1}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+  .stat-card{background:#fff;border-radius:12px;padding:20px;cursor:pointer;transition:transform .15s,box-shadow .15s;border:1px solid #e2e8f0}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+  .card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px}
+  .card-title{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:10px 14px;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
+  td{padding:12px 14px;font-size:13px;border-bottom:1px solid #f8fafc;color:#334155}
+  tr:hover td{background:#f8fafc}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">🚀 {$appName}</div>
+    <div class="sidebar-sub">{$entityCount} modules ready</div>
+  </div>
+  <div class="nav-section">Overview</div>
+  <a href="#" class="nav-link active" onclick="showDashboard()">📊 Dashboard</a>
+  <div class="nav-section">Modules</div>
+  {$sidebarLinks}
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <span class="badge">{$entityCount} Modules</span>
+  </div>
+  <div class="content" id="main-content">
+    <div class="stats-grid">{$cards}</div>
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-title">📈 Module Overview</div>
+        <canvas id="barChart" height="200"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">🥧 Distribution</div>
+        <canvas id="doughnutChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Recent {$firstLabel} Records</div>
+      <table>
+        <thead><tr><th>Name</th><th>Date</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+        <tbody>{$tableRows}</tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+const colors = [{$chartBg}];
+new Chart(document.getElementById('barChart'), {
+  type:'bar',
+  data:{labels:[{$chartLabels}],datasets:[{label:'Records',data:[{$chartData}],backgroundColor:colors,borderRadius:6}]},
+  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}},maintainAspectRatio:false}
+});
+new Chart(document.getElementById('doughnutChart'), {
+  type:'doughnut',
+  data:{labels:[{$chartLabels}],datasets:[{data:[{$chartData}],backgroundColor:colors,borderWidth:0}]},
+  options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'65%',maintainAspectRatio:false}
+});
+function showSection(name){
+  document.getElementById('page-title').textContent = name.replace(/_/g,' ');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('main-content').innerHTML = '<div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:16px">📋</div><h2 style="font-size:20px;font-weight:700;margin-bottom:8px">'+name+' Module</h2><p style="color:#64748b;margin-bottom:24px">Manage your '+name.toLowerCase()+' records. Full CRUD interface generated.</p><button onclick="showDashboard()" style="background:#6366f1;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">← Back to Dashboard</button></div>';
+}
+function showDashboard(){location.reload();}
+</script>
+</body>
+</html>
+HTML;
     }
 
     private function enumInput(string $name, array $opts, ?string $var, string $required): string
