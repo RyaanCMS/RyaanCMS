@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.67",
+    "latest": "1.1.68",
     "versions": [
         {
             "version": "1.0.0",
@@ -839,6 +839,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.66",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.68",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: marketplace page mobile responsive\n\n- Header actions: flex-wrap + shorter labels on small screens (sm: breakpoint)\n- Top bar: flex:1 on search so it fills width, stats strip flex-shrink:0\n- ms-stats: overflow-x:auto + scrollbar hidden on mobile (<768px)\n- ms-tabs: overflow-x:auto + full width so tabs scroll instead of wrapping\n- ms-card/ms-card-lg: remove aspect-ratio:1 on mobile, set min-height:180px\n- Cards: smaller padding, icon, font sizes at 600px breakpoint\n- Stats: hide separators + smaller text at 600px\n- Category pills: smaller padding + font-size on mobile\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.68/ryaancms-v1.1.68-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.67",
             "critical": false,
             "file_count": null
         }
