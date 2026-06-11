@@ -109,6 +109,9 @@ class InstallController extends Controller
             \Illuminate\Support\Facades\Log::warning('Install: sidebar menu seeding failed — ' . $e->getMessage());
         }
 
+        // Ensure public/storage symlink exists so uploaded branding assets are accessible
+        try { Artisan::call('storage:link', ['--force' => true]); } catch (\Throwable) {}
+
         // Seed global platform settings (branding, appearance, AI defaults)
         app(\Database\Seeders\SettingsSeeder::class)->run();
 
