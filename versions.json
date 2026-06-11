@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.73",
+    "latest": "1.1.74",
     "versions": [
         {
             "version": "1.0.0",
@@ -911,6 +911,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.72",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.74",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "feat: SaaS platform — plans, subscriptions, billing, EPS payment layer\n\nTurns ryaancms.com into a full multi-tenant SaaS with free trial + paid\nplans. All customers share one installation at ryaancms.com/dashboard.\n\nNew migrations:\n- plans (free_trial/starter/pro/enterprise seeded with prices + features)\n- subscriptions (trial|active|expired|cancelled|pending_payment)\n\nNew models: Plan, Subscription\n\nNew services:\n- SubscriptionService — startTrial, isActive, hasFeature, upgradePlan,\n  revenueStats (MRR/ARR/trials/conversions)\n- EpsPaymentGateway — pluggable adapter (fill in EPS API when ready)\n- PaymentGatewayInterface — contract for any gateway\n\nNew controllers + views:\n- BillingController — /billing (dashboard), /billing/upgrade (plan picker),\n  /billing/callback (EPS return), /billing/webhook (server POST)\n- billing/index.blade.php — current plan, usage, cancel\n- billing/upgrade.blade.php — plan comparison + payment button\n- pages/pricing.blade.php — public pricing page at /pricing\n\nNew middleware:\n- CheckSubscription (alias: subscribed) — blocks expired users → /billing/upgrade\n- PlanGate (alias: plan:feature) — blocks features above user plan\n\nWiring:\n- RegisterController — auto-starts 14-day free trial on signup\n- bootstrap/app.php — registers subscribed + plan middleware aliases\n- routes/web.php — /pricing (public), /billing/* routes, EPS webhook\n- Admin Hub index — MRR, ARR, active trials, paid customers KPIs\n- config/eps.php — EPS_GATEWAY_URL / EPS_SECRET_KEY / EPS_MERCHANT_ID\n\nEPS gateway is a placeholder. To activate: fill EpsPaymentGateway.php\nwith your gateway API and set EPS_* vars in .env.",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.74/ryaancms-v1.1.74-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.73",
             "critical": false,
             "file_count": null
         }
