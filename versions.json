@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.63",
+    "latest": "1.1.64",
     "versions": [
         {
             "version": "1.0.0",
@@ -791,6 +791,18 @@
             "requires_migration": false,
             "min_php": "8.2",
             "min_from_version": "1.1.62",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.64",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: update system — dual version persistence + download fallback + v1.1.63\n\nUpdateService:\n- downloadZip(): when primary release URL returns non-200, auto-retry with\n  main branch archive (https://github.com/RyaanCMS/RyaanCMS/archive/refs/heads/main.zip)\n  so updates succeed even if no GitHub Release was published for that version\n- updateEnvVersion(): also write to storage/app/.app_version (always writable on\n  cPanel); log warning if .env write fails instead of silently losing the version\n- readEnvVersion(): check storage/app/.app_version as fallback when .env has no\n  APP_VERSION (prevents version reverting to 1.0.0 if .env write is denied)\n\nInstallController:\n- Write storage/app/.app_version during install wizard alongside .env\n  so fresh installs are immediately tracked by the update system\n\nversions.json:\n- v1.1.62 download_url changed to main branch archive (GitHub Release may not exist)\n- Add v1.1.63 entry documenting all recent fixes (fresh install, builder 500,\n  prompt area, update system); download_url = main branch archive\n- Bump latest to 1.1.63\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.64/ryaancms-v1.1.64-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.63",
             "critical": false,
             "file_count": null
         }
