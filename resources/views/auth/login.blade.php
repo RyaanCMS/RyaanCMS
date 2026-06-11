@@ -54,12 +54,5 @@
         <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-700 ml-1">Create one free →</a>
     </p>
 
-    <div class="mt-8 pt-6 border-t border-slate-100">
-        <p class="text-xs text-center text-slate-400 mb-3">Demo credentials</p>
-        <div class="px-4 py-3 rounded-xl text-xs text-slate-500 font-mono text-center"
-             style="background:#f8fafc; border:1px solid #e2e8f0;">
-            admin@ryaancms.com / password
-        </div>
-    </div>
 </div>
 @endsection
