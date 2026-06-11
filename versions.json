@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.80",
+    "latest": "1.1.81",
     "versions": [
         {
             "version": "1.0.0",
@@ -995,6 +995,18 @@
             "requires_migration": false,
             "min_php": "8.2",
             "min_from_version": "1.1.79",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.81",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: installed version badge not updating after successful update\n\nThree-source version storage: UpdateService now writes the installed version to\nversions.json (\"installed\" field) as a third target alongside .env and\nstorage/app/.app_version. readEnvVersion() reads all three and returns the newest.\nThis ensures the installed version is always readable even when .env is read-only\n(cPanel 444/644 permissions) and storage writes fail silently.\n\nAlso: HTTPS troubleshooting card rewritten — was always-visible and falsely\nimplied no SSL certificate; now labeled as a reference guide with correct\nCloudflare mode advice (Full/Strict when host has SSL, Flexible only without).",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.81/ryaancms-v1.1.81-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.80",
             "critical": false,
             "file_count": null
         }
