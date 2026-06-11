@@ -1622,20 +1622,343 @@ HTML;
 
     private function shellLandingController(string $appName): string
     {
-        $class = 'LandingController';
-        return <<<PHP
+        return <<<'PHP'
 <?php
 
 namespace App\Http\Controllers;
 
-class {$class} extends Controller
+use Illuminate\Http\Request;
+
+class LandingController extends Controller
 {
     public function index()
     {
         return view('landing');
     }
+
+    public function contact(Request $request)
+    {
+        $request->validate([
+            'name'    => 'required|string|max:120',
+            'email'   => 'required|email|max:120',
+            'subject' => 'nullable|string|max:200',
+            'message' => 'required|string|max:2000',
+        ]);
+        // TODO: wire up mail in config/mail.php and send via Mail::to(...)
+        return back()->with('contact_success', 'Thank you! We\'ll be in touch within 24 hours.');
+    }
 }
 PHP;
+    }
+
+    /** Domain-specific extra content: trustedBy, steps, testimonials, pricing, faq */
+    private function domainExtras(string $domain, string $appName): array
+    {
+        $map = [
+
+        'hospital' => [
+            'trustedBy'    => ['Apollo Hospitals','Fortis Healthcare','Max Healthcare','Narayana Health','AIIMS Network'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📋','title'=>'Register Patient',     'desc'=>'Quick digital registration capturing demographics, insurance and emergency contacts in under 2 minutes.'],
+                ['num'=>'02','icon'=>'👨‍⚕️','title'=>'Assign & Triage',     'desc'=>'Smart assignment to the right doctor or department based on specialty, availability and urgency.'],
+                ['num'=>'03','icon'=>'💊','title'=>'Treatment & Records',   'desc'=>'Prescriptions, lab orders, imaging, vitals — all in one longitudinal clinical record accessible in real time.'],
+                ['num'=>'04','icon'=>'🏠','title'=>'Discharge & Follow-up','desc'=>'Automated discharge summaries, billing finalization and follow-up scheduling in a single step.'],
+            ],
+            'testimonials' => [
+                ['init'=>'RK','name'=>'Dr. Rajesh Kumar',   'role'=>'Chief Medical Officer',  'company'=>'Metro General Hospital', 'quote'=>'Patient wait times dropped 40% in the first month. The clinical dashboard gives our team real-time visibility across every ward.'],
+                ['init'=>'PS','name'=>'Priya Sharma',        'role'=>'Head of Nursing',         'company'=>'Sunrise Medical Centre', 'quote'=>'Staff scheduling and ward management used to take 2 hours every morning. Now it\'s automated and done before I finish my coffee.'],
+                ['init'=>'AM','name'=>'Anita Mehta',         'role'=>'Hospital Administrator',  'company'=>'City Healthcare Group',  'quote'=>'The billing and insurance claim module alone recovered its cost in the first quarter. Our collection rate went from 74% to 96%.'],
+            ],
+            'pricing' => [
+                ['name'=>'Clinic',     'price'=>'$49', 'period'=>'/mo','desc'=>'Small clinics & diagnostic centres','highlight'=>false,'cta'=>'Start Free Trial','features'=>['Up to 50 patients/day','3 doctor accounts','OPD management','Basic reports','Email support']],
+                ['name'=>'Hospital',   'price'=>'$149','period'=>'/mo','desc'=>'Mid-size hospitals & nursing homes', 'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['Unlimited patients','25 staff accounts','OPD + IPD + Pharmacy','Advanced analytics','HL7 integrations','Priority support']],
+                ['name'=>'Enterprise', 'price'=>'Custom','period'=>'', 'desc'=>'Hospital chains & health systems',  'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Multi-branch management','Unlimited accounts','HIPAA compliance kit','Full API access','Dedicated CSM']],
+            ],
+            'faq' => [
+                ['q'=>'Is the platform HIPAA compliant?',              'a'=>'Yes. All patient data is encrypted at rest (AES-256) and in transit (TLS 1.3). Role-based access and a full audit trail are included on every plan.'],
+                ['q'=>'Can we migrate from our existing HIS?',         'a'=>'We provide a full data migration service with zero downtime. We support HL7, FHIR, and CSV/Excel import from all major HIS vendors.'],
+                ['q'=>'Does it work across multiple hospital branches?','a'=>'Yes. The Enterprise plan supports unlimited branches with centralized reporting and independent branch-level user management.'],
+                ['q'=>'What integrations are available?',              'a'=>'We connect with lab equipment, pharmacy systems, billing gateways, and EMRs via HL7 FHIR R4 APIs. Custom integrations on Enterprise.'],
+                ['q'=>'How is patient data backed up?',                'a'=>'Encrypted backups every 6 hours, 30-day retention, geo-redundant storage, and point-in-time recovery within a 5-minute window.'],
+                ['q'=>'Can we customize document templates?',          'a'=>'Yes — prescriptions, discharge summaries, lab reports, and consent forms are fully customizable per department with your branding.'],
+                ['q'=>'Is there a mobile app for doctors and nurses?', 'a'=>'Yes. iOS and Android apps for clinical staff allow patient chart access, order entry, and real-time ward alerts from anywhere.'],
+                ['q'=>'What is the uptime SLA?',                       'a'=>'99.9% uptime SLA on Hospital and Enterprise plans. Status page available 24/7 and dedicated on-call support for critical incidents.'],
+            ],
+        ],
+
+        'ecommerce' => [
+            'trustedBy'    => ['StyleHouse Fashion','TechGadgets Pro','Home & Living Co','Sports Arena','Beauty World'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📦','title'=>'Add Your Products','desc'=>'Bulk upload products with variants, images, pricing and inventory using CSV or our visual product builder.'],
+                ['num'=>'02','icon'=>'🎨','title'=>'Customize Store',  'desc'=>'Pick a theme, connect your domain, set up payment gateways and shipping zones — no code required.'],
+                ['num'=>'03','icon'=>'🚀','title'=>'Launch & Market',  'desc'=>'Go live instantly. Built-in SEO, discount engine, and email marketing drive traffic from day one.'],
+                ['num'=>'04','icon'=>'📊','title'=>'Track & Scale',    'desc'=>'Real-time sales analytics, customer LTV insights, and inventory alerts keep you ahead of demand.'],
+            ],
+            'testimonials' => [
+                ['init'=>'SJ','name'=>'Sarah Johnson','role'=>'Founder & CEO',       'company'=>'StyleHouse Fashion',  'quote'=>'We migrated from Shopify and our conversion rate went up 18%. The checkout flow is silky smooth and the analytics are far deeper.'],
+                ['init'=>'MK','name'=>'Mike Karimi',  'role'=>'E-commerce Director', 'company'=>'TechGadgets Pro',     'quote'=>'Managing 12,000 SKUs across 3 warehouses used to be a nightmare. Now inventory sync is fully automatic and I sleep better at night.'],
+                ['init'=>'LT','name'=>'Lisa Tang',    'role'=>'Marketing Manager',   'company'=>'Beauty World Online', 'quote'=>'The discount and loyalty engine drove a 34% increase in repeat purchases in 60 days. Best ROI we\'ve seen from any platform.'],
+            ],
+            'pricing' => [
+                ['name'=>'Starter',    'price'=>'$29', 'period'=>'/mo','desc'=>'New stores getting started',        'highlight'=>false,'cta'=>'Start Free Trial','features'=>['Up to 500 products','2% transaction fee','Basic analytics','Email support']],
+                ['name'=>'Growth',     'price'=>'$89', 'period'=>'/mo','desc'=>'Growing stores scaling up',         'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['Unlimited products','0% transaction fee','Advanced analytics','Abandoned cart recovery','Multi-currency','Priority support']],
+                ['name'=>'Enterprise', 'price'=>'Custom','period'=>'', 'desc'=>'High-volume & multi-store ops',     'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Multi-store management','Custom integrations','Dedicated account manager','SLA guarantee','White-label option']],
+            ],
+            'faq' => [
+                ['q'=>'Which payment gateways are supported?',    'a'=>'Stripe, PayPal, Razorpay, Paytm, SSLCommerz, and 40+ local gateways worldwide. Setup takes under 5 minutes.'],
+                ['q'=>'Can I use my own domain?',                 'a'=>'Yes. Connect any domain you own or purchase a new one through us. Free SSL certificate included on all plans.'],
+                ['q'=>'How does multi-currency and tax work?',    'a'=>'Automatic currency conversion based on customer location, and geo-specific tax rules (GST, VAT, sales tax) are fully automated.'],
+                ['q'=>'How does inventory sync across warehouses?','a'=>'Real-time inventory sync across unlimited warehouses with low-stock alerts, auto-reorder rules, and backorder management.'],
+                ['q'=>'Can I migrate my existing store?',         'a'=>'Yes. Free migration from Shopify, WooCommerce, Magento, and BigCommerce — products, orders, customers, and reviews included.'],
+                ['q'=>'Is there a mobile storefront for customers?','a'=>'Yes — a Progressive Web App (PWA) is generated automatically, giving customers a native app-like experience on any device.'],
+                ['q'=>'What shipping carriers are integrated?',   'a'=>'FedEx, UPS, DHL, USPS, Shiprocket, Delhivery, and 30+ carriers with live rate calculation and label printing.'],
+                ['q'=>'How are product reviews managed?',         'a'=>'Built-in review system with moderation, verified-purchase badges, photo reviews, and auto-request emails after delivery.'],
+            ],
+        ],
+
+        'education' => [
+            'trustedBy'    => ['Oxford Academy','Cambridge Institute','MIT OpenLearning','Harvard EdTech','Stanford GSE'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📚','title'=>'Build Curriculum', 'desc'=>'Create courses, classes and lesson plans with a drag-and-drop builder. Upload videos, PDFs, and quizzes.'],
+                ['num'=>'02','icon'=>'🎓','title'=>'Enroll Students',  'desc'=>'Bulk enrollment via CSV, self-registration portal, or direct teacher assignment. Parent accounts linked automatically.'],
+                ['num'=>'03','icon'=>'📡','title'=>'Deliver & Engage', 'desc'=>'Live classes, recorded lectures, assignments, and discussion forums keep students active and on track.'],
+                ['num'=>'04','icon'=>'📊','title'=>'Track & Report',   'desc'=>'Real-time attendance, gradebooks, learning analytics, and automated progress reports for students and parents.'],
+            ],
+            'testimonials' => [
+                ['init'=>'DV','name'=>'Dr. Vidya Nair',  'role'=>'Principal',          'company'=>'Greenfield International School','quote'=>'The parent communication module transformed our school. Parents get real-time updates and we\'ve seen a 60% rise in engagement.'],
+                ['init'=>'RP','name'=>'Rahul Patel',     'role'=>'Head of Department', 'company'=>'Sunrise College',                'quote'=>'Online exam management used to be chaos. Now invigilation, auto-grading, and result publication happen in one seamless workflow.'],
+                ['init'=>'SM','name'=>'Sarah Mitchell',  'role'=>'E-learning Director','company'=>'Global Ed Network',              'quote'=>'We scaled from 200 to 15,000 students across 3 countries without a single performance issue. The platform just handles it.'],
+            ],
+            'pricing' => [
+                ['name'=>'School',      'price'=>'$79', 'period'=>'/mo','desc'=>'Up to 500 students',              'highlight'=>false,'cta'=>'Start Free Trial','features'=>['500 student accounts','20 teacher accounts','Attendance & gradebook','Parent portal','Basic reports']],
+                ['name'=>'College',     'price'=>'$199','period'=>'/mo','desc'=>'Up to 5,000 students',            'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['5,000 student accounts','Unlimited staff','Full LMS + online exams','Proctoring & analytics','API access','Priority support']],
+                ['name'=>'University',  'price'=>'Custom','period'=>'','desc'=>'Unlimited campuses & departments', 'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Multi-campus management','Custom integrations','SCORM/xAPI compliance','White-label','Dedicated support']],
+            ],
+            'faq' => [
+                ['q'=>'Does the platform support online exams with proctoring?','a'=>'Yes. Built-in exam module with auto-shuffled questions, tab-switch detection, webcam proctoring, and instant auto-grading.'],
+                ['q'=>'Can parents track their child\'s progress?',            'a'=>'Yes. A dedicated parent portal shows attendance, grades, assignments, fee dues, and teacher communications in real time.'],
+                ['q'=>'Is the platform SCORM/xAPI compliant?',                 'a'=>'Yes — import and deliver SCORM 1.2, SCORM 2004, and xAPI (Tin Can) content from any authoring tool.'],
+                ['q'=>'Does it support live online classes?',                  'a'=>'Yes. Integrated video conferencing with Zoom/Google Meet/built-in classroom, recording, and auto attendance capture.'],
+                ['q'=>'Can we manage fee collection and receipts?',            'a'=>'Yes. Online fee portal with payment gateway integration, automated receipts, overdue reminders, and scholarship management.'],
+                ['q'=>'How do we migrate from our existing SIS?',              'a'=>'Free SIS migration from Fedena, Classter, Campus365, and any system that exports CSV/Excel. Typically done in 48 hours.'],
+                ['q'=>'Can students access content on mobile?',                'a'=>'Yes. A fully responsive student portal and dedicated iOS/Android app for offline content access and assignment submissions.'],
+                ['q'=>'What assessment types are supported?',                  'a'=>'MCQ, true/false, short answer, essay, file upload, coding problems, and AI-assisted auto-grading on applicable types.'],
+            ],
+        ],
+
+        'restaurant' => [
+            'trustedBy'    => ['Spice Garden Chain','Pizza Palace','The Grill House','Ocean Bistro','Saffron Fine Dining'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'🍽️','title'=>'Set Up Menu',     'desc'=>'Digital menu builder with categories, modifiers, allergen tags, images, and dynamic pricing in under 30 minutes.'],
+                ['num'=>'02','icon'=>'🪑','title'=>'Configure Tables', 'desc'=>'Map your floor plan, set capacities, configure reservation slots and walk-in queues for each shift.'],
+                ['num'=>'03','icon'=>'📲','title'=>'Take Orders',      'desc'=>'QR code table ordering, waiter handheld POS, or kitchen display system — all in perfect sync in real time.'],
+                ['num'=>'04','icon'=>'💳','title'=>'Bill & Analyse',   'desc'=>'Split bills, apply discounts, collect payment, and get end-of-day analytics across all your locations.'],
+            ],
+            'testimonials' => [
+                ['init'=>'AC','name'=>'Amit Choudhary','role'=>'Owner (12 outlets)',  'company'=>'Spice Garden Chain', 'quote'=>'Table turnover increased 28% after we went digital. The kitchen display system eliminated 90% of order errors overnight.'],
+                ['init'=>'RB','name'=>'Riya Bose',     'role'=>'Operations Manager', 'company'=>'The Grill House',     'quote'=>'Managing staff across 3 branches used to need 3 different systems. Now rosters, sales, and inventory are all in one place.'],
+                ['init'=>'TN','name'=>'Thomas Nguyen', 'role'=>'Executive Chef',     'company'=>'Ocean Bistro',        'quote'=>'Recipe costing and ingredient consumption reports have cut our food cost by 12%. I see real-time stock levels from the kitchen.'],
+            ],
+            'pricing' => [
+                ['name'=>'Single Branch', 'price'=>'$39', 'period'=>'/mo','desc'=>'One location, full features',   'highlight'=>false,'cta'=>'Start Free Trial','features'=>['1 location','POS + KDS','Table management','Basic analytics','Chat support']],
+                ['name'=>'Multi-Branch',  'price'=>'$99', 'period'=>'/mo','desc'=>'2–10 locations',               'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['Up to 10 locations','Centralized menu','Cross-branch analytics','Delivery integration','Staff management','Priority support']],
+                ['name'=>'Enterprise',    'price'=>'Custom','period'=>'', 'desc'=>'11+ locations & franchises',   'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited locations','Franchise management','Custom integrations','Dedicated team','White-label POS']],
+            ],
+            'faq' => [
+                ['q'=>'Does it integrate with Zomato, Swiggy, or Uber Eats?','a'=>'Yes. Direct integration with Zomato, Swiggy, Uber Eats, and DoorDash. Orders flow into your KDS automatically — no manual entry.'],
+                ['q'=>'Can we use it without an internet connection?',        'a'=>'Yes. The POS works in offline mode and syncs automatically when connectivity is restored. No orders are ever lost.'],
+                ['q'=>'Does it support table reservations and waitlists?',    'a'=>'Yes — online booking widget, SMS/WhatsApp confirmations, automated reminders, and a real-time waitlist manager.'],
+                ['q'=>'What payment methods are supported?',                  'a'=>'Cash, card, UPI, digital wallets (Paytm, PhonePe, GPay), and split billing across multiple payment methods per table.'],
+                ['q'=>'Can we customize the KDS for different stations?',     'a'=>'Yes. Configure separate displays for grill, cold, bar, and dessert stations with custom routing rules per menu item.'],
+                ['q'=>'How do we handle recipe costing and inventory?',       'a'=>'Link each menu item to ingredients. Stock deducts in real time and you get alerts when quantities drop below reorder point.'],
+                ['q'=>'Is there a customer loyalty and rewards program?',     'a'=>'Yes. Built-in loyalty points, stamp cards, birthday offers, and push notifications via QR-based customer registration.'],
+                ['q'=>'Can we manage staff schedules and tips?',              'a'=>'Yes — shift scheduling, clock-in/out, tip pooling rules, and individual staff sales performance reports included.'],
+            ],
+        ],
+
+        'hotel' => [
+            'trustedBy'    => ['Grand Meridian Hotels','Oceanic Resorts','The Heritage Inn','City Suites Group','Mountain Retreat'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'🏨','title'=>'List Rooms & Rates','desc'=>'Add room types, rates, amenities, photos, and availability rules. Sync with OTAs automatically in one click.'],
+                ['num'=>'02','icon'=>'📅','title'=>'Accept Bookings',   'desc'=>'Direct bookings via your website widget, phone reservations, and channel manager sync — all in one calendar.'],
+                ['num'=>'03','icon'=>'🔑','title'=>'Smooth Check-in',   'desc'=>'Express check-in, room assignment, housekeeping requests, and in-stay services from a single front-desk view.'],
+                ['num'=>'04','icon'=>'💰','title'=>'Maximize Revenue',  'desc'=>'Dynamic pricing, upsell triggers, revenue reports, and OTA analytics to grow your RevPAR month over month.'],
+            ],
+            'testimonials' => [
+                ['init'=>'NK','name'=>'Nikhil Kapoor','role'=>'General Manager',    'company'=>'Grand Meridian Hotels','quote'=>'RevPAR grew 22% in 6 months after implementing dynamic pricing. OTA sync alone saves 3 hours of manual work every day.'],
+                ['init'=>'SP','name'=>'Sofia Petrova','role'=>'Revenue Manager',    'company'=>'Oceanic Resorts',      'quote'=>'Forecasting is incredibly accurate. We\'ve reduced overbooking by 95% while maintaining 92% average occupancy year-round.'],
+                ['init'=>'JL','name'=>'James Liu',    'role'=>'Front Office Manager','company'=>'City Suites Group',   'quote'=>'Check-in time dropped from 8 minutes to under 90 seconds. Guests love the express process and our Booking.com scores jumped.'],
+            ],
+            'pricing' => [
+                ['name'=>'Boutique',    'price'=>'$59', 'period'=>'/mo','desc'=>'Small hotels up to 30 rooms',    'highlight'=>false,'cta'=>'Start Free Trial','features'=>['30 rooms','Online booking widget','Front desk POS','Basic reports','Email support']],
+                ['name'=>'Business',    'price'=>'$149','period'=>'/mo','desc'=>'Hotels with 31–200 rooms',       'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['200 rooms','Channel manager (OTA sync)','Revenue management','Housekeeping app','F&B module','Priority support']],
+                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'','desc'=>'Hotel chains & large resorts',   'highlight'=>false,'cta'=>'Contact Sales',   ['features'=>'Unlimited properties','Central reservation system','Custom integrations','Dedicated CSM','White-label app'],'features'=>['Unlimited properties','Central reservation system','Custom integrations','Dedicated CSM','White-label app']],
+            ],
+            'faq' => [
+                ['q'=>'Which OTAs does the channel manager support?',   'a'=>'Booking.com, Expedia, Airbnb, MakeMyTrip, Hotels.com, Agoda, and 80+ more via two-way API connection.'],
+                ['q'=>'Can guests book directly from our website?',     'a'=>'Yes. A commission-free booking widget embeds on your site. Mobile-optimized and completes a booking in under 60 seconds.'],
+                ['q'=>'How does dynamic pricing work?',                  'a'=>'Rules adjust rates based on occupancy, lead time, competitor rates, and local demand signals — maximizing revenue automatically.'],
+                ['q'=>'Does it manage housekeeping and maintenance?',   'a'=>'Yes — mobile housekeeping app for room status, maintenance ticket tracking, and automatic room assignment on check-in.'],
+                ['q'=>'Can we manage multiple properties?',             'a'=>'Yes. Enterprise includes a central dashboard with consolidated reporting and a unified guest database across all properties.'],
+                ['q'=>'Does it integrate with accounting software?',    'a'=>'Direct integration with QuickBooks, Xero, Tally, and Zoho Books for automated revenue posting and reconciliation.'],
+                ['q'=>'Is there a guest app or digital concierge?',     'a'=>'Yes — a branded guest app for check-in/out, room service orders, local recommendations, and direct messaging with staff.'],
+                ['q'=>'How do we handle group and corporate bookings?', 'a'=>'Dedicated group booking flow with room block management, negotiated rate contracts, and corporate account billing.'],
+            ],
+        ],
+
+        'finance' => [
+            'trustedBy'    => ['Summit Capital','Meridian Finance','BlueStar Insurance','Apex Lending','Golden Trust Bank'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'🏦','title'=>'Chart of Accounts',   'desc'=>'Import or build your chart of accounts with multi-currency, multi-entity, and segment-level reporting from day one.'],
+                ['num'=>'02','icon'=>'💳','title'=>'Record Transactions', 'desc'=>'Automated bank feeds, supplier invoices, customer receipts, and journal entries with duplicate detection and approval.'],
+                ['num'=>'03','icon'=>'📊','title'=>'Close the Books',     'desc'=>'Period-end close checklists, automated reconciliation, and one-click P&L, Balance Sheet, and Cash Flow statements.'],
+                ['num'=>'04','icon'=>'🔍','title'=>'Audit & Comply',      'desc'=>'Full audit trail, user access logs, SOX-ready controls, and one-click regulatory report generation.'],
+            ],
+            'testimonials' => [
+                ['init'=>'VR','name'=>'Vikram Rajan', 'role'=>'CFO',             'company'=>'Summit Capital Group','quote'=>'Month-end close went from 12 days to 3 days. The automated reconciliation catches discrepancies our manual process missed for years.'],
+                ['init'=>'MT','name'=>'Monica Thakur','role'=>'Finance Controller','company'=>'BlueStar Insurance', 'quote'=>'SOX audit prep used to take 3 weeks. Now we generate the required reports in under an hour with a complete immutable audit trail.'],
+                ['init'=>'CR','name'=>'Carlos Rodriguez','role'=>'Head of Treasury','company'=>'Apex Lending Corp','quote'=>'Multi-currency loan book management across 8 countries, all in one view. The FX exposure reports are exactly what our board needed.'],
+            ],
+            'pricing' => [
+                ['name'=>'Startup',     'price'=>'$49', 'period'=>'/mo','desc'=>'Startups & small businesses',   'highlight'=>false,'cta'=>'Start Free Trial','features'=>['2 entities','Single currency','Basic P&L & Balance Sheet','5 users','Email support']],
+                ['name'=>'Business',    'price'=>'$149','period'=>'/mo','desc'=>'Growing businesses & SMEs',     'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['10 entities','Multi-currency','Full financial statements','Automated bank feeds','20 users','Priority support']],
+                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'','desc'=>'Financial institutions & groups','highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited entities','SOX/IFRS compliance kit','Full audit trail','Custom integrations','Dedicated CSM']],
+            ],
+            'faq' => [
+                ['q'=>'Is the platform SOX or IFRS compliant?',        'a'=>'Yes. Enterprise includes SOX-ready internal controls, IFRS/GAAP reporting standards, and a full immutable audit trail.'],
+                ['q'=>'How does multi-currency accounting work?',       'a'=>'Real-time exchange rate feeds, functional currency reporting, and unrealized/realized FX gain-loss calculation per IFRS 21.'],
+                ['q'=>'Can we automate bank reconciliation?',           'a'=>'Yes. Bank statement import (OFX, CSV, direct bank feed) with smart matching achieving 97%+ auto-reconciliation rates.'],
+                ['q'=>'Does it handle inter-company transactions?',     'a'=>'Yes — automated inter-company eliminations, loan tracking, and consolidated group financials across unlimited entities.'],
+                ['q'=>'What level of audit trail is maintained?',       'a'=>'Every transaction, edit, approval, and login is logged with user, timestamp, and IP. The log is immutable and exportable.'],
+                ['q'=>'Can we integrate with our existing ERP?',        'a'=>'Pre-built connectors for SAP, Oracle NetSuite, Microsoft Dynamics, and Tally. Custom API integration on Enterprise.'],
+                ['q'=>'Does it support accounts payable automation?',   'a'=>'Yes — invoice scanning (OCR), 3-way PO matching, approval workflows, and automated payment runs with bank integration.'],
+                ['q'=>'How do we handle payroll and expense management?','a'=>'Full payroll module with statutory compliance, and integrated expense management with receipt capture and approvals.'],
+            ],
+        ],
+
+        'hr' => [
+            'trustedBy'    => ['TechCorp Global','BuildRight Group','RetailPro Chain','MediStaff Solutions','EduTalent Network'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📝','title'=>'Onboard Employees', 'desc'=>'Digital onboarding portal — offer letters, document collection, equipment requests, and induction scheduling automated.'],
+                ['num'=>'02','icon'=>'⏱️','title'=>'Track Attendance',  'desc'=>'Biometric integration, mobile punch, geo-fencing, and shift scheduling with real-time dashboards for managers.'],
+                ['num'=>'03','icon'=>'💸','title'=>'Run Payroll',        'desc'=>'One-click payroll processing with statutory deductions, bank transfers, and digital payslip distribution.'],
+                ['num'=>'04','icon'=>'🌟','title'=>'Manage Performance', 'desc'=>'OKR/KPI setting, 360-degree reviews, continuous feedback, and calibration — all linked to compensation.'],
+            ],
+            'testimonials' => [
+                ['init'=>'NK','name'=>'Neha Kapoor',   'role'=>'HR Director',          'company'=>'TechCorp Global (1,200 staff)', 'quote'=>'Payroll errors dropped to zero. What took 3 people 4 days now takes one person 2 hours. Our HR team finally focuses on people, not paperwork.'],
+                ['init'=>'AS','name'=>'Arjun Singh',   'role'=>'Head of Talent',       'company'=>'BuildRight Group',             'quote'=>'Time-to-hire dropped from 47 days to 18 days. The ATS integrated seamlessly and recruiter productivity doubled overnight.'],
+                ['init'=>'PW','name'=>'Patricia Wong', 'role'=>'VP People & Culture',  'company'=>'RetailPro Chain (3,500 staff)','quote'=>'Managing 3,500 employees across 42 stores seemed impossible. Now performance reviews, shifts, and payroll are effortless.'],
+            ],
+            'pricing' => [
+                ['name'=>'Startup',     'price'=>'$4',  'period'=>'/emp/mo','desc'=>'Up to 50 employees',     'highlight'=>false,'cta'=>'Start Free Trial','features'=>['Core HR database','Leave management','Basic payroll','Employee self-service','Email support']],
+                ['name'=>'Growth',      'price'=>'$8',  'period'=>'/emp/mo','desc'=>'51–500 employees',       'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['Full HRMS suite','Attendance + biometric','Full payroll + compliance','Performance management','Analytics','Priority support']],
+                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'',     'desc'=>'500+ employees',         'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited employees','Multi-country payroll','HRIS integrations','Dedicated CHRO advisor','Custom workflows']],
+            ],
+            'faq' => [
+                ['q'=>'Which payroll compliances are supported?',         'a'=>'India (PF, ESI, TDS, PT, LWF), UAE (WPS, gratuity), US (federal/state taxes, 401k), UK (PAYE, NI), and 40+ countries.'],
+                ['q'=>'Does it integrate with biometric devices?',        'a'=>'Yes — ZKTeco, Essl, Suprema, and Hikvision. Mobile punch with GPS and face recognition also supported.'],
+                ['q'=>'Can employees access their own information?',      'a'=>'Yes. The Employee Self-Service portal lets staff view payslips, apply for leave, and track approvals on mobile.'],
+                ['q'=>'How does the performance review cycle work?',      'a'=>'Fully configurable — objectives, mid-cycle check-ins, annual reviews, 360-degree feedback, and calibration sessions.'],
+                ['q'=>'Is employee data GDPR compliant?',                 'a'=>'Yes — role-based data access, field-level encryption, right-to-erasure support, and GDPR/PDPA compliance included.'],
+                ['q'=>'Can we run payroll for multiple countries?',       'a'=>'Yes. Multi-country payroll with country-specific statutory rules, currency support, and local compliance on Enterprise.'],
+                ['q'=>'How does leave management work?',                  'a'=>'Configurable leave types, accrual rules, encashment policies, approval chains, and calendar integration for managers.'],
+                ['q'=>'Is there an applicant tracking system (ATS)?',     'a'=>'Yes — full ATS with job posting, career page, applicant pipeline, interview scheduling, and offer letter generation.'],
+            ],
+        ],
+
+        'crm' => [
+            'trustedBy'    => ['Velocity Sales','Peak Growth Partners','Nexus Corp','Horizon Consulting','Delta Revenue'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📥','title'=>'Capture Leads',    'desc'=>'Website forms, LinkedIn import, email parsing, and business card scan feed leads automatically into your pipeline.'],
+                ['num'=>'02','icon'=>'🎯','title'=>'Qualify & Assign', 'desc'=>'Lead scoring ranks prospects by conversion likelihood. Auto-assign to the right rep based on territory and capacity.'],
+                ['num'=>'03','icon'=>'🔄','title'=>'Work the Pipeline','desc'=>'Visual kanban pipeline, activity tracking, email sequences, and call logging keep every deal moving forward.'],
+                ['num'=>'04','icon'=>'🏆','title'=>'Close & Retain',   'desc'=>'E-signature, proposal builder, and post-sale onboarding flows turn closed deals into long-term loyal customers.'],
+            ],
+            'testimonials' => [
+                ['init'=>'DK','name'=>'Daniel Kim',       'role'=>'VP Sales',      'company'=>'Velocity Sales Inc',    'quote'=>'Pipeline visibility is night and day. Our win rate improved 31% in the first quarter after switching. Best decision we made all year.'],
+                ['init'=>'RA','name'=>'Rebecca Ashworth', 'role'=>'Sales Director', 'company'=>'Peak Growth Partners', 'quote'=>'The lead scoring model is scarily accurate. Our reps now spend 80% of their time on deals that actually close, not cold leads.'],
+                ['init'=>'OC','name'=>'Oluwaseun Coker',  'role'=>'CEO',            'company'=>'Nexus Consulting',     'quote'=>'We went from $1.2M to $3.8M ARR in 18 months. The CRM made sure nothing fell through the cracks while we scaled fast.'],
+            ],
+            'pricing' => [
+                ['name'=>'Starter',      'price'=>'$25', 'period'=>'/user/mo','desc'=>'Small sales teams',         'highlight'=>false,'cta'=>'Start Free Trial','features'=>['Contact & deal management','Email integration','Basic pipeline','Activity tracking','5 users max']],
+                ['name'=>'Professional', 'price'=>'$65', 'period'=>'/user/mo','desc'=>'Growing revenue teams',     'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['Advanced pipeline','Lead scoring','Email sequences','Revenue forecasting','Reporting suite','API access']],
+                ['name'=>'Enterprise',   'price'=>'Custom','period'=>'',      'desc'=>'Large sales organizations', 'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Custom CRM workflows','Territory management','Advanced AI scoring','Dedicated CSM','Custom integrations']],
+            ],
+            'faq' => [
+                ['q'=>'Does it integrate with Gmail / Outlook?',          'a'=>'Yes — two-way sync with Gmail and Outlook. Emails auto-log against contacts and deals. Calendar sync included.'],
+                ['q'=>'How does lead scoring work?',                      'a'=>'Scores 0–100 using engagement signals (email opens, page visits, form fills), demographic fit, and deal history. Fully customizable.'],
+                ['q'=>'Can we build custom sales pipelines?',             'a'=>'Yes — unlimited pipelines with custom stages, win probability, and required fields per stage for different products/markets.'],
+                ['q'=>'Does it have revenue forecasting?',                'a'=>'Deal-level and pipeline-level forecasting using weighted probability, historical win rates, and rep performance benchmarks.'],
+                ['q'=>'What happens to our data if we cancel?',           'a'=>'Export all data in CSV/Excel at any time. On cancellation, you have 90 days to download everything before secure deletion.'],
+                ['q'=>'Does it integrate with marketing automation?',     'a'=>'Yes — native integrations with HubSpot, Mailchimp, ActiveCampaign, and Marketo for lead nurture-to-sales handoff.'],
+                ['q'=>'Is there a mobile app for sales reps?',            'a'=>'Yes. iOS and Android app with offline access, business card scan, voice note logging, and GPS check-in for field teams.'],
+                ['q'=>'Can we manage customer support tickets in the CRM?','a'=>'Yes — integrated helpdesk module links support tickets to customer records, giving sales full customer health context.'],
+            ],
+        ],
+
+        'inventory' => [
+            'trustedBy'    => ['LogiPro Warehousing','FastTrack Retail','BuildMate Supplies','AgroStore Network','TechParts Direct'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'📦','title'=>'Set Up Catalogue',    'desc'=>'Add SKUs with barcodes, variants, units of measure, images, and supplier details. Bulk import from Excel in minutes.'],
+                ['num'=>'02','icon'=>'🏭','title'=>'Configure Warehouses','desc'=>'Map rack locations, set bin capacities, define putaway and pick strategies for each warehouse or zone.'],
+                ['num'=>'03','icon'=>'🔄','title'=>'Manage Stock Moves',  'desc'=>'Receive, transfer, pick, and dispatch with barcode scanning. Real-time stock levels update across locations instantly.'],
+                ['num'=>'04','icon'=>'📈','title'=>'Optimize & Automate', 'desc'=>'Reorder alerts, auto-purchase orders, demand forecasting, and ABC analysis eliminate stockouts and overstock.'],
+            ],
+            'testimonials' => [
+                ['init'=>'KP','name'=>'Karan Patel',  'role'=>'Supply Chain Director','company'=>'LogiPro Warehousing', 'quote'=>'Inventory accuracy jumped from 87% to 99.6% after implementing the WMS. Pick errors nearly disappeared and throughput doubled.'],
+                ['init'=>'YS','name'=>'Yuki Sato',    'role'=>'Operations Manager',   'company'=>'TechParts Direct',    'quote'=>'Stockout incidents dropped 94%. The demand forecasting is remarkably accurate — we cut safety stock requirements by 30%.'],
+                ['init'=>'FM','name'=>'Fatima Malik', 'role'=>'Procurement Head',     'company'=>'BuildMate Supplies',  'quote'=>'Automatic PO generation based on reorder points saves my team 20 hours a week. Supplier lead time tracking is a game changer.'],
+            ],
+            'pricing' => [
+                ['name'=>'Small Biz',  'price'=>'$49', 'period'=>'/mo','desc'=>'Up to 1,000 SKUs',         'highlight'=>false,'cta'=>'Start Free Trial','features'=>['1 warehouse','1,000 SKUs','Barcode scanning','Basic reports','Email support']],
+                ['name'=>'Mid-Market', 'price'=>'$149','period'=>'/mo','desc'=>'Multi-warehouse operations','highlight'=>true, 'cta'=>'Start Free Trial','features'=>['25 warehouses','Unlimited SKUs','Demand forecasting','Auto-reorder','3PL integration','Priority support']],
+                ['name'=>'Enterprise', 'price'=>'Custom','period'=>'', 'desc'=>'Complex supply chains',    'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited warehouses','Multi-company','ERP integration','Custom WMS logic','Dedicated support']],
+            ],
+            'faq' => [
+                ['q'=>'Which barcode formats and scanners work?',          'a'=>'EAN-13, EAN-8, UPC-A, Code-128, QR Code, DataMatrix. Works with any USB, Bluetooth, or mobile camera scanner.'],
+                ['q'=>'Can we do cycle counts without stopping operations?','a'=>'Yes — partial cycle counting by zone or category during normal operations with automatic variance reporting.'],
+                ['q'=>'How does demand forecasting work?',                  'a'=>'Statistical forecasting using historical velocity, seasonality, and trend analysis. Accuracy improves each month.'],
+                ['q'=>'Can it integrate with our ERP (SAP/Oracle)?',       'a'=>'Yes. Pre-built connectors for SAP, Oracle, Microsoft Dynamics, and Tally. Custom REST API for other systems.'],
+                ['q'=>'Does it handle FIFO, FEFO, and LIFO costing?',      'a'=>'Yes — full support for FIFO, FEFO (perishables/pharma), LIFO, and weighted average costing with lot tracking.'],
+                ['q'=>'What happens during a network outage?',             'a'=>'Mobile scanners cache transactions locally and sync automatically when connectivity resumes. No data loss.'],
+                ['q'=>'Does it support drop-shipping and 3PL?',            'a'=>'Yes — 3PL warehouse integration, drop-ship order routing, and consignment stock tracking on all paid plans.'],
+                ['q'=>'How do we manage supplier contracts and pricing?',  'a'=>'Supplier portal with contract management, tiered pricing, preferred vendor rules, and performance scorecards.'],
+            ],
+        ],
+
+        ]; // end $map
+
+        $default = [
+            'trustedBy'    => ['TechCorp Inc','GlobalSystems','InnovateCo','DataPro Solutions','NexGen Enterprises'],
+            'steps'        => [
+                ['num'=>'01','icon'=>'⚙️','title'=>'Quick Setup',      'desc'=>'Get up and running in minutes. Import your data, configure settings, and invite your team.'],
+                ['num'=>'02','icon'=>'🎯','title'=>'Start Managing',   'desc'=>'All your operations in one intuitive place. Workflows your team will actually adopt from day one.'],
+                ['num'=>'03','icon'=>'📊','title'=>'Track & Analyse',  'desc'=>'Real-time dashboards and reports give you the visibility to make confident decisions fast.'],
+                ['num'=>'04','icon'=>'🚀','title'=>'Scale & Grow',     'desc'=>'As your business grows the platform scales with you — add users, modules, and integrations any time.'],
+            ],
+            'testimonials' => [
+                ['init'=>'JD','name'=>'James Davis',  'role'=>'CEO',               'company'=>'TechCorp Inc',      'quote'=>'This platform transformed how our team operates. Processes that took days now happen automatically. ROI was visible within the first month.'],
+                ['init'=>'AL','name'=>'Amara Lawson', 'role'=>'Operations Director','company'=>'GlobalSystems Ltd', 'quote'=>'We evaluated 8 platforms and this was the only one that handled our specific workflows without expensive customization. Worth every dollar.'],
+                ['init'=>'MN','name'=>'Michael Nguyen','role'=>'Head of Technology','company'=>'InnovateCo',       'quote'=>'The API is solid, the documentation is excellent, and the support team actually knows the product. Rare to find all three together.'],
+            ],
+            'pricing' => [
+                ['name'=>'Starter',     'price'=>'$29', 'period'=>'/mo','desc'=>'Small teams getting started','highlight'=>false,'cta'=>'Start Free Trial','features'=>['5 user accounts','Core modules','Basic reports','Email support']],
+                ['name'=>'Professional','price'=>'$99', 'period'=>'/mo','desc'=>'Growing businesses',         'highlight'=>true, 'cta'=>'Start Free Trial','features'=>['25 user accounts','All modules','Advanced analytics','API access','Priority support']],
+                ['name'=>'Enterprise',  'price'=>'Custom','period'=>'','desc'=>'Large organizations',         'highlight'=>false,'cta'=>'Contact Sales',   'features'=>['Unlimited users','Custom modules','SLA guarantee','Dedicated CSM','On-premise option']],
+            ],
+            'faq' => [
+                ['q'=>'How long does it take to get started?',            'a'=>'Most teams are fully operational within 1–2 business days. Our onboarding team guides you through setup and training.'],
+                ['q'=>'Can we import data from our existing system?',     'a'=>'Yes — CSV/Excel import for all major data types. For complex migrations our team provides full migration assistance free.'],
+                ['q'=>'Is there a free trial?',                           'a'=>'Yes. Every plan starts with a 14-day free trial — no credit card required. Full access to all features during the trial.'],
+                ['q'=>'How is data security handled?',                    'a'=>'Data is encrypted at rest (AES-256) and in transit (TLS 1.3). SOC 2 Type II certified with daily encrypted backups.'],
+                ['q'=>'Can we add or remove users at any time?',          'a'=>'Yes. Add or remove users instantly. Billing adjusts automatically — you only pay for active users each month.'],
+                ['q'=>'What support options are available?',              'a'=>'Email on all plans, live chat on Professional, and a dedicated customer success manager on Enterprise.'],
+                ['q'=>'Is there an API for custom integrations?',         'a'=>'Yes — full REST API with comprehensive documentation, sandbox environment, and webhook support on Professional and above.'],
+                ['q'=>'Can we white-label the platform for our clients?', 'a'=>'Yes — custom domain, logo, colors, and email templates for white-label deployment available on the Enterprise plan.'],
+            ],
+        ];
+
+        return $map[$domain] ?? $default;
     }
 
     private function shellLandingView(string $appName, array $entities): string
