@@ -24,6 +24,7 @@ class WisdomEngine
     private array $wisdomPatterns;
     private array $mentalModels;
     private array $aiReplacement;
+    private array $intelligenceLibrary;
     private bool  $dbAvailable;
 
     public function __construct()
@@ -31,6 +32,7 @@ class WisdomEngine
         $this->wisdomPatterns = config('kb.wisdom_patterns', []);
         $this->mentalModels   = config('kb.mental_models', []);
         $this->aiReplacement  = config('kb.ai_replacement', []);
+        $this->intelligenceLibrary = config('kb.intelligence_library', []);
         $this->dbAvailable    = $this->checkDbAvailability();
     }
 
@@ -62,6 +64,14 @@ class WisdomEngine
             $lines[] = "ARCHITECTURE LESSONS:";
             foreach ($architectureLessons as $lesson) {
                 $lines[] = "  ✦ " . $lesson['lesson'];
+            }
+        }
+
+        $intelligencePatterns = $this->getRelevantIntelligencePatterns($prompt);
+        if ($intelligencePatterns) {
+            $lines[] = 'BUSINESS INTELLIGENCE PATTERNS:';
+            foreach ($intelligencePatterns as $pattern) {
+                $lines[] = '  - ' . $pattern;
             }
         }
 
@@ -101,7 +111,53 @@ class WisdomEngine
     }
 
     /**
-     * Get the AI routing decision — should this go to AI or to a rule/cache?
+     * Return compact static intelligence patterns relevant to the current prompt.
+     */
+    private function getRelevantIntelligencePatterns(string $prompt): array
+    {
+        $lower = strtolower($prompt);
+        $lines = [];
+
+        foreach ($this->intelligenceLibrary['success_patterns'] ?? [] as $key => $pattern) {
+            if ($this->patternMatchesPrompt($key, $pattern, $lower)) {
+                $lines[] = $pattern['pattern'] ?? '';
+            }
+        }
+
+        foreach ($this->intelligenceLibrary['failure_patterns'] ?? [] as $key => $pattern) {
+            if ($this->patternMatchesPrompt($key, $pattern, $lower)) {
+                $lines[] = 'Avoid: ' . ($pattern['mistake'] ?? '') . ' Fix: ' . ($pattern['fix'] ?? '');
+            }
+        }
+
+        return array_values(array_filter(array_slice($lines, 0, 4)));
+    }
+
+    private function patternMatchesPrompt(string $key, array $pattern, string $lowerPrompt): bool
+    {
+        $haystack = strtolower($key . ' ' . implode(' ', array_filter([
+            $pattern['pattern'] ?? '',
+            $pattern['mistake'] ?? '',
+            $pattern['fix'] ?? '',
+        ])));
+
+        foreach (explode(' ', str_replace(['_', '-'], ' ', $key)) as $word) {
+            if (strlen($word) > 3 && str_contains($lowerPrompt, $word)) {
+                return true;
+            }
+        }
+
+        foreach (['crm', 'inventory', 'stock', 'return', 'ecommerce', 'cod', 'lead', 'follow'] as $signal) {
+            if (str_contains($lowerPrompt, $signal) && str_contains($haystack, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the AI routing decision - should this go to AI or to a rule/cache?
      */
     public function getAiRoutingDecision(string $taskType): array
     {

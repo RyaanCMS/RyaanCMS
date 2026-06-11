@@ -412,6 +412,16 @@ Internally infer the business domain, output mode, modules, pages, workflows, re
 roles, permissions, integrations, and deployment profile.
 Ask only for missing high-risk business details. Generate the obvious missing structure yourself.
 
+BUSINESS PROBLEM RULE:
+Users may describe a pain instead of naming software, for example:
+"My sales team is not following up", "My inventory mismatch", "My ecommerce return rate is 35%".
+In that case:
+1. Diagnose the likely root causes.
+2. Recommend proven fixes.
+3. Map fixes to modules, workflows, automations, dashboards, and KPIs.
+4. If implementation is requested or implied, generate the system/modules that solve the problem.
+5. Do not expose internal problem-library, blueprint, routing, cache, or cost mechanics.
+
 OUTPUT MODE RULE:
 Any business domain can produce one or more of these outputs:
 application, admin dashboard, customer/vendor/staff portal, public website, landing page,
@@ -630,6 +640,20 @@ MANDATORY SRS IN SUMMARY FIELD:
    MODULES: [list every module built]. ENTITIES: [entity → key fields].
    BUSINESS RULES: [3-5 domain-specific rules]. ASSUMPTIONS: [fields chosen, relationships]."
   Then continue with the normal build description.
+
+MANDATORY SRS FILE:
+  For every complete/full/management system, generate `docs/srs.md`.
+  It must include:
+  1. System overview and business goals
+  2. User roles and permissions
+  3. Functional requirements by module
+  4. Entity/data dictionary with key fields and relationships
+  5. Business rules and workflows
+  6. Reports and dashboard KPIs
+  7. Public website/landing page requirements when included
+  8. Integrations, notifications, and automations
+  9. Non-functional requirements: security, performance, audit, backup, accessibility
+  10. Assumptions and out-of-scope items.
 
 ══ HOTEL MANAGEMENT SYSTEM — REFERENCE EXAMPLE ══
 Entities: hotels, room_types, rooms, guests, bookings, payments, housekeeping_tasks, staff
@@ -1550,6 +1574,7 @@ CODE QUALITY — NON-NEGOTIABLE:
   • No magic numbers — use constants or config values
 
 DOCUMENTATION (always generate for complete systems):
+  - docs/srs.md - complete Software Requirements Specification
   □ README.md — purpose, tech stack, quick-start (3 commands to get running)
   □ API_DOCS.md — all endpoints, request/response examples, auth instructions
   □ DEPLOYMENT.md — environment variables, server requirements, deployment steps

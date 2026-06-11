@@ -202,7 +202,8 @@ class CodeGeneratorService
         $aiPromptRaw = $this->sanitizeUserPrompt($prompt);
         $rawPrompt   = $this->sanitizeUserPrompt($visiblePrompt ?? $prompt);
         $prompt      = $this->normalizer->enrichPrompt($aiPromptRaw);
-        $isTiny     = $this->isTinyEdit($prompt);
+        $isBusinessProblem = $this->isBusinessProblemRequest($prompt);
+        $isTiny     = !$isBusinessProblem && $this->isTinyEdit($prompt);
         $isTemplateCustomization = str_contains(strtolower($prompt), 'ryaan template customization context');
 
         // AIRouter: classify task and resolve model tier + token budget
@@ -453,6 +454,29 @@ TINY;
         // Everything else under 500 chars is a targeted edit
         // (add feature, fix bug, change style, click handler, redirect, rename, etc.)
         return true;
+    }
+
+    private function isBusinessProblemRequest(string $prompt): bool
+    {
+        $lower = strtolower($prompt);
+        $problemSignals = [
+            'low conversion', 'lead leakage', 'follow-up', 'follow up', 'sales pipeline chaos',
+            'quote delay', 'low roas', 'high cac', 'poor retention', 'abandoned cart',
+            'low engagement', 'employee absence', 'attendance problem', 'high turnover',
+            'payroll error', 'recruitment delay', 'cash flow', 'late payment',
+            'revenue leakage', 'expense tracking', 'inventory mismatch', 'stock mismatch',
+            'order delay', 'stockout', 'process bottleneck', 'cod verification',
+            'high return', 'return rate', 'fake order', 'repeat purchase', 'user churn',
+            'low activation', 'feature adoption', 'problem', 'mismatch', 'not following',
+        ];
+
+        foreach ($problemSignals as $signal) {
+            if (str_contains($lower, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1056,6 +1080,10 @@ YOUR JOB — generate ONLY what is NOT in the list above:
 9. Public website and/or landing page when Output modes includes website or landing_page
 10. User portal pages when Output modes includes portal
 11. Complete preview.html that demonstrates the requested output modes
+12. docs/srs.md with complete Software Requirements Specification:
+    system overview, actors/roles, module requirements, data dictionary,
+    workflows, business rules, reports/KPIs, integrations, non-functional requirements,
+    assumptions, and out-of-scope items
 
 VISIBILITY RULE:
 Never reveal internal blueprint, routing, token, cost, cache, or module-generation mechanics in user-facing copy or summaries.
@@ -1988,7 +2016,8 @@ HTML;
             $aiPromptRaw  = $this->sanitizeUserPrompt($prompt);
             $rawPrompt    = $this->sanitizeUserPrompt($visiblePrompt ?? $prompt);
             $prompt       = $this->normalizer->enrichPrompt($aiPromptRaw);
-            $isTiny       = $this->isTinyEdit($prompt);
+            $isBusinessProblem = $this->isBusinessProblemRequest($prompt);
+            $isTiny       = !$isBusinessProblem && $this->isTinyEdit($prompt);
             $aiProvider   = $this->aiManager->provider($provider, $user);
 
             $systemPrompt = $isTiny

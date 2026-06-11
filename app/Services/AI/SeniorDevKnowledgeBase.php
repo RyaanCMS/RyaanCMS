@@ -44,6 +44,9 @@ class SeniorDevKnowledgeBase
     private array $aiReplacement;
     private array $mentalModels;
     private array $wisdomPatterns;
+    private array $businessOsAssetLayers;
+    private array $problemSolvingLibrary;
+    private array $intelligenceLibrary;
 
     public function __construct()
     {
@@ -71,6 +74,9 @@ class SeniorDevKnowledgeBase
         $this->aiReplacement       = config('kb.ai_replacement', []);
         $this->mentalModels        = config('kb.mental_models', []);
         $this->wisdomPatterns      = config('kb.wisdom_patterns', []);
+        $this->businessOsAssetLayers = config('kb.business_os_asset_layers', []);
+        $this->problemSolvingLibrary = config('kb.problem_solving_library', []);
+        $this->intelligenceLibrary = config('kb.intelligence_library', []);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -127,6 +133,16 @@ class SeniorDevKnowledgeBase
             $sections[] = $businessRules;
         }
 
+        $businessProblem = $this->buildProblemSolvingSection($prompt);
+        if ($businessProblem) {
+            $sections[] = $businessProblem;
+        }
+
+        $intelligenceSection = $this->buildIntelligenceLibrarySection($prompt);
+        if ($intelligenceSection) {
+            $sections[] = $intelligenceSection;
+        }
+
         // ── L5: Build vs Buy (key packages) ──────────────────────────────────
         $sections[] = $this->buildBuildVsBuySection($scope);
 
@@ -159,6 +175,122 @@ class SeniorDevKnowledgeBase
         $brief = implode("\n\n", array_filter($sections));
 
         return "=== SENIOR DEVELOPER BRIEF ===\n{$brief}\n=== END BRIEF ===";
+    }
+
+    private function buildProblemSolvingSection(string $prompt): ?string
+    {
+        $matches = $this->matchBusinessProblems($prompt);
+        if (empty($matches)) {
+            return null;
+        }
+
+        $lines = ['BUSINESS PROBLEM SOLVER MODE:'];
+        $lines[] = 'The user may describe a business pain instead of asking for an app. Diagnose first, then recommend and implement the smallest complete system that solves it.';
+
+        foreach (array_slice($matches, 0, 3) as $match) {
+            $problem = $match['problem'];
+            $lines[] = "- Problem: {$match['domain']} / {$match['key']}";
+            $lines[] = "  Diagnosis: " . ($problem['diagnosis'] ?? 'Root cause needs workflow, ownership, KPI, and automation clarity.');
+            if (!empty($problem['solutions'])) {
+                $lines[] = "  Proven fixes: " . implode('; ', array_slice($problem['solutions'], 0, 5));
+            }
+            if (!empty($problem['modules'])) {
+                $lines[] = "  Build modules: " . implode(', ', $problem['modules']);
+            }
+            if (!empty($problem['kpis'])) {
+                $lines[] = "  Measure: " . implode(', ', $problem['kpis']);
+            }
+        }
+
+        $lines[] = 'When generating files, include dashboards/reports that prove the problem is improving.';
+
+        return implode("\n", $lines);
+    }
+
+    private function buildIntelligenceLibrarySection(string $prompt): ?string
+    {
+        if (!$this->isBusinessProblemPrompt($prompt) && !$this->isCompleteBuildPrompt($prompt)) {
+            return null;
+        }
+
+        $lines = ['INTELLIGENCE LIBRARY:'];
+        $lines[] = 'Apply decision, success, failure, and optimization patterns before generating code.';
+
+        foreach (array_slice($this->intelligenceLibrary['decision_patterns'] ?? [], 0, 3) as $key => $pattern) {
+            $lines[] = "- Decision {$key}: " . ($pattern['rule'] ?? '');
+        }
+
+        foreach (array_slice($this->intelligenceLibrary['success_patterns'] ?? [], 0, 2) as $key => $pattern) {
+            $lines[] = "- Success {$key}: " . ($pattern['pattern'] ?? '');
+        }
+
+        foreach (array_slice($this->intelligenceLibrary['failure_patterns'] ?? [], 0, 2) as $key => $pattern) {
+            $lines[] = "- Avoid {$key}: " . ($pattern['mistake'] ?? '') . ' Fix: ' . ($pattern['fix'] ?? '');
+        }
+
+        $targets = $this->businessOsAssetLayers['long_term_targets'] ?? [];
+        if ($targets) {
+            $lines[] = 'Strategic asset goal: every build should add reusable blueprint/module/component/problem/decision knowledge.';
+        }
+
+        return implode("\n", array_filter($lines));
+    }
+
+    private function matchBusinessProblems(string $prompt): array
+    {
+        $lower = strtolower($prompt);
+        $matches = [];
+
+        foreach ($this->problemSolvingLibrary as $domain => $problems) {
+            foreach ($problems as $key => $problem) {
+                foreach ($problem['triggers'] ?? [] as $trigger) {
+                    if ($trigger !== '' && str_contains($lower, strtolower($trigger))) {
+                        $matches[] = [
+                            'domain' => (string) $domain,
+                            'key' => (string) $key,
+                            'problem' => $problem,
+                        ];
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $matches;
+    }
+
+    private function isBusinessProblemPrompt(string $prompt): bool
+    {
+        if (!empty($this->matchBusinessProblems($prompt))) {
+            return true;
+        }
+
+        $lower = strtolower($prompt);
+        $signals = [
+            'problem', 'issue', 'low ', 'high ', 'delay', 'mismatch', 'leakage',
+            'churn', 'retention', 'return rate', 'stockout', 'late payment',
+            'not following', 'absence', 'turnover', 'fake order',
+        ];
+
+        foreach ($signals as $signal) {
+            if (str_contains($lower, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isCompleteBuildPrompt(string $prompt): bool
+    {
+        $lower = strtolower($prompt);
+        foreach (['complete', 'full', 'management system', 'erp', 'crm', 'platform'] as $signal) {
+            if (str_contains($lower, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

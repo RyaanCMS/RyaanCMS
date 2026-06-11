@@ -4,8 +4,16 @@ namespace App\Services\AI;
 
 class AIRouter
 {
-    // Patterns ordered: most expensive first so they short-circuit correctly
+    // Patterns ordered: most specific business intent first so routing stays cheap and accurate
     private array $patterns = [
+        'business_problem' => [
+            'low conversion', 'lead leakage', 'follow-up delay', 'follow up delay',
+            'inventory mismatch', 'stock mismatch', 'employee absence', 'attendance problem',
+            'customer retention low', 'poor retention', 'return rate', 'high return',
+            'fake orders', 'fake order', 'stockouts', 'stockout', 'order delays',
+            'cash flow issues', 'late payments', 'revenue leakage', 'high cac',
+            'low roas', 'user churn', 'low activation', 'feature adoption',
+        ],
         'architecture' => [
             'build system', 'create app', 'full system', 'complete platform',
             'saas platform', 'marketplace system', 'erp system', 'crm system',
@@ -56,6 +64,7 @@ class AIRouter
     private array $tiers = [
         'architecture'   => ['tier' => 'premium', 'max_tokens' => 16000, 'history_turns' => 3],
         'business_logic' => ['tier' => 'premium', 'max_tokens' => 8000,  'history_turns' => 3],
+        'business_problem' => ['tier' => 'premium', 'max_tokens' => 9000,  'history_turns' => 3],
         'optimization'   => ['tier' => 'cheap',   'max_tokens' => 4000,  'history_turns' => 2],
         'security'       => ['tier' => 'cheap',   'max_tokens' => 4000,  'history_turns' => 2],
         'simple_logic'   => ['tier' => 'free',    'max_tokens' => 3000,  'history_turns' => 1],
