@@ -826,6 +826,215 @@ class BlueprintLibrary
     // PART 4 — MEDIA, SAAS & NICHE
     // ═════════════════════════════════════════════════════════════════════
 
-    private function mediaBlueprints(): array    { return []; }
-    private function saasNicheBlueprints(): array { return []; }
+    private function mediaBlueprints(): array
+    {
+        return [
+
+            // ── News Portal ───────────────────────────────────────────────
+            'news_portal' => [
+                'name'             => 'News & Media Portal',
+                'icon'             => '📰',
+                'category'         => 'media',
+                'industry'         => 'news_media',
+                'problem_solved'   => 'Publish news articles, manage categories, journalists, and readers',
+                'target_users'     => ['admin', 'editor', 'journalist', 'reader'],
+                'keywords'         => ['news', 'newspaper', 'media', 'news portal', 'journalism', 'blog', 'article', 'online news', 'নিউজ পোর্টাল', 'بوابة إخبارية'],
+                'required_modules' => ['auth', 'rbac', 'media', 'notifications'],
+                'optional_modules' => ['reports', 'seo_module', 'ads_manager', 'comments', 'newsletter'],
+                'key_entities'     => ['Article', 'Category', 'Tag', 'Author', 'Comment', 'Media', 'Advertisement', 'Subscriber', 'NewsletterIssue'],
+                'workflows'        => ['article_creation', 'editorial_review', 'publishing', 'breaking_news_alert', 'newsletter_dispatch', 'ad_placement'],
+                'reports'          => ['article_views', 'top_authors', 'category_traffic', 'ad_impressions', 'subscriber_growth'],
+                'pages'            => ['home', 'category', 'article_detail', 'search', 'author_page', 'admin_dashboard', 'editor_panel'],
+                'permissions'      => ['write_articles', 'edit_articles', 'publish_articles', 'manage_ads', 'manage_subscribers'],
+                'questions_to_ask' => ['Subscription paywall?', 'Comment moderation?', 'Breaking news push notifications?', 'Google AdSense or own ad system?'],
+                'business_rules'   => ['article_reviewed_before_publish', 'breaking_news_bypasses_editorial', 'paywall_after_free_article_limit'],
+                'integrations'     => ['google_analytics', 'adsense', 'facebook_pixel', 'push_notification', 'sms'],
+                'ai_fallback_areas'=> ['content_recommendation', 'auto_tagging', 'headline_suggestions'],
+            ],
+
+            // ── NGO / Charity ─────────────────────────────────────────────
+            'ngo_charity' => [
+                'name'             => 'NGO & Charity Management',
+                'icon'             => '🤲',
+                'category'         => 'niche',
+                'industry'         => 'ngo_charity',
+                'problem_solved'   => 'Manage donors, beneficiaries, projects, and fund utilisation',
+                'target_users'     => ['admin', 'field_officer', 'donor', 'beneficiary'],
+                'keywords'         => ['ngo', 'charity', 'donation', 'nonprofit', 'non-profit', 'beneficiary', 'social work', 'fund', 'এনজিও', 'দাতব্য', 'منظمة غير ربحية'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'donor_portal', 'field_reporting', 'zakat_module'],
+                'key_entities'     => ['Donor', 'Donation', 'Campaign', 'Project', 'Beneficiary', 'FieldReport', 'Fund', 'Expense', 'Receipt'],
+                'workflows'        => ['donor_registration', 'campaign_creation', 'donation_collection', 'fund_allocation', 'field_reporting', 'beneficiary_distribution'],
+                'reports'          => ['donation_report', 'fund_utilisation', 'beneficiary_impact', 'campaign_progress', 'donor_retention'],
+                'pages'            => ['home', 'campaigns', 'donate', 'dashboard', 'donors', 'beneficiaries', 'projects', 'reports'],
+                'permissions'      => ['manage_donors', 'manage_campaigns', 'collect_donations', 'manage_beneficiaries', 'submit_field_report'],
+                'questions_to_ask' => ['Zakat fund management?', 'Donor portal for online giving?', 'NGO Affairs Bangladesh registration?', 'Multi-project fund allocation?'],
+                'business_rules'   => ['donation_receipt_auto_generated', 'fund_cannot_exceed_allocation', 'restricted_fund_ring_fenced'],
+                'integrations'     => ['bkash', 'nagad', 'sslcommerz', 'paypal', 'sms_gateway'],
+                'ai_fallback_areas'=> ['impact_measurement', 'donor_lifetime_value', 'campaign_optimisation'],
+            ],
+
+        ]; // end mediaBlueprints
+    }
+
+    private function saasNicheBlueprints(): array
+    {
+        return [
+
+            // ── SaaS Starter ──────────────────────────────────────────────
+            'saas' => [
+                'name'             => 'SaaS Multi-Tenant Application',
+                'icon'             => '☁️',
+                'category'         => 'saas',
+                'industry'         => 'saas',
+                'problem_solved'   => 'Multi-tenant SaaS with plans, subscriptions, billing, and team management',
+                'target_users'     => ['super_admin', 'tenant_admin', 'team_member'],
+                'keywords'         => ['saas', 'multi tenant', 'multi-tenant', 'subscription', 'recurring billing', 'software as a service', 'tenant', 'plan', 'স্যাস'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'api_builder', 'white_label', 'affiliate'],
+                'key_entities'     => ['Tenant', 'Plan', 'Subscription', 'Invoice', 'User', 'Team', 'Feature', 'UsageMetric', 'Webhook', 'ApiKey'],
+                'workflows'        => ['tenant_signup', 'plan_selection', 'subscription_activation', 'usage_metering', 'invoice_generation', 'plan_upgrade', 'cancellation'],
+                'reports'          => ['mrr', 'arr', 'churn_rate', 'revenue_by_plan', 'tenant_growth', 'usage_report'],
+                'pages'            => ['landing', 'pricing', 'signup', 'onboarding', 'tenant_dashboard', 'billing', 'team', 'api_keys', 'super_admin'],
+                'permissions'      => ['manage_tenant', 'manage_subscription', 'manage_team', 'view_billing', 'access_api'],
+                'questions_to_ask' => ['Per-seat or usage-based billing?', 'Free trial period?', 'White-label option?', 'Stripe or local payment?'],
+                'business_rules'   => ['tenant_data_isolation', 'plan_limits_enforced', 'subscription_active_before_access', 'no_data_access_on_cancellation'],
+                'integrations'     => ['stripe', 'stripe_billing', 'email', 'slack_webhook', 'zapier'],
+                'ai_fallback_areas'=> ['churn_prediction', 'upsell_recommendation', 'usage_anomaly_detection'],
+            ],
+
+            // ── Booking / Appointment ─────────────────────────────────────
+            'booking' => [
+                'name'             => 'Booking & Appointment System',
+                'icon'             => '📅',
+                'category'         => 'saas',
+                'industry'         => 'services',
+                'problem_solved'   => 'Online appointment scheduling for any service business',
+                'target_users'     => ['admin', 'staff', 'customer'],
+                'keywords'         => ['booking', 'appointment', 'schedule', 'reservation', 'slot', 'calendar', 'book service', 'বুকিং', 'অ্যাপয়েন্টমেন্ট', 'حجز'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'calendar', 'sms_reminder', 'google_calendar'],
+                'key_entities'     => ['Service', 'Staff', 'Availability', 'Booking', 'Customer', 'Payment', 'Review', 'Location'],
+                'workflows'        => ['service_setup', 'availability_config', 'customer_booking', 'confirmation', 'reminder', 'completion', 'review'],
+                'reports'          => ['bookings_by_service', 'staff_utilisation', 'revenue_report', 'no_show_rate', 'customer_retention'],
+                'pages'            => ['home', 'services', 'booking_page', 'confirmation', 'my_bookings', 'admin_dashboard', 'staff_schedule'],
+                'permissions'      => ['manage_services', 'manage_availability', 'view_bookings', 'process_payment', 'view_reports'],
+                'questions_to_ask' => ['Single service or multiple?', 'Multiple staff per service?', 'SMS/email reminders?', 'Google Calendar sync?'],
+                'business_rules'   => ['double_booking_blocked', 'cancellation_within_policy_only', 'payment_holds_slot', 'reminder_24h_before'],
+                'integrations'     => ['google_calendar', 'stripe', 'bkash', 'sms_gateway', 'zoom'],
+                'ai_fallback_areas'=> ['smart_scheduling', 'no_show_prediction', 'demand_forecasting'],
+            ],
+
+            // ── Gym & Fitness ─────────────────────────────────────────────
+            'gym' => [
+                'name'             => 'Gym & Fitness Management',
+                'icon'             => '💪',
+                'category'         => 'niche',
+                'industry'         => 'services',
+                'problem_solved'   => 'Manage gym members, subscriptions, classes, and trainer sessions',
+                'target_users'     => ['admin', 'trainer', 'member'],
+                'keywords'         => ['gym', 'fitness', 'health club', 'gym management', 'membership', 'workout', 'personal trainer', 'জিম', 'صالة رياضية'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'biometric', 'class_schedule', 'diet_tracker'],
+                'key_entities'     => ['Member', 'Plan', 'Subscription', 'Trainer', 'Class', 'ClassBooking', 'Attendance', 'Payment', 'Locker'],
+                'workflows'        => ['member_registration', 'plan_subscription', 'check_in', 'class_booking', 'trainer_session', 'renewal_reminder', 'payment_collection'],
+                'reports'          => ['active_members', 'revenue_report', 'class_attendance', 'trainer_performance', 'membership_expiry'],
+                'pages'            => ['dashboard', 'members', 'plans', 'classes', 'trainers', 'attendance', 'payments', 'reports'],
+                'permissions'      => ['manage_members', 'manage_classes', 'process_payment', 'mark_attendance', 'view_reports'],
+                'questions_to_ask' => ['Biometric fingerprint check-in?', 'Class scheduling and booking?', 'Personal training sessions?', 'Locker management?'],
+                'business_rules'   => ['access_only_for_active_members', 'class_capacity_enforced', 'renewal_alert_before_expiry'],
+                'integrations'     => ['biometric_device', 'bkash', 'nagad', 'sms_gateway'],
+                'ai_fallback_areas'=> ['workout_plan_generation', 'member_churn_prediction', 'diet_recommendation'],
+            ],
+
+            // ── Beauty Salon ──────────────────────────────────────────────
+            'salon' => [
+                'name'             => 'Beauty Salon & Spa Management',
+                'icon'             => '💅',
+                'category'         => 'niche',
+                'industry'         => 'services',
+                'problem_solved'   => 'Manage salon bookings, staff, services, and client history',
+                'target_users'     => ['admin', 'stylist', 'customer'],
+                'keywords'         => ['salon', 'beauty salon', 'spa', 'parlour', 'hair salon', 'beauty parlor', 'সেলুন', 'صالون تجميل'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'online_booking', 'loyalty', 'product_sales'],
+                'key_entities'     => ['Service', 'Staff', 'Appointment', 'Customer', 'Payment', 'Product', 'LoyaltyPoint', 'ServiceHistory'],
+                'workflows'        => ['online_booking', 'walk_in', 'service_delivery', 'payment', 'loyalty_award', 'follow_up'],
+                'reports'          => ['daily_revenue', 'staff_performance', 'service_popularity', 'client_retention'],
+                'pages'            => ['home', 'services', 'booking', 'dashboard', 'appointments', 'staff', 'clients', 'reports'],
+                'permissions'      => ['manage_appointments', 'manage_services', 'process_payment', 'manage_staff'],
+                'questions_to_ask' => ['Home service / on-demand booking?', 'Product retail sales?', 'Loyalty points?', 'Multiple branches?'],
+                'business_rules'   => ['appointment_no_double_booking', 'loyalty_earned_on_paid_service', 'staff_commission_calculated'],
+                'integrations'     => ['bkash', 'sms_gateway', 'google_calendar', 'whatsapp'],
+                'ai_fallback_areas'=> ['personalised_service_recommendation', 'churn_prediction'],
+            ],
+
+            // ── Laundry ───────────────────────────────────────────────────
+            'laundry' => [
+                'name'             => 'Laundry Service Management',
+                'icon'             => '👕',
+                'category'         => 'niche',
+                'industry'         => 'services',
+                'problem_solved'   => 'Manage laundry orders, pickup/delivery, billing, and customer tracking',
+                'target_users'     => ['admin', 'staff', 'delivery_rider', 'customer'],
+                'keywords'         => ['laundry', 'dry cleaning', 'laundry service', 'wash', 'লন্ড্রি', 'غسيل ملابس'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'sms', 'barcode', 'delivery_module'],
+                'key_entities'     => ['Order', 'OrderItem', 'Service', 'Customer', 'Rider', 'Payment', 'Garment'],
+                'workflows'        => ['pickup_booking', 'item_tagging', 'washing', 'quality_check', 'delivery', 'payment_collection'],
+                'reports'          => ['daily_orders', 'revenue_by_service', 'rider_performance', 'customer_retention'],
+                'pages'            => ['dashboard', 'orders', 'services', 'customers', 'delivery', 'billing', 'reports'],
+                'permissions'      => ['create_order', 'update_status', 'assign_rider', 'process_payment'],
+                'questions_to_ask' => ['Home pickup and delivery?', 'Per-piece or per-kg pricing?', 'SMS status updates to customers?'],
+                'business_rules'   => ['garment_tagged_before_washing', 'payment_on_delivery', 'lost_garment_compensation_policy'],
+                'integrations'     => ['bkash', 'nagad', 'sms_gateway', 'google_maps'],
+                'ai_fallback_areas'=> ['demand_forecasting', 'route_optimisation'],
+            ],
+
+            // ── Car Service / Workshop ────────────────────────────────────
+            'car_service' => [
+                'name'             => 'Car Service & Workshop Management',
+                'icon'             => '🚗',
+                'category'         => 'niche',
+                'industry'         => 'services',
+                'problem_solved'   => 'Manage vehicle servicing, job cards, spare parts, and billing',
+                'target_users'     => ['admin', 'mechanic', 'service_advisor', 'customer'],
+                'keywords'         => ['car service', 'workshop', 'garage', 'automobile', 'vehicle service', 'mechanic', 'গাড়ি সার্ভিস', 'ورشة سيارات'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications'],
+                'optional_modules' => ['reports', 'parts_inventory', 'sms', 'barcode'],
+                'key_entities'     => ['Vehicle', 'Customer', 'JobCard', 'Service', 'SparePart', 'Mechanic', 'Invoice', 'Payment'],
+                'workflows'        => ['vehicle_check_in', 'job_card_creation', 'diagnosis', 'parts_requisition', 'service_execution', 'quality_check', 'delivery', 'billing'],
+                'reports'          => ['daily_jobs', 'revenue_by_service', 'parts_consumption', 'mechanic_productivity'],
+                'pages'            => ['dashboard', 'job_cards', 'vehicles', 'customers', 'parts_inventory', 'billing', 'reports'],
+                'permissions'      => ['create_job_card', 'manage_parts', 'update_job_status', 'generate_invoice'],
+                'questions_to_ask' => ['Spare parts inventory management?', 'SMS updates to customers on job status?', 'Multiple service bays?'],
+                'business_rules'   => ['job_card_before_work_starts', 'customer_approval_for_major_repairs', 'parts_issued_against_job_card'],
+                'integrations'     => ['sms_gateway', 'bkash', 'barcode_scanner'],
+                'ai_fallback_areas'=> ['predictive_maintenance', 'parts_demand_forecasting'],
+            ],
+
+            // ── Construction Project ──────────────────────────────────────
+            'construction' => [
+                'name'             => 'Construction Project Management',
+                'icon'             => '🏗️',
+                'category'         => 'real_estate',
+                'industry'         => 'real_estate',
+                'problem_solved'   => 'Track construction projects, materials, labour, costs, and progress',
+                'target_users'     => ['admin', 'site_engineer', 'project_manager', 'contractor', 'client'],
+                'keywords'         => ['construction', 'building', 'real estate development', 'contractor', 'civil', 'site management', 'নির্মাণ', 'إنشاء'],
+                'required_modules' => ['auth', 'rbac', 'payments', 'notifications', 'media'],
+                'optional_modules' => ['reports', 'drawing_manager', 'supplier_portal', 'field_reporting'],
+                'key_entities'     => ['Project', 'Building', 'Floor', 'Unit', 'Material', 'Labour', 'DailyReport', 'WorkOrder', 'Payment', 'Client', 'Contractor', 'Drawing'],
+                'workflows'        => ['project_initiation', 'work_order', 'material_requisition', 'labour_management', 'daily_progress_report', 'payment_milestone', 'client_handover'],
+                'reports'          => ['cost_vs_budget', 'project_progress', 'material_consumption', 'labour_attendance', 'payment_schedule'],
+                'pages'            => ['dashboard', 'projects', 'work_orders', 'materials', 'labour', 'daily_reports', 'payments', 'client_portal', 'reports'],
+                'permissions'      => ['manage_projects', 'approve_work_orders', 'manage_materials', 'submit_daily_report', 'view_financials'],
+                'questions_to_ask' => ['Real estate developer (unit sales) or contractor?', 'Client progress portal?', 'Drawing/BIM document management?'],
+                'business_rules'   => ['payment_tied_to_milestone', 'material_issued_against_work_order', 'daily_report_mandatory'],
+                'integrations'     => ['google_drive', 'bank_transfer', 'sms_gateway', 'email'],
+                'ai_fallback_areas'=> ['cost_overrun_prediction', 'material_optimisation', 'schedule_analysis'],
+            ],
+
+        ]; // end saasNicheBlueprints
+    }
 }
