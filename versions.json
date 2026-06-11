@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.37",
+    "latest": "1.1.38",
     "versions": [
         {
             "version": "1.0.0",
@@ -479,6 +479,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.36",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.38",
+            "type": "feature",
+            "released_at": "2026-06-11",
+            "changelog": "fix: resolve content filtering errors in Gemini and OpenAI providers\n\nGemini:\n- Add safetySettings (BLOCK_ONLY_HIGH) to both chat() and stream() —\n  code generation prompts (auth, SQL, security systems) were triggering\n  false positives at Gemini's default BLOCK_LOW_AND_ABOVE threshold\n- Detect promptFeedback.blockReason (prompt-level block) and throw\n  descriptive error instead of silent empty response\n- Detect finishReason=SAFETY (candidate-level block mid-generation)\n  in both chat() and stream() with actionable error message\n- Detect generic 'content filtering'/'Output blocked' in HTTP errors\n  and surface a clear user-facing message\n\nOpenAI:\n- Detect finish_reason=content_filter and throw proper error instead\n  of silently returning empty content string\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.38/ryaancms-v1.1.38-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.37",
             "critical": false,
             "file_count": null
         }
