@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Services\AI\AIManager;
 use App\Services\AI\AIRouter;
+use App\Services\AI\BlueprintGenomeEngine;
 use App\Services\AI\BlueprintService;
 use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\DesignVariantService;
+use App\Services\AI\IntentEngine;
 use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\MetadataCrudGenerator;
 use App\Services\AI\MultilingualNormalizer;
@@ -32,9 +34,16 @@ class AIServiceProvider extends ServiceProvider
         $this->app->singleton(MultilingualNormalizer::class, fn() => new MultilingualNormalizer());
         $this->app->singleton(ModuleRegistry::class, fn() => new ModuleRegistry());
 
+        // Genome System — zero-token intelligence layer
+        $this->app->singleton(IntentEngine::class, fn() => new IntentEngine());
+        $this->app->singleton(BlueprintGenomeEngine::class, fn() => new BlueprintGenomeEngine());
+
         $this->app->singleton(SeniorDevKnowledgeBase::class, fn() => new SeniorDevKnowledgeBase());
         $this->app->singleton(WisdomEngine::class, fn() => new WisdomEngine());
-        $this->app->singleton(KnowledgeBaseService::class, fn() => new KnowledgeBaseService());
+        $this->app->singleton(KnowledgeBaseService::class, fn($app) => new KnowledgeBaseService(
+            $app->make(IntentEngine::class),
+            $app->make(BlueprintGenomeEngine::class),
+        ));
         $this->app->singleton(DesignVariantService::class, fn() => new DesignVariantService());
         $this->app->singleton(ComponentRegistry::class, fn() => new ComponentRegistry());
 
@@ -48,6 +57,11 @@ class AIServiceProvider extends ServiceProvider
 
         $this->app->singleton(ModuleInstaller::class, fn($app) => new ModuleInstaller(
             $app->make(ModuleRegistry::class)
+        ));
+
+        $this->app->singleton(BlueprintService::class, fn($app) => new BlueprintService(
+            $app->make(IntentEngine::class),
+            $app->make(BlueprintGenomeEngine::class),
         ));
 
         $this->app->singleton(CodeGeneratorService::class, fn($app) => new CodeGeneratorService(

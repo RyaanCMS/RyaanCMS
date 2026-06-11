@@ -12,19 +12,43 @@ use App\Models\Project;
  *
  * Phase 2 (Matching):  Blueprint app_type + features → matched domain packs.
  *                      Domain packs supply pre-defined entity schemas (zero AI cost).
+ *
+ * Genome Layer:  IntentEngine (0 tokens) + BlueprintGenomeEngine (0 tokens) pre-enrich
+ *               the discovery prompt before the AI call — better accuracy, fewer tokens.
  */
 class BlueprintService
 {
+    private IntentEngine $intentEngine;
+    private BlueprintGenomeEngine $genomeEngine;
+
+    public function __construct(
+        ?IntentEngine $intentEngine = null,
+        ?BlueprintGenomeEngine $genomeEngine = null
+    ) {
+        $this->intentEngine = $intentEngine ?? new IntentEngine();
+        $this->genomeEngine = $genomeEngine ?? new BlueprintGenomeEngine();
+    }
+
     /**
      * Run AI Discovery: convert free-text description into a structured blueprint.
      * Uses the smallest possible AI call — system prompt ~200 tokens, output ~300 tokens max.
-     * This replaces the "generate everything" 8 000-token prompt with a planning-only call.
+     * Genome layer runs first (0 tokens) to pre-classify and enrich the prompt.
      */
     public function discover(string $description, $aiProvider): array
     {
+        // ── Genome Phase (zero AI tokens) ──────────────────────────────────
+        $intent      = $this->intentEngine->detect($description);
+        $genome      = $this->genomeEngine->assemble($intent);
+        $genomeCtx   = $genome['prompt_context'] ?? '';
+
+        // Prepend genome context to the user message for better AI classification
+        $enrichedDescription = $genomeCtx
+            ? $genomeCtx . "\n\nUser request: " . $description
+            : $description;
+
         $messages = [
             ['role' => 'system',  'content' => $this->discoverySystemPrompt()],
-            ['role' => 'user',    'content' => $description],
+            ['role' => 'user',    'content' => $enrichedDescription],
         ];
 
         $response = $aiProvider->chat($messages, ['max_tokens' => 1000]);
@@ -85,10 +109,42 @@ class BlueprintService
         $blueprint['reports'] = $this->ensureList($blueprint['reports'], $this->defaultReports($blueprint));
 
         // Enrich: match domain packs and merge their default entities
-        $blueprint['matched_packs']    = $this->matchDomainPacks($blueprint);
-        $blueprint['features']         = $this->mergePackFeatures($blueprint);
+        $blueprint['matched_packs']      = $this->matchDomainPacks($blueprint);
+        $blueprint['features']           = $this->mergePackFeatures($blueprint);
         $blueprint['suggested_entities'] = $this->suggestEntities($blueprint);
-        $blueprint['tokens_used']      = $response['tokens_used'] ?? 0;
+        $blueprint['tokens_used']        = $response['tokens_used'] ?? 0;
+
+        // ── Genome enrichment (zero additional tokens) ────────────────────
+        // Merge genome-derived modules/roles/workflows/integrations/KPIs
+        // without overwriting what the AI returned.
+        $blueprint['genome']         = $this->genomeEngine->toArray($intent);
+        $blueprint['genome_intent']  = [
+            'action'     => $intent['action'],
+            'industries' => $intent['industries'],
+            'confidence' => $intent['confidence'],
+        ];
+
+        // Fill missing modules from genome (AI didn't always list all)
+        if (empty($blueprint['modules'])) {
+            $blueprint['modules'] = $genome['modules'] ?? [];
+        }
+
+        // Merge integrations
+        $aiIntegrations     = $blueprint['integrations'] ?? [];
+        $genomeIntegrations = $genome['integrations']    ?? [];
+        $blueprint['integrations'] = array_values(array_unique(array_merge($aiIntegrations, $genomeIntegrations)));
+
+        // Merge workflows
+        $aiWorkflows     = $blueprint['workflows'] ?? [];
+        $genomeWorkflows = $genome['workflows']    ?? [];
+        $blueprint['workflows'] = array_values(array_unique(array_merge($aiWorkflows, $genomeWorkflows)));
+
+        // Attach KPIs from genome (not in original blueprint schema)
+        $blueprint['kpis']  = $genome['kpis']  ?? [];
+        $blueprint['roles'] = array_values(array_unique(array_merge(
+            $blueprint['users'] ?? [],
+            $genome['roles']    ?? []
+        )));
 
         return $blueprint;
     }

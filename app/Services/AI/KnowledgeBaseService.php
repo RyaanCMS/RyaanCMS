@@ -22,6 +22,18 @@ use Illuminate\Support\Str;
  */
 class KnowledgeBaseService
 {
+    private IntentEngine $intentEngine;
+    private BlueprintGenomeEngine $genomeEngine;
+
+    public function __construct(
+        ?IntentEngine $intentEngine = null,
+        ?BlueprintGenomeEngine $genomeEngine = null
+    ) {
+        $this->intentEngine = $intentEngine ?? new IntentEngine();
+        $this->genomeEngine = $genomeEngine ?? new BlueprintGenomeEngine();
+    }
+
+
     // ── RBAC: roles + key permissions per domain ──────────────────────────────
     private const RBAC = [
         'crm'                => ['roles' => ['Super Admin', 'Sales Manager', 'Sales Rep', 'Customer'],
@@ -428,10 +440,39 @@ KB;
 
     /**
      * Match a free-text prompt to the closest domain pack key.
-     * Used when blueprint discovery is skipped (e.g., pipeline agents).
+     * Genome IntentEngine is tried first (supports multilingual, 500+ industries).
+     * Falls back to keyword scanning if genome returns no match.
      */
     public function matchAppType(string $prompt): string
     {
+        // ── Genome-first matching ─────────────────────────────────────────
+        $genomeIndustry = $this->intentEngine->quickIndustry($prompt);
+        if ($genomeIndustry) {
+            // Map genome industry ID → domain_packs key (best-effort)
+            $domainPackAliases = [
+                'ecommerce'    => 'ecommerce',
+                'hospital'     => 'hospital',
+                'school'       => 'school',
+                'restaurant'   => 'restaurant',
+                'hotel'        => 'hotel_hospitality',
+                'hrm_system'   => 'hrm',
+                'accounting'   => 'accounting',
+                'logistics'    => 'logistics',
+                'microfinance' => 'microfinance',
+                'real_estate'  => 'real_estate',
+                'crm_saas'     => 'crm',
+                'manufacturing'=> 'manufacturing',
+                'ngo'          => 'ngo_charity',
+                'saas'         => 'saas',
+                'marketplace'  => 'marketplace',
+                'construction' => 'construction',
+            ];
+            $packs = config('domain_packs', []);
+            $mapped = $domainPackAliases[$genomeIndustry] ?? $genomeIndustry;
+            if (isset($packs[$mapped])) return $mapped;
+        }
+
+        // ── Fallback: domain_packs keyword scan ───────────────────────────
         $packs   = config('domain_packs', []);
         $lower   = strtolower($prompt);
         $scores  = [];
@@ -440,7 +481,7 @@ KB;
             $score = 0;
             foreach ($pack['trigger_keywords'] ?? [] as $kw) {
                 if (str_contains($lower, strtolower($kw))) {
-                    $score += strlen($kw); // longer keyword = more specific match
+                    $score += strlen($kw);
                 }
             }
             if ($score > 0) $scores[$key] = $score;
@@ -449,6 +490,28 @@ KB;
         if (empty($scores)) return 'default';
         arsort($scores);
         return array_key_first($scores);
+    }
+
+    /**
+     * Enrich a prompt with full genome context (zero AI tokens).
+     * Returns structured genome data including modules, roles, workflows, KPIs.
+     * Use this before calling AI to reduce required token count.
+     */
+    public function enrichWithGenome(string $prompt): array
+    {
+        $intent = $this->intentEngine->detect($prompt);
+        $genome = $this->genomeEngine->assemble($intent);
+
+        return [
+            'intent'       => $intent,
+            'genome'       => $genome,
+            'context_text' => $genome['prompt_context'] ?? '',
+            'modules'      => $genome['modules']      ?? [],
+            'roles'        => $genome['roles']        ?? [],
+            'workflows'    => $genome['workflows']    ?? [],
+            'integrations' => $genome['integrations'] ?? [],
+            'kpis'         => $genome['kpis']         ?? [],
+        ];
     }
 
     /**
