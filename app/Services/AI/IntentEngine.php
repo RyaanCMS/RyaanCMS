@@ -18,7 +18,7 @@ class IntentEngine
 
     public function __construct()
     {
-        $this->patterns = config('genome.intent_patterns', require config_path('genome/intent_patterns.php'));
+        $this->patterns = require config_path('genome/intent_patterns.php');
     }
 
     /**
