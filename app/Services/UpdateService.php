@@ -168,7 +168,7 @@ class UpdateService
 
             $this->markUpdateRecord($record, ['status' => 'applying']);
 
-            // 3. Copy files (preserve .env, storage, vendor, .git)
+            // 3. Copy files (preserve .env, user storage, .git)
             [$appSource, $publicSource] = $this->resolvePackageSources($extractPath);
             $this->copyFiles($appSource, base_path());
 
@@ -314,7 +314,7 @@ class UpdateService
     private function copyFiles(string $sourcePath, string $destRoot, array $extraSkips = []): void
     {
         // Never overwrite these — user data / env config
-        $neverOverwrite = array_merge(['.env', 'vendor', 'storage/app', 'storage/logs', '.git', 'node_modules'], $extraSkips);
+        $neverOverwrite = array_merge(['.env', 'storage/app', 'storage/logs', '.git', 'node_modules'], $extraSkips);
 
         $iter = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($sourcePath, \RecursiveDirectoryIterator::SKIP_DOTS),
