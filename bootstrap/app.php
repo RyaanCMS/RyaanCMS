@@ -17,8 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
         $middleware->alias([
-            'ai.provider' => \App\Http\Middleware\EnsureAIProvider::class,
-            'project.owner' => \App\Http\Middleware\EnsureProjectOwner::class,
+            'ai.provider'    => \App\Http\Middleware\EnsureAIProvider::class,
+            'project.owner'  => \App\Http\Middleware\EnsureProjectOwner::class,
+            'subscribed'     => \App\Http\Middleware\CheckSubscription::class,
+            'plan'           => \App\Http\Middleware\PlanGate::class,
+            'central.auth'   => \App\Http\Middleware\CentralApiAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

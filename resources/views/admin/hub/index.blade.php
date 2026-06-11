@@ -18,6 +18,28 @@
         </div>
     </div>
 
+    {{-- Revenue KPIs --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">MRR</p>
+            <p class="text-3xl font-bold text-emerald-400">{{ $revenue['mrr'] }}</p>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">ARR</p>
+            <p class="text-3xl font-bold text-sky-400">{{ $revenue['arr'] }}</p>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Active Trials</p>
+            <p class="text-3xl font-bold text-yellow-400">{{ $revenue['active_trials'] }}</p>
+            <p class="text-xs text-gray-600 mt-1">+{{ $revenue['trials_today'] }} today</p>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Paid Customers</p>
+            <p class="text-3xl font-bold text-indigo-400">{{ $revenue['active_paid'] }}</p>
+            <p class="text-xs text-gray-600 mt-1">+{{ $revenue['new_this_month'] }} this month</p>
+        </div>
+    </div>
+
     {{-- KPI Cards --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         @php

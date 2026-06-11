@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Billing\SubscriptionService;
 use App\Services\Menu\DefaultSidebarMenuImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,7 @@ class RegisterController extends Controller
         ]);
 
         app(DefaultSidebarMenuImporter::class)->ensureForUser($user);
+        app(SubscriptionService::class)->startTrial($user);
 
         Auth::login($user);
 

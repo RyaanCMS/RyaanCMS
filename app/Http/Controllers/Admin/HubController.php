@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Central\CentralInstall;
 use App\Models\Central\CentralLicense;
+use App\Services\Billing\SubscriptionService;
 use App\Services\Central\CreditManager;
 use App\Services\Central\LicenseManager;
 use App\Services\Central\TelemetryAggregator;
@@ -16,6 +17,7 @@ class HubController extends Controller
         private LicenseManager $licenseManager,
         private CreditManager $creditManager,
         private TelemetryAggregator $telemetry,
+        private SubscriptionService $subscriptionService,
     ) {}
 
     public function index()
@@ -24,9 +26,10 @@ class HubController extends Controller
         $creditStats  = $this->creditManager->globalStats();
         $telSummary   = $this->telemetry->summary(30);
         $recentPings  = CentralInstall::orderByDesc('last_ping')->limit(20)->get();
+        $revenue      = $this->subscriptionService->revenueStats();
 
         return view('admin.hub.index', compact(
-            'stats', 'creditStats', 'telSummary', 'recentPings'
+            'stats', 'creditStats', 'telSummary', 'recentPings', 'revenue'
         ));
     }
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\WisdomController;
 use App\Http\Controllers\Api\CentralApiController;
 use App\Http\Controllers\Admin\HubController;
+use App\Http\Controllers\BillingController;
 use Illuminate\Support\Facades\Route;
 
 // Installation Wizard (no auth, no installed-check)
@@ -64,9 +65,15 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Legal Pages
-Route::get('/terms', fn() => view('pages.terms'))->name('terms');
+// Legal & Public Pages
+Route::get('/pricing', fn() => view('pages.pricing'))->name('pricing');
+Route::get('/terms',   fn() => view('pages.terms'))->name('terms');
 Route::get('/privacy', fn() => view('pages.privacy'))->name('privacy');
+
+// EPS Payment webhook (no CSRF — called by gateway server)
+Route::post('/billing/webhook', [BillingController::class, 'webhook'])
+    ->name('billing.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Authentication
 Route::middleware('guest')->group(function () {
@@ -81,8 +88,17 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
 
+    // Billing & Subscription
+    Route::prefix('billing')->name('billing.')->middleware('subscribed')->group(function () {
+        Route::get('/',                         [BillingController::class, 'index'])->name('index');
+        Route::get('/upgrade',                  [BillingController::class, 'upgrade'])->name('upgrade')->withoutMiddleware('subscribed');
+        Route::post('/upgrade/{planKey}',        [BillingController::class, 'initiate'])->name('initiate')->withoutMiddleware('subscribed');
+        Route::get('/callback',                 [BillingController::class, 'callback'])->name('callback')->withoutMiddleware('subscribed');
+        Route::post('/cancel',                  [BillingController::class, 'cancel'])->name('cancel');
+    });
+
     // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('subscribed');
 
     // Projects
     Route::prefix('projects')->name('projects.')->group(function () {
