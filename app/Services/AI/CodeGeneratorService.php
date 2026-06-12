@@ -1005,6 +1005,9 @@ SRS;
         $actionWords = [
             'create', 'build', 'make', 'generate', 'develop', 'implement',
             'setup', 'set up', 'design', 'write', 'code', 'scaffold',
+            // Domain-first: these words alone signal a full build intent
+            'complete', 'full', 'entire', 'launch', 'start', 'deploy',
+            'i need', 'i want', 'we need', 'we want',
         ];
 
         $systemWords = [
@@ -1044,6 +1047,33 @@ SRS;
         foreach ($systemWords as $w) { if (str_contains($lower, $w)) { $hasSystem = true; break; } }
 
         return $hasAction && $hasSystem;
+    }
+
+    /**
+     * Returns true if the prompt mentions a supported business domain.
+     * Used to route no-AI requests to the zero-cost blueprint path instead of failing.
+     */
+    private function hasDomainKeyword(string $prompt): bool
+    {
+        $lower   = strtolower($prompt);
+        $domains = [
+            'lms', 'learning', 'course', 'elearning',
+            'school', 'university', 'college',
+            'ecommerce', 'e-commerce', 'shop', 'store', 'marketplace',
+            'hrm', 'payroll', 'employee', 'hr system',
+            'hospital', 'clinic', 'medical', 'patient', 'healthcare',
+            'crm', 'lead', 'pipeline',
+            'saas', 'subscription', 'tenant',
+            'inventory', 'warehouse', 'stock',
+            'restaurant', 'food', 'kitchen',
+            'accounting', 'finance', 'ledger',
+            'real estate', 'property', 'rental',
+            'pos', 'cashier', 'retail',
+        ];
+        foreach ($domains as $kw) {
+            if (str_contains($lower, $kw)) return true;
+        }
+        return false;
     }
 
     /**
@@ -2580,7 +2610,16 @@ HTML;
         );
 
         if (!$aiProvider) {
-            $onEvent(['type' => 'error', 'message' => 'No AI provider configured. Go to Settings → AI Providers and add an API key to use the AI builder.']);
+            // Domain Brain first — if this prompt relates to a known domain, attempt
+            // zero-cost blueprint generation rather than showing a hard error.
+            if ($this->isFullSystemRequest($prompt) || $this->hasDomainKeyword($prompt)) {
+                $this->streamBlueprintDriven(
+                    $prompt, $project, $conversation,
+                    null, $systemPrompt, $history, $model, $onEvent
+                );
+                return;
+            }
+            $onEvent(['type' => 'error', 'message' => 'No AI provider configured. Go to **Settings → AI Providers** and add an API key to start building.']);
             return;
         }
 
