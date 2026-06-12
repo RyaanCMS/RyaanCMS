@@ -722,18 +722,25 @@ main.main-content.builder-noPad {
             </div>
 
             <!-- Main textarea box -->
-            <div class="rounded-2xl overflow-hidden transition-all"
-                 style="background:#fff; border:1.5px solid #e8eaf0; box-shadow:0 2px 8px rgba(99,102,241,.06);"
+            <div class="rounded-2xl transition-all"
+                 style="background:#fff; border:1.5px solid #e8eaf0; box-shadow:0 2px 8px rgba(99,102,241,.06); overflow:visible;"
                  onfocusin="this.style.borderColor='#a5b4fc'; this.style.boxShadow='0 0 0 4px rgba(99,102,241,.10)'"
                  onfocusout="this.style.borderColor='#e8eaf0'; this.style.boxShadow='0 2px 8px rgba(99,102,241,.06)'">
                 <textarea x-model="chatInput"
+                          x-ref="promptTextarea"
                           @keydown="handleEnterKey($event)"
                           :disabled="isThinking && promptQueue.length >= 10"
                           :placeholder="isRecording ? '🎤 Listening… speak now' : isThinking ? 'AI is working… press Enter to queue your next prompt' : 'Describe what to build… (Enter to send, Shift+Enter for new line)'"
                           rows="3"
                           class="w-full bg-transparent text-sm px-4 pt-3 outline-none"
-                          style="color:#1e293b; resize:vertical; min-height:72px; max-height:260px;">
+                          style="color:#1e293b; resize:none; min-height:72px; border-radius:14px 14px 0 0; display:block;">
                 </textarea>
+                <!-- Drag-to-resize handle -->
+                <div class="flex justify-center items-center cursor-ns-resize select-none"
+                     style="height:12px; background:#fafafa; border-top:1px solid #f0f0f4;"
+                     @mousedown.prevent="startPromptResize($event)">
+                    <div style="width:32px; height:3px; border-radius:2px; background:#d1d5db;"></div>
+                </div>
 
                 <!-- Toolbar -->
                 <div class="flex items-center justify-between px-2 py-1.5" style="border-top:1px solid #f3f4f6;">
@@ -795,18 +802,6 @@ main.main-content.builder-noPad {
                             </svg>
                             Stop
                         </button>
-                        <!-- Pipeline Mode toggle -->
-                        <button @click="usePipeline = !usePipeline" x-show="!isThinking"
-                                :title="usePipeline ? 'Pipeline Mode ON — 10-agent autonomous build loop' : 'Pipeline Mode OFF — click to enable full agent pipeline'"
-                                class="rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all flex items-center gap-1 border"
-                                :style="usePipeline
-                                    ? 'background:#f0fdf4;color:#15803d;border-color:#86efac;'
-                                    : 'background:#f8fafc;color:#94a3b8;border-color:#e2e8f0;'">
-                            <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                            <span x-text="usePipeline ? 'Pipeline ON' : 'Pipeline'"></span>
-                        </button>
                         <!-- Send / Queue button -->
                         <button @click="sendMessage()"
                                 :disabled="!chatInput.trim() && !attachments.length && !urlPreview"
@@ -854,10 +849,19 @@ main.main-content.builder-noPad {
     </div>
 
     <!-- Drag handle between chat panel and builder -->
-    <div class="builder-drag-handle w-1 flex-shrink-0 cursor-col-resize select-none relative group"
-         style="background:#e5e7eb;"
-         @mousedown.prevent="startChatResize($event)">
-        <div class="absolute inset-y-0 -left-1 -right-1 group-hover:bg-indigo-400/30 transition-colors"></div>
+    <div class="builder-drag-handle flex-shrink-0 cursor-col-resize select-none relative"
+         style="width:8px; background:#e5e7eb; transition:background .15s; z-index:10;"
+         @mousedown.prevent="startChatResize($event)"
+         onmouseenter="this.style.background='#a5b4fc'"
+         onmouseleave="this.style.background='#e5e7eb'">
+        <!-- wider invisible hit zone -->
+        <div style="position:absolute;inset-y:0;left:-6px;right:-6px;cursor:col-resize;"></div>
+        <!-- grip dots -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:3px;pointer-events:none;">
+            <div style="width:3px;height:3px;border-radius:50%;background:#c4c9d4;"></div>
+            <div style="width:3px;height:3px;border-radius:50%;background:#c4c9d4;"></div>
+            <div style="width:3px;height:3px;border-radius:50%;background:#c4c9d4;"></div>
+        </div>
     </div>
 
     <!-- ══════════════════════════════════════
@@ -1140,7 +1144,6 @@ function builderApp() {
         providerModels: @json($providerModelsMap),
         providerDefaults: @json($providerDefaultsMap),
         promptQueue: [],
-        usePipeline: false,
         conversationId: {{ $conversation->id }},
         projectId: {{ $project->id }},
         projectName: @json($project->name),
@@ -1838,10 +1841,21 @@ window.addEventListener('unhandledrejection', function(e) {
         startChatResize(e) {
             const startX = e.clientX;
             const startW = this.chatPanelWidth;
+
+            // Cover iframes so they don't swallow mousemove events while dragging
+            const covers = [];
+            document.querySelectorAll('iframe').forEach(f => {
+                const c = document.createElement('div');
+                c.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;cursor:col-resize;';
+                f.parentNode.insertBefore(c, f.nextSibling);
+                covers.push(c);
+            });
+
             const onMove = ev => {
                 this.chatPanelWidth = Math.max(260, Math.min(640, startW + ev.clientX - startX));
             };
             const onUp = () => {
+                covers.forEach(c => c.remove());
                 document.removeEventListener('mousemove', onMove);
                 document.removeEventListener('mouseup', onUp);
                 document.body.style.cursor = '';
@@ -2080,7 +2094,6 @@ window.addEventListener('unhandledrejection', function(e) {
                         provider:        this.selectedProvider,
                         model:           this.selectedModel,
                         template_key:    this.selectedTemplateKey || null,
-                        use_pipeline:    this.usePipeline,
                     }),
                     signal: this._streamAbortCtrl.signal,
                 });
@@ -2336,7 +2349,34 @@ window.addEventListener('unhandledrejection', function(e) {
             this.urlInput     = '';
         },
 
-        toggleVoice() {
+        startPromptResize(e) {
+            const ta      = this.$refs.promptTextarea;
+            const startY  = e.clientY;
+            const startH  = ta.offsetHeight;
+
+            // Cover iframes so they don't swallow mousemove events during drag
+            const covers = [];
+            document.querySelectorAll('iframe').forEach(f => {
+                const c = document.createElement('div');
+                c.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;cursor:ns-resize;';
+                f.parentNode.insertBefore(c, f.nextSibling);
+                covers.push(c);
+            });
+
+            const onMove = (ev) => {
+                const newH = Math.min(500, Math.max(72, startH + ev.clientY - startY));
+                ta.style.height = newH + 'px';
+            };
+            const onUp = () => {
+                covers.forEach(c => c.remove());
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup',   onUp);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup',   onUp);
+        },
+
+        async toggleVoice() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) {
                 alert('Voice input is not supported in this browser.\nPlease use Chrome or Edge.');
@@ -2345,6 +2385,16 @@ window.addEventListener('unhandledrejection', function(e) {
             if (this.isRecording) {
                 this.recognition?.stop();
                 this.isRecording = false;
+                return;
+            }
+            // Use getUserMedia first so the browser re-evaluates the permission grant.
+            // Without this, SpeechRecognition keeps returning not-allowed even after
+            // the user allows mic in browser settings (until a page reload).
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(t => t.stop());
+            } catch (err) {
+                alert('Microphone access denied.\n\nTo fix: click the lock icon in the address bar → allow Microphone → then try again.');
                 return;
             }
             this.recognition                = new SR();
@@ -2364,11 +2414,7 @@ window.addEventListener('unhandledrejection', function(e) {
             this.recognition.onend   = () => { this.isRecording = false; };
             this.recognition.onerror = (e) => {
                 this.isRecording = false;
-                if (e.error === 'not-allowed') {
-                    alert('Microphone access denied. Please allow microphone access in your browser settings and try again.');
-                } else if (e.error === 'no-speech') {
-                    // silent — user simply didn't speak
-                } else {
+                if (e.error !== 'no-speech') {
                     console.warn('Speech recognition error:', e.error);
                 }
             };
