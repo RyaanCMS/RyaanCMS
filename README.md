@@ -420,15 +420,287 @@ resources/
 
 ---
 
-## Contributing
+## Contributor Roadmap
 
-Contributions are welcome. Please open an issue first to discuss what you'd like to change.
+### Building the World's First Open Source AI Business Operating System
+
+---
+
+### Vision
+
+RyaanCMS is not just a CMS.
+
+RyaanCMS is an:
+
+```
+AI Business Operating System
+Business Intelligence Platform
+Application Assembly Engine
+Domain Intelligence Network
+Reusable Asset Ecosystem
+```
+
+> **Mission:** Build business software with intelligence first, AI last.
+
+---
+
+### Core Philosophy
+
+```
+Reuse Before Generate
+Blueprint Before AI
+Module Before Custom Code
+Question Before Assumption
+Business Outcome Before Technology
+Every Build Creates Intelligence
+AI Is Last Resort
+```
+
+---
+
+### What Contributors Should Build
+
+Contributors should NOT randomly add features.
+
+Every contribution should strengthen one of the following pillars.
+
+---
+
+### PILLAR 1 — Domain Brains ⭐⭐⭐⭐⭐
+
+**Purpose:** Build industry-specific intelligence packs.
+
+Each Domain Brain contains:
+
+```
+Blueprints · Modules · Components · Workflows · Rules
+Question Packs · Reports · Permissions · Validation Rules
+Error Library · Best Practices · Compliance Rules · Success Patterns
+```
+
+**Examples:** LMS · School · Hospital · CRM · HRM · Accounting · POS · Restaurant · Inventory · Real Estate · SaaS · Ecommerce
+
+**Contributors Needed:** Business Analysts · Industry Experts · Domain Experts · Solution Architects
+
+---
+
+### PILLAR 2 — Blueprint Registry ⭐⭐⭐⭐⭐
+
+**Purpose:** Create reusable application blueprints.
+
+Each Blueprint must include: `Modules · Database Design · Workflows · Permissions · Reports · Questions · Validations`
+
+**Examples:** Hospital Management · LMS · School ERP · CRM · Accounting · POS · Inventory · Restaurant · Marketplace · Courier Management
+
+**Contributors Needed:** Solution Architects · System Analysts · Senior Developers
+
+---
+
+### PILLAR 3 — Module Registry ⭐⭐⭐⭐⭐
+
+**Purpose:** Build reusable business modules.
+
+**Goal: 1,000+ Production Ready Modules**
+
+**Examples:** Auth · RBAC · CRM · Inventory · POS · Accounting · Billing · Notifications · Reports · Payments · Media Manager
+
+**Contributors Needed:** Laravel Developers · Backend Engineers
+
+---
+
+### PILLAR 4 — Component Registry ⭐⭐⭐⭐⭐
+
+**Purpose:** Build reusable UI components.
+
+**Goal: 2,000+ Reusable Components**
+
+**Examples:** Forms · Tables · Cards · Charts · Dashboards · Calendars · Kanban · Timeline · Wizard · Notifications
+
+**Contributors Needed:** Frontend Developers · UX Engineers · UI Engineers
+
+---
+
+### PILLAR 5 — Workflow Registry ⭐⭐⭐⭐⭐
+
+**Purpose:** Create reusable business workflows.
+
+**Goal: 10,000+ Workflows**
+
+**Examples:** Lead Management · Purchase · Admission · Employee Onboarding · Invoice Approval · Restaurant Order
+
+**Contributors Needed:** Business Analysts · Operations Specialists
+
+---
+
+### PILLAR 6 — Asset Coverage Engine ⭐⭐⭐⭐⭐
+
+**Purpose:** Before creating anything new — Search · Reuse · Extend · Compose
+
+**Features:** Coverage Analysis · Asset Matching · Gap Detection · Reuse Scoring · Composition Engine
+
+**Contributors Needed:** AI Engineers · System Architects · Search Engineers
+
+---
+
+### PILLAR 7 — Asset Gap Intelligence ⭐⭐⭐⭐⭐
+
+**Purpose:** Identify what assets are missing across all projects.
+
+```yaml
+Domain:   Hospital
+Missing:  Veterinary Module
+Demand:   High
+Priority: High
+```
+
+**Contributors Needed:** Data Engineers · Platform Engineers
+
+---
+
+### PILLAR 8 — Solution Memory ⭐⭐⭐⭐⭐
+
+**Purpose:** Never solve the same problem twice.
+
+Store: `Fixes · Decisions · Workarounds · Patterns · Lessons`
+
+> Every solution becomes reusable intelligence.
+
+**Contributors Needed:** Knowledge Engineers · Backend Engineers
+
+---
+
+### PILLAR 9 — Error Library ⭐⭐⭐⭐⭐
+
+**Purpose:** Known Error → Known Cause → Known Fix
+
+**Goal: Zero AI Cost Bug Fixing**
+
+**Examples:** Inventory mismatch · Permission conflict · Payment callback failure · Route cache issue
+
+**Contributors Needed:** QA Engineers · Senior Developers
+
+---
+
+### PILLAR 10 — Validation Library ⭐⭐⭐⭐⭐
+
+**Purpose:** Domain-specific validations.
+
+| Domain | Example Rule |
+|--------|-------------|
+| Hospital | Prescription requires a doctor |
+| LMS | Certificate requires course completion |
+| Accounting | Debit must equal credit |
+
+**Contributors Needed:** Domain Experts · Backend Engineers
+
+---
+
+### PILLAR 11 — Success Pattern Database ⭐⭐⭐⭐⭐
+
+**Purpose:** Store and reuse successful implementations.
+
+**Examples:** Top Performing Ecommerce Checkout · Best LMS Completion Flow · Best CRM Pipeline
+
+> Reuse proven patterns. Never reinvent what has already worked.
+
+**Contributors Needed:** Growth Experts · Business Analysts
+
+---
+
+### PILLAR 12 — Outcome Database ⭐⭐⭐⭐⭐
+
+**Purpose:** Measure real business impact.
+
+Track: `Revenue Increased · Cost Reduced · Time Saved · Conversion Improved · Customer Satisfaction`
+
+**Contributors Needed:** Data Analysts · Product Analysts
+
+---
+
+### PILLAR 13 — Marketplace Ecosystem ⭐⭐⭐⭐⭐
+
+**Purpose:** Community-built assets for the platform.
+
+**Examples:** Blueprint Marketplace · Module Marketplace · Workflow Marketplace · Industry Brain Marketplace
+
+**Contributors Needed:** Full Stack Developers · Marketplace Engineers
+
+---
+
+### PILLAR 14 — Documentation System ⭐⭐⭐⭐⭐
+
+**Purpose:** Every asset must have: `Documentation · Examples · Screenshots · Use Cases · Installation Guide · API Guide`
+
+**Contributors Needed:** Technical Writers · Developer Advocates
+
+---
+
+### PILLAR 15 — Testing & Quality Framework ⭐⭐⭐⭐⭐
+
+**Purpose:** Every contribution must include: `Unit Tests · Feature Tests · Integration Tests · Performance Tests · Security Tests`
+
+**Contributors Needed:** QA Engineers · Automation Engineers
+
+---
+
+### Contribution Priority Matrix
+
+| Priority | Pillars |
+|----------|---------|
+| **Highest** | Domain Brains · Blueprint Registry · Module Registry · Asset Coverage Engine · Solution Memory · Error Library · Validation Library |
+| **Medium** | Workflow Registry · Marketplace · Outcome Database · Success Patterns |
+| **Long-Term** | Global Intelligence Network · Business DNA Engine · Autonomous Optimization Engine |
+
+---
+
+### What We Do NOT Want
+
+```
+Random Features          Duplicate Modules         Hardcoded Business Logic
+Unmaintainable Code      Vendor Lock-in            AI-First Design
+```
+
+---
+
+### Contributor Golden Rule
+
+Before building anything:
+
+```
+1. Search Existing Assets
+2. Reuse Existing Assets
+3. Extend Existing Assets
+4. Compose Existing Assets
+5. Create New Asset Only If Necessary
+```
+
+---
+
+### Final Goal
+
+```
+10,000 Reusable Assets
+100+   Domain Brains
+1,000+ Modules
+10,000+ Workflows
+Millions of Reusable Business Decisions
+```
+
+> **Build Once. Reuse Forever.**
+
+Every contribution should increase platform intelligence, reduce future development effort, and move RyaanCMS closer to becoming the world's largest open-source Business Operating System.
+
+---
+
+### How to Contribute
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+Please open an issue first to discuss larger changes.
 
 ---
 
