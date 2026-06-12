@@ -675,6 +675,627 @@ class SmartCorrector
                 ],
             ],
         ],
+
+        // ════════════════════════════════════════════════════════════════
+        'hotel' => [
+            'label'    => 'Hotel Management',
+            'entities' => ['room', 'reservation', 'guest', 'check_in', 'check_out', 'housekeeping', 'amenity', 'invoice', 'staff', 'floor'],
+            'corrections' => [
+                'reservation' => [
+                    'rules'    => "- No double-booking: room+date range must be unique\n- Check-in date must be before check-out date\n- Minimum 1 night stay\n- Room status must be 'available' before confirming reservation\n- Block room immediately on reservation confirmation",
+                    'fix'      => "Common reservation bugs:\n1. **Double booking** → check `reservations` overlap before confirming: `whereBetween` or `NOT (check_out <= ? OR check_in >= ?)`\n2. **Room not blocked** → set `rooms.status = 'occupied'` on check-in\n3. **Late checkout handling** → add `late_checkout` flag with extra charge rule",
+                ],
+                'invoice' => [
+                    'rules'    => "- No check-out with unpaid balance\n- Include: room rate × nights + extras (minibar, laundry, room service)\n- Apply taxes after discounts\n- Invoice must be printable as PDF",
+                    'fix'      => "Common invoice bugs:\n1. **Nights miscalculated** → use `Carbon::parse(check_in)->diffInDays(check_out)`\n2. **Extras not included** → join `room_charges` table on invoice generation\n3. **Tax on discounted amount** → apply `tax = (subtotal - discount) * tax_rate`",
+                ],
+            ],
+            'status_flows' => [
+                'reservation' => "`pending` → `confirmed` → `checked_in` → `checked_out` | `cancelled` | `no_show`",
+                'room'        => "`available` → `occupied` → `checkout` → `housekeeping` → `available`",
+                'housekeeping'=> "`pending` → `in_progress` → `inspected` → `ready`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🏨 Room Management' => 'Floor plans, room types, pricing by season',
+                    '📅 Reservations' => 'Online booking, walk-in, group bookings',
+                    '🛎️ Front Desk' => 'Check-in/out, room assignment, guest profile',
+                    '🧹 Housekeeping' => 'Task assignment, room status board, inspection',
+                    '🧾 Billing & Invoices' => 'Folio management, split billing, tax receipts',
+                ],
+                'Advanced Modules' => [
+                    '🍽️ Restaurant POS' => 'Room service charges linked to guest folio',
+                    '🎰 Amenities Booking' => 'Spa, gym, conference room reservations',
+                    '📊 Occupancy Reports' => 'RevPAR, ADR, occupancy rate dashboards',
+                    '🔑 Loyalty Program' => 'Points per night, tier upgrades, redemption',
+                    '📱 Guest App' => 'Mobile check-in, room key, service requests',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'pharmacy' => [
+            'label'    => 'Pharmacy Management',
+            'entities' => ['medicine', 'stock', 'prescription', 'purchase', 'supplier', 'sale', 'customer', 'batch', 'expiry'],
+            'corrections' => [
+                'stock' => [
+                    'rules'    => "- Never dispense expired medicine (check batch expiry before sale)\n- FIFO/FEFO: sell oldest batch first\n- Reorder point triggers purchase order automatically\n- Controlled substances require doctor prescription + ID record\n- Track by batch number and expiry date",
+                    'fix'      => "Common stock bugs:\n1. **Expired medicine sold** → always check `batches.expiry_date > today()` before dispensing\n2. **Wrong FIFO** → order batch selection by `expiry_date ASC`\n3. **Negative stock** → add DB constraint `CHECK (quantity >= 0)` and `lockForUpdate()` on sale",
+                ],
+                'prescription' => [
+                    'rules'    => "- Verify prescriber is a licensed doctor\n- Controlled drugs: check prescription is within validity period (usually 30 days)\n- Record patient name, age, doctor name on each prescription\n- Partial dispensing allowed — track remaining quantity",
+                    'fix'      => "Common prescription bugs:\n1. **Dispensed without validation** → require `prescription.status = 'verified'` before dispensing\n2. **Controlled drug tracking** → log to `controlled_drug_log` with pharmacist ID\n3. **Partial fill not tracked** → store `dispensed_qty` per prescription line item",
+                ],
+            ],
+            'status_flows' => [
+                'prescription' => "`received` → `verified` → `dispensed` | `rejected`",
+                'purchase_order' => "`draft` → `sent` → `partial` → `received` | `cancelled`",
+                'batch'        => "`active` → `expired` | `recalled`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '💊 Medicine Catalog' => 'Drug database with generic/brand names, categories',
+                    '📋 Prescription Management' => 'Receive, verify and dispense prescriptions',
+                    '📦 Stock Management' => 'Batch tracking, expiry alerts, reorder automation',
+                    '🛒 Point of Sale' => 'OTC sales, insurance billing, receipts',
+                    '🚚 Purchase Orders' => 'Supplier orders, GRN, batch registration',
+                ],
+                'Advanced Modules' => [
+                    '🔔 Expiry Alerts' => '30/60/90 day expiry warnings with disposal workflow',
+                    '💉 Controlled Drugs Register' => 'Schedule H/X drug log with regulatory reports',
+                    '📊 Sales Analytics' => 'Top drugs, supplier performance, margin reports',
+                    '🏥 Insurance Claims' => 'Insurer integration, claim submission and tracking',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'gym' => [
+            'label'    => 'Gym / Fitness Center',
+            'entities' => ['member', 'membership', 'session', 'trainer', 'attendance', 'payment', 'equipment', 'locker', 'schedule'],
+            'corrections' => [
+                'membership' => [
+                    'rules'    => "- Expire membership on end_date; block access after expiry\n- Freeze requests pause expiry and extend end_date accordingly\n- No double active membership for same member\n- Renewal creates new membership (do not extend old one)\n- Refund policy: only within 3 days of purchase if not used",
+                    'fix'      => "Common membership bugs:\n1. **Access after expiry** → gate entry on `membership.end_date >= today AND status = 'active'`\n2. **Freeze not extending end_date** → `end_date = end_date + frozen_days` on unfreeze\n3. **Duplicate active** → unique constraint on `[member_id, status='active']`",
+                ],
+                'attendance' => [
+                    'rules'    => "- Log entry and exit time\n- Validate active membership on check-in\n- Flag visits when membership is near expiry (5 days)\n- Trainer sessions deduct from session pack balance",
+                    'fix'      => "Common attendance bugs:\n1. **Entry without active membership** → validate in middleware before logging\n2. **Duplicate check-in** → check last entry has an exit before logging new entry\n3. **Session balance not deducting** → decrement `session_packs.remaining` on trainer session completion",
+                ],
+            ],
+            'status_flows' => [
+                'membership' => "`pending` → `active` → `frozen` | `expired` | `cancelled`",
+                'session'    => "`scheduled` → `in_progress` → `completed` | `cancelled` | `no_show`",
+                'payment'    => "`pending` → `paid` → `refunded`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '👤 Member Management' => 'Profile, photo, health history, emergency contact',
+                    '🏋️ Membership Plans' => 'Monthly, quarterly, annual, day pass, session packs',
+                    '✅ Attendance Tracking' => 'Barcode/RFID check-in, visit history',
+                    '👨‍🏫 Trainer Management' => 'Trainer profiles, session scheduling, client assignment',
+                    '💰 Billing & Payments' => 'Auto-renewal reminders, payment plans, receipts',
+                ],
+                'Advanced Modules' => [
+                    '🔒 Access Control' => 'Turnstile integration, membership gate',
+                    '📅 Class Scheduling' => 'Group classes with capacity, waitlist, booking',
+                    '🥗 Diet & Nutrition' => 'Meal plans linked to fitness goals',
+                    '📊 Member Analytics' => 'Retention rate, revenue per member, peak hours',
+                    '📱 Member App' => 'Self check-in, class booking, progress tracking',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'legal' => [
+            'label'    => 'Law Firm / Legal Services',
+            'entities' => ['case', 'client', 'hearing', 'document', 'billing', 'lawyer', 'task', 'court', 'invoice', 'retainer'],
+            'corrections' => [
+                'case' => [
+                    'rules'    => "- Case number must be unique and auto-generated\n- All case updates must be timestamped with lawyer ID\n- Conflict of interest check: client cannot appear on opposing side\n- Closed cases are read-only — reopen with workflow approval\n- Hearing dates must be tracked against court calendar",
+                    'fix'      => "Common case bugs:\n1. **No conflict check** → before opening case, check if `client_id` exists in opposing parties of open cases\n2. **Missing audit trail** → add `case_activities` log: `[case_id, user_id, action, created_at]`\n3. **Closed case edits** → gate all mutations: `if (\$case->status === 'closed') abort(403, 'Case is closed')`",
+                ],
+                'billing' => [
+                    'rules'    => "- Retainer balance must not go below zero without authorization\n- Time entries must specify billable vs non-billable\n- Invoice must show: hours × rate, disbursements, retainer applied, balance due\n- Trust account funds must be segregated from operating funds",
+                    'fix'      => "Common billing bugs:\n1. **Retainer overdraft** → check `retainer_balance >= amount` before billing\n2. **Billable hours miscalculated** → store start/end time; calculate `diffInMinutes / 60 * rate`\n3. **Disbursements missing** → include `expenses` table join in invoice generation",
+                ],
+            ],
+            'status_flows' => [
+                'case'    => "`inquiry` → `open` → `in_progress` → `judgment` → `closed` | `appealed`",
+                'invoice' => "`draft` → `sent` → `partially_paid` → `paid` | `overdue`",
+                'task'    => "`todo` → `in_progress` → `review` → `done`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '⚖️ Case Management' => 'Case files, parties, opposing counsel, court details',
+                    '👤 Client Portal' => 'Secure document sharing, case status updates',
+                    '📅 Court Calendar' => 'Hearing dates, deadlines, reminders',
+                    '📄 Document Management' => 'Version control, e-signature, secure storage',
+                    '💰 Time & Billing' => 'Time tracking, invoices, retainer management',
+                ],
+                'Advanced Modules' => [
+                    '🔍 Conflict Checker' => 'Automated conflict of interest detection',
+                    '📝 Contract Builder' => 'Template-based legal document drafting',
+                    '📊 Firm Analytics' => 'Revenue per lawyer, billable hours, case win rate',
+                    '🔒 Trust Accounting' => 'Client fund management with three-way reconciliation',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'construction' => [
+            'label'    => 'Construction / Project Management',
+            'entities' => ['project', 'task', 'contractor', 'material', 'milestone', 'budget', 'invoice', 'worker', 'site', 'equipment'],
+            'corrections' => [
+                'project' => [
+                    'rules'    => "- Budget cannot be exceeded without change order approval\n- Milestone completion requires PM sign-off\n- Material requests need stock check before approval\n- Subcontractor payments released only after milestone sign-off\n- All site incidents must be logged same day",
+                    'fix'      => "Common project bugs:\n1. **Budget overrun not flagged** → compare `actual_cost` vs `budget` on every expense entry; alert at 80% and block at 100%\n2. **Milestone dependency** → enforce `predecessor_milestone.status = 'completed'` before starting dependent task\n3. **Unapproved change order** → require `change_orders` approval workflow before budget update",
+                ],
+                'material' => [
+                    'rules'    => "- Issue materials against work orders only\n- Track material wastage per project\n- Supplier invoices matched against purchase orders (3-way match)\n- Return excess material to central store after project completion",
+                    'fix'      => "Common material bugs:\n1. **Over-issue** → check `material_request.approved_qty` vs `issued_qty` before issuing\n2. **3-way match failing** → compare `PO qty`, `GRN qty`, and `invoice qty` before approving payment\n3. **Wastage not tracked** → add `material_wastage` log per project per material",
+                ],
+            ],
+            'status_flows' => [
+                'project'   => "`tendering` → `awarded` → `planning` → `in_progress` → `punch_list` → `completed` | `on_hold`",
+                'task'      => "`todo` → `in_progress` → `inspection` → `done` | `rework`",
+                'invoice'   => "`draft` → `submitted` → `certified` → `paid` | `disputed`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🏗️ Project Dashboard' => 'Timeline, Gantt chart, milestones, % complete',
+                    '📦 Material Management' => 'Requisitions, purchase orders, site stock',
+                    '👷 Workforce Management' => 'Worker attendance, daily progress reports',
+                    '💰 Budget Tracking' => 'Planned vs actual cost, change orders',
+                    '🔧 Equipment Management' => 'Utilization log, maintenance schedule',
+                ],
+                'Advanced Modules' => [
+                    '📸 Site Progress Photos' => 'Geo-tagged daily site photos with reports',
+                    '📄 Document Control' => 'Drawings, specs, RFIs, submittals versioning',
+                    '⚠️ Safety & Incidents' => 'Hazard register, incident log, toolbox talks',
+                    '📊 Project Analytics' => 'Earned value analysis, delay reports, margin tracking',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'logistics' => [
+            'label'    => 'Logistics / Fleet Management',
+            'entities' => ['shipment', 'driver', 'vehicle', 'route', 'customer', 'delivery', 'manifest', 'invoice', 'tracking'],
+            'corrections' => [
+                'shipment' => [
+                    'rules'    => "- Shipment weight + dimensions must match vehicle capacity\n- Driver must have valid license before assignment\n- Real-time tracking: update GPS coordinates every 5 minutes\n- Failed delivery requires reattempt scheduling, not auto-cancel\n- Proof of delivery (POD): signature or photo required",
+                    'fix'      => "Common shipment bugs:\n1. **Overloaded vehicle** → validate `sum(shipment_weights) <= vehicle.max_load` on manifest\n2. **Missing POD** → block `delivered` status until `pod_type` + `pod_reference` are saved\n3. **Tracking not updating** → ensure GPS webhook updates `tracking_events` table with timestamp+location",
+                ],
+            ],
+            'status_flows' => [
+                'shipment' => "`created` → `assigned` → `picked_up` → `in_transit` → `out_for_delivery` → `delivered` | `failed` | `returned`",
+                'vehicle'  => "`available` → `in_use` → `maintenance` | `inactive`",
+                'driver'   => "`available` → `on_duty` → `off_duty`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '📦 Shipment Management' => 'Create, assign, track shipments end-to-end',
+                    '🚚 Fleet Management' => 'Vehicle profiles, maintenance, utilization',
+                    '👨‍✈️ Driver Management' => 'License tracking, performance scores, assignments',
+                    '🗺️ Route Planning' => 'Optimized route with multi-stop manifests',
+                    '🧾 Billing' => 'Per-shipment invoicing, weight-based pricing',
+                ],
+                'Advanced Modules' => [
+                    '📍 Live Tracking' => 'GPS map view, ETA estimation, geofence alerts',
+                    '📱 Driver App' => 'Mobile POD capture, turn-by-turn navigation',
+                    '📊 Delivery Analytics' => 'On-time rate, cost per km, SLA compliance',
+                    '🔔 Customer Notifications' => 'SMS/email updates on each status change',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'manufacturing' => [
+            'label'    => 'Manufacturing / Factory ERP',
+            'entities' => ['product', 'work_order', 'material', 'machine', 'batch', 'quality_check', 'purchase', 'supplier', 'warehouse'],
+            'corrections' => [
+                'work_order' => [
+                    'rules'    => "- Cannot start work order if raw materials are insufficient\n- Machine must be available and not under maintenance\n- Work order completion requires quality check sign-off\n- Actual quantity produced must be recorded vs planned\n- Reject/rework items tracked separately",
+                    'fix'      => "Common work order bugs:\n1. **Material shortage not checked** → validate BOM requirements against warehouse stock before releasing WO\n2. **Machine double-booking** → check `machine_schedule` conflicts before WO start\n3. **No quality gate** → require `quality_checks.status = 'passed'` before marking WO complete",
+                ],
+                'batch' => [
+                    'rules'    => "- Each batch has unique batch number (traceable)\n- Record: production date, expiry date (if applicable), operator ID\n- Quality control: samples tested per batch (AQL standard)\n- Batch recall must trace all distribution channels",
+                    'fix'      => "Common batch bugs:\n1. **Non-unique batch number** → use `YYYYMMDD-SEQ` format with DB unique constraint\n2. **Recall can't trace** → link `batch_id` to `sales_order_items` and `shipment_items`\n3. **Yield not calculated** → store `planned_qty` and `actual_qty`; yield = actual/planned * 100",
+                ],
+            ],
+            'status_flows' => [
+                'work_order'    => "`draft` → `released` → `in_progress` → `quality_check` → `completed` | `cancelled`",
+                'batch'         => "`produced` → `qc_pending` → `approved` → `dispatched` | `rejected` | `recalled`",
+                'purchase_order'=> "`draft` → `sent` → `partial` → `received` | `cancelled`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🏭 Work Orders' => 'Production scheduling, BOM explosion, job cards',
+                    '📦 Raw Material Management' => 'Stock control, reorder alerts, consumption tracking',
+                    '🔧 Machine Management' => 'Downtime log, maintenance schedule, OEE tracking',
+                    '✅ Quality Control' => 'In-process and final inspection, rejection log',
+                    '🚚 Finished Goods' => 'Batch tracking, warehouse putaway, dispatch',
+                ],
+                'Advanced Modules' => [
+                    '📊 Production Analytics' => 'OEE, yield analysis, downtime reports',
+                    '🔁 Material Requirement Planning' => 'Auto-generate POs based on production plan',
+                    '⚠️ Defect Tracking' => 'Root cause analysis, corrective actions',
+                    '📋 Batch Traceability' => 'Forward/backward trace for recall management',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'salon' => [
+            'label'    => 'Salon / Spa / Beauty Center',
+            'entities' => ['appointment', 'service', 'stylist', 'customer', 'payment', 'product', 'package', 'inventory'],
+            'corrections' => [
+                'appointment' => [
+                    'rules'    => "- No double-booking: stylist+timeslot must be unique\n- Duration auto-calculated from service duration\n- Buffer time between appointments (configurable, e.g., 15 min)\n- Advance booking limit (configurable, e.g., 30 days)\n- Cancellation must free the slot immediately",
+                    'fix'      => "Common appointment bugs:\n1. **Double-booking** → check `appointments` where `stylist_id = X AND status NOT IN ('cancelled') AND timeslot overlaps`\n2. **Duration not blocking slot** → end_time = start_time + service.duration_minutes\n3. **Cancelled slot not freed** → update status immediately; include in slot availability query",
+                ],
+                'payment' => [
+                    'rules'    => "- Package balance deducted on each visit use\n- Tips tracked separately from service revenue\n- Membership/loyalty points earned on payment\n- No-show fee can be charged from saved card",
+                    'fix'      => "Common payment bugs:\n1. **Package over-use** → check `packages.remaining_sessions > 0` before applying\n2. **Tips not tracked** → separate `tip_amount` column in `payments` table\n3. **Points miscalculated** → award points only on `payment.status = 'completed'` (not pending)",
+                ],
+            ],
+            'status_flows' => [
+                'appointment' => "`booked` → `confirmed` → `checked_in` → `in_service` → `completed` | `cancelled` | `no_show`",
+                'package'     => "`active` → `exhausted` | `expired`",
+                'payment'     => "`pending` → `completed` → `refunded`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '📅 Online Booking' => 'Service + stylist + timeslot selection with real-time availability',
+                    '💇 Service Menu' => 'Services, duration, pricing by stylist level',
+                    '👩‍🦰 Stylist Management' => 'Profiles, specializations, calendar, commission',
+                    '💳 Billing & POS' => 'Packages, memberships, tips, split payment',
+                    '📦 Product Inventory' => 'Retail and professional product stock',
+                ],
+                'Advanced Modules' => [
+                    '🎁 Packages & Memberships' => 'Session packs with expiry and carry-over rules',
+                    '🌟 Loyalty Program' => 'Points, VIP tiers, birthday offers',
+                    '📱 Customer App' => 'Booking, history, offers, feedback',
+                    '📊 Salon Analytics' => 'Stylist revenue, service popularity, retention rate',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'events' => [
+            'label'    => 'Event Management',
+            'entities' => ['event', 'booking', 'venue', 'guest', 'ticket', 'vendor', 'budget', 'staff', 'setup'],
+            'corrections' => [
+                'ticket' => [
+                    'rules'    => "- Ticket quantity cannot exceed venue capacity\n- Early-bird pricing has strict date cutoff\n- Each ticket has unique QR code for gate validation\n- Group bookings require minimum quantity threshold\n- Refund policy must be enforced based on event type",
+                    'fix'      => "Common ticket bugs:\n1. **Oversell** → use `lockForUpdate()` on ticket inventory; decrement atomically\n2. **QR not unique** → generate `uuid()` per ticket; store in `tickets.qr_code`\n3. **Early-bird after cutoff** → always check `early_bird_end_date >= now()` server-side",
+                ],
+                'booking' => [
+                    'rules'    => "- Venue must be available for requested date/time\n- Deposit required before confirming booking\n- Setup/breakdown time must be included in venue block\n- Cancellation policy: tiered refund based on notice period",
+                    'fix'      => "Common booking bugs:\n1. **Venue double-booking** → check `bookings` where `venue_id = X AND status != 'cancelled' AND date overlaps`\n2. **Setup time not blocked** → block `event_date - setup_hours` to `event_date + breakdown_hours`\n3. **Deposit not tracked** → store `deposit_amount`, `deposit_paid_at` separately from final payment",
+                ],
+            ],
+            'status_flows' => [
+                'event'   => "`draft` → `published` → `registration_open` → `ongoing` → `completed` | `cancelled`",
+                'booking' => "`inquiry` → `quotation_sent` → `deposit_paid` → `confirmed` → `completed` | `cancelled`",
+                'ticket'  => "`active` → `used` | `cancelled` | `transferred`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🎪 Event Builder' => 'Event details, schedule, agenda, speakers',
+                    '🎟️ Ticket Management' => 'Types, pricing tiers, QR codes, capacity',
+                    '🏛️ Venue Management' => 'Floor plans, capacity, availability calendar',
+                    '👥 Guest Management' => 'Registrations, seating, dietary preferences',
+                    '💰 Budget Management' => 'Budget vs actual, vendor payments',
+                ],
+                'Advanced Modules' => [
+                    '📱 Mobile Check-in' => 'QR scanner app for gate validation',
+                    '🎙️ Speaker Portal' => 'Bio, session materials, schedule management',
+                    '🤝 Sponsor Management' => 'Sponsorship packages, logo placement, reports',
+                    '📊 Event Analytics' => 'Ticket sales, attendance, revenue breakdown',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'ngo' => [
+            'label'    => 'NGO / Nonprofit Management',
+            'entities' => ['donor', 'donation', 'program', 'beneficiary', 'volunteer', 'grant', 'expense', 'report'],
+            'corrections' => [
+                'donation' => [
+                    'rules'    => "- Issue tax receipt immediately upon confirmed donation\n- Recurring donations: track next due date; alert on failed charge\n- Designated donations must only be spent on stated purpose\n- Refunds require executive approval + donor communication",
+                    'fix'      => "Common donation bugs:\n1. **Receipt not issued** → trigger `DonationReceiptMail` on `donation.status = 'confirmed'`\n2. **Undesignated fund mixing** → use `fund_id` to separate restricted vs unrestricted funds\n3. **Recurring failure** → log `payment_failures` and notify donor + finance team",
+                ],
+                'program' => [
+                    'rules'    => "- Program budget cannot exceed approved grant amount\n- Beneficiary enrollment must be within program capacity\n- Expenses require program manager approval + receipts\n- Impact metrics must be recorded: reach, outcomes achieved",
+                    'fix'      => "Common program bugs:\n1. **Over-enrollment** → check `beneficiaries.count < program.capacity` before adding\n2. **Budget overrun** → sum `expenses.amount` per program; alert at 80%, block at 100%\n3. **Missing impact data** → add `program_outcomes` table: `[program_id, metric, value, period]`",
+                ],
+            ],
+            'status_flows' => [
+                'donation'    => "`pending` → `confirmed` → `allocated` | `refunded`",
+                'grant'       => "`applied` → `under_review` → `awarded` → `reporting` → `closed` | `rejected`",
+                'volunteer'   => "`applied` → `approved` → `active` → `inactive`",
+                'beneficiary' => "`applied` → `screened` → `enrolled` → `graduated` | `exited`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '💝 Donor Management' => 'Profiles, giving history, segmentation, receipts',
+                    '📋 Program Management' => 'Goals, activities, budget, timeline, impact',
+                    '👥 Beneficiary Management' => 'Registration, eligibility, case management',
+                    '🙋 Volunteer Management' => 'Recruitment, hours tracking, assignments',
+                    '💰 Fund Accounting' => 'Restricted/unrestricted funds, expense tracking',
+                ],
+                'Advanced Modules' => [
+                    '📊 Impact Dashboard' => 'KPIs, stories, before/after comparisons',
+                    '📄 Grant Management' => 'Applications, compliance, reporting deadlines',
+                    '🌐 Donation Portal' => 'Online giving page, campaign thermometers',
+                    '📧 Communication' => 'Newsletters, event invites, impact reports',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'travel' => [
+            'label'    => 'Travel Agency / Tour Operator',
+            'entities' => ['booking', 'package', 'destination', 'tour', 'customer', 'vehicle', 'guide', 'payment', 'itinerary'],
+            'corrections' => [
+                'booking' => [
+                    'rules'    => "- Package availability must be checked before confirming booking\n- Seat/room must be reserved on supplier immediately on booking\n- Partial payment: record deposit; auto-remind on balance due date\n- Passport and visa validity must be validated before international tours\n- Cancellation charges are tiered by days before departure",
+                    'fix'      => "Common booking bugs:\n1. **Overbooking** → check `package.available_seats > 0` with `lockForUpdate()`\n2. **Visa not validated** → store `visa_required` flag per destination; alert agent at booking\n3. **Cancellation refund miscalculated** → use tiered policy: e.g., 100% if > 30 days, 50% if 15-30 days, 0% < 15 days",
+                ],
+            ],
+            'status_flows' => [
+                'booking'  => "`inquiry` → `quotation` → `deposit_paid` → `confirmed` → `in_progress` → `completed` | `cancelled`",
+                'tour'     => "`draft` → `published` → `departed` → `completed`",
+                'payment'  => "`deposit_pending` → `deposit_paid` → `balance_pending` → `fully_paid` | `refunded`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '✈️ Package Management' => 'Tours, prices, itineraries, availability calendar',
+                    '📅 Booking Management' => 'Reservations, confirmations, amendments',
+                    '👤 Customer Profiles' => 'Passport details, visa status, travel history',
+                    '🗺️ Itinerary Builder' => 'Day-by-day schedule with hotel + transport',
+                    '💰 Payment Plans' => 'Deposits, balance reminders, refund tracking',
+                ],
+                'Advanced Modules' => [
+                    '🏨 Hotel Contracts' => 'B2B rates, allotment management, room blocks',
+                    '🚌 Transport Management' => 'Charter buses, transfers, driver assignment',
+                    '👨‍🦯 Guide Management' => 'Guide profiles, language skills, tour assignment',
+                    '📊 Revenue Analytics' => 'Booking trends, top destinations, margin reports',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'microfinance' => [
+            'label'    => 'Microfinance / Banking',
+            'entities' => ['client', 'loan', 'repayment', 'savings', 'group', 'branch', 'collector', 'disbursement'],
+            'corrections' => [
+                'loan' => [
+                    'rules'    => "- Credit scoring must be done before approval (not after)\n- Disbursement only after all documents verified and loan approved\n- Repayment schedule generated at disbursement (fixed installments)\n- Late payment triggers penalty calculation automatically\n- Loan cannot be disbursed if client has another active loan (configurable)\n- Group loans: all members must be active before group loan approved",
+                    'fix'      => "Common loan bugs:\n1. **Disbursement before approval** → gate disbursement on `loan.status = 'approved'` only\n2. **Schedule not generated** → auto-create `repayment_schedule` records (installment × tenure) on disbursement\n3. **Penalty not applied** → run scheduled job: flag overdue schedules, add `penalty_amount` row\n4. **Double active loan** → check `Loan::where('client_id', \$id)->where('status', 'active')->exists()` before approving",
+                ],
+                'savings' => [
+                    'rules'    => "- Withdrawal cannot exceed available balance\n- Minimum balance rule must be enforced\n- Compulsory savings locked until loan clearance\n- Interest accrual runs on month-end batch",
+                    'fix'      => "Common savings bugs:\n1. **Overdraft** → check `savings.balance - minimum_balance >= withdrawal_amount` before processing\n2. **Compulsory savings unlocked early** → check `client.active_loans_count = 0` before releasing compulsory\n3. **Interest not credited** → run `SavingsInterestBatch` on month-end, credit to each account",
+                ],
+            ],
+            'status_flows' => [
+                'loan'     => "`applied` → `under_review` → `approved` → `disbursed` → `active` → `closed` | `defaulted` | `written_off`",
+                'savings'  => "`active` → `dormant` → `closed`",
+                'group'    => "`forming` → `active` → `dissolved`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '👤 Client Management' => 'KYC, credit scoring, group assignment',
+                    '💵 Loan Management' => 'Application, appraisal, approval, disbursement',
+                    '📅 Repayment Tracking' => 'Schedule, collections, penalties, receipts',
+                    '🏦 Savings Accounts' => 'Compulsory, voluntary, interest accrual',
+                    '👥 Group Management' => 'Group loans, meeting records, group dynamics',
+                ],
+                'Advanced Modules' => [
+                    '📊 Portfolio Dashboard' => 'PAR, NPL ratio, collection efficiency',
+                    '📱 Mobile Collections' => 'Field collector app with offline sync',
+                    '🔔 SMS Reminders' => 'Due date, overdue, and payment confirmation alerts',
+                    '📋 Regulatory Reports' => 'Central bank reports, audit trails',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'insurance' => [
+            'label'    => 'Insurance Management',
+            'entities' => ['policy', 'claim', 'premium', 'customer', 'agent', 'coverage', 'underwriting', 'payment'],
+            'corrections' => [
+                'claim' => [
+                    'rules'    => "- Claim cannot be filed for expired policy\n- Claim amount cannot exceed sum insured\n- Required documents must be submitted before claim processing\n- Waiting period must be checked for health/life claims\n- No claim for exclusions listed in policy schedule",
+                    'fix'      => "Common claim bugs:\n1. **Claim on expired policy** → validate `policy.end_date >= claim.incident_date`\n2. **Over-claim** → check `claim.amount <= policy.sum_insured - previous_claims_paid`\n3. **Missing document validation** → define `required_documents[]` per claim type; block submission until all uploaded",
+                ],
+                'premium' => [
+                    'rules'    => "- Grace period: 15-30 days after due date (configurable by policy type)\n- Policy lapses if premium unpaid after grace period\n- Reinstatement requires medical checkup for life policies\n- Premium receipt must be issued within 24 hours of payment",
+                    'fix'      => "Common premium bugs:\n1. **Grace period not respected** → check `due_date + grace_days >= today` before marking lapsed\n2. **Receipt not generated** → trigger `PremiumReceiptJob` on `payment.status = 'confirmed'`\n3. **Lapse not communicated** → send SMS/email at 7 days, 3 days, and 0 days before grace expiry",
+                ],
+            ],
+            'status_flows' => [
+                'policy'       => "`quoted` → `active` → `lapsed` → `reinstated` | `expired` | `cancelled`",
+                'claim'        => "`filed` → `under_review` → `investigation` → `approved` → `settled` | `rejected` | `withdrawn`",
+                'premium'      => "`due` → `paid` | `overdue` → `grace` → `lapsed`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '📋 Policy Management' => 'Life, health, motor, property policy issuance',
+                    '💰 Premium Collection' => 'Due reminders, grace period, receipt generation',
+                    '🔍 Claims Processing' => 'FNOL, document collection, assessment, settlement',
+                    '👨‍💼 Agent Management' => 'Commission tracking, portfolio, performance',
+                    '📄 Underwriting' => 'Risk assessment, quote generation, exclusions',
+                ],
+                'Advanced Modules' => [
+                    '🏥 Cashless Claims' => 'Hospital network, pre-authorization, direct settlement',
+                    '📊 Actuarial Reports' => 'Loss ratio, claims frequency, reserve calculations',
+                    '📱 Customer Portal' => 'Policy details, claims status, premium payment',
+                    '🔔 Renewal Automation' => 'Auto-renewal notices, lapse prevention campaigns',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'library' => [
+            'label'    => 'Library Management',
+            'entities' => ['book', 'member', 'borrow', 'return', 'fine', 'catalog', 'shelf', 'reservation'],
+            'corrections' => [
+                'borrow' => [
+                    'rules'    => "- Member cannot borrow if they have overdue items\n- Maximum borrow limit per member (configurable)\n- Due date = borrow_date + loan_period_days\n- Renewal allowed only if no reservations waiting for the book\n- Fine accrues per day after due date",
+                    'fix'      => "Common borrowing bugs:\n1. **Overdue member borrows** → check `borrows.where('member_id', \$id)->where('status', 'overdue')->exists()`\n2. **Limit not enforced** → count `active_borrows` before new issue; compare against `member_type.max_books`\n3. **Fine not calculated** → `fine = max(0, today - due_date) * daily_fine_rate`",
+                ],
+            ],
+            'status_flows' => [
+                'borrow'      => "`issued` → `renewed` | `returned` | `overdue` → `returned_with_fine`",
+                'reservation' => "`pending` → `available` → `issued` | `cancelled` | `expired`",
+                'book'        => "`available` → `borrowed` → `reserved` | `maintenance` | `lost`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '📚 Book Catalog' => 'ISBN search, subject classification, multi-copy tracking',
+                    '👤 Member Management' => 'Student/staff/public membership, photo ID',
+                    '📖 Borrowing & Returns' => 'Issue, return, renewal, due date tracking',
+                    '💰 Fine Management' => 'Overdue fines, waiver workflow, payment receipt',
+                    '🔖 Reservation' => 'Reserve unavailable books, email on availability',
+                ],
+                'Advanced Modules' => [
+                    '📱 OPAC (Self-Search)' => 'Online catalog with availability status',
+                    '🔊 Barcode Scanner' => 'Barcode/RFID based issue and return',
+                    '📊 Usage Analytics' => 'Top borrowed books, active members, collection gaps',
+                    '🌐 Digital Library' => 'E-book lending with DRM and download limits',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'garage' => [
+            'label'    => 'Automobile Workshop / Garage',
+            'entities' => ['vehicle', 'job_card', 'technician', 'part', 'invoice', 'customer', 'appointment', 'service'],
+            'corrections' => [
+                'job_card' => [
+                    'rules'    => "- Customer must sign job card before work begins\n- Pre-work vehicle condition photos required\n- Estimate must be approved before ordering additional parts\n- Parts replaced must be listed with OEM/after-market distinction\n- Warranty work tracked separately; do not charge customer",
+                    'fix'      => "Common job card bugs:\n1. **Work started without approval** → require `job_card.customer_approval_at IS NOT NULL` before technician can update status to 'in_progress'\n2. **Parts not deducted from stock** → trigger `StockDeduction` on `job_card_parts::created`\n3. **Labour time not tracked** → store `started_at` and `completed_at` per job card; calculate labour cost from technician rate",
+                ],
+                'invoice' => [
+                    'rules'    => "- Invoice = labour charges + parts cost + tax\n- Tax applied on parts only or total (configurable)\n- Warranty repairs: zero invoice but full cost tracked internally\n- Payment required before vehicle release",
+                    'fix'      => "Common invoice bugs:\n1. **Vehicle released without payment** → check `invoice.balance_due = 0` before updating job_card status to 'delivered'\n2. **Warranty not separated** → add `is_warranty` flag on job_card; bypass customer invoice but create internal cost record\n3. **Tax miscalculation** → `tax_amount = (labour + parts) * tax_rate / 100`",
+                ],
+            ],
+            'status_flows' => [
+                'job_card'    => "`received` → `estimated` → `approved` → `in_progress` → `quality_check` → `ready` → `delivered`",
+                'appointment' => "`booked` → `confirmed` → `arrived` → `completed` | `cancelled` | `no_show`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🔧 Job Card Management' => 'Vehicle intake, work orders, technician assignment',
+                    '🚗 Vehicle History' => 'Full service history, mileage tracking per vehicle',
+                    '🔩 Parts Inventory' => 'OEM/aftermarket parts, stock, reorder alerts',
+                    '💰 Invoicing' => 'Labour + parts billing, tax, payment tracking',
+                    '📅 Appointment Booking' => 'Online booking with service type selection',
+                ],
+                'Advanced Modules' => [
+                    '📸 Pre/Post Photos' => 'Vehicle condition documentation with timestamps',
+                    '📱 Customer Portal' => 'Job status tracking, digital invoice, history',
+                    '📊 Workshop Analytics' => 'Revenue per technician, common repairs, bay utilization',
+                    '🔔 Service Reminders' => 'Mileage/time based service due notifications',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'laundry' => [
+            'label'    => 'Laundry Management',
+            'entities' => ['order', 'customer', 'garment', 'staff', 'payment', 'delivery'],
+            'corrections' => [
+                'order' => [
+                    'rules'    => "- Each garment tagged with unique QR/barcode on intake\n- Stain and damage noted on intake (customer signs)\n- Order promise time must be realistic (based on workload)\n- Delivery address verified before dispatching\n- Lost/damaged item compensation workflow required",
+                    'fix'      => "Common order bugs:\n1. **Item mix-up** → generate unique barcode per garment on intake; scan at each stage\n2. **Garment count mismatch** → record `intake_count` and `delivery_count`; alert if different\n3. **Overdue orders** → add `promised_at` column; flag orders past promise time on dashboard",
+                ],
+            ],
+            'status_flows' => [
+                'order'   => "`received` → `tagged` → `washing` → `drying` → `pressing` → `ready` → `delivered` | `picked_up`",
+                'garment' => "`intake` → `processing` → `ready` | `damaged` | `lost`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '👕 Order Management' => 'Intake, tagging, processing stages, delivery',
+                    '👤 Customer Management' => 'Profiles, order history, loyalty',
+                    '💰 Billing & POS' => 'Per-piece pricing, packages, receipts',
+                    '🚚 Pickup & Delivery' => 'Scheduled pickup, delivery route, driver tracking',
+                ],
+                'Advanced Modules' => [
+                    '📱 Customer App' => 'Book pickup, track order, pay online',
+                    '📊 Laundry Analytics' => 'Daily volume, revenue, staff productivity',
+                    '🔔 SMS Notifications' => 'Order ready, driver en-route, delivery confirmation',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'agriculture' => [
+            'label'    => 'Agriculture / Farm Management',
+            'entities' => ['farm', 'crop', 'livestock', 'harvest', 'expense', 'worker', 'equipment', 'sale'],
+            'corrections' => [
+                'crop' => [
+                    'rules'    => "- Planting date determines expected harvest window\n- Pest/disease alerts require immediate action log\n- Input usage (seeds, fertilizer, pesticide) tracked per plot\n- Yield recorded in standard units per hectare\n- Weather events must be logged against crop losses",
+                    'fix'      => "Common crop bugs:\n1. **Harvest date not calculated** → `expected_harvest = planted_at + crop_type.maturity_days`\n2. **Input cost not per plot** → link `inputs` to `plot_id`, not just `farm_id`\n3. **Yield not normalized** → store yield in kg; calculate per-hectare at reporting time",
+                ],
+            ],
+            'status_flows' => [
+                'crop'     => "`land_prep` → `planted` → `growing` → `ready` → `harvested` | `failed`",
+                'livestock'=> "`healthy` → `sick` → `treated` → `healthy` | `sold` | `deceased`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '🌾 Farm Management' => 'Plot mapping, soil data, irrigation schedule',
+                    '🌱 Crop Tracking' => 'Planting, growth stages, harvest, yield records',
+                    '🐄 Livestock Management' => 'Herd register, health records, production log',
+                    '💰 Farm Expenses' => 'Input costs, labour, equipment per season',
+                    '📦 Harvest & Sales' => 'Yield recording, grading, market pricing',
+                ],
+                'Advanced Modules' => [
+                    '📡 Weather Integration' => 'Real-time alerts, historical weather correlation',
+                    '🗺️ Field Mapping' => 'GPS plot boundaries, zone management',
+                    '📊 Farm Analytics' => 'Profit per crop, input ROI, yield trends',
+                    '🔔 Advisory Alerts' => 'Pest warnings, input recommendations by growth stage',
+                ],
+            ],
+        ],
+
+        // ════════════════════════════════════════════════════════════════
+        'funeral' => [
+            'label'    => 'Funeral Home / Cemetery Management',
+            'entities' => ['case', 'deceased', 'service', 'package', 'payment', 'family', 'grave', 'document'],
+            'corrections' => [
+                'case' => [
+                    'rules'    => "- Death certificate required before service scheduling\n- Next-of-kin authorization required for all decisions\n- Grave plot must be available before burial scheduling\n- All services delivered must match signed package\n- Financial arrangements must be approved before service",
+                    'fix'      => "Common case bugs:\n1. **Service without authorization** → require `case.nok_signature_at IS NOT NULL` before proceeding\n2. **Plot double-booking** → check `graves.status = 'available'` before assignment; set to 'reserved' immediately\n3. **Package vs delivered mismatch** → track each service item delivery status in `case_services` table",
+                ],
+            ],
+            'status_flows' => [
+                'case'    => "`opened` → `arrangement` → `service_scheduled` → `service_complete` → `closed`",
+                'grave'   => "`available` → `reserved` → `occupied` | `exhumed`",
+                'payment' => "`pending` → `partial` → `paid` | `payment_plan`",
+            ],
+            'sections' => [
+                'Core Extensions' => [
+                    '📋 Case Management' => 'Deceased records, next-of-kin, documents',
+                    '⚰️ Service Planning' => 'Funeral arrangements, schedules, venue',
+                    '🪦 Cemetery Management' => 'Plot inventory, grave assignment, maps',
+                    '📦 Packages & Pricing' => 'Service packages, itemized billing',
+                    '💰 Billing & Payments' => 'Payment plans, receipts, pre-need contracts',
+                ],
+                'Advanced Modules' => [
+                    '👨‍👩‍👧 Family Portal' => 'Memorial pages, tributes, death notices',
+                    '🗺️ Cemetery Map' => 'Interactive grave location finder',
+                    '📊 Operations Reports' => 'Monthly cases, revenue, service type breakdown',
+                ],
+            ],
+        ],
     ]; }
 
     // ─────────────────────────────────────────────────────────────────────────
