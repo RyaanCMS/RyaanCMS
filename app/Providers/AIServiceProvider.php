@@ -19,6 +19,8 @@ use App\Services\AI\Pipeline\PipelineOrchestrator;
 use App\Services\AI\Pipeline\BuildValidator;
 use App\Services\AI\SeniorDevKnowledgeBase;
 use App\Services\AI\AssetCoverageEngine;
+use App\Services\AI\IntelligenceCollector;
+use App\Services\AI\IntelligenceExtractor;
 use App\Services\AI\SmartCorrector;
 use App\Services\AI\WisdomEngine;
 use App\Services\Credits\CreditPricingService;
@@ -45,6 +47,10 @@ class AIServiceProvider extends ServiceProvider
 
         $this->app->singleton(SeniorDevKnowledgeBase::class, fn() => new SeniorDevKnowledgeBase());
         $this->app->singleton(AssetCoverageEngine::class, fn() => new AssetCoverageEngine());
+        $this->app->singleton(IntelligenceExtractor::class, fn() => new IntelligenceExtractor());
+        $this->app->singleton(IntelligenceCollector::class, fn($app) => new IntelligenceCollector(
+            $app->make(IntelligenceExtractor::class),
+        ));
         $this->app->singleton(SmartCorrector::class, fn() => new SmartCorrector());
         $this->app->singleton(WisdomEngine::class, fn() => new WisdomEngine());
         $this->app->singleton(KnowledgeBaseService::class, fn($app) => new KnowledgeBaseService(
@@ -91,6 +97,7 @@ class AIServiceProvider extends ServiceProvider
             $app->make(RyaanCreditsService::class),
             $app->make(CreditPricingService::class),
             $app->make(AssetCoverageEngine::class),
+            $app->make(IntelligenceCollector::class),
         ));
 
         $this->app->singleton(PipelineOrchestrator::class, fn($app) => new PipelineOrchestrator(

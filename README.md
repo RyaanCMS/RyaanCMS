@@ -41,6 +41,139 @@ $ ryaan build "hospital management system for Bangladesh"
 
 ---
 
+## 🌍 RyaanCMS Global Intelligence Network (RGIN)
+
+> **Every AI dollar spent by one user should become reusable intelligence for every future user.**
+
+This is RyaanCMS's fundamental difference from every other open source project.
+
+### The Problem with Today's AI Development
+
+```
+Developer A spends $10 on AI  →  builds Hospital Billing Workflow  →  only Developer A benefits
+Developer B spends $10 on AI  →  builds Hospital Billing Workflow  →  only Developer B benefits
+Developer C spends $10 on AI  →  builds Hospital Billing Workflow  →  only Developer C benefits
+
+Result: $30 spent. Same thing built 3 times. Zero collective intelligence gained.
+```
+
+### The RGIN Model
+
+```
+Developer A spends $10 on AI
+↓
+Builds Hospital Billing Workflow
+↓
+Intelligence Extracted (not code — domain, rules, dependencies, patterns)
+↓
+Validated + Added to Global Registry
+↓
+1,000,000 RyaanCMS users benefit immediately
+
+Result: $10 spent once → global asset forever
+```
+
+---
+
+### The 10-Layer Architecture
+
+| Layer | Name | What it does |
+|-------|------|-------------|
+| **L1** | Local Intelligence Collector | Every installation collects intelligence from every build — privately and safely |
+| **L2** | Intelligence Extraction Engine | Extracts domain, rules, dependencies, patterns — never code, never PII |
+| **L3** | Central Intelligence Cloud | Stores validated Domain Brains, Blueprints, Workflows, Error Fixes globally |
+| **L4** | Validation Engine | Security check · Duplicate detection · Quality review · PII scan · License verify |
+| **L5** | Scoring Engine | Quality score · Reuse score · Popularity score · Business impact score |
+| **L6** | Asset Registry | 18 asset types indexed and searchable across all domains and countries |
+| **L7** | GitHub Automation | Only validated assets auto-commit to GitHub — messy contributions never reach the registry |
+| **L8** | Global Sync | Every installation pulls new validated assets automatically on update |
+| **L9** | Solution Memory Network | Problems, causes, solutions, and outcomes shared globally — zero AI for known issues |
+| **L10** | Business DNA Network | Millions of decisions → Hospital DNA, Retail DNA, LMS DNA — impossible to replicate |
+
+---
+
+### What Gets Extracted (Safe to Share)
+
+```
+✅  Domain classification      (hospital, lms, ecommerce)
+✅  Asset type                 (workflow, module, validation rule, error fix)
+✅  Business rules implied     (prescription requires doctor, debit must equal credit)
+✅  Module dependencies        (billing, inventory, notifications)
+✅  Searchable tags            (multi-tenant, approval, hipaa, real-time)
+✅  Quality and confidence     (extraction quality score, coverage %)
+✅  Anonymized prompt summary  (PII stripped, max 200 chars)
+```
+
+### What NEVER Gets Extracted
+
+```
+❌  Customer data              ❌  Passwords or API keys
+❌  Patient records            ❌  Financial records
+❌  Business secrets           ❌  PII of any kind
+❌  Private source code        ❌  Proprietary business logic
+```
+
+---
+
+### The Flywheel Effect
+
+```
+More Users
+    ↓
+More AI Builds
+    ↓
+More Intelligence Extracted
+    ↓
+Richer Asset Registry
+    ↓
+Lower AI Cost for Everyone
+    ↓
+More Users (faster, cheaper, better results)
+    ↓
+          [self-reinforcing — no ceiling]
+```
+
+This is not a traditional open-source contribution model where a few maintainers do all the work. This is a **network effect** — every user's build, automatically and passively, makes the platform more intelligent for every other user.
+
+---
+
+### Contributor Incentives
+
+Every intelligence contribution earns:
+
+| Metric | What it tracks |
+|--------|---------------|
+| **Intelligence Points** | Raw contribution volume |
+| **Impact Score** | How many users benefited from your assets |
+| **Download Count** | How many times your assets were reused |
+| **Reputation** | Quality-weighted contribution score |
+
+Future recognition: **Certified Domain Architect** · **Certified RyaanCMS Agency** · **Top Intelligence Contributor**
+
+---
+
+### GitHub Repository Structure (RGIN Output)
+
+Validated assets auto-organize into:
+
+```
+/domain-brains          /blueprints         /modules
+  /hospital               /hospital-mgmt      /auth
+  /lms                    /school-erp         /billing
+  /crm                    /lms                /inventory
+  /accounting             /crm                /notifications
+  /...26 domains          /...more
+
+/workflows              /rules              /question-packs
+/error-library          /validation-library /reports
+/compliance-packs       /security-packs     /localization
+/tests                  /documentation      /integration-packs
+```
+
+> **Marketplace assets** (premium, paid, private) are explicitly excluded from the network — they stay private. Only open intelligence is shared.
+
+---
+
 ## Key Features
 
 ### 🧠 6-Layer Intelligence Pyramid

@@ -14,6 +14,7 @@ use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\SeniorDevKnowledgeBase;
 use App\Services\AI\WisdomEngine;
 use App\Services\AI\AssetCoverageEngine;
+use App\Services\AI\IntelligenceCollector;
 use App\Services\Credits\CreditPricingService;
 use App\Services\Credits\IntelligenceGate;
 use App\Services\Credits\RyaanCreditsService;
@@ -36,6 +37,7 @@ class CodeGeneratorService
         protected ?RyaanCreditsService   $credits = null,
         protected ?CreditPricingService  $pricing = null,
         protected ?AssetCoverageEngine   $coverageEngine = null,
+        protected ?IntelligenceCollector $intelligenceCollector = null,
     ) {}
 
     /**
@@ -2937,6 +2939,12 @@ HTML;
                         $pct,
                         ['assembly_hint' => $coverageResult['assembly_hint'], 'matched' => array_column($coverageResult['matched'], 'name')]
                     );
+                }
+
+                // RGIN Layer 1+2: Extract intelligence from this build and add to local node
+                // Every build feeds the network — $10 AI spend → global asset
+                if ($this->intelligenceCollector) {
+                    $this->intelligenceCollector->extractAndCollect($prompt, $project, $coverageResult);
                 }
             }
 
