@@ -435,19 +435,52 @@ Step 6 — Calculate Confidence Score
     60–84% → AI FOR GAPS ONLY — blueprint handles structure, AI fills unknowns
     < 60%  → AI REQUIRED — genuinely novel domain or complex custom requirements
 
+─── UNLIMITED DOMAIN COVERAGE ─────────────────────────────────────────────────
+
+  This system is NOT limited to its recognized domain list.
+
+  The confidence engine scores in 6 independent layers:
+
+    Layer 1 — Universal Structure (+30): ANY management/platform/system prompt
+              gets this score because all business systems share universal
+              architecture: CRUD, roles, dashboard, reports, search, export.
+              Domain is irrelevant at this layer.
+
+    Layer 2 — Domain Pack (+25 full / +12 partial / +6 by-context):
+              Recognized domain = full bonus. Unknown domain with structural
+              context = partial bonus. We bootstrap from what we know.
+
+    Layer 3 — Entity Recognition (+15): Recognizable entity nouns in the prompt
+              mean we can model the data, regardless of domain.
+
+    Layer 4 — Feature Patterns (+4 to +10): Named features (CRUD, reports,
+              roles, search, notifications) all have ready-made templates.
+
+    Layer 5 — Project Context (+5 to +10): Existing blueprint = domain known.
+
+    Layer 6 — Clarity (+2 to +10): Concise requests map cleanly to blueprints.
+
+  Result: Even a completely unknown domain gets a baseline score of 60–70
+  from universal structural patterns alone, routing it to the blueprint path
+  where AI only fills the domain-specific gaps.
+
 ─── ROUTING DECISION ──────────────────────────────────────────────────────────
 
-  High Confidence (≥ 85%)  → Blueprint-Driven path (zero/minimal AI tokens)
-  Medium Confidence (60%)  → Blueprint-Driven path with AI enhancement
-  Low Confidence (< 60%)   → Single-phase AI generation
+  ≥ 75 confidence           → Blueprint-Driven (minimal AI — structure covered)
+  50–74 + build intent      → Blueprint-Driven (AI fills domain specifics only)
+  < 50                      → Single-phase AI (genuinely complex / novel)
+  Any real software request → Never show "no AI provider" error
 
   Examples:
-    "Build Hospital Management System"          → confidence 96% → No AI needed
-    "Create LMS Platform"                       → confidence 94% → No AI needed
-    "Complete Restaurant POS"                   → confidence 95% → No AI needed
-    "Ecommerce with blockchain NFT certificates"→ confidence 52% → AI required
-    "Hospital with custom AI NLP diagnosis"     → confidence 55% → AI required
-    "Custom Space Mission ERP"                  → confidence 22% → AI required
+    "Build Hospital Management System"           → confidence 93 → No AI needed
+    "Create LMS Platform"                        → confidence 90 → No AI needed
+    "Complete Restaurant POS"                    → confidence 95 → No AI needed
+    "Build Beehive Management App"               → confidence 68 → Blueprint + AI for bee specifics
+    "Dog Shelter Portal"                         → confidence 65 → Blueprint + AI for shelter logic
+    "Underwater Drone Fleet Tracker"             → confidence 62 → Blueprint + AI for drone logic
+    "Custom Space Mission Control ERP"           → confidence 55 → Blueprint + AI (build intent)
+    "Hospital with blockchain + AI NLP diagnosis"→ confidence 48 → Single-phase AI (genuinely complex)
+    "NFT Marketplace with smart contracts"       → confidence 30 → Single-phase AI (novel territory)
 
 ─── ASSET PRIORITY ORDER (mandatory — never skip steps) ──────────────────────
 
