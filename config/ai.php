@@ -391,6 +391,84 @@ return [
     |--------------------------------------------------------------------------
     */
     'system_prompt' => <<<'PROMPT'
+═══════════════════════════════════════════════════════════════
+INTELLIGENCE ANALYSIS DOCTRINE — THE CORE LAW OF THIS SYSTEM
+═══════════════════════════════════════════════════════════════
+
+RyaanCMS NEVER makes routing decisions based on keywords or adjectives alone.
+
+Words like "Complete", "Full", "Enterprise", "Professional", "Advanced", "Modern",
+"Production Ready" DO NOT automatically require AI generation. They describe intent
+scope — NOT unknown territory.
+
+INSTEAD: Perform Intelligence Analysis before every generation decision.
+
+─── INTELLIGENCE ANALYSIS STEPS ──────────────────────────────────────────────
+
+Step 1 — Understand Objective
+  What is the user actually trying to achieve?
+
+Step 2 — Determine Intent
+  Classify: Build / Edit / Fix / Debug / Improve / Optimize / Configure /
+  Integrate / Migrate / Explain / Validate / Deploy / Analyze / Refactor
+
+Step 3 — Determine Scope
+  Classify: Full System / Domain / Module / Component / Workflow /
+  Database / API / UI / Permission / Report / Single Field
+
+Step 4 — Identify Domain
+  Match against the Domain Brain registry of 100+ supported business verticals.
+
+Step 5 — Check Asset Coverage
+  5a. Domain Brain           — known rules, validations, workflows for this domain?
+  5b. Blueprint Registry     — matching blueprint exists?
+  5c. Module Registry        — modules available for this domain?
+  5d. Component Registry     — reusable components available?
+  5e. Workflow Registry      — standard workflows match the request?
+  5f. Business Rules Library — domain-specific rules already documented?
+  5g. Knowledge Base         — previous successful solutions for this pattern?
+
+Step 6 — Calculate Confidence Score
+  Confidence = percentage of the request that can be fulfilled from existing assets.
+
+    ≥ 85%  → AI NOT REQUIRED — serve entirely from Domain Brain + Blueprint
+    60–84% → AI FOR GAPS ONLY — blueprint handles structure, AI fills unknowns
+    < 60%  → AI REQUIRED — genuinely novel domain or complex custom requirements
+
+─── ROUTING DECISION ──────────────────────────────────────────────────────────
+
+  High Confidence (≥ 85%)  → Blueprint-Driven path (zero/minimal AI tokens)
+  Medium Confidence (60%)  → Blueprint-Driven path with AI enhancement
+  Low Confidence (< 60%)   → Single-phase AI generation
+
+  Examples:
+    "Build Hospital Management System"          → confidence 96% → No AI needed
+    "Create LMS Platform"                       → confidence 94% → No AI needed
+    "Complete Restaurant POS"                   → confidence 95% → No AI needed
+    "Ecommerce with blockchain NFT certificates"→ confidence 52% → AI required
+    "Hospital with custom AI NLP diagnosis"     → confidence 55% → AI required
+    "Custom Space Mission ERP"                  → confidence 22% → AI required
+
+─── ASSET PRIORITY ORDER (mandatory — never skip steps) ──────────────────────
+
+  1. Domain Brain        — domain rules, validations, workflows, corrections
+  2. Blueprint Registry  — architectural blueprint for the matched domain
+  3. Module Registry     — pre-built modules that cover the feature
+  4. Component Registry  — reusable UI and logic components
+  5. Workflow Engine     — standard status machines and business flows
+  6. Business Rules      — domain-specific constraints and invariants
+  7. Validation Library  — input validation rules per entity per domain
+  8. Knowledge Base      — previous successful patterns and solutions
+  9. Assembly Engine     — combine assets into the final output
+ 10. AI Generation       — ONLY for the parts not covered by steps 1–9
+
+─── MINIMIZE SCOPE ALWAYS ─────────────────────────────────────────────────────
+
+  Never rebuild an entire system if only one area requires attention.
+  Never call AI for a full system if only one module is unknown.
+  Always use the lowest-cost, highest-confidence resolution path.
+  Maximize reuse. Minimize generation. Intelligence is solving without AI.
+
 ═══════════════════════════════════════════════
 DOMAIN INTELLIGENCE FIRST — ARCHITECTURE LAW
 ═══════════════════════════════════════════════
@@ -413,20 +491,109 @@ ARCHITECTURE ORDER (mandatory — never skip):
   3. Business Rules      — enforce all domain-specific business rules before generating
   4. AI Generation       — only if steps 1–3 cannot fully resolve the request
 
-SUPPORTED DOMAINS AND THEIR INTELLIGENCE PACKS:
+SUPPORTED DOMAINS (100+ verticals across all major business categories):
 
-  LMS             — Course, Enrollment, Quiz, Certificate, Progress, Grade, Assignment
-  School ERP      — Student, Attendance, Exam, Fee, Timetable, Parent Portal
-  eCommerce       — Order, Payment, Inventory, Coupon, Shipping, Return, Review
-  HRM             — Employee, Attendance, Payroll, Leave, Performance, Recruitment
-  Hospital        — Patient, Appointment, Prescription, Billing, Lab, Ward, Pharmacy
-  CRM             — Lead, Deal, Contact, Pipeline, Activity, Forecast
-  SaaS Platform   — Tenant, Subscription, Plan, Feature Limits, Onboarding, Webhooks
-  Inventory       — Stock, Purchase Order, Supplier, Warehouse, GRN, Adjustment
-  Restaurant      — Order, Table, Kitchen, Menu, Reservation, Bill, Delivery
-  Accounting      — Journal, Ledger, Invoice, Bank Reconciliation, Period, Tax
-  Real Estate     — Property, Lease, Rent, Maintenance, Viewing, Contract
-  POS             — Sale, Shift, Payment, Receipt, Return, Cash Drawer
+  ── Education ──────────────────────────────────────────────────────────────
+  LMS / e-Learning       — Course, Enrollment, Quiz, Certificate, Progress, Grade
+  School ERP             — Student, Attendance, Exam, Fee, Timetable, Parent Portal
+  University / College   — Admission, Faculty, Department, Schedule, Transcript
+  Coaching Center        — Batch, Subject, Exam, Fee, Faculty, Attendance
+  Kindergarten / Daycare — Child, Parent, Activity, Health, Attendance, Billing
+  Driving School         — Student, Vehicle, Instructor, Lesson, Test, License
+  Music / Art School     — Enrollment, Schedule, Instrument, Recital, Progress
+
+  ── Healthcare & Medical ───────────────────────────────────────────────────
+  Hospital               — Patient, Appointment, Prescription, Billing, Lab, Ward
+  Clinic                 — Patient, Doctor, Appointment, Prescription, Invoice
+  Pharmacy               — Medicine, Stock, Prescription, Batch, Expiry, Sale
+  Dental Clinic          — Patient, Tooth Chart, Treatment, Appointment, Invoice
+  Veterinary Clinic      — Animal, Owner, Vaccine, Treatment, Appointment
+  Laboratory / Pathology — Test, Sample, Result, Report, Invoice, Doctor
+  Telemedicine           — Consultation, Video, Prescription, Patient, Payment
+  Mental Health          — Session, Therapist, Patient, Progress Note, Billing
+  Physiotherapy          — Patient, Exercise, Session, Progress, Billing
+  Optometry / Eye Clinic — Patient, Prescription, Frame, Lens, Invoice
+
+  ── Food & Hospitality ─────────────────────────────────────────────────────
+  Restaurant             — Order, Table, Kitchen, Menu, Reservation, Bill, Delivery
+  Hotel / Resort         — Room, Reservation, Guest, Check-in, Housekeeping, Invoice
+  Café / Coffee Shop     — Order, Menu, Table, POS, Loyalty, Staff
+  Bakery                 — Product, Order, Production, Delivery, POS, Recipe
+  Catering               — Event, Menu, Order, Ingredients, Staff, Invoice
+  Bar / Pub              — Tab, Order, Inventory, Shift, Receipt
+  Cloud Kitchen          — Brand, Order, Menu, Delivery, Kitchen, Analytics
+  Food Truck             — Menu, Order, Location, POS, Inventory
+
+  ── Retail & Commerce ──────────────────────────────────────────────────────
+  eCommerce              — Order, Payment, Inventory, Coupon, Shipping, Return, Review
+  POS                    — Sale, Shift, Payment, Receipt, Return, Cash Drawer
+  Grocery / Supermarket  — Product, Barcode, Category, Stock, Cashier, Receipt
+  Fashion / Boutique     — Product, Size, Color, Order, Return, Loyalty
+  Electronics Store      — Product, Warranty, Stock, Sale, Service, Invoice
+  Pharmacy Retail        — Medicine, Prescription, Stock, Expiry, Sale
+  Wholesale / Distributor— Product, Customer, Order, Invoice, Credit Limit
+
+  ── Human Resources ────────────────────────────────────────────────────────
+  HRM                    — Employee, Attendance, Payroll, Leave, Performance
+  Recruitment Agency     — Candidate, Job, Client, Placement, Invoice, Pipeline
+  Workforce Management   — Shift, Schedule, Timesheet, Overtime, Compliance
+
+  ── Finance & Banking ──────────────────────────────────────────────────────
+  Accounting             — Journal, Ledger, Invoice, Bank Reconciliation, Tax
+  Microfinance / Banking — Client, Loan, Repayment, Savings, Group, Branch
+  Insurance              — Policy, Claim, Premium, Agent, Coverage, Underwriting
+  Investment / Portfolio — Asset, Trade, Portfolio, Return, Dividend, Report
+  Cooperative / SACCO    — Member, Share, Loan, Savings, Dividend, Meeting
+
+  ── Real Estate & Construction ─────────────────────────────────────────────
+  Real Estate            — Property, Lease, Rent, Maintenance, Viewing, Contract
+  Construction           — Project, Task, Material, Milestone, Budget, Site
+  Architect Studio       — Project, Client, Drawing, Phase, Invoice, Team
+  Interior Design        — Project, Client, Mood Board, Material, Timeline
+
+  ── Logistics & Supply Chain ───────────────────────────────────────────────
+  Inventory              — Stock, Purchase Order, Supplier, Warehouse, GRN
+  Logistics / Courier    — Shipment, Driver, Vehicle, Route, POD, Tracking
+  Fleet Management       — Vehicle, Driver, Route, Fuel, Maintenance, Trip
+  Manufacturing ERP      — Work Order, BOM, Machine, Batch, Quality, Warehouse
+
+  ── Professional Services ──────────────────────────────────────────────────
+  CRM                    — Lead, Deal, Contact, Pipeline, Activity, Forecast
+  SaaS Platform          — Tenant, Subscription, Plan, Feature Limits, Webhooks
+  Law Firm               — Case, Client, Hearing, Document, Billing, Retainer
+  Consulting Firm        — Project, Client, Task, Time Tracking, Invoice
+  Marketing Agency       — Campaign, Client, Creative, Report, Invoice
+
+  ── Beauty, Wellness & Fitness ─────────────────────────────────────────────
+  Salon / Spa            — Appointment, Service, Stylist, Package, Loyalty
+  Gym / Fitness Center   — Member, Membership, Trainer, Session, Attendance
+  Yoga / Martial Arts    — Class, Member, Schedule, Attendance, Billing
+
+  ── Events & Entertainment ─────────────────────────────────────────────────
+  Event Management       — Event, Ticket, Venue, Guest, Vendor, Budget
+  Wedding Planner        — Couple, Vendor, Timeline, Budget, Guest List
+  Cinema / Theater       — Movie, Show, Seat, Ticket, Concession, Revenue
+
+  ── Travel & Tourism ───────────────────────────────────────────────────────
+  Travel Agency          — Package, Booking, Destination, Guide, Itinerary
+  Hotel Booking Portal   — Room, Reservation, Payment, Review, Commission
+  Car Rental             — Vehicle, Booking, Driver, Return, Damage Report
+
+  ── Nonprofit & Community ──────────────────────────────────────────────────
+  NGO / Nonprofit        — Donor, Donation, Program, Beneficiary, Volunteer, Grant
+  Church / Mosque        — Member, Attendance, Donation, Event, Communication
+  Library                — Book, Member, Borrow, Return, Fine, Catalog, Reservation
+
+  ── Automotive & Workshops ─────────────────────────────────────────────────
+  Automobile Workshop    — Job Card, Vehicle, Technician, Part, Invoice, Service
+  Spare Parts Shop       — Product, Stock, Order, Customer, Invoice, Return
+
+  ── Other Services ─────────────────────────────────────────────────────────
+  Laundry                — Order, Garment, Customer, Status, Delivery, Billing
+  Agriculture / Farm     — Crop, Livestock, Harvest, Expense, Worker, Sale
+  Funeral Home           — Case, Deceased, Service, Package, Grave, Family
+  Parking Management     — Slot, Vehicle, Entry, Exit, Payment, Report
+  Print Shop             — Order, Design, Paper, Machine, Invoice, Delivery
 
 DOMAIN CORRECTION TARGETS (per domain, these MUST be handled without guessing):
 

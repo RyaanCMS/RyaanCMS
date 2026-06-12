@@ -1192,6 +1192,121 @@ SRS;
     }
 
     /**
+     * Calculate how much of this request can be fulfilled from existing intelligence assets.
+     * Returns a 0–100 confidence score.
+     *
+     * Routing thresholds:
+     *   ≥ 85 → Blueprint-Driven (zero/minimal AI — domain brain covers the request)
+     *   60–84 → Blueprint-Driven with AI fill-ins for gaps
+     *   < 60 → Single-phase AI (novel/complex domain not yet covered)
+     *
+     * AI is NOT triggered by adjectives (Complete, Full, Enterprise, Advanced).
+     * AI is triggered only by missing intelligence — when confidence is genuinely low.
+     */
+    private function calculateDomainConfidence(string $prompt, Project $project): int
+    {
+        $lower = strtolower($prompt);
+        $score = 0;
+
+        // ── Step 1: Domain Coverage — is this a known domain? (+35) ──────────
+        if ($this->hasDomainKeyword($lower)) {
+            $score += 35;
+        }
+
+        // ── Step 2: Full Intelligence Pack available? (+25) ──────────────────
+        // These domains have complete packs: blueprints, modules, rules, corrections
+        $fullPackKeywords = [
+            'lms', 'learning', 'course', 'school', 'university', 'college', 'student',
+            'ecommerce', 'shop', 'store', 'marketplace', 'hrm', 'payroll', 'employee',
+            'hospital', 'clinic', 'medical', 'patient', 'crm', 'lead', 'sales',
+            'saas', 'subscription', 'tenant', 'inventory', 'warehouse', 'stock',
+            'restaurant', 'food', 'kitchen', 'accounting', 'finance', 'ledger',
+            'real estate', 'property', 'pos', 'cashier', 'retail',
+            'hotel', 'resort', 'pharmacy', 'gym', 'fitness', 'law firm', 'legal',
+            'construction', 'contractor', 'logistics', 'fleet', 'shipping',
+            'manufacturing', 'factory', 'salon', 'spa', 'event', 'ngo', 'nonprofit',
+            'travel', 'tourism', 'tour', 'microfinance', 'banking', 'loan',
+            'insurance', 'library', 'garage', 'mechanic', 'laundry', 'farm',
+            'agriculture', 'funeral', 'cemetery',
+        ];
+        foreach ($fullPackKeywords as $kw) {
+            if (str_contains($lower, $kw)) { $score += 25; break; }
+        }
+
+        // ── Step 3: Standard system type = known workflows (+20) ─────────────
+        $standardTypes = [
+            'management', 'system', 'platform', 'portal', 'erp', 'booking',
+            'billing', 'attendance', 'scheduler', 'tracker', 'dashboard',
+        ];
+        foreach ($standardTypes as $kw) {
+            if (str_contains($lower, $kw)) { $score += 20; break; }
+        }
+
+        // ── Step 4: Request clarity bonus (+5 to +15) ─────────────────────────
+        // Concise, direct requests are fully resolvable from blueprints
+        $wordCount = str_word_count($lower);
+        if ($wordCount <= 8)       $score += 15;
+        elseif ($wordCount <= 15)  $score += 8;
+        elseif ($wordCount <= 25)  $score += 3;
+
+        // ── Complexity Penalties (reduce confidence) ──────────────────────────
+
+        // Custom AI/ML features not in any blueprint (-30)
+        foreach (['ai powered', 'machine learning', 'neural network', 'nlp model',
+                  'computer vision', 'ai diagnosis', 'deep learning', 'recommendation engine',
+                  'predictive model', 'generative ai'] as $kw) {
+            if (str_contains($lower, $kw)) { $score -= 30; break; }
+        }
+
+        // Blockchain / crypto / web3 (-25)
+        foreach (['blockchain', 'smart contract', 'cryptocurrency', 'nft', 'web3',
+                  'defi', 'token', 'solidity'] as $kw) {
+            if (str_contains($lower, $kw)) { $score -= 25; break; }
+        }
+
+        // Named third-party integrations (each unknown integration -10, max -25)
+        $integrationCount = 0;
+        foreach (['stripe', 'twilio', 'sendgrid', 'aws', 'azure', 'firebase',
+                  'shopify', 'salesforce', 'quickbooks', 'xero', 'sap', 'oracle',
+                  'hubspot', 'zendesk', 'mailchimp', 'paypal', 'braintree'] as $kw) {
+            if (str_contains($lower, $kw)) $integrationCount++;
+        }
+        $score -= min(25, $integrationCount * 10);
+
+        // Multi-domain combination (3+ distinct domains mixed = novel territory) (-20)
+        $domainGroups = [
+            ['hospital', 'clinic', 'medical', 'patient'],
+            ['lms', 'learning', 'course'],
+            ['ecommerce', 'shop', 'store'],
+            ['hrm', 'payroll', 'employee'],
+            ['accounting', 'finance', 'ledger'],
+            ['logistics', 'fleet', 'shipping'],
+            ['manufacturing', 'factory'],
+        ];
+        $domainCount = 0;
+        foreach ($domainGroups as $group) {
+            foreach ($group as $kw) {
+                if (str_contains($lower, $kw)) { $domainCount++; break; }
+            }
+        }
+        if ($domainCount >= 3)       $score -= 20;
+        elseif ($domainCount === 2)  $score -= 5;
+
+        // Many comma-separated custom requirements = complexity (-8 to -15)
+        $commaCount = substr_count($lower, ',');
+        if ($commaCount >= 5)       $score -= 15;
+        elseif ($commaCount >= 3)   $score -= 8;
+
+        // Project already has a blueprint → we know the domain exactly (+5 bonus)
+        $bp = $project->blueprint ?? [];
+        if (!empty($bp['app_type']) || !empty($bp['domain'])) {
+            $score += 5;
+        }
+
+        return max(0, min(100, $score));
+    }
+
+    /**
      * Two-phase generation: Phase 1 = backend (migrations/models/controllers/routes),
      * Phase 2 = frontend (all Blade views). Produces a complete, working application.
      */
@@ -2615,6 +2730,17 @@ HTML;
             $aiProvider = null;
             try { $aiProvider = $this->aiManager->provider($provider, $user); } catch (\Throwable) {}
 
+            // ── Confidence-Based Intelligence Routing ───────────────────────────
+            // AI is NOT triggered by adjectives ("Complete", "Full", "Enterprise").
+            // AI is triggered only by missing intelligence — when coverage is genuinely low.
+            //
+            //   ≥ 85 confidence → Domain Brain + Blueprint covers this → blueprint path
+            //   60–84           → Blueprint + AI for gaps              → blueprint path
+            //   < 60            → Novel/complex domain                 → single-phase AI
+            //
+            $confidence       = $this->calculateDomainConfidence($prompt, $project);
+            $useBlueprintPath = $isFullSystem || ($confidence >= 85 && $this->hasDomainKeyword($prompt));
+
             // Intelligence Gate: pre-flight credit check for Credits-tier users
             if ($this->gate && $this->pricing) {
                 $outcomeType = $this->pricing->outcomeFromTaskType('generation', $isTiny, $isFullSystem);
@@ -2636,7 +2762,7 @@ HTML;
 
             $startMs = (int) (microtime(true) * 1000);
 
-            if ($isFullSystem) {
+            if ($useBlueprintPath) {
                 $this->streamBlueprintDriven(
                     $prompt, $project, $conversation,
                     $aiProvider, $systemPrompt, $history, $model, $onEvent
@@ -2725,9 +2851,11 @@ HTML;
         );
 
         if (!$aiProvider) {
-            // Domain Brain first — if this prompt relates to a known domain, attempt
-            // zero-cost blueprint generation rather than showing a hard error.
-            if ($this->isFullSystemRequest($prompt) || $this->hasDomainKeyword($prompt)) {
+            // No AI key configured — attempt zero-cost path based on domain confidence.
+            // Any known domain (confidence > 0) routes to blueprint-driven which handles null AI gracefully.
+            // Only truly unknown requests (no domain recognized at all) show the configuration error.
+            $confidence = $this->calculateDomainConfidence($prompt, $project);
+            if ($confidence > 0 || $this->isFullSystemRequest($prompt)) {
                 $this->streamBlueprintDriven(
                     $prompt, $project, $conversation,
                     null, $systemPrompt, $history, $model, $onEvent
