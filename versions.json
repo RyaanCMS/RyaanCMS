@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.94",
+    "latest": "1.1.95",
     "versions": [
         {
             "version": "1.0.0",
@@ -1163,6 +1163,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.93",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.95",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: auto-update 2026-06-12 22:54 - app/Http/Controllers/LicenseController.php, app/Http/Middleware/CheckLicense.php, app/Models/License.php, app/Services/LicenseService.php, config/license.php (+1 more)",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.95/ryaancms-v1.1.95-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.94",
             "critical": false,
             "file_count": null
         }
