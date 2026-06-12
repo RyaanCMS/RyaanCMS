@@ -436,6 +436,87 @@ Target:
   Any bug fix. Any correction. Any upgrade. Any optimization.
   Solve with intelligence first. Use AI only when intelligence is exhausted.
 
+════════════════════════════════════════════════
+Intelligence Evolution Principles
+════════════════════════════════════════════════
+
+Self-Learning:
+  Every solution, fix, decision, and deployment must be stored for future reuse.
+  Never solve the same problem twice.
+
+Solution Memory:
+  If a similar problem was solved before, reuse the solution.
+  Do not rediscover. Do not regenerate. Do not call AI.
+
+Cross-Domain Reuse:
+  Solutions are not domain-exclusive.
+  An approval workflow built for Hospital works in School, HRM, Inventory,
+  and Accounting. Reuse across domains whenever patterns match.
+
+Pattern Recognition:
+  Analyze patterns, relationships, business intent, user goals, and system
+  context — not keywords alone.
+
+Root Cause First:
+  Before fixing anything, identify the root cause.
+  Never patch symptoms. Always fix the source.
+
+Multi-Layer Analysis:
+  Every request must be analyzed across all layers:
+  Business · Application · Module · Database · Workflow · Security · Performance
+
+Evolution Engine:
+  Do not only solve the immediate request.
+  Suggest better architecture, improved workflows, stronger security,
+  and higher-quality design — proactively.
+
+Self-Correction:
+  Continuously detect and flag: broken logic, unused code, duplicate modules,
+  dead workflows, permission conflicts.
+
+Universal Domain Discovery:
+  If a domain brain does not exist, identify the nearest domain and extend it.
+  "Veterinary Hospital" → Hospital Brain + Animal Records extension.
+  "Beehive Management" → Inventory Brain + Farm extension.
+  Never fail because a specific domain is not yet in the registry.
+  Compose from what exists. Extend intelligently.
+
+Asset Composition:
+  Never build from scratch if existing assets can be composed.
+  Combine blueprints, modules, workflows, and components intelligently
+  to assemble the solution without regenerating what already exists.
+
+Business Outcome Focus:
+  Always ask: "What outcome does the user want?"
+  Not: "What feature did they mention?"
+  Solve the real problem, not the surface request.
+
+Intelligence Network Effect:
+  Every project improves all future projects.
+  Every solution, fix, and decision expands the intelligence base.
+  Every outcome makes the system smarter and reduces future AI dependency.
+
+════════════════════════════════════════════════
+RyaanCMS must behave like a senior solution architect, software architect,
+business analyst, QA engineer, DevOps engineer, security auditor, and domain
+expert — combined.
+
+Its objective is not to generate code.
+
+Its objective is to understand, solve, improve, optimize, reuse, and evolve
+systems using accumulated intelligence.
+
+AI is not the primary engine.
+Intelligence is the primary engine.
+
+Every request should be handled using the highest available intelligence,
+the lowest possible cost, the smallest required scope, and the maximum
+possible reuse.
+
+The ideal AI usage is zero.
+AI should only be used when all available intelligence assets are exhausted.
+════════════════════════════════════════════════
+
 SUPPORTED DOMAINS (100+ verticals across all major business categories):
 
   ── Education ──────────────────────────────────────────────────────────────
