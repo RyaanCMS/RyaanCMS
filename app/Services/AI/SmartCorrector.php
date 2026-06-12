@@ -40,18 +40,148 @@ class SmartCorrector
     // ── Domain keyword → canonical key ───────────────────────────────────────
 
     private function domainKeywords(): array { return [
+        // LMS / Online Education
         'lms' => 'lms', 'learning' => 'lms', 'course' => 'lms', 'elearning' => 'lms', 'e-learning' => 'lms', 'moodle' => 'lms',
-        'school' => 'school', 'university' => 'school', 'college' => 'school', 'student' => 'school',
+        'coaching' => 'lms', 'tutoring' => 'lms', 'training' => 'lms', 'bootcamp' => 'lms', 'vocational' => 'lms',
+        'online tutoring' => 'lms', 'e-learning platform' => 'lms', 'teaching' => 'lms',
+        // School ERP
+        'school' => 'school', 'university' => 'school', 'college' => 'school', 'student' => 'school', 'academy' => 'school',
+        'classroom' => 'school', 'kindergarten' => 'school', 'preschool' => 'school', 'daycare' => 'school',
+        'driving school' => 'school', 'music school' => 'school', 'art school' => 'school', 'childcare' => 'school',
+        // eCommerce
         'ecommerce' => 'ecommerce', 'e-commerce' => 'ecommerce', 'shop' => 'ecommerce', 'store' => 'ecommerce', 'marketplace' => 'ecommerce',
+        'boutique' => 'ecommerce', 'online store' => 'ecommerce', 'fashion store' => 'ecommerce',
+        'clothing store' => 'ecommerce', 'electronics store' => 'ecommerce', 'furniture store' => 'ecommerce',
+        'bookstore' => 'ecommerce', 'toy store' => 'ecommerce', 'sports goods' => 'ecommerce',
+        'gift shop' => 'ecommerce', 'pet store' => 'ecommerce', 'multi-vendor' => 'ecommerce',
+        // HRM
         'hrm' => 'hrm', 'hr' => 'hrm', 'payroll' => 'hrm', 'employee' => 'hrm', 'human resource' => 'hrm',
+        'recruitment' => 'hrm', 'hiring' => 'hrm', 'staffing' => 'hrm', 'workforce' => 'hrm',
+        'staff agency' => 'hrm', 'talent management' => 'hrm',
+        // Hospital / Healthcare
         'hospital' => 'hospital', 'clinic' => 'hospital', 'medical' => 'hospital', 'patient' => 'hospital', 'healthcare' => 'hospital',
-        'crm' => 'crm', 'lead' => 'crm', 'sales' => 'crm',
+        'dental' => 'hospital', 'dentist' => 'hospital', 'dental clinic' => 'hospital',
+        'veterinary' => 'hospital', 'vet' => 'hospital', 'vet clinic' => 'hospital',
+        'laboratory' => 'hospital', 'lab' => 'hospital', 'pathology' => 'hospital',
+        'telemedicine' => 'hospital', 'telehealth' => 'hospital', 'mental health' => 'hospital',
+        'rehabilitation' => 'hospital', 'rehab' => 'hospital', 'nursing home' => 'hospital',
+        'eye clinic' => 'hospital', 'optometry' => 'hospital', 'physiotherapy' => 'hospital',
+        'blood bank' => 'hospital', 'radiology' => 'hospital', 'orthopedic' => 'hospital', 'dialysis' => 'hospital',
+        // CRM
+        'crm' => 'crm', 'lead' => 'crm', 'sales' => 'crm', 'pipeline' => 'crm',
+        'consulting' => 'crm', 'consultancy' => 'crm', 'marketing agency' => 'crm', 'advertising agency' => 'crm',
+        'contact management' => 'crm', 'customer relationship' => 'crm', 'sales pipeline' => 'crm',
+        // SaaS
         'saas' => 'saas', 'subscription' => 'saas', 'tenant' => 'saas', 'multi-tenant' => 'saas',
+        'helpdesk' => 'saas', 'support ticket' => 'saas', 'ticketing system' => 'saas',
+        'project management tool' => 'saas', 'it asset' => 'saas', 'devops' => 'saas',
+        'freelance platform' => 'saas', 'api gateway' => 'saas', 'knowledge base' => 'saas',
+        // Inventory / Supply Chain
         'inventory' => 'inventory', 'warehouse' => 'inventory', 'stock' => 'inventory',
+        'supply chain' => 'inventory', 'wholesale' => 'inventory', 'distribution' => 'inventory',
+        'import export' => 'inventory', 'quality control' => 'inventory', 'grn' => 'inventory',
+        'purchase order' => 'inventory', 'supplier management' => 'inventory',
+        // Restaurant / Food & Beverage
         'restaurant' => 'restaurant', 'food' => 'restaurant', 'kitchen' => 'restaurant',
+        'cafe' => 'restaurant', 'coffee shop' => 'restaurant', 'bakery' => 'restaurant',
+        'catering' => 'restaurant', 'bar' => 'restaurant', 'pub' => 'restaurant',
+        'fast food' => 'restaurant', 'cloud kitchen' => 'restaurant', 'food truck' => 'restaurant',
+        'canteen' => 'restaurant', 'mess hall' => 'restaurant', 'pizza' => 'restaurant',
+        'food delivery' => 'restaurant', 'online ordering' => 'restaurant',
+        // Accounting / Finance
         'accounting' => 'accounting', 'finance' => 'accounting', 'ledger' => 'accounting',
+        'invoice' => 'accounting', 'tax management' => 'accounting', 'budget' => 'accounting',
+        'fintech' => 'accounting', 'cooperative' => 'accounting', 'credit union' => 'accounting',
+        'bookkeeping' => 'accounting', 'accounts payable' => 'accounting', 'accounts receivable' => 'accounting',
+        // Real Estate
         'real estate' => 'realestate', 'property' => 'realestate', 'rental' => 'realestate',
-        'pos' => 'pos', 'retail' => 'pos', 'cashier' => 'pos',
+        'architect' => 'realestate', 'interior design' => 'realestate', 'land survey' => 'realestate',
+        'housing' => 'realestate', 'mortgage broker' => 'realestate', 'property management' => 'realestate',
+        // POS / Retail
+        'pos' => 'pos', 'retail' => 'pos', 'cashier' => 'pos', 'point of sale' => 'pos',
+        'grocery store' => 'pos', 'supermarket' => 'pos', 'jewelry store' => 'pos',
+        'hardware store' => 'pos', 'fuel station' => 'pos', 'gas station' => 'pos', 'petrol station' => 'pos',
+        'parking' => 'pos', 'print shop' => 'pos', 'repair shop' => 'pos', 'service center' => 'pos',
+        // Hotel / Hospitality
+        'hotel' => 'hotel', 'resort' => 'hotel', 'hostel' => 'hotel', 'motel' => 'hotel',
+        'bed and breakfast' => 'hotel', 'guesthouse' => 'hotel', 'hotel booking' => 'hotel',
+        'room booking' => 'hotel', 'housekeeping' => 'hotel', 'hotel management' => 'hotel',
+        // Pharmacy
+        'pharmacy' => 'pharmacy', 'pharmacist' => 'pharmacy', 'drug store' => 'pharmacy',
+        'medicine' => 'pharmacy', 'dispensary' => 'pharmacy', 'chemist' => 'pharmacy',
+        'pharmaceutical' => 'pharmacy', 'drug management' => 'pharmacy',
+        // Gym / Fitness
+        'gym' => 'gym', 'fitness' => 'gym', 'fitness center' => 'gym', 'sports club' => 'gym',
+        'swimming pool' => 'gym', 'yoga' => 'gym', 'yoga studio' => 'gym',
+        'martial arts' => 'gym', 'personal trainer' => 'gym', 'wellness center' => 'gym',
+        'crossfit' => 'gym', 'pilates' => 'gym', 'aerobics' => 'gym', 'health club' => 'gym',
+        // Legal / Law Firm
+        'law firm' => 'legal', 'legal' => 'legal', 'lawyer' => 'legal', 'attorney' => 'legal',
+        'advocate' => 'legal', 'litigation' => 'legal', 'contract management' => 'legal',
+        'notary' => 'legal', 'paralegal' => 'legal', 'legal aid' => 'legal',
+        // Construction
+        'construction' => 'construction', 'contractor' => 'construction', 'builder' => 'construction',
+        'civil engineering' => 'construction', 'building management' => 'construction',
+        'project site' => 'construction', 'subcontractor' => 'construction', 'site management' => 'construction',
+        // Logistics / Transport
+        'logistics' => 'logistics', 'courier' => 'logistics', 'fleet' => 'logistics',
+        'shipping' => 'logistics', 'freight' => 'logistics', 'transport' => 'logistics',
+        'delivery service' => 'logistics', 'dispatch' => 'logistics', 'last mile' => 'logistics',
+        'trucking' => 'logistics', 'cargo' => 'logistics', 'parcel' => 'logistics',
+        // Manufacturing
+        'manufacturing' => 'manufacturing', 'factory' => 'manufacturing', 'production' => 'manufacturing',
+        'assembly' => 'manufacturing', 'work order' => 'manufacturing', 'bom' => 'manufacturing',
+        'bill of material' => 'manufacturing', 'machine' => 'manufacturing', 'plant' => 'manufacturing',
+        'production line' => 'manufacturing',
+        // Salon / Beauty
+        'salon' => 'salon', 'spa' => 'salon', 'beauty' => 'salon', 'barbershop' => 'salon',
+        'nail salon' => 'salon', 'hair salon' => 'salon', 'massage' => 'salon', 'wellness spa' => 'salon',
+        'beauty clinic' => 'salon', 'beauty parlour' => 'salon', 'hair studio' => 'salon',
+        // Events / Entertainment
+        'event' => 'events', 'event management' => 'events', 'wedding' => 'events',
+        'conference' => 'events', 'exhibition' => 'events', 'concert' => 'events',
+        'venue management' => 'events', 'event planner' => 'events', 'banquet' => 'events',
+        'cinema' => 'events', 'theater' => 'events', 'movie theater' => 'events',
+        'ticketing' => 'events', 'festival' => 'events', 'seminar' => 'events',
+        // NGO / Nonprofit
+        'ngo' => 'ngo', 'nonprofit' => 'ngo', 'charity' => 'ngo', 'church' => 'ngo',
+        'mosque' => 'ngo', 'temple' => 'ngo', 'foundation' => 'ngo', 'volunteer' => 'ngo',
+        'donation' => 'ngo', 'charity management' => 'ngo', 'humanitarian' => 'ngo',
+        'religious organization' => 'ngo', 'community org' => 'ngo',
+        // Travel / Tourism
+        'travel' => 'travel', 'tour' => 'travel', 'tourism' => 'travel', 'car rental' => 'travel',
+        'airline' => 'travel', 'travel booking' => 'travel', 'itinerary' => 'travel',
+        'visa' => 'travel', 'holiday package' => 'travel', 'tour operator' => 'travel',
+        'travel agency' => 'travel', 'safari' => 'travel', 'excursion' => 'travel',
+        // Microfinance / Banking
+        'microfinance' => 'microfinance', 'banking' => 'microfinance', 'bank' => 'microfinance',
+        'loan' => 'microfinance', 'savings' => 'microfinance', 'lending' => 'microfinance',
+        'credit' => 'microfinance', 'borrowing' => 'microfinance', 'mfi' => 'microfinance',
+        'sacco' => 'microfinance', 'investment' => 'microfinance', 'portfolio' => 'microfinance',
+        // Insurance
+        'insurance' => 'insurance', 'insurer' => 'insurance', 'claim' => 'insurance',
+        'policy' => 'insurance', 'premium' => 'insurance', 'underwriting' => 'insurance',
+        'life insurance' => 'insurance', 'health insurance' => 'insurance', 'general insurance' => 'insurance',
+        // Library
+        'library' => 'library', 'librarian' => 'library', 'book lending' => 'library',
+        'book management' => 'library', 'catalog' => 'library', 'borrowing' => 'library',
+        'digital library' => 'library',
+        // Garage / Automobile Workshop
+        'garage' => 'garage', 'automobile' => 'garage', 'workshop' => 'garage',
+        'mechanic' => 'garage', 'car service' => 'garage', 'auto repair' => 'garage',
+        'vehicle service' => 'garage', 'auto workshop' => 'garage', 'motor garage' => 'garage',
+        'vehicle repair' => 'garage', 'car workshop' => 'garage',
+        // Laundry
+        'laundry' => 'laundry', 'dry cleaning' => 'laundry', 'clothes washing' => 'laundry',
+        'laundromat' => 'laundry', 'linen service' => 'laundry',
+        // Agriculture / Farm
+        'farm' => 'agriculture', 'agriculture' => 'agriculture', 'crop' => 'agriculture',
+        'livestock' => 'agriculture', 'agri' => 'agriculture', 'farming' => 'agriculture',
+        'nursery' => 'agriculture', 'garden center' => 'agriculture', 'poultry' => 'agriculture',
+        'aquaculture' => 'agriculture', 'horticulture' => 'agriculture',
+        // Funeral
+        'funeral' => 'funeral', 'cemetery' => 'funeral', 'mortuary' => 'funeral',
+        'funeral home' => 'funeral', 'cremation' => 'funeral',
     ]; }
 
     // ── Domain knowledge base ─────────────────────────────────────────────────

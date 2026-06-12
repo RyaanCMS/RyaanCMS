@@ -1016,18 +1016,53 @@ SRS;
             'website', 'site', 'shop', 'store', 'ecommerce', 'e-commerce',
             'crm', 'erp', 'cms', 'saas', 'booking', 'inventory', 'dashboard',
             'complete', 'full stack', 'fullstack', 'full-stack', 'full', 'entire',
-            // Domain-specific system types (no "system" keyword needed)
-            'hotel', 'hospital', 'clinic', 'pharmacy', 'healthcare',
+            // Healthcare & Medical
+            'hospital', 'clinic', 'pharmacy', 'healthcare', 'dental', 'dentist',
+            'veterinary', 'vet', 'laboratory', 'lab', 'telemedicine', 'telehealth',
+            'mental health', 'rehabilitation', 'nursing home', 'physiotherapy',
+            'blood bank', 'radiology', 'optometry', 'eye clinic', 'dialysis',
+            // Education
             'school', 'university', 'college', 'academy', 'institute',
-            'restaurant', 'cafe', 'bakery', 'food delivery',
-            'gym', 'fitness', 'sports club',
-            'library', 'archive',
-            'real estate', 'property', 'rental',
-            'warehouse', 'logistics', 'fleet', 'supply chain',
-            'hr system', 'payroll', 'hrms', 'attendance',
-            'construction', 'project management',
-            'law firm', 'legal', 'nonprofit', 'charity', 'church',
-            'travel', 'tourism', 'airline', 'car rental',
+            'coaching', 'tutoring', 'kindergarten', 'preschool', 'daycare',
+            'driving school', 'music school', 'art school', 'bootcamp',
+            // Food & Hospitality
+            'restaurant', 'hotel', 'resort', 'cafe', 'bakery', 'food delivery',
+            'catering', 'bar', 'pub', 'cloud kitchen', 'food truck', 'canteen',
+            'guesthouse', 'hostel', 'motel', 'bed and breakfast',
+            // Retail & Commerce
+            'retail', 'pos', 'point of sale', 'grocery', 'supermarket', 'boutique',
+            'hardware store', 'jewelry store', 'bookstore', 'electronics store',
+            // HR & Staffing
+            'hr system', 'payroll', 'hrms', 'attendance', 'recruitment', 'staffing',
+            // Real Estate & Construction
+            'real estate', 'property', 'rental', 'construction', 'contractor',
+            'architect', 'interior design', 'housing',
+            // Logistics & Supply Chain
+            'warehouse', 'logistics', 'fleet', 'supply chain', 'courier',
+            'shipping', 'freight', 'dispatch', 'delivery service',
+            // Manufacturing
+            'manufacturing', 'factory', 'production', 'assembly', 'work order',
+            // Beauty & Wellness
+            'salon', 'spa', 'beauty', 'barbershop', 'wellness center', 'massage',
+            'nail salon', 'yoga', 'yoga studio', 'gym', 'fitness', 'sports club',
+            // Legal & Professional Services
+            'law firm', 'legal', 'lawyer', 'attorney', 'notary',
+            // Events & Entertainment
+            'event management', 'wedding', 'conference', 'exhibition', 'banquet',
+            'cinema', 'theater', 'concert', 'ticketing', 'venue',
+            // Nonprofit & Government
+            'nonprofit', 'charity', 'church', 'mosque', 'ngo', 'foundation',
+            'volunteer', 'donation',
+            // Travel & Tourism
+            'travel', 'tourism', 'airline', 'car rental', 'tour operator',
+            'travel agency', 'holiday package',
+            // Finance & Banking
+            'microfinance', 'banking', 'insurance', 'investment', 'loan',
+            'mortgage', 'fintech', 'cooperative',
+            // Miscellaneous Services
+            'library', 'garage', 'automobile', 'laundry', 'dry cleaning',
+            'agriculture', 'farm', 'funeral', 'cemetery', 'parking',
+            'fuel station', 'petrol station', 'print shop', 'repair shop',
             // Frontend / UI builds
             'landing page', 'landing', 'homepage', 'home page', 'template',
             'theme', 'ui kit', 'design system', 'component library',
@@ -1057,18 +1092,98 @@ SRS;
     {
         $lower   = strtolower($prompt);
         $domains = [
-            'lms', 'learning', 'course', 'elearning',
-            'school', 'university', 'college',
-            'ecommerce', 'e-commerce', 'shop', 'store', 'marketplace',
-            'hrm', 'payroll', 'employee', 'hr system',
+            // Education
+            'lms', 'learning', 'course', 'elearning', 'e-learning', 'moodle',
+            'coaching', 'tutoring', 'training', 'bootcamp', 'vocational',
+            // School ERP
+            'school', 'university', 'college', 'student', 'classroom', 'academy',
+            'kindergarten', 'preschool', 'daycare', 'driving school',
+            // eCommerce
+            'ecommerce', 'e-commerce', 'shop', 'store', 'marketplace', 'boutique',
+            'online store', 'fashion store', 'electronics store', 'grocery',
+            // HRM
+            'hrm', 'payroll', 'employee', 'hr system', 'human resource',
+            'recruitment', 'hiring', 'staffing', 'workforce',
+            // Healthcare
             'hospital', 'clinic', 'medical', 'patient', 'healthcare',
-            'crm', 'lead', 'pipeline',
-            'saas', 'subscription', 'tenant',
-            'inventory', 'warehouse', 'stock',
-            'restaurant', 'food', 'kitchen',
-            'accounting', 'finance', 'ledger',
-            'real estate', 'property', 'rental',
-            'pos', 'cashier', 'retail',
+            'dental', 'dentist', 'veterinary', 'vet', 'pharmacy', 'pharmacist',
+            'laboratory', 'lab', 'telemedicine', 'mental health',
+            'rehabilitation', 'rehab', 'nursing home', 'physiotherapy',
+            'blood bank', 'radiology', 'optometry',
+            // CRM
+            'crm', 'lead', 'pipeline', 'sales', 'contact management',
+            'consulting', 'marketing agency',
+            // SaaS
+            'saas', 'subscription', 'tenant', 'multi-tenant', 'helpdesk',
+            'support ticket', 'it asset',
+            // Inventory / Supply Chain
+            'inventory', 'warehouse', 'stock', 'supply chain', 'wholesale',
+            'distribution', 'quality control', 'grn',
+            // Restaurant / Food
+            'restaurant', 'food', 'kitchen', 'cafe', 'bakery',
+            'catering', 'bar', 'pub', 'fast food', 'cloud kitchen', 'food truck',
+            'canteen', 'pizza', 'coffee shop',
+            // Accounting / Finance
+            'accounting', 'finance', 'ledger', 'invoice', 'tax management',
+            'budget', 'fintech', 'cooperative', 'credit union',
+            // Real Estate
+            'real estate', 'property', 'rental', 'architect', 'interior design',
+            'housing', 'mortgage broker',
+            // POS / Retail
+            'pos', 'cashier', 'retail', 'point of sale', 'supermarket',
+            'grocery store', 'jewelry store', 'hardware store',
+            // Hotel / Hospitality
+            'hotel', 'resort', 'hostel', 'motel', 'guesthouse', 'room booking', 'housekeeping',
+            // Gym / Fitness
+            'gym', 'fitness', 'fitness center', 'sports club', 'swimming pool',
+            'yoga', 'yoga studio', 'martial arts', 'personal trainer', 'wellness center',
+            // Legal
+            'law firm', 'legal', 'lawyer', 'attorney', 'advocate',
+            'litigation', 'contract management', 'notary',
+            // Construction
+            'construction', 'contractor', 'builder', 'civil engineering',
+            'building management', 'subcontractor',
+            // Logistics / Transport
+            'logistics', 'courier', 'fleet', 'shipping', 'freight',
+            'transport', 'delivery service', 'dispatch', 'last mile',
+            // Manufacturing
+            'manufacturing', 'factory', 'production', 'assembly', 'work order',
+            'bill of material', 'bom',
+            // Salon / Beauty
+            'salon', 'spa', 'beauty', 'barbershop', 'nail salon',
+            'hair salon', 'massage', 'beauty clinic',
+            // Events
+            'event management', 'wedding', 'conference', 'exhibition',
+            'venue management', 'event planner', 'banquet', 'concert',
+            'cinema', 'theater', 'ticketing',
+            // NGO / Nonprofit
+            'ngo', 'nonprofit', 'charity', 'church', 'mosque', 'temple',
+            'foundation', 'volunteer', 'donation',
+            // Travel
+            'travel', 'tour', 'tourism', 'car rental', 'airline', 'tour operator',
+            'itinerary', 'holiday package',
+            // Microfinance / Banking
+            'microfinance', 'banking', 'bank', 'loan', 'savings', 'lending',
+            // Insurance
+            'insurance', 'insurer', 'claim', 'policy', 'premium', 'underwriting',
+            // Library
+            'library', 'librarian', 'book lending', 'book management',
+            // Garage / Auto Workshop
+            'garage', 'automobile workshop', 'mechanic', 'car service',
+            'auto repair', 'vehicle service',
+            // Laundry
+            'laundry', 'dry cleaning',
+            // Agriculture / Farm
+            'farm', 'agriculture', 'crop', 'livestock', 'farming',
+            'nursery', 'garden center',
+            // Funeral
+            'funeral', 'cemetery', 'mortuary',
+            // Parking
+            'parking', 'parking lot', 'parking management',
+            // Fuel Station
+            'fuel station', 'gas station', 'petrol station',
+            // Print Shop
+            'print shop', 'printing', 'publishing',
         ];
         foreach ($domains as $kw) {
             if (str_contains($lower, $kw)) return true;
