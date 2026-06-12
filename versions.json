@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.85",
+    "latest": "1.1.86",
     "versions": [
         {
             "version": "1.0.0",
@@ -1055,6 +1055,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.84",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.86",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: complete all 4 missing gaps — ConfidenceEngine + rules enforcement + outcome wiring\n\n- ConfidenceEngine: centralized confidence scoring for blueprint/component/workflow/module/rules\n- BlueprintService: attach confidence metadata on every blueprint selection (library + AI paths)\n- ComponentRegistry: matchWithConfidence() returns score + reason alongside component key\n- KnowledgeBaseService: matchAppTypeWithConfidence() returns domain + workflow + domain confidence\n- BuildValidator: validateBusinessRules() checks domain rules coverage against generated code\n- PipelineOrchestrator: pass pipeline_run_id through context; wire confidence_scores into context;\n  pass domain to validator; record OutcomeRecord on successful build completion\n- AIServiceProvider: register ConfidenceEngine singleton; pass to BlueprintService",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.86/ryaancms-v1.1.86-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.85",
             "critical": false,
             "file_count": null
         }
