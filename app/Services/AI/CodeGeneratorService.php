@@ -207,8 +207,12 @@ class CodeGeneratorService
             return 'Rate limit reached. Wait a few seconds and try again.';
         }
 
-        if (str_contains($low, 'no configured ai provider') || str_contains($low, 'provider is not configured')) {
+        if (str_contains($low, 'no configured ai provider') || str_contains($low, 'provider is not configured')
+            || str_contains($low, 'api key is not configured') || str_contains($low, 'api key')) {
             return 'Add an AI provider key in Settings → AI Providers to use this feature.';
+        }
+        if (str_contains($low, 'call to a member function') && str_contains($low, 'on null')) {
+            return 'No AI provider configured. Go to Settings → AI Providers and add your API key.';
         }
         return $msg;
     }
@@ -1358,6 +1362,15 @@ SRS;
             $history,
             [['role' => 'user', 'content' => $reducedPrompt]]
         );
+
+        if (!$aiProvider) {
+            $fileCount = count($allFiles);
+            $noAiMsg   = "✅ **{$blueprint['name']} core modules ready** — {$fileCount} files built. Add an AI provider in **Settings → AI Providers** to generate the dashboard, navigation and advanced business logic.";
+            $conversation->addMessage('assistant', $noAiMsg, ['tokens_used' => 0, 'model' => 'zero-cost', 'generated_files' => array_column($allFiles, 'path')]);
+            $project->increment('ai_tokens_used', 0);
+            $onEvent(['type' => 'done', 'message' => $noAiMsg, 'model' => 'zero-cost', 'files' => $allFiles, 'tokens_used' => 0]);
+            return;
+        }
 
         $accumulated = '';
         try {

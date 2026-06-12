@@ -612,8 +612,19 @@ PROMPT;
                 flush();
             };
 
+            // Pre-flight: verify an AI provider is available before entering the pipeline.
+            // streamGenerate() handles null providers gracefully (zero-cost path); the pipeline
+            // does not — skip pipeline and let streamGenerate show the friendly "add API key" message.
+            $canUseAI = false;
             try {
-                if ($usePipeline) {
+                $this->aiManager->provider($provider, $user);
+                $canUseAI = true;
+            } catch (\Throwable) {}
+
+            $runPipeline = $usePipeline && $canUseAI;
+
+            try {
+                if ($runPipeline) {
                     // Route through the full 10-agent autonomous pipeline
                     $run = PipelineRun::create([
                         'project_id' => $project->id,
