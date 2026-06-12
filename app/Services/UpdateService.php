@@ -217,24 +217,31 @@ class UpdateService
         $fallback = 'https://github.com/RyaanCMS/RyaanCMS/archive/refs/heads/main.zip';
         $urls     = array_values(array_unique([$url, $fallback]));
 
+        // Pass dest as a file-path string so Guzzle manages the file handle internally.
+        // Using a PHP resource handle caused a double-fclose() warning because Guzzle
+        // closes the resource after writing (PSR-7 stream lifecycle).
         $lastError = null;
         foreach ($urls as $tryUrl) {
-            $fp = fopen($dest, 'wb');
-            if (!$fp) {
-                throw new \RuntimeException("Cannot create download file at: {$dest}");
-            }
             try {
-                $response = Http::timeout(300)->withOptions(['sink' => $fp])->get($tryUrl);
+                $response = Http::timeout(300)->withOptions(['sink' => $dest])->get($tryUrl);
                 if ($response->ok()) {
                     return;
                 }
                 $lastError = "HTTP {$response->status()} from {$tryUrl}";
-            } finally {
-                fclose($fp);
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+            }
+            // Remove the partial/error-response file before trying the next URL
+            if (file_exists($dest)) {
+                @unlink($dest);
             }
         }
 
-        throw new \RuntimeException("Download failed — tried {$urls[0]}" . (count($urls) > 1 ? " and fallback {$urls[1]}" : '') . ". Last error: {$lastError}");
+        throw new \RuntimeException(
+            "Download failed — tried {$urls[0]}"
+            . (count($urls) > 1 ? " and fallback {$urls[1]}" : '')
+            . ". Last error: {$lastError}"
+        );
     }
 
     private function extractZip(string $zipPath, string $extractPath): void

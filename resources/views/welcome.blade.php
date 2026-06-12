@@ -309,7 +309,7 @@
             <span class="font-bold text-base" style="color:#0f172a;">RyaanCMS</span>
         </a>
 
-        <!-- Nav Links -->
+        <!-- Nav Links (desktop only) -->
         <div class="hidden md:flex items-center gap-1">
             <a href="#intelligence" class="nav-link">Intelligence</a>
             <a href="#how-it-works" class="nav-link">How It Works</a>
@@ -319,41 +319,101 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-2.5">
-            <!-- Mobile menu button -->
-            <button class="btn-mobile-menu w-9 h-9 rounded-lg items-center justify-center md:hidden"
-                    style="display:none; color:#374151; border:1px solid #e5e7eb;"
-                    @click="mobileMenuOpen = !mobileMenuOpen">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-            <a href="https://github.com/ryaancms" target="_blank" rel="noopener" class="btn-outline hidden sm:inline-flex">
+        <div class="flex items-center gap-2">
+            <!-- GitHub (desktop sm+) -->
+            <a href="https://github.com/RyaanCMS/RyaanCMS" target="_blank" rel="noopener" class="btn-outline hidden sm:inline-flex">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
                 </svg>
                 <span class="hidden lg:inline">GitHub</span>
             </a>
+            <!-- Download (desktop sm+) -->
             <a href="{{ $downloadUrl }}" class="btn-outline hidden sm:inline-flex" style="color:#059669;border-color:rgba(5,150,105,0.25);" onmouseover="this.style.background='rgba(5,150,105,0.06)'" onmouseout="this.style.background='transparent'">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 v{{ $latestVer }}
             </a>
+            <!-- Sign In (desktop sm+) -->
             <a href="{{ route('login') }}" class="btn-secondary hidden sm:inline-flex" style="padding:9px 18px;font-size:14px;">Sign In</a>
-            <a href="#pricing" class="btn-primary" style="padding:9px 20px;font-size:14px;">Pro — 1 Month Free →</a>
+            <!-- Pro CTA — shorter text on mobile -->
+            <a href="#pricing" class="btn-primary" style="padding:9px 20px;font-size:14px;">
+                <span class="hidden sm:inline">Pro — 1 Month Free</span>
+                <span class="inline sm:hidden">Get Pro</span>
+                <span> →</span>
+            </a>
+            <!-- Hamburger — visible only on mobile (<md) -->
+            <button class="flex md:hidden w-9 h-9 rounded-lg items-center justify-center flex-shrink-0"
+                    style="background:#fff; color:#374151; border:1px solid #e5e7eb;"
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                    aria-label="Toggle menu">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path x-show="mobileMenuOpen"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     </nav>
 
-    <!-- Mobile Nav Menu -->
+    <!-- Mobile Nav Menu (slides down from header) -->
     <div class="mobile-nav-menu" :class="{ open: mobileMenuOpen }">
-        <a href="#intelligence" class="mobile-nav-link" @click="mobileMenuOpen = false">Intelligence</a>
-        <a href="#how-it-works" class="mobile-nav-link" @click="mobileMenuOpen = false">How It Works</a>
-        <a href="#domains"      class="mobile-nav-link" @click="mobileMenuOpen = false">Domains</a>
-        <a href="#features"     class="mobile-nav-link" @click="mobileMenuOpen = false">Features</a>
-        <a href="#pricing"      class="mobile-nav-link" @click="mobileMenuOpen = false" style="color:#7c3aed;font-weight:700;">Pricing</a>
-        <div style="border-top:1px solid #e5e7eb; margin:10px 0;"></div>
-        <a href="{{ route('login') }}"    class="mobile-nav-link">Sign In</a>
-        <a href="{{ route('register') }}" class="mobile-nav-link" style="color:#6d28d9; font-weight:600;">Get Started Free →</a>
+
+        <!-- Nav links -->
+        <div style="padding:4px 0;">
+            <a href="#intelligence" class="mobile-nav-link" @click="mobileMenuOpen = false">
+                <span class="mnl-icon"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6d28d9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+                Intelligence
+            </a>
+            <a href="#how-it-works" class="mobile-nav-link" @click="mobileMenuOpen = false">
+                <span class="mnl-icon"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6d28d9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span>
+                How It Works
+            </a>
+            <a href="#domains" class="mobile-nav-link" @click="mobileMenuOpen = false">
+                <span class="mnl-icon"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6d28d9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg></span>
+                Domains
+            </a>
+            <a href="#features" class="mobile-nav-link" @click="mobileMenuOpen = false">
+                <span class="mnl-icon"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6d28d9" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></span>
+                Features
+            </a>
+            <a href="#pricing" class="mobile-nav-link" @click="mobileMenuOpen = false" style="color:#7c3aed;font-weight:700;">
+                <span class="mnl-icon" style="background:#f5f3ff;"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#7c3aed" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                Pricing
+            </a>
+        </div>
+
+        <!-- Divider -->
+        <div style="border-top:1px solid #e5e7eb; margin:6px 0;"></div>
+
+        <!-- GitHub -->
+        <a href="https://github.com/RyaanCMS/RyaanCMS" target="_blank" rel="noopener" class="mobile-nav-link" @click="mobileMenuOpen = false">
+            <span class="mnl-icon" style="background:#f3f4f6;">
+                <svg class="w-4 h-4" fill="#374151" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            </span>
+            <span>GitHub</span>
+            <svg class="w-3 h-3 ml-auto opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- Download -->
+        <a href="{{ $downloadUrl }}" class="mobile-nav-link" style="color:#059669;" @click="mobileMenuOpen = false">
+            <span class="mnl-icon" style="background:#f0fdf4;">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </span>
+            <span>Download <strong>v{{ $latestVer }}</strong></span>
+        </a>
+
+        <!-- Divider -->
+        <div style="border-top:1px solid #e5e7eb; margin:6px 0;"></div>
+
+        <!-- Sign In -->
+        <a href="{{ route('login') }}" class="mobile-nav-link" @click="mobileMenuOpen = false">
+            <span class="mnl-icon"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#374151" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg></span>
+            Sign In
+        </a>
+
+        <!-- Get Started CTA -->
+        <a href="{{ route('register') }}" class="mobile-nav-link" style="color:#6d28d9;font-weight:700;background:rgba(109,40,217,0.05);border-radius:10px;margin-top:4px;" @click="mobileMenuOpen = false">
+            <span class="mnl-icon" style="background:#ede9fe;"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#7c3aed" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+            Get Started Free →
+        </a>
     </div>
 </header>
 
