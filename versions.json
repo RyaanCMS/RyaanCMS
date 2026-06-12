@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.89",
+    "latest": "1.1.90",
     "versions": [
         {
             "version": "1.0.0",
@@ -1103,6 +1103,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.88",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.90",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "fix: domain prompts no longer fail with no-AI error on fresh install\n\n- Add 'complete','full','entire','launch','i need','we need' to isFullSystemRequest\n  action words so 'Complete Restaurant Management system' correctly routes to\n  streamBlueprintDriven (zero-cost path) instead of streamSinglePhase\n- Add hasDomainKeyword() helper — detects all 12 supported business domains\n- streamSinglePhase with null AI provider now routes domain prompts to\n  streamBlueprintDriven (zero-cost blueprint generation) instead of hard error\n- Architecture order enforced: Domain Brain -> Blueprint -> AI Last",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.90/ryaancms-v1.1.90-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.89",
             "critical": false,
             "file_count": null
         }
