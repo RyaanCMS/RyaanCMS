@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.84",
+    "latest": "1.1.85",
     "versions": [
         {
             "version": "1.0.0",
@@ -1043,6 +1043,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.83",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.85",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: wire autonomous 10-agent pipeline into AI Builder\n\n- Inject PipelineOrchestrator into AIBuilderController\n- streamChat() routes through full pipeline when use_pipeline=true\n  or when isComplexBuildPrompt() auto-detects a full-app build prompt\n- Inline PipelineRun creation eliminates need for separate start endpoint\n- Builder UI gets Pipeline toggle button (bolt icon, green when active)\n- handleStreamEvent() handles all pipeline SSE events:\n  pipeline_start, phase, agent_start, agent_done,\n  build_status, fix_outcome, pipeline_done\n- Simple edits/follow-ups continue using standard streamGenerate()\n\nFlow: Prompt → Blueprint Assembly → KB → SeniorKB → WisdomEngine\n      → AI (only if needed) → full PLAN→GENERATE→RUN→FIX→RETRY loop",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.85/ryaancms-v1.1.85-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.84",
             "critical": false,
             "file_count": null
         }
