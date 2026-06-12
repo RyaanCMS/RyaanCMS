@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.86",
+    "latest": "1.1.87",
     "versions": [
         {
             "version": "1.0.0",
@@ -1067,6 +1067,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.85",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.87",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: auto-update 2026-06-12 10:26 - resources/views/builder/show.blade.php",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.87/ryaancms-v1.1.87-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.86",
             "critical": false,
             "file_count": null
         }
