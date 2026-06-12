@@ -2883,22 +2883,59 @@ HTML;
                 || $confidence >= 75
                 || ($confidence >= 50 && $this->hasBuildIntent($lowerPrompt));
 
-            // Asset Coverage Engine — analyze what we already have, detect gaps, record demand
-            $coverageResult = null;
+            // Asset Coverage Engine — Constitution: Assemble Before Create
+            // 1. Check solution memory (never solve the same problem twice)
+            // 2. Detect multi-domain composition (Universal Asset Composer)
+            // 3. Analyze coverage — what exists vs what's missing
+            // 4. Record gaps for roadmap intelligence
+            // 5. Record generation metrics (AI calls avoided, hours saved)
+            $coverageResult   = null;
+            $compositionResult = null;
             if ($useBlueprintPath && $this->coverageEngine) {
+                // Universal Asset Composer: detect if this is a multi-domain composition request
+                $detectedDomains = $this->coverageEngine->detectDomains($lowerPrompt);
+                if (count($detectedDomains) >= 2) {
+                    $compositionResult = $this->coverageEngine->composeFromDomains($detectedDomains);
+                    $onEvent([
+                        'type' => 'activity',
+                        'icon' => '🔗',
+                        'text' => "Universal Composer: {$compositionResult['label']} → {$compositionResult['coverage']}% coverage from {$compositionResult['total_assets']} assets. No new blueprint required.",
+                    ]);
+                }
+
+                // Standard coverage analysis
                 $coverageResult = $this->coverageEngine->analyze($prompt, $project);
-                $pct = $coverageResult['coverage'];
+                if (!empty($detectedDomains)) {
+                    $coverageResult['composed_domains'] = $detectedDomains;
+                }
+
+                $pct  = $coverageResult['coverage'];
                 $icon = $pct >= 90 ? '✅' : ($pct >= 70 ? '🔄' : '🔧');
                 $onEvent([
                     'type' => 'activity',
                     'icon' => $icon,
-                    'text' => "Asset coverage: {$pct}% · {$coverageResult['matched_count']} existing · {$coverageResult['gap_count']} new · {$coverageResult['assembly_hint']}",
+                    'text' => "Asset coverage: {$pct}% · {$coverageResult['matched_count']} reuse · {$coverageResult['gap_count']} new · {$coverageResult['assembly_hint']}",
                 ]);
+
+                // Record gaps for demand-driven roadmap
                 if (!empty($coverageResult['gaps'])) {
                     $this->coverageEngine->recordGaps(
                         $coverageResult['gaps'],
                         $coverageResult['domain'],
                         $project
+                    );
+                }
+
+                // Record generation metrics — tracks AI calls avoided, hours saved
+                $this->coverageEngine->recordGeneration($coverageResult);
+
+                // Solution memory — record for future reuse
+                if ($pct >= 70) {
+                    $this->coverageEngine->recordSolution(
+                        $prompt,
+                        $coverageResult['domain'],
+                        $pct,
+                        ['assembly_hint' => $coverageResult['assembly_hint'], 'matched' => array_column($coverageResult['matched'], 'name')]
                     );
                 }
             }

@@ -694,4 +694,352 @@ class AssetCoverageEngine
             return [];
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // All 18 Asset Types Registry
+    // The Constitution mandates ALL 18 be searched before AI is invoked.
+    // This registry represents what RyaanCMS currently has in each type.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function allAssetTypes(): array
+    {
+        return [
+            'blueprints'         => [
+                'status' => 'full', 'count' => 26,
+                'description' => '26 domain blueprints: hospital, lms, school, ecommerce, hrm, crm, accounting, inventory, restaurant, hotel, pos, gym, salon, construction, logistics, manufacturing, microfinance, realestate, legal, ngo, travel, library, insurance, pharmacy, garage, agriculture',
+            ],
+            'modules'            => [
+                'status' => 'full', 'count' => 12,
+                'description' => 'auth, RBAC, CRUD, billing, reports, workflow, notifications, audit, file management, calendar/booking, dashboard, settings',
+            ],
+            'components'         => [
+                'status' => 'full', 'count' => 40,
+                'description' => '40+ UI components: data tables, forms, charts, modals, cards, sidebars, nav, breadcrumbs, alerts, badges, pagination, upload zones, rich editors',
+            ],
+            'workflows'          => [
+                'status' => 'full', 'count' => 8,
+                'description' => 'approval, review-publish, onboarding, offboarding, escalation, notification chain, audit trail, status machine',
+            ],
+            'question_packs'     => [
+                'status' => 'partial', 'count' => 5,
+                'description' => 'Discovery questionnaires for hospital, school, ecommerce, hrm, restaurant — expanding',
+            ],
+            'rules'              => [
+                'status' => 'full', 'count' => 30,
+                'description' => '30 domain business rule packs: pricing logic, eligibility checks, stock thresholds, appointment limits, payroll rules, credit scoring, leave policies',
+            ],
+            'validation_packs'   => [
+                'status' => 'full', 'count' => 20,
+                'description' => 'email, phone, NID, passport, currency, date range, address, age, blood group, file type, IBAN, tax ID, postcode, coordinates',
+            ],
+            'error_libraries'    => [
+                'status' => 'full', 'count' => 15,
+                'description' => '15 error pattern libraries: DB constraint errors, auth failures, payment declines, file upload errors, API timeout — each with fix recipe',
+            ],
+            'industry_brains'    => [
+                'status' => 'full', 'count' => 30,
+                'description' => '30 domain knowledge packs in KnowledgeBaseService: workflows, entities, terminology, industry standards per domain',
+            ],
+            'knowledge_articles' => [
+                'status' => 'full', 'count' => 200,
+                'description' => 'SeniorDevKnowledgeBase + WisdomEngine: security hardening, performance patterns, architecture decisions, anti-patterns, refactoring playbooks',
+            ],
+            'success_patterns'   => [
+                'status' => 'partial', 'count' => 50,
+                'description' => '50 architecture and design patterns: repository pattern, service layer, event sourcing, CQRS, observer, strategy, decorator',
+            ],
+            'outcome_records'    => [
+                'status' => 'live', 'count' => 0,
+                'description' => 'Growing live — WisdomEngine records every successful generation, fix, and decision with context and outcome score',
+            ],
+            'integration_packs'  => [
+                'status' => 'partial', 'count' => 70,
+                'description' => '70+ integrations: Stripe, PayPal, Paystack, bKash, Nagad, Twilio, SendGrid, Mailgun, Firebase, WhatsApp, Slack, Zoom, Google Maps, AWS S3',
+            ],
+            'compliance_packs'   => [
+                'status' => 'partial', 'count' => 10,
+                'description' => 'GDPR, HIPAA basics, PCI-DSS checklist, SOC2 controls, PDPA patterns, data retention policies',
+            ],
+            'security_packs'     => [
+                'status' => 'full', 'count' => 8,
+                'description' => 'XSS prevention, SQL injection guards, CSRF tokens, rate limiting, auth hardening, encryption at rest, 2FA, input sanitization',
+            ],
+            'reports'            => [
+                'status' => 'full', 'count' => 25,
+                'description' => '25 report templates: revenue, attendance, inventory aging, payroll, sales pipeline, patient statistics, loan portfolio, donation summary',
+            ],
+            'dashboards'         => [
+                'status' => 'full', 'count' => 10,
+                'description' => '10 dashboard templates: executive KPI, operations, financial summary, HR overview, project status, sales funnel, medical stats, learning progress',
+            ],
+            'templates'          => [
+                'status' => 'full', 'count' => 15,
+                'description' => '15 UI/UX templates: admin panel, customer portal, landing page, wizard, detail-and-list, form-heavy, data-heavy, mobile-first, dark-mode, print',
+            ],
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Asset Type Coverage Summary
+    // Returns which of the 18 types are relevant to a given analysis result.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function assetTypeSummary(string $domain, array $matched, array $gaps): array
+    {
+        $types = $this->allAssetTypes();
+        $total = count($types);
+        $applicable = 0;
+        $covered    = 0;
+        $breakdown  = [];
+
+        foreach ($types as $type => $info) {
+            // Determine applicability and coverage based on domain + matches
+            $isApplicable = match ($type) {
+                'blueprints'         => true,
+                'modules'            => true,
+                'components'         => true,
+                'workflows'          => true,
+                'rules'              => true,
+                'validation_packs'   => true,
+                'security_packs'     => true,
+                'dashboards'         => true,
+                'reports'            => true,
+                'templates'          => true,
+                'knowledge_articles' => true,
+                'industry_brains'    => $domain !== 'generic',
+                'error_libraries'    => true,
+                'success_patterns'   => !empty($matched),
+                'outcome_records'    => true,
+                'integration_packs'  => count(array_filter($matched, fn($m) => str_contains($m['name'], 'payment') || str_contains($m['name'], 'notification'))) > 0,
+                'compliance_packs'   => in_array($domain, ['hospital', 'insurance', 'microfinance', 'legal', 'pharmacy']),
+                'question_packs'     => in_array($domain, ['hospital', 'school', 'ecommerce', 'hrm', 'restaurant']),
+                default              => false,
+            };
+
+            if ($isApplicable) {
+                $applicable++;
+                $isCovered = $info['status'] === 'full' || $info['status'] === 'live';
+                if ($isCovered) $covered++;
+                $breakdown[$type] = [
+                    'applicable' => true,
+                    'status'     => $info['status'],
+                    'count'      => $info['count'],
+                    'covered'    => $isCovered,
+                ];
+            }
+        }
+
+        return [
+            'applicable'      => $applicable,
+            'covered'         => $covered,
+            'partial'         => $applicable - $covered,
+            'type_coverage'   => $applicable > 0 ? (int) round(($covered / $applicable) * 100) : 0,
+            'breakdown'       => $breakdown,
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Universal Asset Composer
+    // Constitution Article III: compose unlimited solutions from existing assets.
+    // Takes multiple detected domains and produces a unified assembly plan.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function detectDomains(string $lower): array
+    {
+        $map = [
+            'hospital'     => ['hospital', 'clinic', 'medical center', 'healthcare', 'health center', 'medical'],
+            'lms'          => ['lms', 'learning management', 'e-learning', 'elearning', 'online learning'],
+            'school'       => ['school', 'university', 'college management', 'education management'],
+            'ecommerce'    => ['ecommerce', 'e-commerce', 'online store', 'online shop', 'marketplace'],
+            'hrm'          => ['hrm', 'hris', 'hr management', 'human resource', 'payroll'],
+            'crm'          => ['crm', 'customer relationship', 'sales management', 'lead management'],
+            'accounting'   => ['accounting', 'bookkeeping', 'finance management', 'accounts'],
+            'inventory'    => ['inventory', 'stock management', 'warehouse', 'stock control'],
+            'restaurant'   => ['restaurant', 'food ordering', 'cafe', 'food service'],
+            'hotel'        => ['hotel', 'resort', 'hospitality'],
+            'pos'          => ['pos', 'point of sale', 'retail'],
+            'gym'          => ['gym', 'fitness', 'sports club'],
+            'salon'        => ['salon', 'spa', 'beauty'],
+            'construction' => ['construction', 'project management', 'contractor'],
+            'logistics'    => ['logistics', 'fleet', 'courier', 'delivery'],
+            'manufacturing'=> ['manufacturing', 'factory', 'production'],
+            'microfinance' => ['microfinance', 'banking', 'loan', 'savings'],
+            'realestate'   => ['real estate', 'property', 'rental'],
+            'legal'        => ['law firm', 'legal', 'case management'],
+            'ngo'          => ['ngo', 'nonprofit', 'charity'],
+            'travel'       => ['travel', 'tour', 'tourism'],
+            'library'      => ['library'],
+            'insurance'    => ['insurance'],
+            'pharmacy'     => ['pharmacy', 'drug store'],
+            'garage'       => ['garage', 'automobile', 'workshop'],
+            'agriculture'  => ['farm', 'agriculture', 'crop'],
+        ];
+
+        $detected = [];
+        foreach ($map as $domain => $triggers) {
+            foreach ($triggers as $trigger) {
+                if (str_contains($lower, $trigger)) {
+                    $detected[] = $domain;
+                    break;
+                }
+            }
+        }
+        return array_unique($detected);
+    }
+
+    public function composeFromDomains(array $domains): array
+    {
+        if (empty($domains)) return ['composed' => false, 'reason' => 'No domains detected'];
+        if (count($domains) === 1) return ['composed' => false, 'reason' => 'Single domain — use standard blueprint'];
+
+        $allDomainAssets = $this->domainAssets();
+        $universals      = $this->universalAssets();
+
+        $composedAssets  = [];
+        $domainLabels    = [];
+        $totalCoverage   = 0;
+
+        foreach ($domains as $domain) {
+            $pack = $allDomainAssets[$domain] ?? [];
+            $domainLabels[] = ucfirst($domain);
+            foreach ($pack as $assetName => $asset) {
+                $key = $domain . ':' . $assetName;
+                $composedAssets[$key] = [
+                    'asset'      => $assetName,
+                    'domain'     => $domain,
+                    'coverage'   => (int) round($asset['coverage'] * 100),
+                    'reuse_type' => $asset['coverage'] >= 0.95 ? 'direct' : 'adapt',
+                ];
+            }
+        }
+
+        // Universal assets shared across all composed domains (counted once)
+        $coreUniversals = ['authentication', 'rbac_permissions', 'dashboard', 'reports_analytics', 'search_filter', 'audit_log', 'notifications'];
+        foreach ($coreUniversals as $name) {
+            $composedAssets['universal:' . $name] = [
+                'asset'      => $name,
+                'domain'     => 'universal',
+                'coverage'   => (int) round($universals[$name]['coverage'] * 100),
+                'reuse_type' => 'direct',
+            ];
+        }
+
+        $covered = count(array_filter($composedAssets, fn($a) => $a['coverage'] >= 90));
+        $total   = count($composedAssets);
+        $pct     = $total > 0 ? (int) round(($covered / $total) * 100) : 100;
+
+        return [
+            'composed'        => true,
+            'domains'         => $domains,
+            'label'           => implode(' + ', $domainLabels),
+            'total_assets'    => $total,
+            'covered_assets'  => $covered,
+            'coverage'        => $pct,
+            'asset_list'      => $composedAssets,
+            'assembly_plan'   => implode(' Blueprint + ', $domainLabels) . ' → Unified Platform',
+            'new_blueprint_required' => false,
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Generation Metrics — track every generation for intelligence growth
+    // Constitution Article VI: The system evolves with every use.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function recordGeneration(array $coverageResult): void
+    {
+        try {
+            // Estimate developer hours saved: each reused asset ≈ 2h
+            $hoursSaved = $coverageResult['matched_count'] * 2;
+
+            DB::table('asset_generation_metrics')->insert([
+                'domain'          => $coverageResult['domain'] ?? 'generic',
+                'extension'       => $coverageResult['extension'] ?? null,
+                'coverage_pct'    => $coverageResult['coverage'] ?? 0,
+                'assets_reused'   => $coverageResult['matched_count'] ?? 0,
+                'gaps_count'      => $coverageResult['gap_count'] ?? 0,
+                'ai_needed'       => ($coverageResult['gap_count'] ?? 0) > 0 ? 1 : 0,
+                'hours_saved'     => $hoursSaved,
+                'composed_from'   => json_encode($coverageResult['composed_domains'] ?? []),
+                'created_at'      => now(),
+            ]);
+        } catch (\Throwable) {
+            // Metrics recording is non-critical — never break generation
+        }
+    }
+
+    public function getMetrics(): array
+    {
+        try {
+            $rows = DB::table('asset_generation_metrics');
+            $total = (clone $rows)->count();
+
+            return [
+                'total_generations'  => $total,
+                'ai_calls_avoided'   => (clone $rows)->where('ai_needed', 0)->count(),
+                'ai_calls_made'      => (clone $rows)->where('ai_needed', 1)->count(),
+                'avg_coverage'       => $total > 0 ? round((clone $rows)->avg('coverage_pct'), 1) : 0,
+                'total_assets_reused'=> (clone $rows)->sum('assets_reused'),
+                'total_hours_saved'  => (clone $rows)->sum('hours_saved'),
+                'top_domains'        => DB::table('asset_generation_metrics')
+                    ->selectRaw('domain, count(*) as requests, avg(coverage_pct) as avg_coverage')
+                    ->groupBy('domain')
+                    ->orderByDesc('requests')
+                    ->limit(10)
+                    ->get()
+                    ->toArray(),
+                'gap_intelligence'   => $this->getCoverageStats(),
+            ];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Solution Memory — Constitution Article IV: Never solve the same problem twice.
+    // Record successful solutions so future identical/similar requests skip AI.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function recordSolution(string $prompt, string $domain, int $coverage, array $assemblyPlan): void
+    {
+        try {
+            $fingerprint = md5(strtolower(trim($prompt)));
+
+            $exists = DB::table('solution_memory')
+                ->where('fingerprint', $fingerprint)
+                ->exists();
+
+            if ($exists) {
+                DB::table('solution_memory')
+                    ->where('fingerprint', $fingerprint)
+                    ->increment('reuse_count', 1, ['last_used_at' => now()]);
+            } else {
+                DB::table('solution_memory')->insert([
+                    'fingerprint'   => $fingerprint,
+                    'domain'        => $domain,
+                    'prompt_sample' => mb_substr($prompt, 0, 255),
+                    'coverage'      => $coverage,
+                    'assembly_plan' => json_encode($assemblyPlan),
+                    'reuse_count'   => 0,
+                    'created_at'    => now(),
+                    'last_used_at'  => now(),
+                ]);
+            }
+        } catch (\Throwable) {}
+    }
+
+    public function findSimilarSolution(string $prompt): ?array
+    {
+        try {
+            $fingerprint = md5(strtolower(trim($prompt)));
+            $row = DB::table('solution_memory')
+                ->where('fingerprint', $fingerprint)
+                ->where('coverage', '>=', 80)
+                ->first();
+
+            return $row ? (array) $row : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 }
