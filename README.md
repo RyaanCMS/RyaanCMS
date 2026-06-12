@@ -428,16 +428,14 @@ resources/
 
 ### Vision
 
-RyaanCMS is not just a CMS.
-
-RyaanCMS is an:
+RyaanCMS is not just a CMS. RyaanCMS is an:
 
 ```
-AI Business Operating System
-Business Intelligence Platform
-Application Assembly Engine
-Domain Intelligence Network
-Reusable Asset Ecosystem
+AI Business Operating System     —  builds complete business software from intelligence
+Business Intelligence Platform   —  accumulates wisdom across every domain and project
+Application Assembly Engine      —  composes solutions from 10,000+ reusable assets
+Domain Intelligence Network      —  grows smarter with every contributor, every build
+Reusable Asset Ecosystem         —  build once, reuse forever, across every industry
 ```
 
 > **Mission:** Build business software with intelligence first, AI last.
@@ -447,260 +445,731 @@ Reusable Asset Ecosystem
 ### Core Philosophy
 
 ```
-Reuse Before Generate
-Blueprint Before AI
-Module Before Custom Code
-Question Before Assumption
-Business Outcome Before Technology
-Every Build Creates Intelligence
-AI Is Last Resort
+Reuse Before Generate       —  never build what already exists
+Blueprint Before AI         —  structured knowledge beats generative AI
+Module Before Custom Code   —  a tested module beats handwritten code
+Question Before Assumption  —  understand the business before building
+Business Outcome First      —  technology serves business, not the other way around
+Every Build Creates Intelligence  —  every solution becomes a future asset
+AI Is Last Resort           —  AI fills only what intelligence cannot
 ```
 
 ---
 
-### What Contributors Should Build
+### Contributor Categories
 
-Contributors should NOT randomly add features.
+Every contributor fits one of four roles. All four are equally valued.
 
-Every contribution should strengthen one of the following pillars.
+| # | Category | What they build | Examples |
+|---|----------|----------------|---------|
+| 1 | **Business Contributors** | Domain intelligence, rules, workflows, compliance | Domain Brains, Blueprints, Question Packs, Business DNA |
+| 2 | **Intelligence Contributors** | Reusable knowledge assets | Error Libraries, Validation Rules, Solution Memory, Success Patterns |
+| 3 | **Technical Contributors** | Code assets, infrastructure, tooling | Modules, Components, Tests, DevOps, CLI Tools |
+| 4 | **Ecosystem Contributors** | Community, marketplace, localization | Marketplace Assets, Documentation, Translations, Agency Guides |
 
 ---
 
-### PILLAR 1 — Domain Brains ⭐⭐⭐⭐⭐
+## TIER 1 — Intelligence Layer (Highest Value)
 
-**Purpose:** Build industry-specific intelligence packs.
+> This is RyaanCMS's moat. Intelligence assets reduce AI cost permanently — for every user, forever.
 
-Each Domain Brain contains:
+---
 
+### 1. Domain Brain Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build complete industry-specific intelligence packs. A Domain Brain is a self-contained knowledge system — it knows the rules, the workflows, the data model, the reports, and the compliance requirements for one industry.
+
+**Each Domain Brain contains:**
 ```
-Blueprints · Modules · Components · Workflows · Rules
-Question Packs · Reports · Permissions · Validation Rules
-Error Library · Best Practices · Compliance Rules · Success Patterns
+Blueprints · Entities & Relationships · Business Rules · Workflows
+Question Packs · Reports · Role Permissions · Validation Rules
+Error Patterns · Best Practices · Compliance Requirements · Success Patterns
 ```
 
-**Examples:** LMS · School · Hospital · CRM · HRM · Accounting · POS · Restaurant · Inventory · Real Estate · SaaS · Ecommerce
+**Domains needed:**
+
+| Category | Domains |
+|----------|---------|
+| Healthcare | Hospital · Clinic · Dental · Pharmacy · Veterinary · Telemedicine · Rehabilitation |
+| Education | LMS · School ERP · University · Coaching · Driving School · Kindergarten |
+| Commerce | Ecommerce · Marketplace · POS · Wholesale · Auction · Subscription Box |
+| Operations | Inventory · Logistics · Manufacturing · Warehouse · Supply Chain · Fleet |
+| Finance | Accounting · Microfinance · Insurance · Payroll · Fintech · Investment |
+| Services | CRM · HRM · Legal · Real Estate · Hotel · Restaurant · Salon · Gym |
+| Social | NGO · Government · Library · Religious Institution · Community Center |
+| Industry | Agriculture · Construction · Garage · Laundry · Print Shop · Funeral |
 
 **Contributors Needed:** Business Analysts · Industry Experts · Domain Experts · Solution Architects
 
 ---
 
-### PILLAR 2 — Blueprint Registry ⭐⭐⭐⭐⭐
+### 2. Blueprint Contributors ⭐⭐⭐⭐⭐
 
-**Purpose:** Create reusable application blueprints.
+**Purpose:** Create production-ready application blueprints that can be assembled without writing a single line of code. A Blueprint is the complete structural definition of a business system.
 
-Each Blueprint must include: `Modules · Database Design · Workflows · Permissions · Reports · Questions · Validations`
+**Each Blueprint must include:**
+```
+Module List        —  which modules are required
+Database Schema    —  all tables, fields, relationships, indexes
+Workflow Map       —  all business processes end-to-end
+Permission Matrix  —  every role and what they can do
+Report List        —  standard reports the business needs
+Discovery Questions — what to ask before building
+Validation Rules   —  domain-specific data integrity rules
+```
 
-**Examples:** Hospital Management · LMS · School ERP · CRM · Accounting · POS · Inventory · Restaurant · Marketplace · Courier Management
+**Highest priority:** Hospital · LMS · School ERP · CRM · HRM · Accounting · POS · Restaurant · Inventory · Real Estate · SaaS · Marketplace · Courier · Manufacturing
 
 **Contributors Needed:** Solution Architects · System Analysts · Senior Developers
 
 ---
 
-### PILLAR 3 — Module Registry ⭐⭐⭐⭐⭐
+### 3. Problem-Solution Contributors ⭐⭐⭐⭐⭐
 
-**Purpose:** Build reusable business modules.
+**Purpose:** Build a searchable library of business problems with proven solutions. When RyaanCMS encounters a known problem, it applies the known fix — zero AI cost.
 
-**Goal: 1,000+ Production Ready Modules**
+**Each entry contains:**
+```
+Problem       —  what the business is experiencing
+Root Cause    —  why it happens
+Solution      —  what fixes it
+Success Rate  —  how often this solution works
+AI Cost       —  0 (solved from library)
+```
 
-**Examples:** Auth · RBAC · CRM · Inventory · POS · Accounting · Billing · Notifications · Reports · Payments · Media Manager
+**Examples:**
+```
+Low conversion rate     →  Checkout has too many steps   →  One-page checkout workflow
+High staff turnover     →  No performance tracking       →  HRM evaluation module
+Stock discrepancies     →  No audit trail on adjustments →  Inventory audit log workflow
+Missed follow-ups       →  No automated reminders        →  CRM follow-up automation
+Payment failures        →  Callback URL not whitelisted  →  Known fix in error library
+```
+
+**Contributors Needed:** Business Analysts · Operations Specialists · Senior Developers
+
+---
+
+### 4. Question Pack Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build discovery questionnaires for every domain. The right questions eliminate assumptions — they tell the system exactly what to build before a single line of code is generated.
+
+**Each Question Pack contains:**
+```
+Scope Questions     —  single location or multi-branch?
+Scale Questions     —  50 users or 50,000 users?
+Feature Questions   —  which modules are in scope?
+Integration Questions — which payment gateways, SMS providers?
+Compliance Questions —  GDPR? HIPAA? VAT-registered?
+Country Questions   —  which country? which currency? which legal framework?
+```
+
+**Examples:**
+
+```
+Ecommerce Pack:        Single vendor or multi-vendor?  COD supported?  bKash / Nagad / Stripe?
+Hospital Pack:         OPD only or inpatient too?  Pharmacy attached?  Lab integration?
+School Pack:           Single branch or multi-campus?  Online classes?  Parent portal needed?
+Accounting Pack:       Single currency or multi-currency?  Tax registered?  IFRS or local GAAP?
+```
+
+**Contributors Needed:** Business Analysts · Domain Experts · UX Researchers
+
+---
+
+## TIER 2 — Reusable Assets
+
+> Every asset built here prevents future AI calls. One module built once = zero AI cost for every future project that needs it.
+
+---
+
+### 5. Module Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build production-ready, tested, reusable Laravel modules. **Goal: 1,000+ modules.**
+
+**Highest priority modules:**
+
+| Category | Modules |
+|----------|---------|
+| Core | Auth · RBAC · Multi-tenant · Audit Log · File Manager · Settings |
+| Business | CRM · HRM · Accounting · Inventory · Billing · Subscription |
+| Commerce | POS · Cart · Checkout · Coupon · Returns · Multi-vendor |
+| Communication | Notifications · Email · SMS · WhatsApp · Push · In-app |
+| Operations | Approval Workflow · Task Manager · Scheduler · Calendar · Reports |
+| Integration | Payment Gateways · Webhooks · API Builder · Zapier-style Automations |
+
+**Every module must include:** migrations, seeders, policies, tests, documentation
 
 **Contributors Needed:** Laravel Developers · Backend Engineers
 
 ---
 
-### PILLAR 4 — Component Registry ⭐⭐⭐⭐⭐
+### 6. Component Contributors ⭐⭐⭐⭐⭐
 
-**Purpose:** Build reusable UI components.
+**Purpose:** Build reusable UI components using Alpine.js + Tailwind CSS. **Goal: 2,000+ components.**
 
-**Goal: 2,000+ Reusable Components**
+**Categories:**
 
-**Examples:** Forms · Tables · Cards · Charts · Dashboards · Calendars · Kanban · Timeline · Wizard · Notifications
+| Type | Components |
+|------|-----------|
+| Data Display | Table · Kanban · Timeline · Calendar · Tree View · Data Grid |
+| Charts | Bar · Line · Pie · Donut · Area · Gauge · Heatmap · Funnel |
+| Forms | Smart Form · Multi-step Wizard · Inline Edit · Drag-drop · File Upload |
+| Layout | Dashboard · Sidebar · Breadcrumb · Command Palette · Split View |
+| Feedback | Modal · Toast · Progress · Skeleton · Empty State · Alert |
+| Business | Invoice Preview · Receipt · Gantt · Org Chart · Status Board |
 
 **Contributors Needed:** Frontend Developers · UX Engineers · UI Engineers
 
 ---
 
-### PILLAR 5 — Workflow Registry ⭐⭐⭐⭐⭐
+### 7. Workflow Contributors ⭐⭐⭐⭐⭐
 
-**Purpose:** Create reusable business workflows.
+**Purpose:** Create reusable business workflows that can be dropped into any project. **Goal: 10,000+ workflows.**
 
-**Goal: 10,000+ Workflows**
-
-**Examples:** Lead Management · Purchase · Admission · Employee Onboarding · Invoice Approval · Restaurant Order
+**Examples:**
+```
+Approval workflows    —  purchase order · leave request · invoice · expense claim
+Operations workflows  —  admission · onboarding · offboarding · order fulfillment
+Sales workflows       —  lead nurture · deal pipeline · quote to cash · renewal
+Finance workflows     —  month-end close · payroll run · audit cycle · tax filing
+```
 
 **Contributors Needed:** Business Analysts · Operations Specialists
 
 ---
 
-### PILLAR 6 — Asset Coverage Engine ⭐⭐⭐⭐⭐
+### 8. Integration Pack Contributors ⭐⭐⭐⭐⭐
 
-**Purpose:** Before creating anything new — Search · Reuse · Extend · Compose
+**Purpose:** Build ready-to-drop integration connectors for the world's most common business services. An integration pack means zero custom development for common third-party connections.
 
-**Features:** Coverage Analysis · Asset Matching · Gap Detection · Reuse Scoring · Composition Engine
+**Priority integrations:**
 
-**Contributors Needed:** AI Engineers · System Architects · Search Engineers
-
----
-
-### PILLAR 7 — Asset Gap Intelligence ⭐⭐⭐⭐⭐
-
-**Purpose:** Identify what assets are missing across all projects.
-
-```yaml
-Domain:   Hospital
-Missing:  Veterinary Module
-Demand:   High
-Priority: High
-```
-
-**Contributors Needed:** Data Engineers · Platform Engineers
-
----
-
-### PILLAR 8 — Solution Memory ⭐⭐⭐⭐⭐
-
-**Purpose:** Never solve the same problem twice.
-
-Store: `Fixes · Decisions · Workarounds · Patterns · Lessons`
-
-> Every solution becomes reusable intelligence.
-
-**Contributors Needed:** Knowledge Engineers · Backend Engineers
-
----
-
-### PILLAR 9 — Error Library ⭐⭐⭐⭐⭐
-
-**Purpose:** Known Error → Known Cause → Known Fix
-
-**Goal: Zero AI Cost Bug Fixing**
-
-**Examples:** Inventory mismatch · Permission conflict · Payment callback failure · Route cache issue
-
-**Contributors Needed:** QA Engineers · Senior Developers
-
----
-
-### PILLAR 10 — Validation Library ⭐⭐⭐⭐⭐
-
-**Purpose:** Domain-specific validations.
-
-| Domain | Example Rule |
-|--------|-------------|
-| Hospital | Prescription requires a doctor |
-| LMS | Certificate requires course completion |
-| Accounting | Debit must equal credit |
-
-**Contributors Needed:** Domain Experts · Backend Engineers
-
----
-
-### PILLAR 11 — Success Pattern Database ⭐⭐⭐⭐⭐
-
-**Purpose:** Store and reuse successful implementations.
-
-**Examples:** Top Performing Ecommerce Checkout · Best LMS Completion Flow · Best CRM Pipeline
-
-> Reuse proven patterns. Never reinvent what has already worked.
-
-**Contributors Needed:** Growth Experts · Business Analysts
-
----
-
-### PILLAR 12 — Outcome Database ⭐⭐⭐⭐⭐
-
-**Purpose:** Measure real business impact.
-
-Track: `Revenue Increased · Cost Reduced · Time Saved · Conversion Improved · Customer Satisfaction`
-
-**Contributors Needed:** Data Analysts · Product Analysts
-
----
-
-### PILLAR 13 — Marketplace Ecosystem ⭐⭐⭐⭐⭐
-
-**Purpose:** Community-built assets for the platform.
-
-**Examples:** Blueprint Marketplace · Module Marketplace · Workflow Marketplace · Industry Brain Marketplace
-
-**Contributors Needed:** Full Stack Developers · Marketplace Engineers
-
----
-
-### PILLAR 14 — Documentation System ⭐⭐⭐⭐⭐
-
-**Purpose:** Every asset must have: `Documentation · Examples · Screenshots · Use Cases · Installation Guide · API Guide`
-
-**Contributors Needed:** Technical Writers · Developer Advocates
-
----
-
-### PILLAR 15 — Testing & Quality Framework ⭐⭐⭐⭐⭐
-
-**Purpose:** Every contribution must include: `Unit Tests · Feature Tests · Integration Tests · Performance Tests · Security Tests`
-
-**Contributors Needed:** QA Engineers · Automation Engineers
-
----
-
-### Contribution Priority Matrix
-
-| Priority | Pillars |
+| Category | Services |
 |----------|---------|
-| **Highest** | Domain Brains · Blueprint Registry · Module Registry · Asset Coverage Engine · Solution Memory · Error Library · Validation Library |
-| **Medium** | Workflow Registry · Marketplace · Outcome Database · Success Patterns |
-| **Long-Term** | Global Intelligence Network · Business DNA Engine · Autonomous Optimization Engine |
+| Payments (Asia) | bKash · Nagad · SSLCommerz · Razorpay · UPI · Paytm · GCash · OVO · Dana |
+| Payments (Global) | Stripe · PayPal · Square · Paystack · Flutterwave · Payfast |
+| Payments (MENA) | HyperPay · Mada · PayTabs · Tabby · Tamara · Fawry |
+| Communication | Twilio · Vonage · Firebase FCM · WhatsApp Business · Telegram Bot |
+| Email | SendGrid · Mailgun · Postmark · Amazon SES · Brevo |
+| Storage | AWS S3 · Cloudflare R2 · DigitalOcean Spaces · Backblaze |
+| Maps & Delivery | Google Maps · Mapbox · Pathao · Shohoz · Redx |
+| Identity | Google OAuth · Facebook · Apple Sign In · Bangladesh NID API |
+| Tax & Invoicing | ZATCA (Saudi) · MyInvois (Malaysia) · LHDN · HMRC MTD |
+
+**Contributors Needed:** Backend Engineers · API Integration Specialists
 
 ---
 
-### What We Do NOT Want
+### 9. Report Contributors ⭐⭐⭐⭐
+
+**Purpose:** Build reusable report templates for every domain — PDF, Excel, on-screen.
+
+**Categories:** Financial Reports · HR Reports · Inventory Reports · Sales Reports · Medical Reports · Academic Reports · Operational KPI Reports
+
+**Contributors Needed:** Business Analysts · Backend Engineers · Data Engineers
+
+---
+
+## TIER 3 — Intelligence Growth
+
+> These assets make the platform smarter. They reduce AI dependency permanently.
+
+---
+
+### 10. Error Library Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Document known errors with known fixes. **Goal: Zero AI cost bug fixing.**
+
+**Each entry:**
+```
+Error           —  exact error message or symptom
+Context         —  which domain / module / scenario it occurs in
+Root Cause      —  why it happens
+Fix             —  exact steps to resolve
+Prevention      —  how to avoid it in future builds
+```
+
+**Examples:**
+```
+SQLSTATE[23000]: Duplicate entry  →  Missing unique constraint check before insert  →  add exists() check
+419 Page Expired                  →  CSRF token missing in AJAX form                →  add X-CSRF-TOKEN header
+N+1 query on orders list          →  Missing eager load                             →  add with('items', 'customer')
+```
+
+**Contributors Needed:** QA Engineers · Senior Developers · Debuggers
+
+---
+
+### 11. Validation Library Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Domain-specific validation rules that enforce business integrity — not just data format.
+
+**Examples by domain:**
+
+| Domain | Rule |
+|--------|------|
+| Accounting | Debit total must equal credit total |
+| Hospital | Prescription must be authored by a licensed doctor |
+| LMS | Certificate can only issue after 100% course completion |
+| Ecommerce | Order cannot be fulfilled if stock is below reorder level |
+| Payroll | Salary cannot be processed if attendance is unapproved |
+| School | Student cannot sit exam if fees are outstanding |
+| Insurance | Claim cannot exceed policy coverage limit |
+| Microfinance | Loan disbursement requires group guarantee if over threshold |
+
+**Contributors Needed:** Domain Experts · Business Analysts · Backend Engineers
+
+---
+
+### 12. Compliance Pack Contributors ⭐⭐⭐⭐
+
+**Purpose:** Pre-built compliance rule sets for global regulations and industry standards. Compliance built in from the start — not bolted on at the end.
+
+| Pack | Covers |
+|------|--------|
+| GDPR | Data consent, right to erasure, data portability, breach notification |
+| HIPAA | PHI encryption, access logs, minimum necessary access, BAA |
+| PCI-DSS | Cardholder data, tokenization, transmission security |
+| SOC 2 | Availability, confidentiality, processing integrity |
+| IFRS / IAS | Financial statement structure, revenue recognition, asset treatment |
+| VAT/GST | Bangladesh VAT, India GST, UAE VAT, Saudi ZATCA, UK VAT, EU VAT |
+| PDPA | Thailand, Malaysia personal data protection |
+| OWASP | Top 10 security requirements enforced at code level |
+
+**Contributors Needed:** Legal Tech Experts · Compliance Specialists · Senior Engineers
+
+---
+
+### 13. Security Pack Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Pre-built security rule sets, audit templates, and automated security scanners.
+
+**Includes:**
+```
+Security Rules     —  input sanitization, output encoding, CSRF, rate limiting
+Audit Templates    —  who accessed what, when, from where — for every sensitive model
+Security Scanners  —  automated checks on every generated file before deployment
+Penetration Patterns — known attack vectors and how RyaanCMS blocks them
+```
+
+**Contributors Needed:** Security Engineers · Penetration Testers · Backend Engineers
+
+---
+
+## TIER 4 — AI Cost Reduction
+
+> These are the systems that replace AI calls with intelligence. Every improvement here directly reduces platform running cost for every user.
+
+---
+
+### 14. Solution Memory Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Every solved problem becomes a reusable asset. Never solve the same problem twice — for anyone.
+
+**Store:**
+```
+Fixes         —  how a specific bug was resolved, with context
+Solutions     —  how a business requirement was implemented
+Lessons       —  what was learned from a difficult build
+Patterns      —  architectural decisions that worked well
+Workarounds   —  temporary solutions with technical debt notes
+```
+
+> **Compound effect:** 10,000 solution records = 10,000 fewer AI calls per month across all users.
+
+**Contributors Needed:** Senior Developers · Architects · Knowledge Engineers
+
+---
+
+### 15. Asset Coverage Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Improve the engine that measures how much of a request can be built from existing assets. Higher coverage = lower AI cost.
+
+**Build:**
+```
+Asset Matching Algorithms  —  smarter matching between prompts and existing assets
+Coverage Scoring           —  more accurate % coverage calculation
+Gap Detection              —  identify missing assets earlier and more precisely
+Reuse Scoring              —  rank assets by quality, reuse count, success rate
+```
+
+**Contributors Needed:** AI Engineers · Search Engineers · ML Engineers
+
+---
+
+### 16. Asset Composer Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build the intelligence that composes entirely new business solutions from existing domain assets — without generating new blueprints.
+
+**Example:**
+```
+Hospital + CRM + Inventory + Accounting + WhatsApp
+→ Asset Composer detects all 5 domains
+→ Maps shared entities (patient = contact, billing = invoice)
+→ Resolves conflicts (two billing modules → one unified billing)
+→ Produces unified data model
+→ Assembles complete platform — zero new blueprint required
+```
+
+**Build:**
+```
+Entity Resolution      —  map equivalent entities across domains
+Conflict Resolution    —  resolve module overlaps intelligently
+Schema Merging         —  unify database schemas across composed domains
+Dependency Graph       —  ensure correct module load order
+Integration Mapping    —  wire composed domains together automatically
+```
+
+**Contributors Needed:** System Architects · AI Engineers · Graph Algorithm Engineers
+
+---
+
+## TIER 5 — Data & Analytics
+
+---
+
+### 17. Outcome Database Contributors ⭐⭐⭐⭐
+
+**Purpose:** Measure and store the real business impact of every system RyaanCMS builds.
+
+**Track:**
+```
+Revenue impact    —  did the system increase revenue? by how much?
+Cost reduction    —  what manual work was eliminated?
+Time saved        —  hours saved per week vs manual processes
+Conversion lift   —  did ecommerce conversion improve?
+Error reduction   —  how many bugs caught by domain rules vs AI-generated code?
+```
+
+> This data proves the value of intelligence-first architecture over AI-first generation.
+
+**Contributors Needed:** Data Analysts · Product Analysts · Growth Engineers
+
+---
+
+### 18. Success Pattern Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Extract and document the patterns behind the best-performing implementations.
+
+**Examples:**
+```
+Best Ecommerce Checkout Flow     —  fields, steps, trust signals, payment options
+Best LMS Completion Flow         —  drip content, quiz gates, certificate trigger
+Best CRM Pipeline Structure      —  stages, automation rules, follow-up cadence
+Best Hospital OPD Flow           —  registration, triage, consultation, prescription
+Best SaaS Onboarding Flow        —  signup, setup wizard, first value moment, retention
+```
+
+**Contributors Needed:** Business Analysts · UX Researchers · Growth Experts
+
+---
+
+## TIER 6 — Marketplace
+
+---
+
+### 19. Marketplace Asset Creators ⭐⭐⭐⭐⭐
+
+**Purpose:** Build premium, community-vetted assets for the RyaanCMS marketplace — blueprints, modules, workflows, and industry packs that others can install in one click.
+
+**Create:**
+```
+Industry Blueprint Packs   —  complete domain solutions ready to deploy
+Premium Module Bundles      —  curated module collections for specific verticals
+Workflow Libraries          —  complete business process automations
+Country Intelligence Packs  —  localized rules, payments, tax, legal for one country
+White-Label Templates       —  ready-to-brand UI themes for agencies
+```
+
+**Contributors Needed:** Full Stack Developers · Laravel Developers · UI Engineers
+
+---
+
+### 20. Marketplace Review Contributors ⭐⭐⭐⭐
+
+**Purpose:** Review every community asset before it enters the marketplace. Maintain quality that makes RyaanCMS's marketplace trustworthy.
+
+**Review checklist:**
+```
+Security    —  no vulnerabilities, no hardcoded credentials, no open redirects
+Performance —  no N+1 queries, no unindexed queries, no memory leaks
+Quality     —  follows RyaanCMS conventions, has tests, has documentation
+Business    —  solves a real problem, not a duplicate of an existing asset
+```
+
+**Contributors Needed:** Security Engineers · Senior Developers · QA Engineers
+
+---
+
+## TIER 7 — Developer Experience
+
+---
+
+### 21. Documentation Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Every asset must be documented before it can be reused. Undocumented assets are invisible assets.
+
+**Every contribution must include:**
+```
+README          —  what it does, when to use it, what it requires
+API Reference   —  all public methods, parameters, return types
+Usage Examples  —  at least 3 real-world usage examples
+Screenshots     —  what the UI looks like
+Changelog       —  what changed between versions
+```
+
+**Contributors Needed:** Technical Writers · Developer Advocates · Video Creators
+
+---
+
+### 22. Testing Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Every module, workflow, and component must have tests. Untested code cannot be trusted as a reusable asset.
+
+**Required for every asset:**
+```
+Unit Tests         —  every method, every edge case
+Feature Tests      —  every user-facing flow, happy path + failure paths
+Integration Tests  —  with real database, real filesystem, real queues
+Security Tests     —  authorization, input validation, injection attempts
+Performance Tests  —  query count, response time under load
+```
+
+**Contributors Needed:** QA Engineers · Automation Engineers · Backend Engineers
+
+---
+
+### 23. DevOps & Infrastructure Contributors ⭐⭐⭐⭐
+
+**Purpose:** Make RyaanCMS easy to deploy anywhere — from shared hosting to enterprise Kubernetes clusters.
+
+**Build:**
+```
+Docker Images          —  development, staging, production configurations
+Docker Compose Stacks  —  full local development environments in one command
+CI/CD Pipelines        —  GitHub Actions, GitLab CI, Bitbucket Pipelines
+Kubernetes Manifests   —  production-grade deployments with autoscaling
+Server Templates       —  Nginx, Apache, Caddy configurations
+Supervisor Configs     —  queue workers, scheduler, websockets
+Monitoring Packs       —  Prometheus + Grafana dashboards for RyaanCMS metrics
+```
+
+**Contributors Needed:** DevOps Engineers · SREs · Cloud Engineers
+
+---
+
+## TIER 8 — Future Moat
+
+> These are the hardest to build but create the deepest competitive advantage.
+
+---
+
+### 24. Business DNA Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Extract the DNA of successful businesses — the unique combination of rules, workflows, data structures, and decisions that make them work. This DNA becomes a reusable template for entire business categories.
+
+**Extract:**
+```
+Retail DNA         —  pricing logic, promotions engine, loyalty mechanics, returns policy
+Hospital DNA       —  patient journey, clinical workflow, billing rules, pharmacy logic
+LMS DNA            —  learning path logic, engagement mechanics, certification rules
+SaaS DNA           —  subscription logic, trial conversion, churn prevention, usage limits
+Logistics DNA      —  routing logic, driver dispatch, SLA rules, proof of delivery
+```
+
+**Contributors Needed:** Business Architects · Domain Experts · Solution Designers
+
+---
+
+### 25. Industry Intelligence Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build deep, country-specific industry intelligence that goes beyond generic blueprints.
+
+**Examples:**
+```
+Bangladesh Ecommerce Intelligence  —  bKash/Nagad flows, COD dominance, Dhaka delivery zones, Bengali UX
+Malaysia SME Intelligence          —  SST rules, MyInvois e-invoice, Maybank/CIMB, BM + English
+US SaaS Intelligence               —  Stripe billing, CCPA, SOC2, AWS deployment, USD pricing
+Saudi Arabia Intelligence          —  ZATCA Phase 2, Mada/STC Pay, Arabic RTL, Hijri calendar, VAT 15%
+Nigeria Fintech Intelligence       —  Paystack, Flutterwave, USSD fallback, offline-first design
+India Retail Intelligence          —  GST with HSN codes, UPI, Razorpay, INR rounding rules
+```
+
+**Contributors Needed:** Country Experts · Regional Business Analysts · Localization Specialists
+
+---
+
+### 26. Country Intelligence Pack Contributors ⭐⭐⭐⭐⭐
+
+**Purpose:** Build complete country packs that auto-apply the right payments, tax rules, legal requirements, currency handling, date formats, and UX patterns for any country.
+
+**Each Country Pack contains:**
+```
+Payment Gateways   —  which gateways are dominant and how to configure them
+Tax Rules          —  VAT/GST rates, invoice requirements, filing frequencies
+Legal Requirements —  data protection laws, consumer rights, mandatory disclosures
+Currency           —  symbol, decimal places, thousand separator, rounding rules
+Date & Time        —  format, calendar system (Gregorian / Hijri / Bengali), timezone
+Language & UX      —  RTL/LTR, preferred font, number formatting, address format
+Compliance         —  which regulations apply and what they require
+```
+
+**Priority countries:** Bangladesh · India · Pakistan · Nigeria · Kenya · Egypt · Saudi Arabia · UAE · Malaysia · Indonesia · Philippines · Brazil · Mexico · South Africa
+
+**Contributors Needed:** Country Experts · Localization Engineers · Legal Advisors
+
+---
+
+## TIER 9 — Community
+
+---
+
+### 27. Agency Contributors ⭐⭐⭐⭐
+
+**Purpose:** Build guides and playbooks for agencies implementing RyaanCMS for clients.
+
+**Create:**
+```
+Implementation Guides  —  how to scope, build, and deliver a RyaanCMS project
+Deployment Guides      —  production deployment on cPanel, VPS, cloud
+Client Playbooks       —  what to ask clients, how to structure projects, how to price
+Case Studies           —  real implementations with outcomes and lessons
+Agency Starter Kits    —  pre-configured setups for common agency project types
+```
+
+**Contributors Needed:** Agency Founders · Project Managers · Solution Consultants
+
+---
+
+### 28. Translation & Localization Contributors ⭐⭐⭐⭐
+
+**Purpose:** Make RyaanCMS accessible to builders everywhere.
+
+**Languages needed:**
+```
+Bangla (বাংলা)     Arabic (العربية)    Hindi (हिन्दी)
+Spanish (Español)   French (Français)   Indonesian (Bahasa)
+Turkish (Türkçe)    Urdu (اردو)         Swahili               Portuguese
+```
+
+**Includes:** UI strings · Documentation · Error messages · Validation messages · Email templates
+
+**Contributors Needed:** Native speakers · Translators · Localization Engineers
+
+---
+
+## Contribution Index
+
+| # | Area | Tier | Stars | Contributor Type |
+|---|------|------|-------|-----------------|
+| 01 | Domain Brains | Intelligence | ⭐⭐⭐⭐⭐ | Business / Domain Expert |
+| 02 | Blueprint Registry | Intelligence | ⭐⭐⭐⭐⭐ | Architect / Analyst |
+| 03 | Problem-Solution Library | Intelligence | ⭐⭐⭐⭐⭐ | Business / Technical |
+| 04 | Question Packs | Intelligence | ⭐⭐⭐⭐⭐ | Business / UX |
+| 05 | Module Registry | Technical | ⭐⭐⭐⭐⭐ | Laravel Developer |
+| 06 | Component Registry | Technical | ⭐⭐⭐⭐⭐ | Frontend Developer |
+| 07 | Workflow Registry | Business | ⭐⭐⭐⭐⭐ | Business Analyst |
+| 08 | Integration Packs | Technical | ⭐⭐⭐⭐⭐ | Backend Engineer |
+| 09 | Report Templates | Technical | ⭐⭐⭐⭐ | Backend / Analyst |
+| 10 | Error Library | Intelligence | ⭐⭐⭐⭐⭐ | QA / Senior Dev |
+| 11 | Validation Library | Intelligence | ⭐⭐⭐⭐⭐ | Domain Expert |
+| 12 | Compliance Packs | Business | ⭐⭐⭐⭐ | Legal Tech / Engineer |
+| 13 | Security Packs | Technical | ⭐⭐⭐⭐⭐ | Security Engineer |
+| 14 | Solution Memory | Intelligence | ⭐⭐⭐⭐⭐ | Knowledge Engineer |
+| 15 | Asset Coverage Engine | Technical | ⭐⭐⭐⭐⭐ | AI / Search Engineer |
+| 16 | Asset Composer | Technical | ⭐⭐⭐⭐⭐ | System Architect |
+| 17 | Outcome Database | Data | ⭐⭐⭐⭐ | Data Analyst |
+| 18 | Success Patterns | Business | ⭐⭐⭐⭐⭐ | Business / Growth |
+| 19 | Marketplace Assets | Ecosystem | ⭐⭐⭐⭐⭐ | Full Stack Developer |
+| 20 | Marketplace Reviews | Ecosystem | ⭐⭐⭐⭐ | Senior Developer |
+| 21 | Documentation | Ecosystem | ⭐⭐⭐⭐⭐ | Technical Writer |
+| 22 | Testing Framework | Technical | ⭐⭐⭐⭐⭐ | QA Engineer |
+| 23 | DevOps & Infrastructure | Technical | ⭐⭐⭐⭐ | DevOps Engineer |
+| 24 | Business DNA | Intelligence | ⭐⭐⭐⭐⭐ | Business Architect |
+| 25 | Industry Intelligence | Business | ⭐⭐⭐⭐⭐ | Country Expert |
+| 26 | Country Intelligence Packs | Business | ⭐⭐⭐⭐⭐ | Regional Expert |
+| 27 | Agency Guides | Ecosystem | ⭐⭐⭐⭐ | Agency / Consultant |
+| 28 | Translation & Localization | Ecosystem | ⭐⭐⭐⭐ | Native Speaker |
+
+---
+
+## Good First Contributions
+
+New to RyaanCMS? These five areas deliver the highest platform value and require no prior knowledge of the codebase — just domain expertise.
+
+| # | Area | Why start here |
+|---|------|---------------|
+| 1 | **Domain Brains** | Pure business knowledge — no code required. Your industry expertise directly becomes platform intelligence. |
+| 2 | **Blueprints** | Structured design work. Model a business system you know well. Immediately reusable by thousands of builders. |
+| 3 | **Question Packs** | Write the right discovery questions for one domain. Eliminates assumption-based builds for everyone. |
+| 4 | **Error Library** | Document a bug you've fixed. Every entry saves future developers from solving the same problem. |
+| 5 | **Validation Rules** | Write domain rules you know from experience. A single validation rule can prevent entire categories of business logic errors. |
+
+> These five areas will transform RyaanCMS from an AI Builder into a **Business Intelligence Operating System** faster than any code contribution.
+
+---
+
+## Contribution Priority
+
+| Priority | Contribution Areas |
+|----------|-------------------|
+| **Critical** | Domain Brains · Blueprints · Question Packs · Error Library · Validation Rules · Country Intelligence Packs |
+| **High** | Module Registry · Integration Packs · Workflow Registry · Solution Memory · Business DNA |
+| **Medium** | Component Registry · Success Patterns · Compliance Packs · Security Packs · Outcome Database |
+| **Long-Term** | Asset Composer · Industry Intelligence · Marketplace · DevOps Templates · Global Intelligence Network |
+
+---
+
+## What We Do NOT Want
 
 ```
-Random Features          Duplicate Modules         Hardcoded Business Logic
-Unmaintainable Code      Vendor Lock-in            AI-First Design
+Random features with no intelligence value     Duplicate modules already in the registry
+Hardcoded business logic that can't be reused  AI-generated content without domain expertise
+Vendor lock-in or proprietary dependencies    Contributions without tests or documentation
 ```
 
 ---
 
-### Contributor Golden Rule
+## Contributor Golden Rule
 
-Before building anything:
+Before building anything new:
 
 ```
-1. Search Existing Assets
-2. Reuse Existing Assets
-3. Extend Existing Assets
-4. Compose Existing Assets
-5. Create New Asset Only If Necessary
+1. Search  —  does this asset already exist?
+2. Reuse   —  can an existing asset solve this directly?
+3. Extend  —  can an existing asset be extended to solve this?
+4. Compose —  can existing assets be combined to solve this?
+5. Create  —  only if none of the above applies, create a new asset
 ```
 
 ---
 
-### Final Goal
+## Final Goal
 
 ```
-10,000 Reusable Assets
-100+   Domain Brains
-1,000+ Modules
-10,000+ Workflows
-Millions of Reusable Business Decisions
+10,000+  Reusable Assets
+100+     Domain Brains (every major industry in every major country)
+1,000+   Production-Ready Modules
+10,000+  Business Workflows
+200+     Country & Region Intelligence Packs
+Millions of Reusable Business Decisions stored in Solution Memory
 ```
 
 > **Build Once. Reuse Forever.**
-
-Every contribution should increase platform intelligence, reduce future development effort, and move RyaanCMS closer to becoming the world's largest open-source Business Operating System.
+> Every contribution increases platform intelligence, reduces future development effort, and moves RyaanCMS closer to becoming the world's largest open-source Business Operating System.
 
 ---
 
 ### How to Contribute
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/domain-brain-hospital`)
+3. Commit your changes (`git commit -m 'feat: add hospital domain brain v1'`)
+4. Push to the branch (`git push origin feature/domain-brain-hospital`)
 5. Open a Pull Request
 
-Please open an issue first to discuss larger changes.
+> Open an issue first to discuss larger contributions. Join the discussion in [GitHub Discussions](https://github.com/RyaanCMS/RyaanCMS/discussions).
 
 ---
 
