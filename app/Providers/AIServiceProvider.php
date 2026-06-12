@@ -18,6 +18,7 @@ use App\Services\AI\MultilingualNormalizer;
 use App\Services\AI\Pipeline\PipelineOrchestrator;
 use App\Services\AI\Pipeline\BuildValidator;
 use App\Services\AI\SeniorDevKnowledgeBase;
+use App\Services\AI\AssetCoverageEngine;
 use App\Services\AI\SmartCorrector;
 use App\Services\AI\WisdomEngine;
 use App\Services\Credits\CreditPricingService;
@@ -43,6 +44,7 @@ class AIServiceProvider extends ServiceProvider
         $this->app->singleton(ConfidenceEngine::class, fn() => new ConfidenceEngine());
 
         $this->app->singleton(SeniorDevKnowledgeBase::class, fn() => new SeniorDevKnowledgeBase());
+        $this->app->singleton(AssetCoverageEngine::class, fn() => new AssetCoverageEngine());
         $this->app->singleton(SmartCorrector::class, fn() => new SmartCorrector());
         $this->app->singleton(WisdomEngine::class, fn() => new WisdomEngine());
         $this->app->singleton(KnowledgeBaseService::class, fn($app) => new KnowledgeBaseService(
@@ -88,6 +90,7 @@ class AIServiceProvider extends ServiceProvider
             $app->make(IntelligenceGate::class),
             $app->make(RyaanCreditsService::class),
             $app->make(CreditPricingService::class),
+            $app->make(AssetCoverageEngine::class),
         ));
 
         $this->app->singleton(PipelineOrchestrator::class, fn($app) => new PipelineOrchestrator(

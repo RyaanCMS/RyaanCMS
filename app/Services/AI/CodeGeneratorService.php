@@ -13,6 +13,7 @@ use App\Services\AI\DesignVariantService;
 use App\Services\AI\KnowledgeBaseService;
 use App\Services\AI\SeniorDevKnowledgeBase;
 use App\Services\AI\WisdomEngine;
+use App\Services\AI\AssetCoverageEngine;
 use App\Services\Credits\CreditPricingService;
 use App\Services\Credits\IntelligenceGate;
 use App\Services\Credits\RyaanCreditsService;
@@ -34,6 +35,7 @@ class CodeGeneratorService
         protected ?IntelligenceGate      $gate = null,
         protected ?RyaanCreditsService   $credits = null,
         protected ?CreditPricingService  $pricing = null,
+        protected ?AssetCoverageEngine   $coverageEngine = null,
     ) {}
 
     /**
@@ -2880,6 +2882,26 @@ HTML;
             $useBlueprintPath = $isFullSystem
                 || $confidence >= 75
                 || ($confidence >= 50 && $this->hasBuildIntent($lowerPrompt));
+
+            // Asset Coverage Engine — analyze what we already have, detect gaps, record demand
+            $coverageResult = null;
+            if ($useBlueprintPath && $this->coverageEngine) {
+                $coverageResult = $this->coverageEngine->analyze($prompt, $project);
+                $pct = $coverageResult['coverage'];
+                $icon = $pct >= 90 ? '✅' : ($pct >= 70 ? '🔄' : '🔧');
+                $onEvent([
+                    'type' => 'activity',
+                    'icon' => $icon,
+                    'text' => "Asset coverage: {$pct}% · {$coverageResult['matched_count']} existing · {$coverageResult['gap_count']} new · {$coverageResult['assembly_hint']}",
+                ]);
+                if (!empty($coverageResult['gaps'])) {
+                    $this->coverageEngine->recordGaps(
+                        $coverageResult['gaps'],
+                        $coverageResult['domain'],
+                        $project
+                    );
+                }
+            }
 
             // Intelligence Gate: pre-flight credit check for Credits-tier users
             if ($this->gate && $this->pricing) {

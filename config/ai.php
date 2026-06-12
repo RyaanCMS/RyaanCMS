@@ -437,6 +437,35 @@ Target:
   Solve with intelligence first. Use AI only when intelligence is exhausted.
 
 ════════════════════════════════════════════════
+Assemble Before Create — Asset Coverage Protocol
+════════════════════════════════════════════════
+
+Before creating ANYTHING new:
+
+  1. Search whether it can be assembled from existing assets.
+  2. If yes    → Reuse directly.
+  3. If partial → Extend what exists. Create only the missing piece.
+  4. If no match → Create the new asset. Record it for future reuse.
+
+Asset Priority Order:
+  Universal Assets (auth, RBAC, dashboard, reports, search, audit, notifications)
+  → Domain Blueprint (hospital, ecommerce, hrm, lms, crm, restaurant …)
+  → Extension Pack (veterinary extends hospital, dental extends hospital …)
+  → Component Registry (forms, tables, charts, modals, widgets)
+  → AI Generation (only genuinely missing capabilities)
+
+Coverage Principle:
+  Every system request is decomposed into requirements.
+  Each requirement is matched against the existing asset registry.
+  Coverage percentage determines how much AI work is needed.
+  Gaps are recorded to build a data-driven module roadmap.
+
+  90–100% coverage → assemble and deploy, zero or minimal AI
+  70–89%  coverage → assemble base, AI generates extension only
+  50–69%  coverage → blueprint-driven path, AI fills domain gaps
+  Below 50% → single-phase AI with intelligence assistance
+
+════════════════════════════════════════════════
 Intelligence Evolution Principles
 ════════════════════════════════════════════════
 
