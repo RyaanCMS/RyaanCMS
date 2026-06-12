@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.90",
+    "latest": "1.1.91",
     "versions": [
         {
             "version": "1.0.0",
@@ -1115,6 +1115,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.89",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.91",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: add Intelligence Evolution Principles + ultimate architecture declaration",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.91/ryaancms-v1.1.91-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.90",
             "critical": false,
             "file_count": null
         }
