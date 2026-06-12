@@ -2,6 +2,7 @@
 
 namespace App\Services\AI\Pipeline;
 
+use App\Models\OutcomeRecord;
 use App\Models\PipelineRun;
 use App\Models\Project;
 use App\Models\User;
@@ -56,7 +57,7 @@ class PipelineOrchestrator
         $emit(['type' => 'pipeline_start', 'run_id' => $run->id, 'total_agents' => 10]);
 
         // Hydrate the context with the original prompt + any stored config
-        $context  = array_merge(['prompt' => $run->prompt], $run->context ?? []);
+        $context  = array_merge(['prompt' => $run->prompt, 'pipeline_run_id' => $run->id], $run->context ?? []);
         $provider = $context['provider'] ?? null;
         $model    = $context['model']    ?? null;
 
@@ -122,8 +123,41 @@ class PipelineOrchestrator
 
             $run->markCompleted();
 
+            $freshRun     = $run->fresh();
+            $buildSeconds = $freshRun->started_at
+                ? (int) $freshRun->started_at->diffInSeconds(now())
+                : 0;
+            $qualityReport = $context['quality_report'] ?? null;
+            $aiCostEst   = round(($freshRun->total_tokens ?? 0) * 0.000003, 6);
+            $tokensSaved = (int) ($context['tokens_saved_total'] ?? 0);
+            $aiCostSaved = round($tokensSaved * 0.000003, 6);
+
+            // Record business outcome for trend analysis and reporting
+            try {
+                OutcomeRecord::create([
+                    'project_id'       => $run->project_id,
+                    'pipeline_run_id'  => $run->id,
+                    'user_id'          => $run->user_id,
+                    'domain'           => $context['kb_app_type'] ?? 'general',
+                    'files_generated'  => $freshRun->total_files ?? 0,
+                    'tokens_used'      => $freshRun->total_tokens ?? 0,
+                    'ai_cost_estimate' => $aiCostEst,
+                    'ai_cost_saved'    => $aiCostSaved,
+                    'build_time_seconds' => $buildSeconds,
+                    'quality_score'    => $qualityReport['scores']['overall'] ?? null,
+                    'quality_grade'    => $qualityReport['grade'] ?? null,
+                    'blueprint_source' => $context['blueprint_source'] ?? 'ai_discovery',
+                    'modules_used'     => $context['product']['modules'] ?? null,
+                    'components_reused'=> $context['components_used'] ?? null,
+                    'rules_applied'    => $context['rules_applied'] ?? null,
+                    'confidence_scores'=> $context['confidence_scores'] ?? null,
+                    'ai_was_used'      => true,
+                ]);
+            } catch (\Throwable) {
+                // Non-fatal
+            }
+
             // Record pipeline success as a lesson — builds organizational memory
-            $freshRun = $run->fresh();
             $this->wisdomEngine->recordLesson([
                 'project_id'       => $run->project_id,
                 'user_id'          => $run->user_id,

@@ -2,6 +2,7 @@
 
 namespace App\Services\AI\Pipeline\Agents;
 
+use App\Models\EvaluationScore;
 use App\Models\Project;
 use App\Services\AI\Pipeline\BaseAgent;
 
@@ -86,6 +87,21 @@ SUMMARY;
             $report['scores']['overall'] = (int) round(
                 ($s['ui'] + $s['backend'] + $s['security'] + $s['performance']) / 4
             );
+        }
+
+        // Persist evaluation scores to DB for history and trend analysis
+        try {
+            EvaluationScore::fromQualityReport(
+                projectId:     $project->id,
+                userId:        $project->user_id,
+                report:        $report,
+                pipelineRunId: $context['pipeline_run_id'] ?? null,
+                domain:        $context['kb_app_type'] ?? 'general',
+                totalFiles:    $totalFiles,
+                tokensUsed:    $context['total_tokens_used'] ?? 0,
+            );
+        } catch (\Throwable) {
+            // Non-fatal — scoring history is best-effort
         }
 
         return ['quality_report' => $report];
