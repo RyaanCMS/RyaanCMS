@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.83",
+    "latest": "1.1.84",
     "versions": [
         {
             "version": "1.0.0",
@@ -1032,6 +1032,18 @@
             "min_php": "8.2",
             "min_from_version": "1.1.82",
             "critical": true,
+            "file_count": null
+        },
+        {
+            "version": "1.1.84",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "fix: update download crash + mobile header responsive\n\nUpdateService: fix fclose() double-close crash in downloadZip(). Guzzle closes\nthe file resource after writing via PSR-7 stream lifecycle, so our finally block\ncalling fclose() again threw \"supplied resource is not a valid stream resource\",\naborting every update. Fixed by passing the destination path as a string sink so\nGuzzle manages the file handle entirely — no manual fopen/fclose needed.\n\nwelcome.blade.php: fully responsive mobile hamburger menu. Replaced the\nbtn-mobile-menu/!important hack with clean Tailwind flex/md:hidden. Mobile\ndropdown now includes GitHub link, Download button (with version number), and\nSign In. Pro CTA text shortened to \"Get Pro\" on small screens to fit the bar.",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.84/ryaancms-v1.1.84-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.83",
+            "critical": false,
             "file_count": null
         }
     ],
