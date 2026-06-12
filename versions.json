@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.87",
+    "latest": "1.1.88",
     "versions": [
         {
             "version": "1.0.0",
@@ -1079,6 +1079,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.86",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.88",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "fix: resolve Undefined variable $activeProviders on AI builder page",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.88/ryaancms-v1.1.88-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.87",
             "critical": false,
             "file_count": null
         }
