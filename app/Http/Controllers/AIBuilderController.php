@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AIConversation;
+use App\Models\PipelineRun;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectModule;
@@ -11,6 +12,7 @@ use App\Services\AI\BlueprintService;
 use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\MetadataCrudGenerator;
+use App\Services\AI\Pipeline\PipelineOrchestrator;
 use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -32,12 +34,13 @@ class AIBuilderController extends Controller
     private const MAX_TEMPLATE_SOURCE_CHARS = 12000;
 
     public function __construct(
-        protected AIManager        $aiManager,
+        protected AIManager           $aiManager,
         protected CodeGeneratorService $codeGenerator,
-        protected BlueprintService $blueprintService,
+        protected BlueprintService    $blueprintService,
         protected MetadataCrudGenerator $crudGenerator,
-        protected ComponentRegistry $componentRegistry,
-        protected TemplateRegistry $templateRegistry,
+        protected ComponentRegistry   $componentRegistry,
+        protected TemplateRegistry    $templateRegistry,
+        protected PipelineOrchestrator $pipeline,
     ) {}
 
     public function show(Request $request, Project $project)
@@ -172,6 +175,36 @@ class AIBuilderController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Auto-detect prompts that describe a complete application build.
+     * These are routed through the 10-agent autonomous pipeline.
+     * Simple edits / follow-up messages use the standard single-pass generator.
+     */
+    private function isComplexBuildPrompt(string $prompt): bool
+    {
+        $words = str_word_count($prompt);
+        if ($words < 15) {
+            return false;
+        }
+
+        $lower = strtolower($prompt);
+        $signals = [
+            'build', 'create', 'make', 'develop', 'generate',
+            'full app', 'complete app', 'entire', 'platform', 'system',
+            'saas', 'multi-tenant', 'e-commerce', 'ecommerce',
+            'marketplace', 'crm', 'erp', 'cms', 'lms',
+            'admin panel', 'dashboard', 'portal', 'management system',
+        ];
+
+        foreach ($signals as $signal) {
+            if (str_contains($lower, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function extractFileContent(UploadedFile $file): string
@@ -534,6 +567,7 @@ PROMPT;
             'provider'        => ['nullable', 'string'],
             'model'           => ['nullable', 'string'],
             'template_key'    => ['nullable', 'string', Rule::in(array_keys($this->builderTemplates($project)))],
+            'use_pipeline'    => ['nullable', 'boolean'],
         ]);
 
         $provider = $request->input('provider', 'claude');
@@ -566,7 +600,12 @@ PROMPT;
             : $userMessage;
         $visiblePrompt = $this->visiblePromptWithTemplate($project, $userMessage, $request->input('template_key'));
 
-        return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt) {
+        $usePipeline = $request->boolean('use_pipeline')
+            || $this->isComplexBuildPrompt($userMessage);
+
+        return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt, $usePipeline, $userMessage) {
+            ignore_user_abort(true);
+
             $emit = function (array $event) {
                 echo 'data: ' . json_encode($event) . "\n\n";
                 if (ob_get_level() > 0) ob_flush();
@@ -574,16 +613,32 @@ PROMPT;
             };
 
             try {
-                $this->codeGenerator->streamGenerate(
-                    prompt:       $prompt,
-                    project:      $project,
-                    user:         $user,
-                    conversation: $conversation,
-                    onEvent:      $emit,
-                    provider:     $provider,
-                    model:        $request->model,
-                    visiblePrompt: $visiblePrompt,
-                );
+                if ($usePipeline) {
+                    // Route through the full 10-agent autonomous pipeline
+                    $run = PipelineRun::create([
+                        'project_id' => $project->id,
+                        'user_id'    => $user->id,
+                        'prompt'     => $userMessage,
+                        'status'     => 'pending',
+                        'context'    => [
+                            'provider'         => $provider,
+                            'model'            => $request->model,
+                            'conversation_id'  => $conversation->id,
+                        ],
+                    ]);
+                    $this->pipeline->run($run, $emit);
+                } else {
+                    $this->codeGenerator->streamGenerate(
+                        prompt:        $prompt,
+                        project:       $project,
+                        user:          $user,
+                        conversation:  $conversation,
+                        onEvent:       $emit,
+                        provider:      $provider,
+                        model:         $request->model,
+                        visiblePrompt: $visiblePrompt,
+                    );
+                }
             } catch (\Throwable $e) {
                 $emit(['type' => 'error', 'message' => $e->getMessage()]);
             }

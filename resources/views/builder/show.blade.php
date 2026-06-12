@@ -800,6 +800,18 @@
                             </svg>
                             Stop
                         </button>
+                        <!-- Pipeline Mode toggle -->
+                        <button @click="usePipeline = !usePipeline" x-show="!isThinking"
+                                :title="usePipeline ? 'Pipeline Mode ON — 10-agent autonomous build loop' : 'Pipeline Mode OFF — click to enable full agent pipeline'"
+                                class="rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all flex items-center gap-1 border"
+                                :style="usePipeline
+                                    ? 'background:#f0fdf4;color:#15803d;border-color:#86efac;'
+                                    : 'background:#f8fafc;color:#94a3b8;border-color:#e2e8f0;'">
+                            <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span x-text="usePipeline ? 'Pipeline ON' : 'Pipeline'"></span>
+                        </button>
                         <!-- Send / Queue button -->
                         <button @click="sendMessage()"
                                 :disabled="!chatInput.trim() && !attachments.length && !urlPreview"
@@ -1135,6 +1147,7 @@ function builderApp() {
         providerModels: @json($providerModelsMap),
         providerDefaults: @json($providerDefaultsMap),
         promptQueue: [],
+        usePipeline: false,
         conversationId: {{ $conversation->id }},
         projectId: {{ $project->id }},
         projectName: @json($project->name),
@@ -2074,6 +2087,7 @@ window.addEventListener('unhandledrejection', function(e) {
                         provider:        this.selectedProvider,
                         model:           this.selectedModel,
                         template_key:    this.selectedTemplateKey || null,
+                        use_pipeline:    this.usePipeline,
                     }),
                     signal: this._streamAbortCtrl.signal,
                 });
@@ -2189,6 +2203,67 @@ window.addEventListener('unhandledrejection', function(e) {
 
             } else if (event.type === 'srs') {
                 t.srsContent = event.content || '';
+
+            // ── Pipeline-specific events ────────────────────────────────────
+            } else if (event.type === 'pipeline_start') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                t.activities.push({ icon: '🚀', text: `Autonomous pipeline started — ${event.total_agents} agents`, status: 'running' });
+                this.scrollChat();
+
+            } else if (event.type === 'phase') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                const phaseIcons = { PLAN: '📋', GENERATE: '⚙️', RUN: '🔍', RETRY: '🔄', TEST: '🧪', REVIEW: '✅' };
+                t.activities.push({ icon: phaseIcons[event.phase] || '▶️', text: event.label || event.phase, status: 'running' });
+                this.scrollChat();
+
+            } else if (event.type === 'agent_start') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                t.activities.push({ icon: event.icon || '🤖', text: `[${event.agent_index}/10] ${event.agent_name} — ${event.description || ''}`, status: 'running' });
+                this.scrollChat();
+
+            } else if (event.type === 'agent_done') {
+                const last = t.activities[t.activities.length - 1];
+                if (last) {
+                    last.status = 'done';
+                    if (event.files_saved > 0) last.text += ` (${event.files_saved} file${event.files_saved > 1 ? 's' : ''})`;
+                }
+                this.scrollChat();
+
+            } else if (event.type === 'build_status') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                const icon = event.status === 'success' ? '✅' : event.status === 'max_retries' ? '⚠️' : '🔧';
+                const text = event.status === 'success'
+                    ? 'Build validation passed'
+                    : event.status === 'max_retries'
+                    ? (event.message || 'Max retries reached — proceeding with best effort')
+                    : `${event.error_count} error(s) found — fixing...`;
+                t.activities.push({ icon, text, status: 'done' });
+                this.scrollChat();
+
+            } else if (event.type === 'fix_outcome') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                t.activities.push({
+                    icon: '🔄',
+                    text: `Retry #${event.attempt}: ${event.resolved_count} fixed, ${event.errors_after} remaining`,
+                    status: 'done',
+                });
+                this.scrollChat();
+
+            } else if (event.type === 'pipeline_done') {
+                if (t.activities.length > 0) t.activities[t.activities.length - 1].status = 'done';
+                const q = event.quality;
+                const scoreText = q?.score ? ` · Quality ${q.score}/10` : '';
+                t.activities.push({
+                    icon: '🎉',
+                    text: `Pipeline complete — ${event.total_files} files, ${event.total_tokens} tokens${scoreText}`,
+                    status: 'done',
+                });
+                this.completeCurrentTurn(
+                    `✅ Autonomous pipeline complete — ${event.total_files} file(s) generated using the full 10-agent build loop.`,
+                    '',
+                    t.files,
+                );
+                this.scrollChat();
 
             } else if (event.type === 'error') {
                 this.completeCurrentTurn('❌ ' + (event.message || 'Something went wrong.'), '', [], true);
