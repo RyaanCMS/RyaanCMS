@@ -76,8 +76,10 @@ class AIBuilderController extends Controller
 
         $messages = $conversation->messages()->get();
 
+        $activeProviders = $providers;
+
         return view('builder.show', compact(
-            'project', 'files', 'providers', 'conversations',
+            'project', 'files', 'providers', 'activeProviders', 'conversations',
             'conversation', 'messages', 'aiProviders', 'templates', 'selectedTemplateKey'
         ));
     }
