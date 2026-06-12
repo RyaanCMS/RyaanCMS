@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.91",
+    "latest": "1.1.92",
     "versions": [
         {
             "version": "1.0.0",
@@ -1127,6 +1127,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.90",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.92",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "docs: expand Contributor Roadmap to 28 roles across 9 tiers\n\n- 4 contributor categories: Business, Intelligence, Technical, Ecosystem\n- Tier 1 Intelligence: Domain Brains (full domain table), Blueprints, Problem-Solution Library, Question Packs\n- Tier 2 Assets: Modules, Components, Workflows, Integration Packs (new), Reports\n- Tier 3 Intelligence Growth: Error Library, Validation Library, Compliance Packs, Security Packs\n- Tier 4 AI Cost Reduction: Solution Memory, Asset Coverage, Asset Composer\n- Tier 5 Data: Outcome Database, Success Patterns\n- Tier 6 Marketplace: Asset Creators, Marketplace Reviews\n- Tier 7 DX: Documentation, Testing, DevOps & Infrastructure (new)\n- Tier 8 Future Moat: Business DNA, Industry Intelligence, Country Intelligence Packs (new)\n- Tier 9 Community: Agency Contributors, Translation & Localization\n- 28-row Contribution Index table with tier, stars, contributor type\n- Good First Contributions: top 5 with rationale\n- Contribution Priority matrix: Critical/High/Medium/Long-Term\n- Expanded Final Goal: 200+ Country Intelligence Packs added",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.92/ryaancms-v1.1.92-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.91",
             "critical": false,
             "file_count": null
         }
