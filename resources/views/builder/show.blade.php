@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', $project->name.' — Builder')
 @section('header', $project->name)
-@section('main-class', '')
+@section('main-class', 'builder-noPad')
 
 @section('header-actions')
 <div class="flex items-center space-x-2">
@@ -177,6 +177,11 @@
         max-width: 100% !important;
         border-right: none !important;
     }
+}
+/* Builder: strip the layout's default p-6 so the builder fills the screen edge-to-edge */
+main.main-content.builder-noPad {
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 </style>
 @endpush
@@ -384,16 +389,6 @@
                 </button>
             </div>
 
-            @php
-                $activeProviders = auth()->user()->aiProviders()->where('is_active', true)->get();
-            @endphp
-            @if($activeProviders->isEmpty() && !config('ai.providers.claude.api_key') && !config('ai.providers.openai.api_key'))
-            <div class="mx-3 mb-2 px-3 py-2 rounded-xl flex items-start gap-2.5"
-                 style="background:#fffbeb; border:1px solid #fde68a;">
-                <span class="text-base flex-shrink-0 mt-0.5">⚠️</span>
-                <span class="text-xs leading-relaxed" style="color:#92400e;">No AI provider configured. <a href="{{ route('settings.index') }}#ai" class="font-semibold underline">Add an API key in Settings</a> to unlock AI building.</span>
-            </div>
-            @endif
         </div>
 
         <!-- Activity Feed -->
@@ -911,6 +906,19 @@
                       style="color:#a16207;background:#fef9c3;border-color:#fde68a;">Template source</span>
             </div>
 
+            <!-- Browser chrome: dots + address bar (preview visible) -->
+            <div x-show="viewMode !== 'editor'" x-cloak class="flex items-center gap-2 ml-2">
+                <div class="flex items-center space-x-1">
+                    <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                </div>
+                <div class="bg-gray-800 rounded px-2.5 py-0.5 text-xs text-gray-500 font-mono" style="min-width:130px;text-align:center;">localhost / preview</div>
+                <span class="flex items-center gap-1 text-xs text-green-400 font-medium">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>Live
+                </span>
+            </div>
+
             <div class="flex-1"></div>
 
             <!-- Refresh preview -->
@@ -960,21 +968,6 @@
                     'flex-1':  viewMode === 'preview'
                  }"
                  class="flex flex-col overflow-hidden bg-white">
-                <!-- Preview header bar -->
-                <div class="flex items-center px-3 py-1.5 bg-gray-900 border-b border-gray-800 flex-shrink-0">
-                    <div class="flex items-center space-x-1.5 mr-3">
-                        <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
-                    </div>
-                    <div class="flex-1 bg-gray-800 rounded-md px-2.5 py-1 text-xs text-gray-500 font-mono text-center mx-4 max-w-xs">
-                        localhost / preview
-                    </div>
-                    <div class="flex items-center space-x-1 ml-auto">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                        <span class="text-xs text-green-400 font-medium">Live</span>
-                    </div>
-                </div>
                 <!-- iframe -->
                 <div class="flex-1 relative overflow-hidden">
                     <iframe id="previewFrame" class="absolute inset-0 w-full h-full border-0"
