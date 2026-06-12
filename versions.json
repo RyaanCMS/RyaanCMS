@@ -1,6 +1,6 @@
 {
     "product": "RyaanCMS",
-    "latest": "1.1.88",
+    "latest": "1.1.89",
     "versions": [
         {
             "version": "1.0.0",
@@ -1091,6 +1091,18 @@
             "requires_migration": true,
             "min_php": "8.2",
             "min_from_version": "1.1.87",
+            "critical": false,
+            "file_count": null
+        },
+        {
+            "version": "1.1.89",
+            "type": "feature",
+            "released_at": "2026-06-12",
+            "changelog": "feat: add Domain Intelligence First Architecture to AI system prompt\n\n- Domain Brain Law: consult domain intelligence pack before any AI generation\n- 12 domains covered: LMS, Hospital, HRM, eCommerce, CRM, SaaS, Inventory,\n  Restaurant, Accounting, School, Real Estate, POS\n- Domain correction targets: exact validation/fix rules per entity per domain\n- Domain permission packs: predefined RBAC roles per domain\n- Domain status flow machines: enforced state transitions per entity\n- Domain report standards: auto-suggested reports per domain\n- Domain compliance rules: privacy, double-entry, isolation, idempotency\n- Target: 80-95% corrections resolved zero-token from Domain Intelligence",
+            "download_url": "https://github.com/RyaanCMS/RyaanCMS/releases/download/v1.1.89/ryaancms-v1.1.89-cpanel.zip",
+            "requires_migration": true,
+            "min_php": "8.2",
+            "min_from_version": "1.1.88",
             "critical": false,
             "file_count": null
         }
