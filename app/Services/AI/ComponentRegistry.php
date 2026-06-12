@@ -2,6 +2,8 @@
 
 namespace App\Services\AI;
 
+use App\Services\AI\ConfidenceEngine;
+
 /**
  * Component Registry — zero-AI component retrieval.
  *
@@ -75,6 +77,49 @@ class ComponentRegistry
                 return isset($this->components[$key]) ? $key : null;
             }
         }
+        return null;
+    }
+
+    /**
+     * Same as matchComponent but returns a full confidence payload.
+     * Use this when you need the reason + score alongside the key.
+     */
+    public function matchWithConfidence(string $prompt): ?array
+    {
+        $lower = strtolower($prompt);
+        foreach ($this->triggerKeywords as $phrase => $key) {
+            if (!isset($this->components[$key])) continue;
+
+            if (str_contains($lower, $phrase)) {
+                $engine = new ConfidenceEngine();
+                return [
+                    'key'        => $key,
+                    'component'  => $this->components[$key],
+                    'confidence' => $engine->forComponent(
+                        'exact_keyword',
+                        $key,
+                        $this->tokensSaved($key),
+                    ),
+                ];
+            }
+        }
+
+        // Try partial match via search
+        $results = $this->search($prompt);
+        if (!empty($results)) {
+            $key    = array_key_first($results);
+            $engine = new ConfidenceEngine();
+            return [
+                'key'        => $key,
+                'component'  => $results[$key],
+                'confidence' => $engine->forComponent(
+                    'search_result',
+                    $key,
+                    $this->tokensSaved($key),
+                ),
+            ];
+        }
+
         return null;
     }
 

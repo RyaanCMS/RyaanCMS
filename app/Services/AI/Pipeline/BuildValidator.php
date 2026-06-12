@@ -14,12 +14,13 @@ use App\Models\ProjectFile;
  *  3. Missing closing braces (rough brace-balance check)
  *  4. Missing class declarations in files that should have them
  *  5. Route file references to non-existent controller classes
+ *  6. Business rules coverage — domain rules present in generated code
  */
 class BuildValidator
 {
     private const PHP_BINARY = 'C:\\laragon\\bin\\php\\php-8.3.30-Win32-vs16-x64\\php.exe';
 
-    public function validate(Project $project, array $filePaths): array
+    public function validate(Project $project, array $filePaths, string $domain = ''): array
     {
         $errors = [];
 
@@ -38,6 +39,12 @@ class BuildValidator
                 $routeErrors = $this->validateRouteReferences($path, $pf->content, $project);
                 $errors      = array_merge($errors, $routeErrors);
             }
+        }
+
+        // Business rules coverage check (soft warnings, non-blocking)
+        if ($domain) {
+            $ruleWarnings = $this->validateBusinessRules($project, $filePaths, $domain);
+            $errors       = array_merge($errors, $ruleWarnings);
         }
 
         return $errors;
@@ -142,6 +149,90 @@ class BuildValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * Business rules coverage check.
+     *
+     * For each domain rule, we define the code-level concept that MUST appear
+     * in at least one generated file. Missing concepts become 'rule_violation'
+     * warnings (type = 'rule_warning') — soft, non-blocking — so the DebuggerAgent
+     * can act on them in the fix loop.
+     */
+    public function validateBusinessRules(Project $project, array $filePaths, string $domain): array
+    {
+        $rules = config("kb.business_rules.{$domain}", []);
+        if (empty($rules)) return [];
+
+        // Rule key → code concept keywords that should appear in generated PHP
+        $conceptMap = [
+            // ecommerce
+            'stock_lock_on_order'        => ['stock', 'inventory', 'quantity', 'reserve'],
+            'stock_restore_on_cancel'    => ['cancel', 'restore', 'stock', 'quantity'],
+            'payment_before_fulfillment' => ['payment', 'paid', 'status', 'fulfil'],
+            'price_at_order_time'        => ['price', 'unit_price', 'order_item'],
+            'order_status_flow'          => ['status', 'pending', 'confirmed', 'shipped'],
+            'coupon_once_per_user'       => ['coupon', 'used', 'usage'],
+            // accounting
+            'double_entry_required'      => ['debit', 'credit', 'journal', 'entry'],
+            'immutable_posted_entries'   => ['posted', 'void', 'immutable', 'locked'],
+            'audit_every_change'         => ['audit', 'log', 'history'],
+            'period_lock'                => ['period', 'closed', 'fiscal'],
+            // hrm
+            'payroll_immutable'          => ['payroll', 'published', 'void'],
+            'leave_balance_check'        => ['leave', 'balance', 'check'],
+            'attendance_before_payroll'  => ['attendance', 'payroll', 'period'],
+            // inventory
+            'no_negative_stock'          => ['stock', 'quantity', 'negative', 'backorder'],
+            'grn_before_stock_increase'  => ['grn', 'goods', 'received', 'stock'],
+            // hospital
+            'patient_data_privacy'       => ['patient', 'auth', 'permission', 'policy'],
+            'prescription_by_doctor_only'=> ['prescription', 'doctor', 'policy'],
+            'billing_after_service'      => ['bill', 'unpaid', 'discharge', 'payment'],
+            // saas
+            'tenant_data_isolation'      => ['tenant', 'tenant_id', 'scope'],
+            'feature_limit_enforce'      => ['plan', 'limit', 'feature', 'quota'],
+            // restaurant
+            'kitchen_order_flow'         => ['order', 'kitchen', 'status', 'table'],
+            // real estate
+            'property_status_flow'       => ['property', 'status', 'available', 'sold'],
+        ];
+
+        // Collect all PHP content into one searchable blob for this project's files
+        $allContent = '';
+        foreach ($filePaths as $path) {
+            if (strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'php') continue;
+            $pf = ProjectFile::where('project_id', $project->id)->where('path', $path)->first();
+            if ($pf) $allContent .= ' ' . strtolower($pf->content);
+        }
+
+        if (empty(trim($allContent))) return [];
+
+        $warnings = [];
+        foreach ($rules as $ruleKey => $ruleDescription) {
+            $concepts = $conceptMap[$ruleKey] ?? [];
+            if (empty($concepts)) continue;
+
+            // Rule passes if at least one concept keyword appears in the codebase
+            $found = false;
+            foreach ($concepts as $keyword) {
+                if (str_contains($allContent, $keyword)) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $warnings[] = [
+                    'file'    => "domain/{$domain}",
+                    'type'    => 'rule_warning',
+                    'rule'    => $ruleKey,
+                    'message' => "Business rule not enforced: [{$ruleKey}] — {$ruleDescription}",
+                ];
+            }
+        }
+
+        return $warnings;
     }
 
     /**

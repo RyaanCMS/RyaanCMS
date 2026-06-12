@@ -23,17 +23,20 @@ class BlueprintService
     private BlueprintGenomeEngine $genomeEngine;
     private BlueprintLibrary $library;
     private ProblemMapper $problemMapper;
+    private ConfidenceEngine $confidence;
 
     public function __construct(
         ?IntentEngine $intentEngine = null,
         ?BlueprintGenomeEngine $genomeEngine = null,
         ?BlueprintLibrary $library = null,
-        ?ProblemMapper $problemMapper = null
+        ?ProblemMapper $problemMapper = null,
+        ?ConfidenceEngine $confidence = null,
     ) {
         $this->intentEngine  = $intentEngine  ?? new IntentEngine();
         $this->genomeEngine  = $genomeEngine  ?? new BlueprintGenomeEngine();
         $this->library       = $library       ?? new BlueprintLibrary();
         $this->problemMapper = $problemMapper ?? new ProblemMapper();
+        $this->confidence    = $confidence    ?? new ConfidenceEngine();
     }
 
     /**
@@ -174,6 +177,13 @@ class BlueprintService
             $genome['roles']    ?? []
         )));
 
+        // Confidence metadata for AI-discovery path
+        $blueprint['confidence'] = $this->confidence->forBlueprint(
+            'ai_discovery',
+            $intent['confidence'] ?? 0.7,
+            $blueprint,
+        );
+
         return $blueprint;
     }
 
@@ -245,6 +255,14 @@ class BlueprintService
             $blueprint['integrations'],
             $genome['integrations'] ?? []
         )));
+
+        // Attach confidence metadata — surfaced to Trust Engine and OutcomeRecord
+        $blueprintSource = $blueprint['source'] ?? 'blueprint_library';
+        $blueprint['confidence'] = $this->confidence->forBlueprint(
+            $blueprintSource,
+            $intent['confidence'] ?? 0.9,
+            $blueprint,
+        );
 
         return $blueprint;
     }

@@ -6,6 +6,7 @@ use App\Services\AI\AIManager;
 use App\Services\AI\AIRouter;
 use App\Services\AI\BlueprintGenomeEngine;
 use App\Services\AI\BlueprintService;
+use App\Services\AI\ConfidenceEngine;
 use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\DesignVariantService;
@@ -38,6 +39,7 @@ class AIServiceProvider extends ServiceProvider
         // Genome System — zero-token intelligence layer
         $this->app->singleton(IntentEngine::class, fn() => new IntentEngine());
         $this->app->singleton(BlueprintGenomeEngine::class, fn() => new BlueprintGenomeEngine());
+        $this->app->singleton(ConfidenceEngine::class, fn() => new ConfidenceEngine());
 
         $this->app->singleton(SeniorDevKnowledgeBase::class, fn() => new SeniorDevKnowledgeBase());
         $this->app->singleton(WisdomEngine::class, fn() => new WisdomEngine());
@@ -64,6 +66,9 @@ class AIServiceProvider extends ServiceProvider
         $this->app->singleton(BlueprintService::class, fn($app) => new BlueprintService(
             $app->make(IntentEngine::class),
             $app->make(BlueprintGenomeEngine::class),
+            null,
+            null,
+            $app->make(ConfidenceEngine::class),
         ));
 
         $this->app->singleton(CodeGeneratorService::class, fn($app) => new CodeGeneratorService(

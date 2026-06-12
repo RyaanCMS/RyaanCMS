@@ -6,6 +6,7 @@ use App\Models\OutcomeRecord;
 use App\Models\PipelineRun;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\AI\ConfidenceEngine;
 use App\Services\AI\AIManager;
 use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\KnowledgeBaseService;
@@ -83,6 +84,16 @@ class PipelineOrchestrator
         $context['security_checklist'] = $this->seniorKb->getSecurityChecklist();
         $context['anti_patterns']      = $this->seniorKb->getAntiPatternsFor($appType);
         $context['estimation']         = $this->seniorKb->getEstimate($appType);
+
+        // Build confidence scores for every pre-AI decision
+        $confidenceEngine = new ConfidenceEngine();
+        $domainConf       = $this->kb->matchAppTypeWithConfidence($run->prompt);
+        $rulesConfig      = config("kb.business_rules.{$appType}", []);
+        $context['confidence_scores'] = $confidenceEngine->aggregate([
+            'domain'   => $domainConf['domain_confidence'],
+            'workflow' => $domainConf['workflow_confidence'],
+            'rules'    => $confidenceEngine->forRules($appType, count($rulesConfig)),
+        ]);
 
         // Callable that saves a file and returns saved file data
         $saveFile = fn(Project $p, string $path, string $content) =>
@@ -239,7 +250,7 @@ class PipelineOrchestrator
                 'attempt' => $retry,
             ]);
 
-            $errorsNow = $this->validator->validate($project, $allGeneratedFiles);
+            $errorsNow = $this->validator->validate($project, $allGeneratedFiles, $context['kb_app_type'] ?? '');
 
             // ── LEARN: Record outcomes from the previous fix attempt ──────────
             if ($retry > 0 && !empty($errorsBefore)) {

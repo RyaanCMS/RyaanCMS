@@ -3,6 +3,7 @@
 namespace App\Services\AI;
 
 use App\Models\KbPromptCache;
+use App\Services\AI\ConfidenceEngine;
 use Illuminate\Support\Str;
 
 /**
@@ -490,6 +491,38 @@ KB;
         if (empty($scores)) return 'default';
         arsort($scores);
         return array_key_first($scores);
+    }
+
+    /**
+     * matchAppType + confidence score for the matched domain.
+     * Returns ['domain' => string, 'confidence' => array].
+     */
+    public function matchAppTypeWithConfidence(string $prompt): array
+    {
+        $domain = $this->matchAppType($prompt);
+
+        // Determine source for confidence calculation
+        $genomeIndustry = $this->intentEngine->quickIndustry($prompt);
+        $source = $genomeIndustry ? 'genome_engine' : 'keyword_scan';
+        $intentScore = $genomeIndustry ? 0.88 : 0.70;
+
+        $engine   = new ConfidenceEngine();
+        $workflow = $this->getWorkflow($domain);
+        $steps    = $workflow ? substr_count($workflow, '→') + 1 : 0;
+
+        return [
+            'domain'               => $domain,
+            'workflow_confidence'  => $engine->forWorkflow($domain, $workflow !== null, $steps),
+            'domain_confidence'    => [
+                'score'   => $intentScore,
+                'percent' => (int) ($intentScore * 100),
+                'source'  => $source,
+                'ai_used' => false,
+                'reason'  => $source === 'genome_engine'
+                    ? "Domain '{$domain}' matched via genome engine (zero AI tokens)"
+                    : "Domain '{$domain}' matched via keyword scan of domain packs",
+            ],
+        ];
     }
 
     /**
