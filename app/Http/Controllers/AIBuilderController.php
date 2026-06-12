@@ -13,6 +13,7 @@ use App\Services\AI\CodeGeneratorService;
 use App\Services\AI\ComponentRegistry;
 use App\Services\AI\MetadataCrudGenerator;
 use App\Services\AI\Pipeline\PipelineOrchestrator;
+use App\Services\AI\SmartCorrector;
 use App\Services\Template\TemplateRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -34,13 +35,14 @@ class AIBuilderController extends Controller
     private const MAX_TEMPLATE_SOURCE_CHARS = 12000;
 
     public function __construct(
-        protected AIManager           $aiManager,
-        protected CodeGeneratorService $codeGenerator,
-        protected BlueprintService    $blueprintService,
+        protected AIManager             $aiManager,
+        protected CodeGeneratorService  $codeGenerator,
+        protected BlueprintService      $blueprintService,
         protected MetadataCrudGenerator $crudGenerator,
-        protected ComponentRegistry   $componentRegistry,
-        protected TemplateRegistry    $templateRegistry,
-        protected PipelineOrchestrator $pipeline,
+        protected ComponentRegistry     $componentRegistry,
+        protected TemplateRegistry      $templateRegistry,
+        protected PipelineOrchestrator  $pipeline,
+        protected SmartCorrector        $smartCorrector,
     ) {}
 
     public function show(Request $request, Project $project)
@@ -602,10 +604,12 @@ PROMPT;
             : $userMessage;
         $visiblePrompt = $this->visiblePromptWithTemplate($project, $userMessage, $request->input('template_key'));
 
-        $usePipeline = $request->boolean('use_pipeline')
-            || $this->isComplexBuildPrompt($userMessage);
+        $useSmartCorrector = $this->smartCorrector->canHandle($userMessage, $project);
 
-        return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt, $usePipeline, $userMessage) {
+        $usePipeline = !$useSmartCorrector
+            && ($request->boolean('use_pipeline') || $this->isComplexBuildPrompt($userMessage));
+
+        return response()->stream(function () use ($request, $project, $conversation, $provider, $user, $prompt, $visiblePrompt, $usePipeline, $useSmartCorrector, $userMessage) {
             ignore_user_abort(true);
 
             $emit = function (array $event) {
@@ -613,6 +617,12 @@ PROMPT;
                 if (ob_get_level() > 0) ob_flush();
                 flush();
             };
+
+            // Smart KB path — zero AI tokens, instant response from domain knowledge
+            if ($useSmartCorrector) {
+                $this->smartCorrector->handle($userMessage, $project, $conversation, $emit);
+                return;
+            }
 
             // Pre-flight: verify an AI provider is available before entering the pipeline.
             // streamGenerate() handles null providers gracefully (zero-cost path); the pipeline
