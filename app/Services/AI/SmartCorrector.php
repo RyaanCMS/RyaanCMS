@@ -25,7 +25,7 @@ class SmartCorrector
 {
     // ── Intent detection patterns ─────────────────────────────────────────────
 
-    private const INTENTS = [
+    private function intents(): array { return [
         'list_built'       => ['show files', 'list files', 'what was built', 'what have you built', 'what did you build', 'show generated', 'what modules', 'list pages', 'show pages', 'what pages', 'what was generated'],
         'suggest_sections' => ['add more section', 'add more page', 'add more feature', 'add more module', 'suggest section', 'suggest feature', 'more section', 'more page', 'more feature', 'more module', 'what else', 'additional section', 'additional feature', 'relevant section', 'related feature', 'what section', 'what feature', 'show feature'],
         'fix_issue'        => ['fix ', 'broken', 'not working', 'doesnt work', "doesn't work", 'wrong', 'error in', 'bug in', 'issue with', 'problem with', 'failing', 'fails', 'incorrect', 'not correct', 'not saving', 'not loading', 'not showing'],
@@ -35,11 +35,11 @@ class SmartCorrector
         'how_to'           => ['how to', 'how do i', 'how can i', 'how should i', 'best way to', 'implement ', 'how implement'],
         'add_search'       => ['add search', 'search for', 'add filter', 'filter by', 'search in', 'enable search', 'add filtering'],
         'add_export'       => ['export ', 'add export', 'download ', 'to excel', 'to pdf', 'to csv', 'generate report', 'export report'],
-    ];
+    ]; }
 
     // ── Domain keyword → canonical key ───────────────────────────────────────
 
-    private const DOMAIN_KEYWORDS = [
+    private function domainKeywords(): array { return [
         'lms' => 'lms', 'learning' => 'lms', 'course' => 'lms', 'elearning' => 'lms', 'e-learning' => 'lms', 'moodle' => 'lms',
         'school' => 'school', 'university' => 'school', 'college' => 'school', 'student' => 'school',
         'ecommerce' => 'ecommerce', 'e-commerce' => 'ecommerce', 'shop' => 'ecommerce', 'store' => 'ecommerce', 'marketplace' => 'ecommerce',
@@ -52,12 +52,12 @@ class SmartCorrector
         'accounting' => 'accounting', 'finance' => 'accounting', 'ledger' => 'accounting',
         'real estate' => 'realestate', 'property' => 'realestate', 'rental' => 'realestate',
         'pos' => 'pos', 'retail' => 'pos', 'cashier' => 'pos',
-    ];
+    ]; }
 
     // ── Domain knowledge base ─────────────────────────────────────────────────
     // Each domain: label, entities[], corrections{}, status_flows{}, sections{}
 
-    private const DOMAINS = [
+    private function domains(): array { return [
 
         // ════════════════════════════════════════════════════════════════
         'lms' => [
@@ -545,7 +545,7 @@ class SmartCorrector
                 ],
             ],
         ],
-    ];
+    ]; }
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -574,7 +574,7 @@ class SmartCorrector
         $lower  = strtolower(trim($prompt));
         $intent = $this->detectIntent($lower);
         $domain = $this->detectDomain($lower, $project);
-        $kb     = $domain ? (self::DOMAINS[$domain] ?? null) : null;
+        $kb     = $domain ? ($this->domains()[$domain] ?? null) : null;
 
         $conversation->addMessage('user', $prompt, []);
 
@@ -618,7 +618,7 @@ class SmartCorrector
 
     private function detectIntent(string $lower): ?string
     {
-        foreach (self::INTENTS as $intent => $patterns) {
+        foreach ($this->intents() as $intent => $patterns) {
             foreach ($patterns as $pattern) {
                 if (str_contains($lower, $pattern)) return $intent;
             }
@@ -633,15 +633,15 @@ class SmartCorrector
         // 1. Project blueprint is the primary source
         $bp      = $project->blueprint ?? [];
         $appType = strtolower($bp['app_type'] ?? $bp['domain'] ?? '');
-        if ($appType && isset(self::DOMAINS[$appType])) return $appType;
-        if ($appType && isset(self::DOMAIN_KEYWORDS[$appType])) {
-            $mapped = self::DOMAIN_KEYWORDS[$appType];
-            if (isset(self::DOMAINS[$mapped])) return $mapped;
+        if ($appType && isset($this->domains()[$appType])) return $appType;
+        if ($appType && isset($this->domainKeywords()[$appType])) {
+            $mapped = $this->domainKeywords()[$appType];
+            if (isset($this->domains()[$mapped])) return $mapped;
         }
 
         // 2. Prompt keywords as fallback
-        foreach (self::DOMAIN_KEYWORDS as $kw => $domain) {
-            if (str_contains($lower, $kw) && isset(self::DOMAINS[$domain])) return $domain;
+        foreach ($this->domainKeywords() as $kw => $domain) {
+            if (str_contains($lower, $kw) && isset($this->domains()[$domain])) return $domain;
         }
 
         return null;
@@ -760,7 +760,7 @@ class SmartCorrector
     private function respondBusinessRules(string $domain): ?string
     {
         $rules = config("kb.business_rules.{$domain}", []);
-        $kb    = self::DOMAINS[$domain] ?? null;
+        $kb    = $this->domains()[$domain] ?? null;
         $label = $kb['label'] ?? ucfirst($domain);
 
         if (empty($rules)) {
